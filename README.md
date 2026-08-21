@@ -96,6 +96,25 @@ cd nullecho && python3 -m http.server 4886
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)
 
+## On copying, and on trust
+
+This is MIT licensed. You may fork it, rename it, and ship it — that's deliberate. A privacy tool
+nobody can audit gets distrusted on sight, and being auditable matters more here than being
+exclusive.
+
+**But note what actually goes wrong in this category.** Every documented browser-extension hijack —
+Nano Adblocker, The Great Suspender, Cyberhaven — took the **name, the store listing, or the
+developer account**. None of them were harmed by someone reading their source. So:
+
+- **This project will not be sold or transferred to a new owner.** The most common way a trusted
+  extension turns malicious is an acquisition followed by a quiet update. If you ever see "Nullecho"
+  published by someone else, or this repo transferred, treat it as compromised and check the git
+  history — provenance is public and timestamped.
+- **The only official sources** are this repository and store listings linked from it. A build from
+  anywhere else is not ours.
+- **If you fork it, please rename it.** Not for our benefit — so that users can tell whose judgment
+  they're trusting. The code is the easy part; the decisions in `docs/DECISIONS.md` are the product.
+
 ## Contributing
 
 Try to break it. If you find a fingerprinting method it misses, a site it breaks, or a way to detect
