@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nullecho — breakage battery</title>
+<!--
+  Runs the REAL ext/src/shim.js against a battery of real-world workloads
+  (canvas render, WebGL, chart, font layout, audio, forms, media queries),
+  with a cross-OS Windows persona active. This is the "does the shim break
+  real pages" half of docs/BREAKAGE-TESTING.md, done with the real handshake.
+  Not a substitute for a true unpacked install (no DNR, no service worker) —
+  but it exercises the layer that actually breaks sites.
+-->
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--warn:#d29922;--bad:#f85149;--mono:ui-monospace,Menlo,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--bg);color:var(--text);
+       font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:16px}
+  #persona{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  td.name{font-weight:600;white-space:nowrap}
+  td.detail{font-family:var(--mono);font-size:11px;color:var(--dim);word-break:break-word}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .pill.pass{background:rgba(63,185,80,.15);color:var(--ok)}
+  .pill.warn{background:rgba(210,153,34,.15);color:var(--warn)}
+  .pill.fail{background:rgba(248,81,73,.15);color:var(--bad)}
+  #summary{margin:16px 0;padding:14px;border-radius:8px;background:var(--panel);border:1px solid var(--line);font-size:15px}
+  canvas{border:1px solid var(--line);margin:4px}
+  .stage{position:absolute;left:-9999px;top:-9999px}
+</style>
+</head>
+<body>
+<h1>Nullecho — breakage battery</h1>
+<div class="sub">Real <code>shim.js</code> + Windows persona on this host. Does patching break real workloads?</div>
+<div id="persona">persona: (booting…)</div>
+<div id="summary">Running…</div>
+<table><thead><tr><th>Workload</th><th>Result</th><th>Detail</th></tr></thead><tbody id="rows"></tbody></table>
+<div class="stage" id="stage"></div>
+
+<!-- ── handshake: register the status listener, THEN load the shim ─────────── -->
+<script>
+  window.__testSalt = 'nullecho-shim-test-0001';   // → win11-chrome-iris-xe (cross-OS on a Mac)
+  window.__protocolLog = [];
+  const PERSONA = {"id":"win11-chrome-iris-xe","weight":31,"platform":"Win32","os":"windows-11","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36","uaData":{"platform":"Windows","platformVersion":"15.0.0","architecture":"x86","bitness":"64","model":"","wow64":false},"gpu":{"vendor":"Google Inc. (Intel)","renderer":"ANGLE (Intel, Intel(R) Iris(TM) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)","unmaskedVendor":"Google Inc. (Intel)","maxTextureSize":16384},"cores":8,"memory":16,"screen":{"width":1536,"height":864,"availHeight":816,"colorDepth":24,"dpr":1.25},"fonts":"windows-11","fontList":["Arial","Arial Black","Bahnschrift","Calibri","Cambria","Candara","Comic Sans MS","Consolas","Constantia","Corbel","Courier New","Ebrima","Franklin Gothic Medium","Gabriola","Gadugi","Georgia","Impact","Ink Free","Javanese Text","Leelawadee UI","Lucida Console","Lucida Sans Unicode","Malgun Gothic","Marlett","Microsoft Himalaya","Microsoft JhengHei","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Sans Serif","Microsoft Tai Le","Microsoft YaHei","Microsoft Yi Baiti","MingLiU-ExtB","Mongolian Baiti","MS Gothic","MV Boli","Myanmar Text","Nirmala UI","Palatino Linotype","Segoe MDL2 Assets","Segoe Print","Segoe Script","Segoe UI","Segoe UI Emoji","Segoe UI Historic","Segoe UI Symbol","SimSun","Sitka","Sylfaen","Symbol","Tahoma","Times New Roman","Trebuchet MS","Verdana","Webdings","Wingdings","Yu Gothic"],"seed":1100970357,"noise":{"canvas":0.31170259905047715,"audio":0.21217705612070858,"webgl":0.16714480542577803}};
+
+  window.__handshakeNonce = null;
+  document.addEventListener('nullecho:status', (ev) => {
+    let d = null; try { d = JSON.parse(ev.detail); } catch { return; }
+    window.__protocolLog.push(d);
+    if (!d || d.phase !== 'boot' || d.channel !== 'shim') return;
+    if (window.__handshakeNonce) return;
+    window.__handshakeNonce = d.nonce || null;
+    document.dispatchEvent(new CustomEvent('nullecho:persona', {
+      detail: JSON.stringify({ ok:true, enabled:true, site:'localhost', dev:true, persona:PERSONA, nonce:d.nonce })
+    }));
+  });
+</script>
+<script src="/ext/src/shim.js"></script>
+
+<!-- ── the battery: runs after the shim has applied ───────────────────────── -->
+<script>
+(function(){
+  const rows = document.getElementById('rows');
+  const results = [];
+  const add = (name, status, detail) => {
+    results.push({name, status, detail});
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="name">${name}</td>`
+      + `<td><span class="pill ${status}">${status.toUpperCase()}</span></td>`
+      + `<td class="detail"></td>`;
+    tr.querySelector('.detail').textContent = detail;
+    rows.appendChild(tr);
+  };
+  const stage = document.getElementById('stage');
+
+  // Confirm the shim actually applied before we judge anything.
+  const dev = window.__nullechoDev;
+  document.getElementById('persona').textContent =
+    'persona: ' + (dev && dev.personaId || '(NOT APPLIED)') +
+    ' · platform=' + navigator.platform +
+    ' · cores=' + navigator.hardwareConcurrency +
+    ' · applied=' + !!(dev && dev.upgraded);
+
+  const shimActive = dev && dev.upgraded && navigator.platform === 'Win32';
+
+  // 0. Gate: did the shim boot and apply the persona?
+  add('shim boot + persona applied',
+      shimActive ? 'pass' : 'fail',
+      shimActive ? `platform now Win32, renderer spoofed, persona ${dev.personaId}`
+                 : 'shim did NOT apply — every result below is about an unshielded page');
+
+  // 1. Canvas 2D: draw, read back, must be non-blank and stable.
+  try {
+    const c = document.createElement('canvas'); c.width=200; c.height=80; stage.appendChild(c);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle='#2196f3'; ctx.fillRect(0,0,200,80);
+    ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Checkout $49.99', 8, 45);
+    const px = ctx.getImageData(0,0,200,80).data;
+    let ink=0; for(let i=0;i<px.length;i+=4){ if(px[i]||px[i+1]||px[i+2]) ink++; }
+    const a=c.toDataURL(), b=c.toDataURL();
+    add('canvas 2D render + readback',
+        ink>1000 && a===b ? 'pass' : (ink>1000?'warn':'fail'),
+        `inked px ${ink}/16000 · stable=${a===b}`);
+  } catch(e){ add('canvas 2D render + readback','fail',String(e.message||e)); }
+
+  // 2. WebGL: context, clear, renderer string spoofed, no throw.
+  try {
+    const c=document.createElement('canvas'); c.width=64;c.height=64; stage.appendChild(c);
+    const gl=c.getContext('webgl')||c.getContext('experimental-webgl');
+    if(!gl) throw new Error('no webgl context');
+    gl.clearColor(0.1,0.5,0.9,1); gl.clear(gl.COLOR_BUFFER_BIT);
+    const dbg=gl.getExtension('WEBGL_debug_renderer_info');
+    const r=dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
+    const px=new Uint8Array(4); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+    const cleared = px[2]>150; // blue channel high after clear
+    const spoofed = /Iris|Intel|D3D11/.test(r);
+    add('WebGL context + render',
+        cleared && spoofed ? 'pass' : (cleared?'warn':'fail'),
+        `renderer="${String(r).slice(0,50)}" · pixel=${[...px]} · cleared=${cleared}`);
+  } catch(e){ add('WebGL context + render','fail',String(e.message||e)); }
+
+  // 3. Chart workload: many canvas ops like a dashboard, then read back.
+  try {
+    const c=document.createElement('canvas'); c.width=300;c.height=120; stage.appendChild(c);
+    const ctx=c.getContext('2d'); ctx.fillStyle='#161b22'; ctx.fillRect(0,0,300,120);
+    ctx.strokeStyle='#3fb950'; ctx.beginPath();
+    for(let x=0;x<300;x+=6){ const y=60+40*Math.sin(x/20); x===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.stroke();
+    const px=ctx.getImageData(0,0,300,120).data; let g=0;
+    for(let i=1;i<px.length;i+=4){ if(px[i]>100) g++; }
+    add('chart / dashboard canvas', g>50?'pass':'fail', `green line px ${g}`);
+  } catch(e){ add('chart / dashboard canvas','fail',String(e.message||e)); }
+
+  // 4. Font layout: measure real text; layout must not collapse (0) or explode.
+  try {
+    const el=document.createElement('div');
+    el.style.cssText='position:absolute;left:-9999px;font:16px Arial;white-space:nowrap';
+    el.textContent='The quick brown fox jumps — Checkout, Sign in, $1,234.56';
+    document.body.appendChild(el);
+    const w=el.offsetWidth, h=el.offsetHeight;
+    document.body.removeChild(el);
+    const sane = w>200 && w<900 && h>10 && h<40;
+    add('font measurement / layout', sane?'pass':'fail', `text box ${w}×${h}px (sane range 200–900 × 10–40)`);
+  } catch(e){ add('font measurement / layout','fail',String(e.message||e)); }
+
+  // 5. A Windows-only font the persona claims should measure PRESENT; a mac-only
+  //    font should measure ABSENT — internal consistency, no layout break.
+  try {
+    const meas=(f)=>{ const s=document.createElement('span');
+      s.style.cssText='position:absolute;left:-9999px;font-size:72px';
+      s.style.fontFamily=`"${f}",monospace`; s.textContent='mmmmmmmmmmlli';
+      document.body.appendChild(s); const w=s.offsetWidth; document.body.removeChild(s); return w; };
+    const mono=meas('__no_such_font__');
+    const segoe=meas('Segoe UI')!==mono;      // Windows font: persona says present
+    const helv=meas('Helvetica Neue')!==mono; // macOS font: persona says absent
+    add('font spoof consistency',
+        segoe && !helv ? 'pass' : 'warn',
+        `Segoe UI present=${segoe} (want true) · Helvetica Neue present=${helv} (want false)`);
+  } catch(e){ add('font spoof consistency','fail',String(e.message||e)); }
+
+  // 6. AudioContext: must construct and run (many sites use it for UI sounds/WebRTC).
+  try {
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) throw new Error('no AudioContext');
+    const ac=new AC(); const osc=ac.createOscillator(); const g=ac.createGain();
+    osc.connect(g); g.connect(ac.destination); g.gain.value=0;
+    osc.start(); osc.stop(ac.currentTime+0.01);
+    add('AudioContext construct + graph','pass',`state=${ac.state} sampleRate=${ac.sampleRate}`);
+    ac.close && ac.close();
+  } catch(e){ add('AudioContext construct + graph','fail',String(e.message||e)); }
+
+  // 7. Form input: type + read back (checkout fields).
+  try {
+    const inp=document.createElement('input'); inp.type='text'; stage.appendChild(inp);
+    inp.value='4242 4242 4242 4242'; inp.dispatchEvent(new Event('input',{bubbles:true}));
+    add('form input value roundtrip', inp.value==='4242 4242 4242 4242'?'pass':'fail', `value="${inp.value}"`);
+  } catch(e){ add('form input value roundtrip','fail',String(e.message||e)); }
+
+  // 8. matchMedia: must answer consistently, not throw, CSS not broken.
+  try {
+    const q=['(min-width: 300px)','(prefers-color-scheme: dark)','(dynamic-range: high)',
+             '(color-gamut: p3)','(any-pointer: fine)','(resolution: 1dppx)'];
+    const ans=q.map(x=>{ try{return matchMedia(x).matches;}catch(e){return 'THREW';} });
+    const threw=ans.includes('THREW');
+    // Windows persona → these SHOULD be false/standard (no HDR, no P3, fine pointer)
+    const hdr=matchMedia('(dynamic-range: high)').matches, p3=matchMedia('(color-gamut: p3)').matches;
+    add('matchMedia answers', threw?'fail':(!hdr&&!p3?'pass':'warn'),
+        `min-width300=${ans[0]} · dynamicRangeHigh=${hdr}(want false) · gamutP3=${p3}(want false)`);
+  } catch(e){ add('matchMedia answers','fail',String(e.message||e)); }
+
+  // 9. toString stealth: patched fns must still look native.
+  try {
+    const native = HTMLCanvasElement.prototype.toDataURL.toString().includes('[native code]')
+      && Object.getOwnPropertyDescriptor(Navigator.prototype,'platform').get.toString().includes('[native code]');
+    add('patched fns report [native code]', native?'pass':'warn',
+        native?'toDataURL + platform getter look native':'a patched fn reveals itself');
+  } catch(e){ add('patched fns report [native code]','fail',String(e.message||e)); }
+
+  // 10. Illegal-invocation: calling a spoofed getter on a plain object must throw.
+  try {
+    let threw=false;
+    try { Object.getOwnPropertyDescriptor(Navigator.prototype,'platform').get.call({}); }
+    catch(e){ threw = /Illegal invocation|not.*Navigator/i.test(String(e.message||e)); }
+    add('WebIDL brand check preserved', threw?'pass':'warn',
+        threw?'spoofed getter throws on wrong receiver, like native':'getter did not throw — detectable');
+  } catch(e){ add('WebIDL brand check preserved','fail',String(e.message||e)); }
+
+  // 11. Timing sanity: canvas ops must not be catastrophically slow.
+  try {
+    const c=document.createElement('canvas'); c.width=300;c.height=200; stage.appendChild(c);
+    const ctx=c.getContext('2d'); ctx.fillText('x',1,1);
+    const t0=performance.now(); for(let i=0;i<20;i++){ ctx.getImageData(0,0,300,200); } const per=(performance.now()-t0)/20;
+    add('canvas read timing', per<15?'pass':(per<40?'warn':'fail'),
+        `${per.toFixed(2)} ms/getImageData (electron pane; real Chrome differs)`);
+  } catch(e){ add('canvas read timing','fail',String(e.message||e)); }
+
+  // ── console error watch ──
+  const errs=[]; const oerr=console.error;
+  console.error=function(){ errs.push([...arguments].join(' ')); return oerr.apply(this,arguments); };
+  setTimeout(()=>{
+    add('console errors during battery', errs.length?'warn':'pass',
+        errs.length?`${errs.length} console.error: ${errs[0].slice(0,80)}`:'none');
+    const fails=results.filter(r=>r.status==='fail').length;
+    const warns=results.filter(r=>r.status==='warn').length;
+    const s=document.getElementById('summary');
+    s.innerHTML = fails
+      ? `<b style="color:var(--bad)">${fails} FAIL</b>, ${warns} warn — a real workload broke under the shim.`
+      : warns
+        ? `<b style="color:var(--warn)">0 fail, ${warns} warn</b> — nothing broke; warnings are protection-quality notes.`
+        : `<b style="color:var(--ok)">ALL PASS</b> — no real workload broke under a cross-OS persona.`;
+    window.__batteryResults = results;
+  }, 60);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+{
+  "manifest_version": 3,
+  "name": "Nullecho",
+  "version": "0.1.0",
+  "description": "Degrades commercial ad-tech profiling: tracker blocking, Global Privacy Control, and per-origin fingerprint personas.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "nullecho@nullecho.app",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Nullecho",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "scripts": [
+      "src/background.js"
+    ],
+    "type": "module"
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "storage",
+    "alarms",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ads",
+        "enabled": true,
+        "path": "rules/ads.json"
+      },
+      {
+        "id": "analytics",
+        "enabled": true,
+        "path": "rules/analytics.json"
+      },
+      {
+        "id": "social",
+        "enabled": true,
+        "path": "rules/social.json"
+      },
+      {
+        "id": "fingerprinting",
+        "enabled": true,
+        "path": "rules/fingerprinting.json"
+      },
+      {
+        "id": "gpc",
+        "enabled": true,
+        "path": "rules/gpc.json"
+      }
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/shim-loader.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "world": "ISOLATED"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/shim.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/gpc.js"
+      ],
+      "exclude_matches": [
+        "*://*.accuweather.com/*",
+        "*://*.acmemarkets.com/*",
+        "*://*.boston.com/*",
+        "*://*.capezio.com/*",
+        "*://*.chime.com/*",
+        "*://*.costco.com/*",
+        "*://*.crunchyroll.com/*",
+        "*://*.deezer.com/*",
+        "*://*.delta.com/*",
+        "*://*.dnb.com/*",
+        "*://*.dnb.co.uk/*",
+        "*://*.dollargeneral.com/*",
+        "*://*.engadget.com/*",
+        "*://*.espn.com/*",
+        "*://*.eventbrite.com/*",
+        "*://*.filson.com/*",
+        "*://*.flyfrontier.com/*",
+        "*://*.formula1.com/*",
+        "*://*.geizhals.de/*",
+        "*://*.gladiatorgarageworks.com/*",
+        "*://*.harborfreight.com/*",
+        "*://*.hopwtr.com/*",
+        "*://*.jdsports.com/*",
+        "*://*.kkrt.com/*",
+        "*://*.lenscrafters.com/*",
+        "*://*.livewithkellyandmark.com/*",
+        "*://*.madewell.com/*",
+        "*://*.mazdausa.com/*",
+        "*://*.michaels.com/*",
+        "*://*.monsterenergy.com/*",
+        "*://*.newyorker.com/*",
+        "*://*.norton.com/*",
+        "*://*.pandora.com/*",
+        "*://*.porsche.com/*",
+        "*://*.qobuz.com/*",
+        "*://*.rivals.com/*",
+        "*://*.soundcloud.com/*",
+        "*://*.spotify.com/*",
+        "*://*.subway.com/*",
+        "*://*.techcrunch.com/*",
+        "*://*.tidal.com/*",
+        "*://*.tirerack.com/*",
+        "*://*.uber.com/*",
+        "*://*.ubereats.com/*",
+        "*://*.usaa.com/*",
+        "*://*.vimeo.com/*",
+        "*://*.visible.com/*",
+        "*://*.weather.com/*",
+        "*://*.wunderground.com/*",
+        "*://*.yahoo.com/*"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "world": "MAIN"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'none'"
+  }
+}

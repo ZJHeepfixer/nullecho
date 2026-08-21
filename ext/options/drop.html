@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DROP — Nullecho</title>
+<link rel="stylesheet" href="drop.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Nullecho · Profile hygiene</p>
+    <h1>DROP</h1>
+    <p class="lede">
+      California runs a free state platform that makes registered data brokers
+      <em>delete</em> what they hold on you. One request reaches all of them.
+    </p>
+    <p class="pull">
+      This is the only thing in Nullecho that removes data. Everything else here degrades
+      tracking or adds noise — this causes actual deletion, by law, with a fine attached.
+    </p>
+  </header>
+
+  <!-- ══ Eligibility gate ══════════════════════════════════════════════ -->
+  <section class="card" id="gate-card">
+    <h2><span class="num">1</span> Are you a California resident?</h2>
+    <p>DROP is open to California residents only. That is a statutory limit, not our choice.</p>
+
+    <div class="resident-def">
+      <p class="def-title">CalPrivacy says you are a resident if either applies:</p>
+      <ul>
+        <li>You live in California</li>
+        <li>You are <strong>domiciled in California but outside it for a temporary or transitory purpose</strong></li>
+      </ul>
+      <p class="def-title">Factors that help determine residency:</p>
+      <ul class="inline-list">
+        <li>Where your primary residence is</li>
+        <li>Which state issued your driver's licence or ID</li>
+        <li>Where you are registered to vote</li>
+      </ul>
+      <p class="fineprint">
+        Note the second bullet: some people who currently live elsewhere still qualify, if California
+        is still their domicile. A <strong>former</strong> resident who has genuinely moved and
+        re-domiciled does not. If you are unsure, read
+        <a href="https://privacy.ca.gov/drop/how-drop-works/" target="_blank" rel="noopener noreferrer">CalPrivacy's own residency guidance</a>
+        — we are not able to make that call for you.
+      </p>
+    </div>
+
+    <div class="choices" id="gate-choices">
+      <button type="button" class="choice" data-residency="ca">
+        <span class="choice-h">Yes — I'm a California resident</span>
+        <span class="choice-s">Show me the walkthrough</span>
+      </button>
+      <button type="button" class="choice" data-residency="non-ca">
+        <span class="choice-h">No</span>
+        <span class="choice-s">Show me what applies where I live</span>
+      </button>
+      <button type="button" class="choice" data-residency="unsure">
+        <span class="choice-h">Not sure</span>
+        <span class="choice-s">Show me both</span>
+      </button>
+    </div>
+
+    <p class="answered" id="gate-answered" hidden>
+      <span id="gate-answered-text"></span>
+      <button type="button" class="linkbtn" id="gate-change">change</button>
+    </p>
+  </section>
+
+  <!-- ══ Non-California path ═══════════════════════════════════════════ -->
+  <section class="card" id="non-ca" hidden>
+    <h2>You're outside California</h2>
+    <p>
+      DROP genuinely is California-only, so we won't pretend otherwise. But the useful part of your
+      situation is that the brokers are the same companies — California just gave its residents a
+      single lever to pull. Yours are individual levers. They still work.
+    </p>
+
+    <div class="alt">
+      <h3>1. Check whether your state has a deletion right</h3>
+      <p>
+        As of 2026, 20 states have comprehensive consumer privacy laws:
+        California, Colorado, Connecticut, Delaware, Indiana, Iowa, Kentucky, Maryland, Minnesota,
+        Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah,
+        Virginia and Washington.
+      </p>
+      <p>
+        <strong>Most</strong> of these include a right to request deletion, but the scope, the
+        exemptions and who counts as a covered business differ by state — so check yours rather than
+        assuming. The list above moves; the tracker below is the thing to trust.
+      </p>
+      <p><a class="btn ghost" href="https://iapp.org/resources/article/us-state-privacy-legislation-tracker/" target="_blank" rel="noopener noreferrer">IAPP US State Privacy Legislation Tracker ↗</a></p>
+      <p class="fineprint">
+        Texas, Oregon and Vermont also run data broker <em>registries</em>, but none of them has a
+        centralized deletion mechanism — you identify brokers from the registry and submit to each
+        one individually. Vermont's registry is the oldest and is publicly searchable, but Vermont
+        has no companion law granting deletion rights.
+      </p>
+    </div>
+
+    <div class="alt">
+      <h3>2. Turn on Global Privacy Control</h3>
+      <p>
+        GPC is a signal Nullecho sends with every request that legally means "do not sell or share my
+        data" in states that recognise it. It is not a deletion — it is a stop-selling instruction —
+        and enforcement is real but partial: a 2025 USENIX Security study found only about a third
+        of sites that appear to sell data implement any opt-out signal, and only 44% of those
+        honoured all of them. Worth having on. Not worth over-trusting.
+      </p>
+      <p><a class="btn ghost" href="https://globalprivacycontrol.org/" target="_blank" rel="noopener noreferrer">What GPC is ↗</a></p>
+    </div>
+
+    <div class="alt">
+      <h3>3. Use the blocking and fingerprint defence</h3>
+      <p>
+        Deletion removes what has already been collected. Nullecho's network blocking and per-origin
+        personas reduce what gets collected next. Those work regardless of where you live, and they
+        are the part of this extension that runs every day.
+      </p>
+    </div>
+
+    <div class="alt">
+      <h3>4. Broker-by-broker opt-outs</h3>
+      <p>
+        Slow and manual, but not futile — many brokers accept opt-out requests from anyone,
+        regardless of state. Privacy Rights Clearinghouse maintains a non-commercial directory
+        with the opt-out link for each broker.
+      </p>
+      <p><a class="btn ghost" href="https://privacyrights.org/data-brokers" target="_blank" rel="noopener noreferrer">Privacy Rights Clearinghouse directory ↗</a></p>
+      <p class="fineprint">
+        You can still browse the California registry further down this page. A broker registered in
+        California is very often the same company holding data on you in your state.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ California path ═══════════════════════════════════════════════ -->
+  <div id="ca-flow" hidden>
+
+    <!-- What it does + limits -->
+    <section class="card">
+      <h2><span class="num">2</span> What DROP actually does — and doesn't</h2>
+
+      <div class="two-col">
+        <div class="col does">
+          <h3>What it does</h3>
+          <ul>
+            <li>Sends <strong>one</strong> request to every data broker registered in California — <strong id="does-count">603</strong> of them in our snapshot.</li>
+            <li>Requires them to delete matching personal information <strong>including inferences</strong> — the profile they built about you, not just the raw fields.</li>
+            <li>Is <strong>ongoing, not one-time.</strong> After the initial pass, brokers must re-check and delete newly matching data at least every 45 days. You do not resubmit.</li>
+            <li>Is <strong>free.</strong> CalPrivacy: "we will never charge you to use DROP."</li>
+            <li>Has teeth: <strong>$200 per deletion request, per day</strong> a broker fails to delete (Civ. Code § 1798.99.82).</li>
+          </ul>
+        </div>
+        <div class="col doesnt">
+          <h3>What it doesn't</h3>
+          <ul>
+            <li><strong>California residents only.</strong> No exceptions, no workaround.</li>
+            <li>Covers <strong>registered data brokers only</strong> — not every company holding your data. Your bank, your employer, your doctor and the apps you signed up for yourself are not data brokers and are untouched by this.</li>
+            <li><strong>Nullecho cannot submit for you.</strong> The state verifies your identity; that is the whole point, and it is not something an extension can or should do on your behalf.</li>
+            <li>Some brokers may <strong>lawfully keep</strong> data under statutory exemptions — you'll see those as "Exempted".</li>
+            <li>"Opted-out" is <strong>not</strong> deletion. It means the broker couldn't match you exactly, so it still holds your data but may no longer sell or share it.</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="note privacy-note">
+        <strong>Nullecho stores nothing about you.</strong> Nothing on this page is transmitted anywhere.
+        The broker list below is a snapshot bundled with the extension, so browsing it makes no
+        network request and tells no one you were looking. The only thing we ever write is a date
+        you choose to record, in local extension storage, on this machine.
+      </p>
+    </section>
+
+    <!-- Before you start -->
+    <section class="card">
+      <h2><span class="num">3</span> Have this ready before you start</h2>
+      <p>You can complete a request with only the three required items. Everything else improves the odds a broker can match you.</p>
+
+      <div class="fields">
+        <div class="fieldgroup required">
+          <h3>Required</h3>
+          <ul class="chips">
+            <li>Name</li>
+            <li>Date of birth</li>
+            <li>ZIP code</li>
+          </ul>
+          <p class="fineprint">That's the whole minimum. "You only need to provide your name, date of birth, and ZIP code to submit a request."</p>
+        </div>
+        <div class="fieldgroup optional">
+          <h3>Optional — but each one widens the net</h3>
+          <ul class="chips">
+            <li>Email addresses</li>
+            <li>Phone numbers</li>
+            <li>Maiden / former names</li>
+            <li>Mobile advertising ID (MAID)</li>
+            <li>Connected TV ID</li>
+            <li>Vehicle identification number (VIN)</li>
+          </ul>
+          <p class="fineprint">
+            You can enter multiples of everything <em>except</em> date of birth. The last three take a
+            minute to look up — find them first or add them later.
+            <a href="https://privacy.ca.gov/drop/personal-information-and-data-brokers/" target="_blank" rel="noopener noreferrer">How to find them ↗</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="note">
+        <p><strong>On identity verification.</strong> Residency is confirmed through the California Identity Gateway, the state's digital identity platform. Per CalPrivacy you <strong>do not need to create an account</strong>, and your information is not retained by DROP. You may either enter your information directly or sign in with Login.gov — CalPrivacy suggests the Login.gov route <em>only if you already have</em> a Login.gov account.</p>
+      </div>
+
+      <div class="note">
+        <p><strong>Submitting for someone else.</strong> CalPrivacy states that in some cases you may submit a DROP request for another California resident — their examples are a parent for a child, or a family member for an elderly relative. The exact conditions are on their eligibility page; we haven't verified anything about commercial or professional authorized-agent submissions, so we won't claim it either way.</p>
+      </div>
+    </section>
+
+    <!-- Steps -->
+    <section class="card">
+      <h2><span class="num">4</span> The three steps, on the state's site</h2>
+      <p class="warn">
+        From here you're on an official California government site. Nullecho does not fill anything in,
+        does not watch what you type, and never sees your submission. Automating a verified-identity
+        government process would risk invalidating your request — so this is a guided handoff, and
+        that's deliberate.
+      </p>
+
+      <ol class="steps">
+        <li>
+          <h3>Verify your eligibility</h3>
+          <p>Confirm California residency via the California Identity Gateway. No account needed.</p>
+        </li>
+        <li>
+          <h3>Create your profile</h3>
+          <p>Enter as much or as little as you want — name, DOB and ZIP at minimum. Brokers compare this against their records; a match means deletion.</p>
+        </li>
+        <li>
+          <h3>Submit, and save your DROP ID</h3>
+          <p>
+            You'll get an <strong>8-digit DROP ID</strong> on the confirmation page. Save it somewhere
+            safe — it's how you check status later. CalPrivacy: <em>do not share your DROP ID.</em>
+          </p>
+          <p class="fineprint">
+            Nullecho deliberately does <strong>not</strong> offer to store your DROP ID. It's a credential
+            for your deletion record, and a privacy tool has no business holding one. Put it in your
+            password manager.
+          </p>
+        </li>
+      </ol>
+
+      <div class="cta-row">
+        <a class="btn primary" href="https://consumer.drop.privacy.ca.gov" target="_blank" rel="noopener noreferrer">Open DROP and get started ↗</a>
+        <a class="btn ghost" href="https://consumer.drop.privacy.ca.gov/dropstatus" target="_blank" rel="noopener noreferrer">Check an existing request ↗</a>
+        <a class="btn ghost" href="https://privacy.ca.gov/drop/how-drop-works/" target="_blank" rel="noopener noreferrer">Read CalPrivacy's full walkthrough ↗</a>
+      </div>
+    </section>
+
+    <!-- Record + reminder -->
+    <section class="card">
+      <h2><span class="num">5</span> Record that you submitted</h2>
+      <p>
+        Local to this browser, on this machine. A date and nothing else — no name, no DROP ID, no
+        identifiers. It exists so Nullecho can tell you when a status check is actually worth your time.
+      </p>
+
+      <div class="record" id="record-idle">
+        <label for="submit-date">Date you submitted your DROP request</label>
+        <div class="record-row">
+          <input type="date" id="submit-date">
+          <button type="button" class="btn primary" id="record-save">Save</button>
+        </div>
+        <p class="fineprint" id="record-error" hidden></p>
+      </div>
+
+      <div class="record recorded" id="record-done" hidden>
+        <div class="recorded-head">
+          <div>
+            <p class="recorded-label">DROP request recorded</p>
+            <p class="recorded-date" id="recorded-date"></p>
+          </div>
+          <button type="button" class="linkbtn danger" id="record-clear">Clear</button>
+        </div>
+        <div class="timeline" id="timeline"></div>
+        <p class="next-check" id="next-check"></p>
+      </div>
+
+      <div class="note">
+        <p>
+          <strong>Why there's no "renew" reminder.</strong> We checked, because it would have been an
+          easy thing to get wrong. CalPrivacy's wording is explicit: <em>"DROP is ongoing – not a
+          one-time action."</em> After the first pass, brokers must re-check and delete newly matching
+          data at least every 45 days on their own. Nothing in CalPrivacy's consumer guidance
+          describes an expiry or a resubmission step.
+        </p>
+        <p>
+          So the dates above are <strong>check-ins, not renewals</strong>: the first is when
+          status data should actually exist, and after that it's only worth returning when your own
+          details change — a new name, phone, email, device (MAID) or car (VIN) gives brokers new
+          things to match against, and you add those to the same profile.
+        </p>
+      </div>
+    </section>
+
+  </div><!-- /#ca-flow -->
+
+  <!-- ══ Registry browser ══════════════════════════════════════════════ -->
+  <section class="card" id="registry-card">
+    <h2>Who this reaches</h2>
+    <p>
+      Every company below is registered as a data broker with CalPrivacy. One DROP request reaches
+      all of them at once. This list ships inside the extension — searching it makes no network
+      request.
+    </p>
+
+    <div class="statbar">
+      <div class="stat"><span class="stat-n" id="stat-total">—</span><span class="stat-l">registered brokers</span></div>
+      <div class="stat"><span class="stat-n" id="stat-geo">—</span><span class="stat-l">collect precise geolocation</span></div>
+      <div class="stat"><span class="stat-n" id="stat-genai">—</span><span class="stat-l">sold data to a GenAI developer</span></div>
+      <div class="stat"><span class="stat-n" id="stat-fed">—</span><span class="stat-l">sold data to the federal government</span></div>
+    </div>
+
+    <div class="controls">
+      <input type="search" id="broker-search" placeholder="Search 603 brokers by name or domain…" autocomplete="off" spellcheck="false">
+      <div class="filters" id="broker-filters">
+        <button type="button" class="filt active" data-flag="">All</button>
+        <button type="button" class="filt" data-flag="g">Precise location</button>
+        <button type="button" class="filt" data-flag="m">Minors' data</button>
+        <button type="button" class="filt" data-flag="b">Biometrics</button>
+        <button type="button" class="filt" data-flag="r">Reproductive health</button>
+        <button type="button" class="filt" data-flag="A">Sold to GenAI</button>
+        <button type="button" class="filt" data-flag="F">Sold to federal gov</button>
+        <button type="button" class="filt" data-flag="L">Sold to law enforcement</button>
+        <button type="button" class="filt" data-flag="C">FCRA-regulated</button>
+      </div>
+      <p class="result-count" id="result-count"></p>
+    </div>
+
+    <div class="broker-list" id="broker-list" role="list"></div>
+    <p class="more" id="broker-more" hidden></p>
+
+    <p class="fineprint snapshot" id="snapshot-line"></p>
+  </section>
+
+  <!-- ══ Sources ═══════════════════════════════════════════════════════ -->
+  <section class="card sources">
+    <h2>Sources</h2>
+    <p class="fineprint">Every factual and legal claim on this page traces to one of these. All were fetched and confirmed to resolve on 2026-08-20.</p>
+    <ul>
+      <li><a href="https://privacy.ca.gov/drop/" target="_blank" rel="noopener noreferrer">CalPrivacy — DROP</a><span>Eligibility, free, "over 600 registered data brokers", 45-day and 90-day timings, submitting for another resident, California Identity Gateway / Login.gov.</span></li>
+      <li><a href="https://privacy.ca.gov/drop/how-drop-works/" target="_blank" rel="noopener noreferrer">CalPrivacy — How DROP works</a><span>Required vs optional fields, residency definition, 8-digit DROP ID, the five status values, and "DROP is ongoing – not a one-time action."</span></li>
+      <li><a href="https://consumer.drop.privacy.ca.gov" target="_blank" rel="noopener noreferrer">consumer.drop.privacy.ca.gov</a><span>The actual submission portal. Linked, never automated.</span></li>
+      <li><a href="https://cppa.ca.gov/data_broker_registry/" target="_blank" rel="noopener noreferrer">CalPrivacy — Data Broker Registry</a><span>Source of the bundled broker list, via the machine-readable CSV at <code>/data_broker_registry/registry.csv</code>.</span></li>
+      <li><a href="https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=3.&amp;part=4.&amp;lawCode=CIV&amp;title=1.81.48" target="_blank" rel="noopener noreferrer">Civil Code § 1798.99.80 et seq. (the Delete Act)</a><span>The $200-per-deletion-request-per-day fine, § 1798.99.82.</span></li>
+      <li><a href="https://iapp.org/resources/article/us-state-privacy-legislation-tracker/" target="_blank" rel="noopener noreferrer">IAPP US State Privacy Legislation Tracker</a><span>Which states have comprehensive privacy laws. Used for the non-California path.</span></li>
+    </ul>
+    <p class="fineprint">
+      Not verified, and therefore not claimed anywhere above: whether commercial or professional
+      authorized agents may submit through DROP, and whether a DROP profile ever expires. CalPrivacy's
+      consumer pages don't address either; the approved regulations are published only as PDFs which
+      we did not parse.
+    </p>
+  </section>
+
+  <footer class="foot">
+    <p>Nullecho never transmits your personal information. This page makes no network requests.</p>
+  </footer>
+
+</div>
+<script src="drop.js"></script>
+</body>
+</html>

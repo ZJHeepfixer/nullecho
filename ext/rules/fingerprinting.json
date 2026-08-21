@@ -1,0 +1,257 @@
+[
+  {
+    "id": 4000,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "fpjs.io"
+      ]
+    }
+  },
+  {
+    "id": 4001,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "fpcdn.io"
+      ]
+    }
+  },
+  {
+    "id": 4002,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "fpjscdn.net"
+      ]
+    }
+  },
+  {
+    "id": 4003,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "openfpcdn.io"
+      ]
+    }
+  },
+  {
+    "id": 4004,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "fpnpmcdn.net"
+      ]
+    }
+  },
+  {
+    "id": 4005,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "fptls.com",
+        "fptls2.com",
+        "fptls3.com",
+        "fptls4.com"
+      ]
+    }
+  },
+  {
+    "id": 4006,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "bluecava.com"
+      ]
+    }
+  },
+  {
+    "id": 4007,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "adscore.com"
+      ]
+    }
+  },
+  {
+    "id": 4008,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "stape.io"
+      ]
+    }
+  },
+  {
+    "id": 4500,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "online-metrix.net"
+      ]
+    }
+  },
+  {
+    "id": 4501,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "iovation.com",
+        "iesnare.com"
+      ]
+    }
+  },
+  {
+    "id": 4502,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "sift.com",
+        "siftscience.com"
+      ]
+    }
+  },
+  {
+    "id": 4503,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "forter.com"
+      ]
+    }
+  },
+  {
+    "id": 4504,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "signifyd.com"
+      ]
+    }
+  },
+  {
+    "id": 4505,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "seon.io"
+      ]
+    }
+  },
+  {
+    "id": 4506,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "ravelin.net",
+        "ravelin.click"
+      ]
+    }
+  },
+  {
+    "id": 4507,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "beacon.riskified.com"
+      ]
+    }
+  },
+  {
+    "id": 4700,
+    "priority": 100,
+    "action": {
+      "type": "allow"
+    },
+    "condition": {
+      "requestDomains": [
+        "online-metrix.net",
+        "iovation.com",
+        "iesnare.com",
+        "sift.com",
+        "siftscience.com",
+        "forter.com",
+        "signifyd.com",
+        "seon.io",
+        "ravelin.net",
+        "ravelin.click",
+        "riskified.com"
+      ],
+      "initiatorDomains": [
+        "citi.com",
+        "citibank.com",
+        "usbank.com",
+        "westernunion.com",
+        "equifax.ca",
+        "coventrybuildingsociety.co.uk",
+        "skype.com",
+        "ringcentral.com",
+        "princessauto.com",
+        "oreillyauto.com",
+        "screwfix.com",
+        "jbhifi.com.au",
+        "verkkokauppa.com",
+        "vitacost.com",
+        "power.fi",
+        "ana.co.jp",
+        "lenovo.com",
+        "getcreditscore.com.au",
+        "smartsource.com",
+        "donorschoose.org",
+        "eki-net.com"
+      ]
+    }
+  }
+]

@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nullecho — settings</title>
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="5"  cy="6"  r="1.6"/><circle cx="12" cy="4"  r="1.6"/>
+        <circle cx="19" cy="7"  r="1.6"/><circle cx="7"  cy="13" r="1.6"/>
+        <circle cx="15" cy="11" r="1.6"/><circle cx="20" cy="16" r="1.6"/>
+        <circle cx="4"  cy="19" r="1.6"/><circle cx="11" cy="19" r="1.6"/>
+      </svg>
+      <span class="wordmark">Nullecho</span>
+      <span class="ver" id="ver"></span>
+    </div>
+    <nav class="tabs">
+      <a href="#identity">Identity</a>
+      <a href="#blocking">Blocking</a>
+      <a href="#linkage">Across your sites</a>
+      <a href="#sites">Sites</a>
+      <a href="#pool">Profile pool</a>
+      <a href="#delete">Delete your data</a>
+      <a href="#limits">Limits</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="totals" aria-label="Totals since install">
+    <div class="tot"><span class="num" id="t-blocked">0</span><span class="lab">requests blocked</span></div>
+    <div class="tot"><span class="num" id="t-fp">0</span><span class="lab">fingerprint reads seen</span></div>
+    <div class="tot"><span class="num" id="t-sites">0</span><span class="lab">sites seen</span></div>
+  </section>
+
+  <!-- ── cross-site aggregate ─────────────────────────────────────────────
+       Private evidence, not the product's shareable artifact. It names the
+       sites you visited, so it stays here, on this device, behind an explicit
+       label. The thing meant for posting is the per-site report in the popup.
+       See docs/DECISIONS.md D10. -->
+  <section class="card" id="linkage">
+    <h2>Across your sites</h2>
+    <p class="lede">
+      Which companies turned up on more than one of the sites you visited. This is
+      the view that shows why a different device profile per site matters — a
+      company present in two places is <em>positioned</em> to connect those two
+      visits.
+    </p>
+
+    <p class="local-banner">
+      <strong>Stays on this device.</strong> This table names sites you have
+      visited, so nothing here is ever sent anywhere or included in a shared
+      report. The shareable thing is the per-site report in the toolbar popup,
+      which describes a site rather than you.
+    </p>
+
+    <div class="lk-head">
+      <div class="tot">
+        <span class="num" id="lk-exposure">0<span class="pct">%</span></span>
+        <span class="lab">of your site-pairs at least one company is positioned to connect</span>
+      </div>
+      <div class="tot">
+        <span class="num" id="lk-linkers">0</span>
+        <span class="lab">companies present on two or more of your sites</span>
+      </div>
+    </div>
+
+    <p class="lk-headline" id="lk-headline">—</p>
+
+    <div class="tablewrap">
+      <table class="tbl" id="linkers-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Domains</th>
+            <th class="n">Your sites</th>
+            <th class="n">Share</th>
+            <th class="n">Pairs it could connect</th>
+          </tr>
+        </thead>
+        <tbody id="linkers-body"></tbody>
+      </table>
+      <p class="empty" id="linkers-empty" hidden>
+        No third party has turned up on more than one of your sites yet. Browse for
+        a while and check back.
+      </p>
+    </div>
+    <p class="note">
+      Ranked list rather than a web of dots on purpose: a force-directed graph
+      stops being readable at about the point the finding gets interesting, and
+      Mozilla's own post-mortem on Lightbeam named the visualisation as too
+      complex. “Could connect” is the honest verb — Nullecho observes that a
+      company was <em>present</em> in both places, never that it joined them.
+      That happens on their servers.
+    </p>
+
+    <div class="remedy-row">
+      <p class="remedy-text" id="lk-remedy">—</p>
+      <button class="btn primary" id="lk-remedy-btn" type="button" hidden>Do it</button>
+    </div>
+
+    <details id="lk-share">
+      <summary>What a shared version of this would say</summary>
+      <p class="note">
+        Counts and company names only. Every site above is stripped — that is the
+        difference between a thing people post and a thing nobody ever posted.
+      </p>
+      <pre class="share-text" id="lk-share-text"></pre>
+    </details>
+  </section>
+
+  <!-- ── identity ─────────────────────────────────────────────────────── -->
+  <section class="card" id="identity">
+    <h2>Identity</h2>
+    <p class="lede">
+      One session key decides which device profile each site is shown. Rotating it
+      re-rolls every site at once.
+    </p>
+
+    <div class="idrow">
+      <div class="idbox">
+        <span class="idlab">Current key</span>
+        <span class="idtag" id="id-tag">—</span>
+        <span class="idsub" id="id-rotated">—</span>
+      </div>
+      <button class="btn primary" id="rotate" type="button">New identity</button>
+    </div>
+    <p class="note">
+      The key itself never leaves the extension and is never shown here — that
+      short tag is a one-way hash of it, only so you can see that rotation
+      actually happened. Sites may treat a rotated profile as a new device and ask
+      you to sign in again.
+    </p>
+
+    <div class="field">
+      <label for="auto-rotate">Rotate automatically</label>
+      <select id="auto-rotate">
+        <option value="0">Never (default)</option>
+        <option value="1">Every day</option>
+        <option value="7">Every week</option>
+        <option value="30">Every month</option>
+      </select>
+    </div>
+    <p class="note">
+      Off by default. Automatic rotation breaks long-term linkage at a site, but it
+      also means a site periodically sees a brand-new machine, which some treat as
+      a suspicious sign-in.
+    </p>
+
+    <div class="field checkline">
+      <label class="switch">
+        <input type="checkbox" id="loud-failures">
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+        <span>Report failures in the page console</span>
+      </label>
+    </div>
+    <p class="note">
+      When the device shim cannot start, or a page reads device APIs before the
+      rotated profile arrives, say so out loud. A silently unpatched page is the
+      worst outcome, because you would believe you were covered.
+    </p>
+  </section>
+
+  <!-- ── blocking ─────────────────────────────────────────────────────── -->
+  <section class="card" id="blocking">
+    <h2>Blocking</h2>
+    <p class="lede">Each category is a separate rule list. Turning one off takes effect on the next page load.</p>
+    <div class="toggles" id="category-toggles"></div>
+
+    <hr class="rule">
+
+    <div class="field checkline">
+      <label class="switch">
+        <input type="checkbox" id="gpc">
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+        <span>Send Global Privacy Control</span>
+      </label>
+    </div>
+    <p class="note">
+      Adds a <code>Sec-GPC: 1</code> header and sets
+      <code>navigator.globalPrivacyControl</code>. In California, Colorado and
+      several other states this is a legally binding do-not-sell request — the
+      Sephora settlement was partly about ignoring it. Coverage is real but
+      partial: a 2025 study found only about a third of sites that appear to sell
+      or share data implement any opt-out signal, and only 44% of those honoured
+      all of them.
+    </p>
+  </section>
+
+  <!-- ── sites ────────────────────────────────────────────────────────── -->
+  <section class="card" id="sites">
+    <h2>Sites</h2>
+    <p class="lede">
+      Every site Nullecho has seen, and the device profile it is currently being
+      shown. Different profile per site is the whole mechanism — if two rows match,
+      that is a collision in a six-profile pool, not a bug.
+    </p>
+
+    <div class="tablewrap">
+      <table class="tbl" id="sites-table">
+        <thead>
+          <tr>
+            <th>Site</th>
+            <th>Profile shown</th>
+            <th class="n">Blocked</th>
+            <th class="n">FP reads</th>
+            <th>Last seen</th>
+            <th class="c">Nullecho</th>
+          </tr>
+        </thead>
+        <tbody id="sites-body"></tbody>
+      </table>
+      <p class="empty" id="sites-empty" hidden>No sites recorded yet. Browse a little and come back.</p>
+    </div>
+
+    <div class="rowactions">
+      <button class="btn" id="clear-stats" type="button">Clear site history</button>
+      <span class="note inline">Counters only. Clearing them does not change any site’s profile.</span>
+    </div>
+  </section>
+
+  <!-- ── allowlist ────────────────────────────────────────────────────── -->
+  <section class="card" id="allowlist">
+    <h2>Turned off on these sites</h2>
+    <p class="lede">
+      An extension that breaks a site you need gets uninstalled, and an uninstalled
+      extension protects nobody. Sites listed here run with Nullecho fully off.
+    </p>
+    <ul class="chips" id="allow-chips"></ul>
+    <p class="empty" id="allow-empty">Nothing here. Nullecho is active everywhere.</p>
+    <form class="addrow" id="allow-form">
+      <input type="text" id="allow-input" placeholder="example.com" spellcheck="false" autocomplete="off">
+      <button class="btn" type="submit">Turn Nullecho off there</button>
+    </form>
+    <p class="note">
+      Blocking is disabled immediately. The device shim is declared in the manifest
+      so it always loads, then stands down as soon as it hears the site is
+      allowlisted — a few milliseconds into the page. Reload after adding a site.
+    </p>
+  </section>
+
+  <!-- ── persona pool ─────────────────────────────────────────────────── -->
+  <section class="card" id="pool">
+    <h2>Profile pool</h2>
+    <p class="lede">
+      Profiles are not generated. They are copied from real, common machine
+      configurations, because a randomly generated machine would be unique — and
+      unique is the thing we are trying to avoid. Weight is roughly how common the
+      configuration is; commoner profiles are picked more often, so you land in a
+      bigger crowd.
+    </p>
+    <div class="tablewrap">
+      <table class="tbl" id="pool-table">
+        <thead>
+          <tr>
+            <th>Profile</th><th>Platform</th><th>Graphics</th>
+            <th class="n">Cores</th><th class="n">RAM</th><th>Display</th><th class="n">Weight</th>
+          </tr>
+        </thead>
+        <tbody id="pool-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── DROP ─────────────────────────────────────────────────────────── -->
+  <section class="card accent" id="delete">
+    <h2>Delete data brokers already hold</h2>
+    <p class="lede">
+      Everything else on this page limits what gets collected from now on. This is
+      the only part that removes data that already exists.
+    </p>
+    <p>
+      California runs a single deletion platform, DROP. Since 1 August 2026 every
+      registered data broker must check it every 45 days, delete matching records
+      including inferences drawn about you, and report that they did. One
+      submission reaches every registered broker.
+    </p>
+    <p>
+      <a class="btn primary inlinebtn" id="drop-link" href="drop.html">Open the deletion walkthrough</a>
+    </p>
+    <p class="note">
+      Limits, stated plainly: California residents only; the state requires
+      identity verification, so Nullecho cannot submit on your behalf and will only
+      walk you through it; and it reaches <em>registered</em> data brokers, not
+      every company that holds information about you.
+    </p>
+  </section>
+
+  <!-- ── limits ───────────────────────────────────────────────────────── -->
+  <section class="card" id="limits">
+    <h2>What Nullecho can’t do</h2>
+    <p class="lede">
+      Kept on the settings page rather than in a footnote, because people make real
+      decisions about their exposure based on what a privacy tool implies.
+    </p>
+
+    <div class="limits">
+      <div class="limit">
+        <h3>Sites can tell Nullecho is installed</h3>
+        <p>About ten lines of JavaScript will do it — filling a canvas with one colour and noticing the pixels are not quite uniform is enough. Nullecho breaks the link <em>between</em> sites; it does not hide that you are using it. Anyone claiming an extension can do that is guessing or selling something.</p>
+      </div>
+      <div class="limit">
+        <h3>Firefox and Brave do this better</h3>
+        <p>Firefox's <code>resistFingerprinting</code> and Brave's built-in protections work below the JavaScript layer, where an extension simply cannot reach — so they cover things Nullecho never will. If you can use either, they are the stronger choice. Nullecho exists for Chrome, where neither is available, and makes a different trade: a different device profile per site instead of one identical profile for everyone.</p>
+      </div>
+      <div class="limit">
+        <h3>Your screen size and display</h3>
+        <p>Screen dimensions, pixel density and colour depth are reported honestly. CSS style rules can read all of them independently of JavaScript, so faking them produced a profile that contradicted itself — which is worse than the leak, because it is both identifying and looks evasive. A consistent honest answer beats an inconsistent fake.</p>
+      </div>
+      <div class="limit">
+        <h3>Your IP address</h3>
+        <p>Every site you visit still sees it, and it is a stable identifier on its own. That needs a VPN or Tor — no browser extension can reach it.</p>
+      </div>
+      <div class="limit">
+        <h3>Your TLS fingerprint</h3>
+        <p>The handshake that identifies your browser build happens before any page code runs, including ours. Unreachable from an extension.</p>
+      </div>
+      <div class="limit">
+        <h3>Accounts you are signed in to</h3>
+        <p>If you are logged in, you are identified by the login. Changing device details does not change that. Nullecho limits what <em>other</em> sites learn.</p>
+      </div>
+      <div class="limit">
+        <h3>Government or ISP surveillance</h3>
+        <p>A different threat model entirely. Bulk metadata collection does not run on ad-tracking cookies, so degrading ad profiles does nothing to it.</p>
+      </div>
+      <div class="limit">
+        <h3>Fingerprinting compiled to WebAssembly</h3>
+        <p>Research published in 2025 shows fingerprinting logic in WASM can re-derive some signals without touching the JavaScript APIs we patch. This affects every extension-based defence, ours included.</p>
+      </div>
+      <div class="limit">
+        <h3>How you type and move</h3>
+        <p>Typing rhythm, mouse movement and scroll behaviour are all fingerprintable and are not addressed at all in this version.</p>
+      </div>
+    </div>
+
+    <p class="note">
+      What Nullecho does do: it cuts tracker requests at the network layer, and it
+      makes the device details a site can read differ from site to site, which
+      breaks the join those sites use to follow you between them.
+    </p>
+  </section>
+
+  <footer class="foot">
+    <p>Nullecho — <span id="ver-foot"></span>. Design notes in <code>docs/ARCHITECTURE.md</code>, scope in <code>docs/THREAT-MODEL.md</code>.</p>
+  </footer>
+
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make 603 data brokers delete you — a free California guide</title>
+<meta name="description" content="Since August 1, 2026, California data brokers must honor deletion requests filed through the state's DROP platform. One free request reaches all 603 registered brokers, covers the inferences they made about you, and keeps working — no renewal. Here's what you need and what to expect.">
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141922; --line:#242c3a; --raise:#1b2230;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#66738a;
+    --accent:#5eead4; --accent-dim:#2dd4bf; --warn:#fbbf24; --bad:#f87171;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#fbfcfd; --panel:#fff; --line:#e2e8f0; --raise:#f1f5f9;
+      --text:#0f172a; --dim:#475569; --faint:#94a3b8;
+      --accent:#0d9488; --accent-dim:#0f766e;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.65 var(--sans); -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:0 22px}
+
+  /* ── third-party notice: must never be mistaken for a state site ── */
+  .disclaimer{
+    background:var(--raise); border-bottom:1px solid var(--line);
+    font-size:13px; color:var(--dim); padding:10px 0; text-align:center;
+  }
+  .disclaimer strong{color:var(--text)}
+
+  header{padding:64px 0 40px; border-bottom:1px solid var(--line)}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:18px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
+       box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent)}
+  h1{font:600 clamp(30px,5.2vw,44px)/1.15 var(--serif); margin:0 0 18px; letter-spacing:-.02em}
+  .lede{font-size:19px; color:var(--dim); margin:0 0 30px; line-height:1.6}
+  .lede b{color:var(--text); font-weight:600}
+
+  .cta{
+    display:inline-block; background:var(--accent); color:#04211c; font-weight:700;
+    padding:14px 24px; border-radius:9px; text-decoration:none; font-size:16px;
+  }
+  @media (prefers-color-scheme: light){ .cta{color:#fff} }
+  .cta:hover{background:var(--accent-dim)}
+  .cta-sub{display:block; margin-top:12px; font-size:13px; color:var(--faint)}
+
+  section{padding:44px 0; border-bottom:1px solid var(--line)}
+  h2{font:600 24px/1.3 var(--serif); margin:0 0 8px; letter-spacing:-.01em}
+  h3{font-size:16px; margin:26px 0 6px; font-weight:650}
+  p{margin:0 0 15px; color:var(--dim)}
+  p.body{color:var(--text)}
+  a{color:var(--accent); text-underline-offset:3px}
+
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:26px 0 8px}
+  .fact{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px}
+  .fact .n{font:700 26px/1 var(--mono); color:var(--accent); letter-spacing:-.02em}
+  .fact .l{font-size:12.5px; color:var(--dim); margin-top:7px; line-height:1.45}
+
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:22px 0 0}
+  ol.steps li{
+    counter-increment:s; position:relative; padding:0 0 22px 46px; margin:0;
+    border-left:1px solid var(--line); margin-left:14px;
+  }
+  ol.steps li:last-child{border-left-color:transparent; padding-bottom:0}
+  ol.steps li::before{
+    content:counter(s); position:absolute; left:-14px; top:-2px; width:28px; height:28px;
+    border-radius:50%; background:var(--raise); border:1px solid var(--line);
+    color:var(--text); font:600 13px/26px var(--mono); text-align:center;
+  }
+  ol.steps h3{margin:0 0 5px}
+  ol.steps p{margin:0 0 8px; font-size:15px}
+
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:20px; margin:22px 0}
+  .box.warn{border-left:3px solid var(--warn)}
+  .box.good{border-left:3px solid var(--accent)}
+  .box h3{margin:0 0 8px}
+  .box p{margin:0 0 10px; font-size:15px}
+  .box p:last-child{margin:0}
+  .box ul{margin:8px 0 0; padding-left:20px; color:var(--dim); font-size:15px}
+  .box li{margin-bottom:7px}
+
+  table{width:100%; border-collapse:collapse; margin:18px 0; font-size:15px}
+  th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:650}
+  td.d{font-family:var(--mono); font-size:13px; white-space:nowrap; color:var(--text)}
+
+  footer{padding:40px 0 70px; font-size:13.5px; color:var(--faint)}
+  footer p{color:var(--faint); font-size:13.5px}
+  .src{font-size:13px; line-height:1.9}
+  .src a{color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div class="disclaimer" role="note">
+  <div class="wrap">
+    An independent guide — <strong>not</strong> a government website, and not affiliated with the
+    State of California or the CPPA. Every step links to the official state site.
+  </div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>In force since August 1, 2026</div>
+    <h1>California quietly gave you a button that forces data brokers to delete you.</h1>
+    <p class="lede">
+      One request, filed once, reaches <b>all 603 data brokers registered in California</b>. They have
+      to delete what they hold on you — <b>including the inferences they made about you</b> — and
+      they have to keep doing it, every 45 days, indefinitely. It's free, it's the state's own
+      system, and it needs three pieces of information.
+    </p>
+    <a class="cta" href="https://consumer.drop.privacy.ca.gov" rel="noopener">Open California's DROP portal →</a>
+    <span class="cta-sub">consumer.drop.privacy.ca.gov — the state's own portal. This page just explains what to expect.</span>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>What changed</h2>
+    <p class="body">
+      California's DELETE Act created <strong>DROP</strong> — the Delete Request and Opt-out Platform,
+      run by the California Privacy Protection Agency. It opened to consumers on January 1, 2026.
+    </p>
+    <p>
+      But for the first seven months it was a request going into a queue. That changed on
+      <strong>August 1, 2026</strong>, when brokers became obligated to actually process what's in it.
+      Most people have no idea it happened.
+    </p>
+
+    <div class="facts">
+      <div class="fact"><div class="n">603</div><div class="l">Registered brokers reached by a single request</div></div>
+      <div class="fact"><div class="n">45</div><div class="l">Days — maximum between broker checks of the queue</div></div>
+      <div class="fact"><div class="n">$200</div><div class="l">Penalty per request, <em>per day</em>, for ignoring one</div></div>
+      <div class="fact"><div class="n">$0</div><div class="l">Cost to you. It's a state service.</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--faint);margin-top:14px">
+      603 is a live count parsed from the state's own broker registry on August 20, 2026. It moves as
+      companies register.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Why this is different from the usual advice</h2>
+    <p class="body">
+      The standard guidance is to opt out of brokers one at a time — hundreds of separate forms, each
+      with its own process, many of which quietly re-add you. Paid services like DeleteMe and Incogni
+      exist because doing it manually is miserable.
+    </p>
+    <p>
+      DROP replaces that with one request backed by a statute. And critically, the obligation isn't
+      just to delete what they have today — brokers must keep returning to the queue, so a request
+      filed now also catches data they acquire later.
+    </p>
+    <div class="box good">
+      <h3>The part people miss</h3>
+      <p>
+        The deletion obligation covers <strong>inferences</strong> — the conclusions brokers drew
+        about you, not merely the raw records they bought. That's the part that actually drives
+        what you get shown, what you get offered, and what you get charged.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How to file it</h2>
+    <p>Have these ready before you start. The whole thing is one sitting.</p>
+
+    <ol class="steps">
+      <li>
+        <h3>Check whether you qualify</h3>
+        <p>
+          The test is broader than "lives in California." CalPrivacy's wording covers anyone
+          <strong>domiciled in California</strong>, including someone outside the state
+          <em>for a temporary or transitory purpose</em> — so students, people on long work
+          assignments, and snowbirds may still qualify. Someone who genuinely moved away does not.
+        </p>
+      </li>
+      <li>
+        <h3>You need three things</h3>
+        <p>
+          <strong>Name, date of birth, and ZIP code.</strong> That's the required set. Email, phone,
+          former/maiden names, mobile ad ID, connected-TV ID and VIN are all <em>optional</em> —
+          each one you add widens the net brokers can match you against, so more optional data means
+          more thorough deletion. That trade-off is yours to make.
+        </p>
+      </li>
+      <li>
+        <h3>Submit — no account needed</h3>
+        <p>
+          Go to <a href="https://consumer.drop.privacy.ca.gov" rel="noopener">consumer.drop.privacy.ca.gov</a>.
+          Residency is verified through the California Identity Gateway, and CalPrivacy states that
+          information is not retained by DROP. You'll get an <strong>8-digit DROP ID</strong> — keep
+          it private; it's how you check status later. Don't pay a third-party site to file this for you.
+        </p>
+      </li>
+      <li>
+        <h3>File once. It keeps working.</h3>
+        <p>
+          This is the part worth understanding: CalPrivacy describes DROP as
+          <em>"ongoing – not a one-time action."</em> There's nothing to renew. Brokers return to the
+          queue at least every 45 days, so a request filed today also reaches data they buy next year.
+          You won't get 603 confirmation emails — silence isn't failure. Status is at
+          <a href="https://consumer.drop.privacy.ca.gov/dropstatus" rel="noopener">the status page</a>.
+        </p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What this does not do</h2>
+    <p class="body">
+      Worth being straight about, because most coverage of privacy tools isn't.
+    </p>
+    <table>
+      <thead><tr><th>Limit</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="d">California only</td>
+          <td>The DELETE Act is state law. Other states may have their own deletion rights — they're generally weaker and filed per-company.</td>
+        </tr>
+        <tr>
+          <td class="d">Registered brokers</td>
+          <td>It reaches the 603 brokers <em>registered with California</em>. A company that never registered isn't in the queue — though failing to register is itself a violation.</td>
+        </tr>
+        <tr>
+          <td class="d">Filing for others</td>
+          <td>Family situations are provided for — a parent for a child, a family member for an elderly relative. Whether a commercial or professional agent may file on your behalf is <em>not</em> something we could confirm from CalPrivacy's guidance, so we're not claiming it either way.</td>
+        </tr>
+        <tr>
+          <td class="d">Not everyone</td>
+          <td>"Data broker" is a legal category. Companies you have a direct relationship with — your bank, your employer, sites you have accounts on — are not brokers and aren't covered.</td>
+        </tr>
+        <tr>
+          <td class="d">Not retroactive to ads</td>
+          <td>Deleting broker data doesn't undo profiling by companies you use directly, and doesn't stop new collection going forward.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="box warn">
+      <h3>One caution</h3>
+      <p>
+        You are handing identifying details to a state system in order to have data about you deleted.
+        The CPPA states this information is used only to complete deletion requests and is not sold or
+        shared. That's the trade; it's a reasonable one, but you should make it knowingly.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Not in California?</h2>
+    <p class="body">
+      There's no national equivalent. What's actually worth doing instead:
+    </p>
+    <div class="box">
+      <ul>
+        <li><strong>Turn on Global Privacy Control.</strong> A browser signal that legally counts as an opt-out in California and several other states. Free, takes seconds, and it's been enforced — a company was fined for ignoring it.</li>
+        <li><strong>Check your own state.</strong> A number of states now have consumer privacy laws with deletion rights. They're filed company-by-company, but they're real.</li>
+        <li><strong>Cut collection at the source.</strong> Blocking trackers stops new data being created, which no deletion request can do.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      This guide is free and collects nothing. There's no analytics on this page, no tracker, no
+      email capture, and no affiliate link. It would be absurd to track you here.
+    </p>
+    <p style="margin-top:18px"><strong style="color:var(--dim)">Sources</strong></p>
+    <div class="src">
+      <a href="https://consumer.drop.privacy.ca.gov" rel="noopener">consumer.drop.privacy.ca.gov</a> — the submission portal<br>
+      <a href="https://privacy.ca.gov/drop/" rel="noopener">privacy.ca.gov/drop</a> — the state's DROP information page<br>
+      <a href="https://cppa.ca.gov/data_broker_registry/registry.csv" rel="noopener">cppa.ca.gov/data_broker_registry/registry.csv</a> — the registry the 603 count comes from<br>
+      <a href="https://cppa.ca.gov/regulations/drop.html" rel="noopener">cppa.ca.gov/regulations/drop.html</a> — DROP system requirements<br>
+      Cal. Civ. Code § 1798.99.82 — the $200-per-request-per-day penalty
+    </div>
+    <p style="margin-top:22px; font-size:12.5px">
+      Independent guide. Not legal advice, not affiliated with the State of California or the CPPA.
+      Details of the program can change — the official pages above are authoritative where this page
+      and they disagree. Last reviewed August 20, 2026.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
