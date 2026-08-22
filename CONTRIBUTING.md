@@ -28,3 +28,28 @@ cd ext && npm test && npm run validate
 ```
 
 Then load it unpacked and check the popup still renders in light *and* dark.
+
+## What we publish, and what we don't
+
+This repo is public on purpose: a privacy tool nobody can audit gets distrusted on sight, and being
+checkable matters more here than being secret. But there is a line.
+
+**We publish honest gap disclosure.** `docs/THREAT-MODEL.md` lists what Nullecho cannot protect, and
+`docs/ARKENFOX-RESPONSE.md` names the detectors that still fire against our own build. Users need
+that to decide whether the tool fits their threat model. Hiding it would make the tool less safe to
+rely on, not more.
+
+**We do not publish evasion roadmaps.** No running "how we're beating detection this week," no
+blocklist-circumvention techniques, no changelog framed as staying ahead of specific vendors. That
+kind of document helps the other side more than it helps users, and it turns an honest tool into an
+arms-dealer.
+
+The test: *does this help a user decide whether to trust us, or does it mainly help someone defeat
+us faster?* Publish the first. Don't write the second.
+
+Worth knowing why the trade is worth it: FP-Scanner (USENIX Security 2018) detected **all seven**
+anti-fingerprinting countermeasures it tested with accuracy 1.0 — including closed-source commercial
+ones. Detection vendors work from production telemetry across billions of requests, not from reading
+GitHub. Secrecy would not have saved us; it would only have cost us the auditability that makes the
+tool worth installing.
+

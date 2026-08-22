@@ -55,6 +55,27 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 > rather than to disclose. If that's what's happening, near-zero disclosure means near-zero
 > personalized pricing in general retail — the laws working, not failing.
 >
+> **4. California is enforcing without a pricing law, and the reason is on the record.** The AG's
+> January 27 sweep of retail, grocery and hotel businesses runs on the CCPA's *purpose limitation*
+> principle — not its non-discrimination provision, which is the section everyone assumes applies.
+> The reason that section can't do the work is stated in an official legislative document: in the
+> Assembly Privacy Committee's March 25 analysis of AB 2564, the coalition *supporting* the bill
+> says "no existing federal or state law prohibits companies from using the data they collect to
+> charge consumers individually different prices." That's the pro-regulation side conceding the
+> gap, which is much better than any lawyer's opinion on it.
+>
+> One footnote on that I haven't seen anyone write up: on **Data Privacy Day 2022** the same office
+> ran a nearly identical sweep — retail, home improvement, travel, food services — hooked on the
+> non-discrimination section's notice-of-financial-incentive requirement. Same office, same annual
+> news peg, four years later, different hook. I'd present that as an observed contrast rather than
+> as proof of anything, but it's checkable and as far as I can tell nobody has connected the two.
+>
+> (One thing to be careful with, and I'd rather flag it than have you find it: **no source anywhere
+> says how many companies got California letters, and no recipient has ever been named.** Instacart,
+> Albertsons, Costco, Kroger, Safeway, Sprouts and Target show up in this story as subjects of the
+> Consumer Reports study, *not* as letter recipients. Easy conflation to make and I've kept them
+> separate in the brief.)
+>
 > Two more things sitting on top of this:
 >
 > - **New York's One Fair Price Act passed both houses June 4 and has not been signed.** I checked
@@ -67,7 +88,7 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 >   compliant with New York is, on the face of that document, still exposed under Section 5. (That
 >   comparison is my read of the two texts, not something either regulator has said.)
 >
-> The brief is about [N] words, sourced to the enacted chapter laws and the FTC PDF, with a section
+> The brief runs about 13,000 words, sourced to the enacted chapter laws and the FTC PDF, with a section
 > separating what I read in the original from what rests on secondary reporting and what's
 > inference. It also says on its face that it hasn't been reviewed by counsel.
 >
@@ -148,8 +169,16 @@ Written down because these are the specific ways this pitch could go wrong.
   avoid-the-trigger advice is being followed.
 - **Do not describe the FTC statement as a rule, a requirement, or an enforcement action.** It is
   proposed, out for comment, and says on its own face that it does not bind anyone.
-- **Do not say the One Fair Price Act "will" be signed**, or predict the Second Circuit. Both are
-  open. "Passed both houses, not signed, no chapter number as of [date]" is the whole claim.
+- **Do not say the One Fair Price Act "will" be signed**, predict the Second Circuit, or predict
+  California AB 2564. All three are open. "Passed both houses, not signed, no chapter number as of
+  [date]" is the whole claim, and the AB 2564 equivalent is "ordered to third reading August 18, no
+  action since, house-passage deadline August 31."
+- **Do not say the California AG "invoked § 1798.100(c)" or "cited 11 CCR § 7002."** He did not
+  cite anything. He named a principle; law firms supplied the section numbers afterward. Getting
+  this wrong in a pitch to a legal outlet would end the conversation.
+- **Do not present the 2022/2026 sweep contrast as proof that § 1798.125 failed.** The two sweeps
+  addressed different conduct. It is an observed contrast, offered because it is checkable and
+  unremarked — not a finding about the AG's reasoning.
 - **Do not present the brief as legal analysis.** It is compliance research with a lawyer-review
   disclaimer on its face. Say that in the pitch before a reporter has to ask.
 - **Do not attach the brief to the first email.** Offer it. An unsolicited attachment from an
@@ -157,9 +186,11 @@ Written down because these are the specific ways this pitch could go wrong.
 
 ## Before sending
 
-1. Fill in the word count `[N]`.
-2. Re-verify the One Fair Price Act's status **the morning you send** — it is the most perishable
+1. Re-verify the One Fair Price Act's status **the morning you send** — it is the most perishable
    fact in the pitch, and being wrong about it is the fastest way to lose the contact.
+2. Re-verify **California AB 2564** — it faces an August 31 floor deadline, so between now and then
+   its status can change in a day. If it passes, that becomes the lead of the pitch, not a
+   footnote: five states, and the largest consumer market in the country goes to a ban.
 3. Re-verify that the Second Circuit still has not ruled.
 4. Confirm the recipient's current outlet and address.
 5. Have the four statute PDFs ready to send in one follow-up: MD Ch. 154, CT P.A. 26-64, NJ A.4085
