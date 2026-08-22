@@ -288,6 +288,16 @@ overclaimers, "we checked and it doesn't work" is what earns trust.
   **competitive-injury** element, not the purchaser type.
 - ⏰ **California AB 2564 faces an 2026-08-31 floor deadline** — would be a 5th state / 4th ban.
 
+**📌 Scope note (Jason, 2026-08-21):** California pricing legislation is **deprioritized** — he will
+handle that with counsel. It imposes nothing on Nullecho either way: these statutes bind *businesses
+that set prices*, not browser extensions. The only contact point is the Checkout Report's detector
+string list, which is a maintenance item.
+
+⚖️ For whoever picks this up: do not assume these laws will be struck down. NRF's First Amendment
+challenge to NY §349-a was **dismissed** (Judge Rakoff, Oct 2025) under *Zauderer* — the mandated
+string was held "factual and uncontroversial," which draws lenient review, not strict scrutiny.
+On appeal to the 2d Cir., **argument not yet held** as of 2026-08-21. Treat the outcome as open.
+
 **Gate before building:** a sweep for real §349-a compliance is running
 (`research/NY-349A-COMPLIANCE-SWEEP.md`). If retailers show the disclosure → build the detector. If
 **nobody** does → "9 months in force, zero compliance found" is a better story than the feature.
