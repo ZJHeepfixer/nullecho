@@ -10,7 +10,7 @@ this pass went into making each item *small*, not into writing more code.
 
 ---
 
-## 1. Decide the Linux question — blocks release, needs no hardware
+## 1. Linux GPU strings — blocks release, needs hardware (scope TBD)
 
 **The problem:** the `ubuntu-22` personas' WebGL renderer strings were reconstructed from documented
 driver formats and **never read off a real Ubuntu machine**. A renderer string no real driver emits
@@ -18,21 +18,25 @@ makes every Nullecho-on-Linux user *uniquely* identifiable — the precise failu
 to prevent. Blast radius is exactly "Chrome on Linux hosts", because D12 selects within the host's
 own OS family.
 
-Three options. **Recommendation: C.**
+**DECIDED 2026-08-21 (Jason): verify against real Linux.** The carry-don't-apply workaround
+(pass the true renderer through on Linux hosts) was considered and **not taken** — we get the
+strings right rather than routing around them.
 
-| | What it means | Cost |
-|---|---|---|
-| **A. Verify on real Ubuntu** | Read the strings off a real Ubuntu + Chrome install and correct the pool | Correct, but needs hardware or a VM nobody has stood up. Blocks indefinitely |
-| **B. Drop the Linux family** | Ship win + mac only | ⚠️ **Does not do what it says.** `personasForFamily()` falls back to `DEFAULT_FAMILY` ('win'), so Linux users would silently get **Windows** personas — reintroducing exactly the cross-OS contradiction D12 was created to remove, for Linux users only. Also fails `validatePool()`, which requires every family stocked |
-| **C. Carry the Linux GPU, don't apply it** | On Linux hosts, pass the **real** WebGL renderer through unspoofed; keep spoofing fonts, canvas, audio, cores, memory | Follows this project's own precedent — D11 reverted the entire display layer on exactly this reasoning, and `screenUnapplied` is the pattern already in `shim.js`. No hardware. Linux users keep most protection and leak one true string instead of one impossible one |
+**Full procedure + the constraint: `docs/LINUX-PERSONA-VERIFICATION.md`.** Read it before
+sourcing hardware. The headline:
 
-**C is a real tradeoff, not a free win:** a true GPU string is a genuine fingerprinting surface. The
-argument for it is D11's — *a consistent honest leak beats an inconsistent fake* — plus the fact
-that an impossible string is strictly worse than a true one, because it is both identifying **and**
-unique to us.
+> The five Linux rows name **four distinct driver stacks**, and two of them pin driver, LLVM, DRM
+> and kernel revisions. **A physical box verifies exactly the GPU it contains — one of five. A VM
+> verifies zero**, because UTM/QEMU and non-GPU cloud instances report `llvmpipe` or `virgl`.
 
-**This is a D-level product call and needs Jason's yes.** If C: implement `gpuUnapplied` mirroring
-`screenUnapplied`, gate on `hostFamily() === 'linux'`, add a test, record as D19.
+So this closes in one of three ways, and the first is a question for Jason, not a task:
+1. **Reachable hardware determines the scope.** Whatever real Ubuntu machines exist verify their
+   own rows; the pool narrows to those. Needs an answer to "what Linux hardware can you get to?"
+2. **Format verification from primary sources** (ANGLE + Mesa source, plus a real-world corpus for
+   population weights) — covers all five, no hardware, but is explicitly weaker evidence and must
+   be labelled as such in `personas.js` and the release notes.
+3. Ship narrowed to verified rows. ⚠️ Watch `MIN_PERSONAS_PER_FAMILY` (4) and `validatePool()`, and
+   **never** drop the family outright — `personasForFamily()` falls back to `'win'`.
 
 ## 2. Two remaining hard blockers — decisions, not work
 
