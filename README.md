@@ -96,6 +96,14 @@ cd nullecho && python3 -m http.server 4886
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)
 
+## Supporting this
+
+Nullecho is free, MIT licensed, and collects nothing — including no revenue. There is no premium
+tier, no account, no affiliate VPN deal, and no anonymized-data sale. Those are the obvious ways to
+monetize a privacy tool and every one of them would undermine the reason to trust it.
+
+If it's useful to you, GitHub Sponsors is the only channel. If it isn't, use it anyway.
+
 ## On copying, and on trust
 
 This is MIT licensed. You may fork it, rename it, and ship it — that's deliberate. A privacy tool
