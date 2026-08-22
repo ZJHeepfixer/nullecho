@@ -21,10 +21,11 @@ Also unverified on this family: `uaData.platformVersion` (`6.8.0`).
 
 These are not five variations on a theme — each names a specific GPU and driver revision.
 
-- **A VM is useless here.** UTM/QEMU/Parallels on a Mac, and every non-GPU cloud instance, present
+- **A VM cannot settle the GPU strings.** UTM/QEMU/Parallels on a Mac, and every non-GPU cloud instance, present
   a virtual adapter. Chrome there reports **llvmpipe or virgl** — e.g.
   `ANGLE (Mesa, llvmpipe (LLVM 17.0.6, 256 bits), OpenGL 4.5)`. That is a real string for a VM and
-  evidence for none of the five above. Do not spend an evening on a VM expecting it to settle this.
+  evidence for none of the five above. Do not expect a VM to settle *these five strings* — but see the section below: a VM settles
+  almost everything else the Linux family claims, and that pass is worth doing first.
 - **A physical Ubuntu box verifies exactly the GPU it contains.** A laptop with UHD 620 settles row
   1 and tells you nothing about rows 2–5.
 - Row 4 additionally pins a **driver version** (`550.120`), and row 3 pins **LLVM 15.0.7, DRM 3.49,
@@ -33,6 +34,56 @@ These are not five variations on a theme — each names a specific GPU and drive
 
 **Therefore the realistic outcomes are:** verify one row from whatever machine is reachable and
 narrow the pool to it, or verify the *format* from primary sources and keep the pool.
+
+## ✅ What a VM DOES settle — most of the family (Jason has UTM / VMware, 2026-08-21)
+
+The GPU strings are the *only* part of the Linux family a VM cannot reach. Everything else the
+`ubuntu-22` personas claim is **OS-level**, and a local Ubuntu VM is ground truth for all of it.
+Do this pass first — it is most of the blocker, and it needs no new hardware.
+
+| Claim | VM verifies? | How |
+|---|---|---|
+| `fonts: 'ubuntu-22'` — the 30-family list | ✅ **yes** | `fc-list : family` on a default install |
+| `uaData.platformVersion: '6.8.0'` | ✅ **yes** | real kernel, real format |
+| `platform: 'Linux x86_64'` | ✅ yes | `navigator.platform` |
+| Chrome's Linux UA string shape | ✅ yes | `navigator.userAgent` |
+| **`os: 'ubuntu-22'` paired with kernel 6.8.0** | ✅ **yes — and worth checking** | see below |
+| The 5 GPU renderer strings | ❌ **no** | virtual adapter reports `llvmpipe` / `virgl` / `SVGA3D` |
+
+**⚠️ Check the release/kernel pairing specifically.** Ubuntu 22.04 shipped 5.15 at GA and only
+reaches **6.8 on 22.04.5 via the HWE stack**; 6.8 is also the *GA* kernel for 24.04. So
+"ubuntu-22 + 6.8.0" is a real but comparatively narrow slice, while "22.04 + 5.15" and
+"24.04 + 6.8" are each much larger crowds. The pool's whole premise is high-population configs, so
+if the VM confirms this pairing is the narrow one, the fix is to move the personas to whichever
+pairing is actually populous — a **weights/anonymity-set** correction, not a bug.
+
+### VM run — ~5 minutes, closes most of blocker #1
+
+In the Ubuntu guest, terminal:
+
+```bash
+lsb_release -d && uname -r && fc-list : family | tr ',' '\n' | sort -u | wc -l
+```
+
+Then, to capture the font list verbatim for comparison against `FONT_SETS['ubuntu-22']`:
+
+```bash
+fc-list : family | tr ',' '\n' | sed 's/^ *//' | sort -u
+```
+
+Then in Chrome in the guest, the console snippet in the next section. Ignore its `renderer` /
+`vendor` output — that is the virtualised adapter and proves nothing about the pool — but **do**
+record `platformVersion`, `platform` and the UA.
+
+**Bonus the VM unlocks:** it is also the only way to load the extension unpacked on Linux and run
+the breakage suite there. Nothing has ever done that. Worth doing in the same sitting.
+
+### What still needs real hardware afterwards
+
+Only the five renderer strings. Options at that point: narrow the pool to rows we can prove, or
+format-verify from ANGLE/Mesa primary source (covers all five, weaker evidence, must be labelled).
+
+---
 
 ## Procedure — on a real Ubuntu box, ~2 minutes
 
