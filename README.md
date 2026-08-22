@@ -129,9 +129,27 @@ Try to break it. If you find a fingerprinting method it misses, a site it breaks
 it we haven't documented — open an issue. This category improves by people breaking each other's
 tools in public.
 
-Note: parts of this codebase were developed with AI assistance, reviewed and tested by a human.
-Every claim in these docs is traceable to a cited source or a measurement we actually ran; where
-something is unverified, it says so.
+## How this was built
+
+Nullecho was built by one person working with AI assistance (Claude), and I'd rather say that plainly
+than have you wonder. Practically: the AI did a large share of the implementation and research; every
+design decision, every judgment call, and the accountability are mine.
+
+What that means for you as a user or contributor:
+
+- **Every claim in these docs is traceable** to a cited primary source or a measurement actually run
+  and recorded — not to a model's recollection. Where something is unverified, it says so explicitly
+  (see the release blockers in `docs/BREAKAGE-TESTING.md`, or the "unverified" flags on the Linux
+  persona GPU strings).
+- **The reasoning is written down**, including the parts we got wrong and corrected. `docs/DECISIONS.md`
+  records why decoy ad-clicking was cut, why the claim was narrowed after Arkenfox's critique, and why
+  the display-spoofing layer was reverted rather than half-fixed. If you disagree with a decision, the
+  argument is there to attack.
+- **Nothing here is asserted because it sounded right.** Measurements were re-taken when they looked
+  wrong. The baseline was thrown out once because it had been captured in the wrong browser.
+
+If you find a claim in this repo that isn't backed by a source or a measurement, that's a bug — open
+an issue.
 
 ## License
 
