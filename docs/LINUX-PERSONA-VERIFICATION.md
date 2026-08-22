@@ -50,12 +50,17 @@ Do this pass first — it is most of the blocker, and it needs no new hardware.
 | **`os: 'ubuntu-22'` paired with kernel 6.8.0** | ✅ **yes — and worth checking** | see below |
 | The 5 GPU renderer strings | ❌ **no** | virtual adapter reports `llvmpipe` / `virgl` / `SVGA3D` |
 
-**⚠️ Check the release/kernel pairing specifically.** Ubuntu 22.04 shipped 5.15 at GA and only
-reaches **6.8 on 22.04.5 via the HWE stack**; 6.8 is also the *GA* kernel for 24.04. So
-"ubuntu-22 + 6.8.0" is a real but comparatively narrow slice, while "22.04 + 5.15" and
-"24.04 + 6.8" are each much larger crowds. The pool's whole premise is high-population configs, so
-if the VM confirms this pairing is the narrow one, the fix is to move the personas to whichever
-pairing is actually populous — a **weights/anonymity-set** correction, not a bug.
+**✅ RESOLVED 2026-08-21 — the release/kernel pairing is CORRECT.** An earlier draft of this file
+speculated that "ubuntu-22 + 6.8.0" might be a narrow slice. **That speculation was wrong and is
+withdrawn.** Canonical's manifests show **22.04.5 ships `linux-image-6.8.0-40-generic`** via the HWE
+stack, while **24.04.4 has moved on to 6.17.0**. The persona pairing is the mainstream one. No change
+needed.
+
+**🔴 But the FONT list is wrong — see `research/linux-ground-truth/`.** Measured against Canonical's
+own desktop manifests: a real default Ubuntu 22.04 desktop has **180 font families**; the persona
+claims 30, and **five of those do not exist** (Noto Sans, Noto Serif, Century Schoolbook L, Dingbats,
+DejaVu Math TeX Gyre). A false-*present* font is a self-contradicting persona detectable by ordinary
+fingerprinting scripts — worse than the unverified GPU strings. **Fix the five false-presents first.**
 
 ### VM run — ~5 minutes, closes most of blocker #1
 
