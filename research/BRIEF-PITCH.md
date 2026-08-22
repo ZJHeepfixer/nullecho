@@ -76,6 +76,15 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 > Consumer Reports study, *not* as letter recipients. Easy conflation to make and I've kept them
 > separate in the brief.)
 >
+> **5. The FTC is litigating a price-discrimination case and just wrote about personalized pricing
+> without mentioning it.** Everyone assumes Robinson-Patman is the federal hook for "different
+> prices for different people." The FTC's own conduct says otherwise: it has a live Robinson-Patman
+> suit against Southern Glazer's (No. 8:24-cv-02684, C.D. Cal., stayed for settlement through
+> September 4), and its August 19 personalized-pricing statement contains **zero** occurrences of
+> "Robinson," "Patman," "Clayton," or "commodity." Its footnote listing the other laws the same
+> conduct might violate names ROSCA and the Fees Rule — not the price-discrimination statute the
+> agency is simultaneously litigating. Same agency, same month, deliberately different statute.
+>
 > Two more things sitting on top of this:
 >
 > - **New York's One Fair Price Act passed both houses June 4 and has not been signed.** I checked
@@ -88,7 +97,7 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 >   compliant with New York is, on the face of that document, still exposed under Section 5. (That
 >   comparison is my read of the two texts, not something either regulator has said.)
 >
-> The brief runs about 13,000 words, sourced to the enacted chapter laws and the FTC PDF, with a section
+> The brief runs about 16,000 words, sourced to the enacted chapter laws and the FTC PDF, with a section
 > separating what I read in the original from what rests on secondary reporting and what's
 > inference. It also says on its face that it hasn't been reviewed by counsel.
 >
@@ -179,6 +188,13 @@ Written down because these are the specific ways this pitch could go wrong.
 - **Do not present the 2022/2026 sweep contrast as proof that § 1798.125 failed.** The two sweeps
   addressed different conduct. It is an observed contrast, offered because it is checkable and
   unremarked — not a finding about the AG's reasoning.
+- **Do not say a court has held Robinson-Patman inapplicable to consumer pricing.** None has; the
+  point appears never to have been litigated. The claim is that the FTC's own filings and omissions
+  point one way and the statutory elements point the same way. Say it that way.
+- **Do not cite a case you have not confirmed.** Several Robinson-Patman "commodities" citations in
+  circulation could not be verified against an opinion and are deliberately absent from the brief.
+  If a reporter asks for authority on that element, say it needs a paid-database pull rather than
+  handing over a cite from a secondary source.
 - **Do not present the brief as legal analysis.** It is compliance research with a lawyer-review
   disclaimer on its face. Say that in the pitch before a reporter has to ask.
 - **Do not attach the brief to the first email.** Offer it. An unsolicited attachment from an

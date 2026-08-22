@@ -257,7 +257,9 @@ mid-sentence):
 - **MD Com. Law §13-322** (eff. 2026-10-01): `THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR
   PERSONAL DATA`
 - **CT PA 26-64 §11(b)** (eff. 2026-10-01): `THIS PRICE WAS INCREASED BY A PRICE SETTING DEVICE USING
-  YOUR PERSONAL DATA` (more accusatory → more exposed on appeal)
+  YOUR PERSONAL DATA` — ⚠️ **note "PRICE SETTING DEVICE", NOT "an algorithm"** (widely misreported),
+  and CT is the **only** state whose string is not fixed: the statute permits "a substantially
+  similar disclosure", so an exact-string matcher will miss compliant CT notices.
 - **NJ Fair Price Protection Act** (~2027): groceries-only *ban*, not a disclosure string.
 
 Match on the stable core substrings (`set by an algorithm`, `price setting device`, `using your
@@ -276,6 +278,15 @@ before it showed you a price, which fingerprinting surfaces it read, and whether
 personalized-pricing disclosure New York law requires. It does not lower prices — and we found no
 credible evidence that any browser extension can."* The last clause is the pitch: in a category of
 overclaimers, "we checked and it doesn't work" is what earns trust.
+
+**⚠️ Corrections from the compliance brief (2026-08-21), verified against enacted statute text:**
+- NJ's widely-reported **$50,000 penalty was STRUCK before enactment** — do not cite it.
+- NJ "groceries" includes **paper goods, cleaning products, health & beauty, and pet supplies**, and
+  §3(c) carries a **purpose-limitation clause** most pricing teams will miss.
+- The Robinson-Patman "applies only to purchasers for resale" framing is **wrong**: §2(a) reaches
+  goods sold "for use, consumption, or resale." The real barrier to consumer claims is the
+  **competitive-injury** element, not the purchaser type.
+- ⏰ **California AB 2564 faces an 2026-08-31 floor deadline** — would be a 5th state / 4th ban.
 
 **Gate before building:** a sweep for real §349-a compliance is running
 (`research/NY-349A-COMPLIANCE-SWEEP.md`). If retailers show the disclosure → build the detector. If

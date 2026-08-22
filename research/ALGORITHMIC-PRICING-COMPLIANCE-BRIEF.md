@@ -16,7 +16,7 @@ Prepared from primary statutory sources except where marked.
 
 ## 1. Executive summary
 
-**What changed.** In the space of fifteen months, four states went from zero to four distinct
+**What changed.** In the space of fourteen months, four states went from zero to four distinct
 statutory regimes governing the use of consumers' personal data to set prices. They do not agree
 with one another on the operative rule, the covered entity, the remedy, or — critically — on the
 words a business must display.
@@ -45,13 +45,15 @@ price was *increased*, and it names a "price setting device" rather than an algo
 
 - **Maryland § 13-322 binds every "merchant"**, not just food sellers, and is triggered by setting
   a price using **dynamic pricing *or* personal data** and then advertising, labelling or
-  publishing that price. It is the broadest disclosure duty of the four.
+  publishing that price. It is the broadest of the three disclosure duties.
 - **Connecticut § 11(b) binds "any person doing business in the state"** who uses a price setting
   device for any purpose other than granting a discount in an online transaction.
-- **New Jersey is the first state to expose a defendant to private plaintiffs.** It works by
-  declaring surveillance pricing an "unlawful practice" under the New Jersey Consumer Fraud Act,
-  which carries a private right of action with treble damages and fee-shifting. The other three
-  states are attorney-general-only.
+- **New Jersey is the first state to expose a defendant to private plaintiffs.** It declares
+  surveillance pricing an "unlawful practice" under the New Jersey Consumer Fraud Act, which
+  carries a private right of action with treble damages and fee-shifting. The other three states
+  are attorney-general-only — **Maryland and Connecticut expressly bar** private suits, and New
+  York simply creates none. *(The NJ private right attaches by operation of the CFA rather than by
+  express creation — see §2.4 and §8.3.)*
 - **"Groceries" in New Jersey is not just food.** The defined list reaches paper products,
   household cleaning items, health and beauty products, and pet foods and supplies.
 
@@ -80,6 +82,12 @@ programs and publicly disclosed, uniformly available discounts*, and they impose
 conditions on those programs. A loyalty program that satisfies New York's "bona fide custom
 discount" conditions may still fail Connecticut's posting requirement or New Jersey's
 purpose-limitation clause.
+
+**And one thing not to spend money on.** The federal price-discrimination statute — Robinson-Patman
+— does not reach consumer-facing personalized pricing, for several independent reasons. The
+strongest evidence is that the FTC is **currently litigating** a Robinson-Patman case and, two days
+ago, addressed personalized pricing in a policy statement that **never mentions the Act**. Build
+your federal analysis around FTC Act § 5. See §4.2.
 
 ---
 
@@ -205,7 +213,7 @@ Jersey Consumer Fraud Act, P.L. 1960, c. 39 (N.J.S.A. 56:8-1 *et seq.*).
 | **Trigger** | Algorithm **and** personal data | Dynamic pricing **or** personal data | Dynamic pricing / surveillance personal data → **higher** price | Price setting device, except online discounts | Tech-collected personal data → customized price | Algorithm/automated system + personal data → price variation |
 | **Exact words fixed?** | **Yes** | **Yes** | n/a | **No** — "or substantially similar" | n/a | n/a |
 | **Notice-and-cure?** | **Yes**, AG-set timeline | **Yes, 45 days** | **Yes, 45 days** | **No** | **No** | **No** |
-| **Private action** | No | No | **Expressly no** | **Expressly no** | **Expressly no** | **Yes, via CFA (inference)** |
+| **Private action** | None created | **Expressly no** | **Expressly no** | **Expressly no** | **Expressly no** | **Yes, via CFA (inference)** |
 | **Max civil penalty** | $1,000/violation | $10,000 / $25,000 repeat *(sec.)* | same | $5,000/wilful *(sec.)* | same | Actual damages + CFA penalties; treble in private suits |
 | **Live from** | 2025-11-10 | 2026-10-01 | 2026-10-01 | 2026-10-01 | 2026-10-01 | 2027-08-01 |
 
@@ -269,9 +277,9 @@ labelled.**
 
 ### 4.1 FTC Proposed Enforcement Policy Statement on Personalized Pricing (P034101)
 
-**Dated 2026-08-19; released for public comment. Comment period is 30 days from Federal Register
-publication.** *(The prior research in this project records a Commission vote of 2–0; that vote
-count was not re-verified from an FTC source in this pass — treat it as unconfirmed.)*
+**Dated 2026-08-19; released for public comment on a 2–0 Commission vote. Comment period is 30 days
+from Federal Register publication** — the publication date was not confirmed, so no calendar
+deadline can be stated.
 
 **It is not binding, and it says so.** From the statement's own closing paragraph, quoted verbatim:
 
@@ -378,7 +386,229 @@ public policy "may not serve as a primary basis" for an unfairness determination
 
 ### 4.2 Robinson-Patman does not reach consumer personalized pricing
 
-*[This section is completed below from a dedicated research pass — see §4.2 continued.]*
+"Charging different customers different prices for the same product" is the textbook description of
+price discrimination, and the Robinson-Patman Act (15 U.S.C. § 13, amending Clayton Act § 2) is the
+federal price-discrimination statute. The FTC has revived RPA enforcement since 2024. The inference
+that the RPA therefore reaches personalized consumer pricing is natural, common, and wrong.
+
+#### The observed contrast — same agency, same month, deliberately different statute
+
+The most persuasive evidence is not doctrinal. It is what the FTC did with its own docket.
+
+- **The FTC is currently litigating a major Robinson-Patman price-discrimination case.** *FTC v.
+  Southern Glazer's Wine and Spirits, LLC*, **No. 8:24-cv-02684 (C.D. Cal., Judge Fred W.
+  Slaughter)**, filed **2024-12-12**. The motion to dismiss was **denied 2025-04-17**. The case was
+  stayed in 2026 for settlement; the parties asked the court to extend the stay "for an additional
+  twenty-nine (29) days, **through September 4, 2026**, to allow time to complete this process,
+  **secure the necessary Commission vote**, and finalize the resolution of the action."
+- **On 2026-08-19 — two days before this brief — that same Commission confronted consumer
+  personalized pricing directly** and said: *"Congress has not given the Commission the authority to
+  prohibit personalized pricing outright."* It then proceeded under **FTC Act § 5**, not under the
+  price-discrimination statute it is simultaneously litigating and settling.
+- **A keyword scan of the FTC's personalized- and surveillance-pricing corpus returns nothing.**
+  Across the January 2025 6(b) staff perspective and its press release, the August 2026 policy
+  statement, and the Ferguson and Holyoak 6(b) concurrences, there are **zero** hits for
+  "Robinson," "Patman," or "price discrimination" as a legal theory — the sole exception being a
+  Ferguson footnote citing the 1934 Chain Stores Report as a **historical** example of a 6(b) study
+  prompting new legislation. *(The August 2026 statement was full-text searched directly for this
+  brief: zero occurrences of "Robinson," "Patman," "Clayton," "15 U.S.C. § 13," or
+  "commodity/commodities." The wider corpus scan is from a dedicated research pass and was not
+  independently re-run here.)*
+
+An agency does not forget its own statute while litigating under it. **The omission is a choice**,
+and it is the clearest available signal that the enforcer with the most experience of the RPA does
+not regard it as reaching this conduct. *Presented as an observed contrast, not as proof of the
+Commission's reasoning — no FTC document explains the choice.*
+
+The doctrinal analysis below explains why the choice is the right one.
+
+> **State the conclusion at the right strength.** **No court has held that the Robinson-Patman Act
+> does not reach individualized consumer pricing** — because no one appears to have litigated it.
+> The analysis below is element-by-element from the statutory text plus *Volvo*'s competitive-injury
+> holding, not an application of authority on point. Treat it as a strong reading of the statute,
+> not as settled law. Commentary reflects the same posture: Cornerstone Research's July 2025 paper
+> says application to end-consumer pricing "might" be "**challenging** … unless such pricing can be
+> shown to harm competition at some level of the market" — a hedge, not a bar.
+
+**Reason 1 — "Commodities" only. Services and intangibles are outside § 2(a) entirely.**
+
+The operative words, verbatim: it is unlawful "to discriminate in price between different
+purchasers of **commodities of like grade and quality**." The FTC's own published guidance states
+the limit flatly: "The Act applies to **commodities, but not to services**, and to purchases, but
+not to leases." Courts have restricted "commodities" to tangible personal property. Personalized
+pricing of travel, tickets, rideshare, streaming, subscriptions, delivery, insurance, credit,
+software and in-app purchases — the bulk of where personalized pricing actually lives — is outside
+the statute before any other element is reached.
+
+⚠️ **Two cautions.** First, **electricity has been held to be a commodity**, so a utility engaged in
+personalized pricing is not automatically outside this element. Second, the case law on the
+services/intangibles line is real but this brief cites none of it: several frequently repeated
+citations could not be verified against an opinion, and an unverified citation in a document of
+this kind is worse than no citation. Counsel should pull *Metro Communications Co. v. Ameritech
+Mobile Communications, Inc.*, 984 F.2d 739 (6th Cir. 1993) (cellular service not a commodity) and
+*City of Kirkwood v. Union Electric Co.*, 671 F.2d 1173 (8th Cir. 1982) (electricity is) from a
+paid database before relying on either. *(Note:* Metro Communications *is Sixth Circuit; it is
+sometimes miscited as Eighth.)*
+
+**Reason 2 — Competitive injury. There is no level of competition below the retail consumer.**
+
+> **A correction worth making explicitly, because the wrong version of this argument circulates.**
+> § 2(a) does **not** contain a "purchasers for resale" requirement. The statute expressly reaches
+> commodities "sold for **use, consumption, or resale** within the United States." An end consumer
+> **is** a "purchaser." The structural proof is 15 U.S.C. § 13c, which exempts nonprofit
+> institutions' "purchases of their supplies **for their own use**" — an exemption that would be
+> surplusage if own-use purchasers were already outside § 2(a). Anyone who argues that consumers
+> are not "purchasers" will lose the point.
+
+The real barrier is the effects element. Section 2(a) requires that the discrimination's effect
+"may be substantially to lessen competition or tend to create a monopoly in any line of commerce,
+or to injure, destroy, or prevent competition with any person who either grants or knowingly
+receives the benefit of such discrimination, or with customers of either of them."
+
+*Volvo Trucks North America, Inc. v. Reeder-Simco GMC, Inc.*, 546 U.S. 164 (2006), sets out the
+only three ways that element is satisfied, quoted verbatim:
+
+> "Primary-line cases entail conduct—most conspicuously, predatory pricing—that injures competition
+> at the level of the discriminating seller and its direct competitors… Secondary-line cases… involve
+> price discrimination that injures competition among the discriminating seller's customers…
+> Tertiary-line cases involve injury to competition at the level of the purchaser's customers."
+
+And the sentence that decides the question: **"Absent actual competition with a favored Volvo
+dealer … Reeder cannot establish the competitive injury required under the Act."**
+
+Retail consumers buying for personal, family or household use are not in competition with one
+another, and there is no distribution level beneath them, so neither the secondary nor the tertiary
+line is available; nothing about charging one shopper more injures competition among the seller's
+rivals, so the primary line is not either. *Volvo* also warns against reading the Act "geared more
+to the protection of existing competitors than to the stimulation of competition," and instructs
+that it be construed "consistently with broader policies of the antitrust laws." *Brooke Group Ltd.
+v. Brown & Williamson Tobacco Corp.*, 509 U.S. 209, 220 (1993), states the same limit directly:
+"The Robinson-Patman Act condemns price discrimination **only to the extent that it threatens to
+injure competition**." A private plaintiff faces the additional hurdle of *J. Truett Payne Co. v.
+Chrysler Motors Corp.*, 451 U.S. 557, 562 (1981) — "some showing of actual injury attributable to
+something the antitrust laws were designed to prevent."
+
+**Reason 3 — The promotional-allowance provisions are textually incapable of reaching consumers.**
+
+Sections 2(d) and 2(e) are the RPA's *per se* provisions: they carry no competitive-injury element,
+which would otherwise make them the easiest theory available. Both are closed by their own text.
+Section 2(e) applies only to "purchasers of **a commodity bought for resale**, with or without
+processing." Section 2(d) requires that allowances be available "to all other **customers competing
+in the distribution** of such products or commodities." A consumer buying for household use is
+neither. The resale limitation that does **not** exist in § 2(a) does exist here — which is exactly
+why the two must not be conflated.
+
+**Reason 4 — Jurisdiction: two completed sales, at least one crossing a state line.**
+
+The RPA's "in commerce" element is **narrower than the Sherman Act's** reach. *Gulf Oil Corp. v.
+Copp Paving Co.*, 419 U.S. 186 (1974): "The explicit reach of these provisions extends only to
+persons and activities that are themselves 'in commerce'," language denoting "only persons or
+activities within the flow of interstate commerce." The FTC's guidance states the operational rule:
+"There must be **sales to at least two different purchasers** within approximately the same time
+period… Normally, the sales must be 'in' interstate commerce (that is, at least one of the relevant
+sales must be across a state line)."
+
+**The sub-point here is the one most specific to algorithmic pricing: an offer is not a sale.** A
+personalized price *displayed* to a shopper who does not buy is not a transaction, and the RPA
+requires two comparable, completed, roughly contemporaneous sales. Since much personalized pricing
+manifests as a quoted price rather than a consummated purchase, and since the price a given
+consumer *would* have been shown is usually unknowable to any other consumer, the comparator
+problem is severe even where the element is theoretically satisfiable.
+
+**Reason 5 — Two complete statutory defenses would remain even if a plaintiff cleared all of the
+above.**
+
+- **Cost justification**, § 2(a) proviso: "nothing herein contained shall prevent differentials
+  which make only due allowance for differences in the cost of manufacture, sale, or delivery
+  resulting from the differing methods or quantities." Cost-based delivery, shipping and fulfilment
+  differentials — a large share of observed retail price variation — fall here. *(Note: cost
+  justification does **not** apply to § 2(d)/(e) allowance claims.)*
+- **Meeting competition in good faith**, § 2(b). *Falls City Industries, Inc. v. Vanco Beverage,
+  Inc.*, 460 U.S. 428 (1983): the standard is "the existence of facts that would lead a reasonable
+  and prudent person to believe that the seller's lower price would meet the equally low price of a
+  competitor," and good faith means "the prudent businessman responding fairly to what he
+  reasonably believes is a situation of competitive necessity." The Court **rejected** a
+  customer-by-customer matching requirement — which matters, because an algorithm responding to
+  competitor prices is doing something close to systematic meeting-competition.
+- **Functional discounts** are lawful where legitimate: *Texaco Inc. v. Hasbrouck*, 496 U.S. 543
+  (1990) — "A legitimate functional discount that constitutes a reasonable reimbursement for the
+  purchasers' actual marketing functions does not violate the Act," though discounts "completely
+  untethered either to the supplier's savings or the wholesaler's costs" do.
+
+**The strongest external confirmation: the FTC's own silence.**
+
+The Commission that revived Robinson-Patman enforcement wrote an eight-page policy statement about
+exactly this conduct on 2026-08-19 and **never mentioned the Act**. Verified by full-text search of
+the PDF: **zero occurrences of "Robinson," "Patman," "Clayton," "15 U.S.C. § 13," or
+"commodity/commodities."** "Price discrimination" appears once, inside a quotation from an
+*Econometrica* article — an economics term, not a legal theory. The statement rests solely on FTC
+Act § 5 and § 45(n), and its footnote enumerating the "other laws enforced by the Commission" that
+the same conduct might violate lists **ROSCA and the Fees Rule — not the RPA**. Chair Ferguson's
+accompanying statement puts the authority question the same way: "The FTC does not have the legal
+authority to ban personalized pricing in all circumstances, but businesses that fail to tell
+consumers how their personal data is being used to set a price may be in violation of the FTC Act
+and other laws we enforce."
+
+Note also that the policy statement speaks throughout of "a good **or service**" — a scope the RPA
+could not reach even in principle.
+
+**And the revived RPA docket confirms the boundary.** Every revived action — government and private
+— involves **competing business purchasers at the same functional distribution level**. Not one
+involves individual consumers:
+
+| Case | Disfavored purchasers | Favored | Posture |
+|---|---|---|---|
+| ***FTC v. Southern Glazer's Wine and Spirits, LLC***, No. 8:24-cv-02684 (C.D. Cal.), filed 2024-12-12 | Small independent "mom and pop" liquor retailers | Large chains | Secondary-line § 2(a). MTD **denied 2025-04-17**; stayed for settlement through **2026-09-04** pending a Commission vote |
+| ***FTC v. PepsiCo*** (S.D.N.Y.), filed January 2025 | Smaller grocery and convenience retailers | One big-box buyer | §§ 2(d)/(e). **Voluntarily dismissed May 2025** *(reported 3-0, 2025-05-22 — secondary)* |
+| ***LA International Corp. v. Prestige Brands Holdings, Inc.***, Nos. 24-3776, 24-5009, 24-5227 (9th Cir. **2026-02-24**, published) | Ten wholesale distributors reselling to convenience stores | Costco Business Centers, Sam's Club, Select Corp. | Jury verdict for plaintiffs on Clear Eyes pricing **affirmed**; functional-discount defence rejected. Attorney's-fee award **vacated and remanded** |
+
+**The structural reason is the same in every one.** Section 13(a) requires injury to *competition*,
+and competitive injury is assessed among buyers "operating on a particular functional level such as
+wholesaling or retailing." An end consumer occupies no functional level. There is nobody she
+competes with and no market in which her disadvantage could register. *(The quoted functional-level
+formulation is attributed to* U.S. Wholesale *, 89 F.4th at 1142, via a dedicated research pass; the
+opinion was not read for this brief. Treat the phrasing as secondary.)*
+
+**The legislative direction confirms it too.** Pending federal bills to strengthen the RPA — S.
+4147 and the Fair Competition for Small Business Act among them — all push it further toward
+**buyer-level and small-business** protection. **None** extends it toward consumers. *(Secondary;
+bill texts not read.)*
+
+**What this means for a compliance program.** Do not build antitrust risk assessments for
+consumer-facing personalized pricing around Robinson-Patman, and do not let a vendor tell you that
+RPA compliance covers it. The live federal exposure is **FTC Act § 5**, and the live exposure
+generally is **state consumer-protection and privacy law**. The RPA remains fully relevant to
+differential pricing among *business* customers — distributors, resellers, franchisees — and a
+company that sells both to consumers and to resellers needs both analyses, kept separate.
+
+#### The contrary source, surfaced rather than buried
+
+One reviewed source says the opposite, and a brief that hides its strongest counter-authority is
+worth less than one that answers it.
+
+**Danielle Healey, "The Robinson-Patman Act Makes a Comeback," ABA *Business Law Today*
+(2026-04-13)**, states: *"The Robinson-Patman Act applies to consumers, not just retailers or others
+in the sales chain."*
+
+**Why it does not carry the weight it appears to.** It is a loose secondary characterization, not a
+holding, and it comes with no case citation. Its support is a block quotation of § 13(a)'s "for
+use, consumption, or resale" language — which establishes only that a consumer can be a
+**purchaser**, a proposition this brief agrees with and makes in Reason 2. The sentence does not
+address the competitive-injury element, which is the element that actually decides the question.
+The same article immediately qualifies that the Act reaches **commodities only** and "does not
+apply to any services … or other intangibles," which cuts against applying it to most personalized
+pricing regardless.
+
+So the honest reading is that Healey and this brief agree on the statutory text and differ only in
+emphasis: consumers are purchasers, and purchasers still have to show competitive injury. **But the
+sentence is quotable out of context**, and a compliance memo that relies on "the RPA doesn't apply
+to consumers" as a flat proposition will meet it. The "use, consumption, or resale" and § 13c
+analysis in Reason 2 is the answer.
+
+⚠️ **A gap, flagged rather than glossed.** The **ABA Antitrust Law Section's "When Pricing Gets
+Personal: Defining and Regulating Surveillance Pricing" (April 2026)** returned 403 and was not
+read. It is the most likely home of a serious contrary analysis. Its absence here is a limit of
+this survey, not evidence that the literature is exhausted.
 
 ---
 
@@ -833,6 +1063,13 @@ Do this regardless of whether you operate in the four states above.
 | **11 CCR § 7002(a)–(b)**, version operative 2026-01-01 — `cppa.ca.gov/regulations/pdf/ccpa_statute_eff_20260101.pdf` | The "in accordance with Civil Code section 1798.100, subdivision (c)" tie; the reasonable-expectations standard; the five factors; the authority note omitting § 1798.125 |
 | **Cal. Assembly Comm. on Privacy and Consumer Protection, AB 2564 (Ward) analysis, hearing 2026-03-25** (Julie Salley) — `apcp.assembly.ca.gov/system/files/2026-03/ab-2654-ward-apcp-analysis.pdf` | The advocacy-coalition quote in §5.2 verbatim and its attribution ("a large coalition of advocacy organizations"); the committee's own "protection from discrimination **for exercising these rights**" characterization; the Consumer Reports/More Perfect Union/Groundwork findings and the retailer list, **as study subjects** |
 | **Cal. AB 2564 bill-status page** — leginfo, fetched 2026-08-21 | "Active Bill – In Floor Process"; last action 08/18/26; official title; proposed § 7201(a) |
+| **15 U.S.C. § 13(a), (b) and § 13c** — Cornell LII | The "commodities of like grade and quality" element; "for use, consumption, or resale"; the full competitive-injury clause; the cost-justification proviso; the § 2(b) meeting-competition defence; the § 13c nonprofit "own use" exemption |
+| **FTC, "Price Discrimination: Robinson-Patman Violations"** (agency guidance) — ftc.gov | "The Act applies to commodities, but not to services, and to purchases, but not to leases"; the two-purchasers and interstate-sale rules; that cost justification does not apply to § 2(d)/(e) |
+| ***Volvo Trucks N. Am., Inc. v. Reeder-Simco GMC, Inc.***, 546 U.S. 164 (2006) — opinion text | The three-line framework verbatim; "Absent actual competition with a favored Volvo dealer … Reeder cannot establish the competitive injury required under the Act"; the competitor-versus-competition caution |
+| ***Gulf Oil Corp. v. Copp Paving Co.***, 419 U.S. 186 (1974); ***Brooke Group***, 509 U.S. 209 (1993); ***Falls City Industries***, 460 U.S. 428 (1983); ***Texaco v. Hasbrouck***, 496 U.S. 543 (1990) | Quoted propositions in §4.2 |
+| **FTC Proposed Policy Statement P034101 — full-text keyword search** | **Zero** occurrences of "Robinson," "Patman," "Clayton," "15 U.S.C. § 13," or "commodity/commodities." Independently re-run for this brief: the only "antitrust" string in the document is a journal title in a footnote |
+| ***FTC v. Southern Glazer's*** docket number and stay | Case No. **8:24-cv-02684** confirmed against the FTC's own hosted complaint PDF and the court filing; the "through September 4, 2026 … secure the necessary Commission vote" language quoted from the stay application as reported |
+| ***LA International Corp. v. Prestige Brands Holdings, Inc.***, Nos. 24-3776, 24-5009, 24-5227 (9th Cir. 2026-02-24) | Published opinion, posted on the Ninth Circuit's own site; affirmance for the wholesale distributors; fee award vacated and remanded; Costco Business Centers / Sam's Club as favored purchasers |
 
 ### 8.2 Verified from a reliable secondary source, not read in the original
 
@@ -845,7 +1082,7 @@ Do this regardless of whether you operate in the four states above.
 | **CUTPA penalties $5,000 wilful / $25,000 order violation (§ 42-110o)** | Justia and CGA OLR reports via search summary | Not read in the original |
 | **NJ CFA penalties $10,000 / $20,000 (N.J.S.A. 56:8-13)** | Law-firm alerts | Not read in the original |
 | **NRF v. James district court holding of 2025-10-08** | Volokh/Reason, Clark Hill, Bloomberg Law commentary | The opinion itself was not read in this pass. The characterization "factual and uncontroversial" is quoted consistently across sources |
-| **FTC comment period of 30 days from Federal Register publication** | IAPP, Wiley, Consumer Finance Monitor | The policy statement PDF does not state a deadline. **No Federal Register publication date was confirmed, so no calendar deadline can be given** |
+| **FTC comment period of 30 days from Federal Register publication; 2–0 Commission vote; Chair Ferguson's quoted statement** | FTC press release (the release itself 403'd on direct fetch; recovered through a dedicated research pass and corroborated by IAPP, Wiley, Consumer Finance Monitor) | The policy statement PDF states neither the vote nor a deadline. **No Federal Register publication date was confirmed, so no calendar deadline can be given** |
 | **Nieman Lab, 2026-07-22, on publisher compliance** | Recovered via search index and a mirror; the original returned 403 | The verbatim renewal wording is consistent across recoveries |
 
 ### 8.3 Inference, clearly labelled — not holdings
@@ -874,7 +1111,11 @@ Do this regardless of whether you operate in the four states above.
    principle; the citations are the bar's reconstruction. The mapping is well supported by § 7002's
    own text, which cites § 1798.100(c) and states the reasonable-expectations standard the AG
    paraphrased — but it remains a reconstruction.
-9. **The NY Governor's action deadline.** Under N.Y. Const. art. IV, § 7 the Governor has 10 days
+9. **That the Robinson-Patman Act does not reach individualized consumer pricing** (§4.2). No court
+   has so held. The conclusion is element-by-element statutory analysis plus *Volvo*'s
+   competitive-injury holding. The FTC's silence is strong corroboration but is **not** an
+   authority, and no FTC document explains the omission.
+10. **The NY Governor's action deadline.** Under N.Y. Const. art. IV, § 7 the Governor has 10 days
    (Sundays excepted) to act on a bill delivered while the Legislature is in session and 30 days
    when it is not, and bills passed in a session must be delivered before the year ends.
    **No delivery record for A.9349-B was located**, so no specific deadline date is asserted here.
@@ -903,8 +1144,28 @@ Do this regardless of whether you operate in the four states above.
   recipient has ever been named. See §5.6 for the distinction between letter recipients (unknown)
   and companies named in the surrounding investigative record (known, and different).
 - **ABA Antitrust Law Section, "When Pricing Gets Personal: Defining and Regulating Surveillance
-  Pricing" (April 2026)** — returned 403, unread. The likeliest home of a substantive § 1798.125
-  analysis. Flagged as an unchecked gap in the survey.
+  Pricing" (April 2026)** — returned 403, unread. The likeliest home of both a substantive
+  § 1798.125 analysis and a contrary Robinson-Patman analysis. Flagged as an unchecked gap in the
+  survey, twice over.
+- **Robinson-Patman case law on the "commodities" line.** Several frequently repeated citations
+  could not be confirmed against an opinion and are therefore **not cited in this brief**:
+  *May Department Stores v. Graphic Process Co.* (returned no results at all in a docket search),
+  *Baum v. Investors Diversified Services*, *Ideal Plumbing v. Benco*, *Freeman v. Chicago Title*,
+  *Tri-State Broadcasting v. UPI*, *LaSalle Street Press*, and *Advance Business Systems v. SCM*.
+  Counsel wanting authority on this element should pull it from a paid database.
+- **Cites appearing in the analysis that rest on a secondary characterization**, and should be
+  verified before being relied on: *Metro Communications Co. v. Ameritech Mobile Communications,
+  Inc.*, 984 F.2d 739 (6th Cir. 1993); *City of Kirkwood v. Union Electric Co.*, 671 F.2d 1173
+  (8th Cir. 1982); *Bruce's Juices v. American Can Co.*, 330 U.S. 743 (1947) (two-transaction rule
+  — **citation not independently confirmed**); *U.S. Wholesale*, 89 F.4th at 1142 (functional-level
+  formulation); *Power Buying Dealers v. JUUL* (secondary only). The Westlaw cite `2026 WL 504763`
+  sometimes given for *LA International* is **unconfirmed** — the docket numbers and date are
+  verified; the parallel cite is not.
+- **"Functional availability"** as a defence is a judicially created doctrine with no single
+  controlling case located. Treated as secondary throughout.
+- **Southern Glazer's posture after 2026-08-21** and the reported PepsiCo 3-0 dismissal vote of
+  2025-05-22 are secondary. The Southern Glazer's stay expires **2026-09-04**, so this is perishable
+  — re-check before citing.
 
 ### 8.5 Explicitly not relied on
 
@@ -916,6 +1177,13 @@ Do this regardless of whether you operate in the four states above.
   chapter law carries visible amendment layering and several summaries quote text that was struck.
 - The *American Prospect* piece of 2026-08-21 on FTC enforcement — could not be fetched (403),
   unread, not cited.
+- A claim circulating in search summaries that the FTC issued an **"April 2026 ANPR on personalized
+  pricing."** Unverified and probably a misreading: the April 2026 FTC matter cited in the policy
+  statement's own footnote concerns **food and grocery delivery fees**, a different proceeding.
+- Any Robinson-Patman case citation that could not be confirmed against an opinion. See §8.4.
+- The "for resale" formulation of the § 2(a) purchaser element. It is **wrong** — § 2(a) reaches
+  commodities sold "for use, consumption, or resale," and the resale limit lives in § 2(e). The
+  correct argument is competitive injury, not purchaser status.
 
 ---
 
