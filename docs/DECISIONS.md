@@ -543,3 +543,90 @@ A renderer string no driver emits is a fingerprint of Nullecho itself. `uaData.p
 Linux carries the same doubt (Chrome may report an empty string there; the pool has claimed
 `6.8.0` since before this change). Both are flagged in `personas.js` and neither is reachable from
 this Mac, but a Linux user gets them.
+
+---
+
+## D17 — Prove the GPC exception *mechanism*, not all fifty *hosts*. 2026-08-21.
+
+**Decision:** Tier C.15 of the ship gate no longer requires visiting the ~50 shipped GPC exception
+hosts. It requires proving the mechanism on **one excepted host and one control host**, on top of
+the static three-way coherence proof the validator already enforces on every build.
+
+**Why the original framing was wrong.** "Visit fifty sites and check" treats the fifty entries as
+fifty independent behaviours. They are not. They are **one mechanism applied fifty times**:
+
+- `rules/gpc.json` rule 5000 suppresses the `Sec-GPC` **header** via `excludedRequestDomains` +
+  `excludedInitiatorDomains`.
+- Both manifests suppress the **JS property** by excluding the `src/gpc.js` content script via
+  `exclude_matches`, one `*://*.<domain>/*` pattern per entry.
+- `ext/rules/validate.mjs` fails the build if any entry appears in one place and not the others —
+  in **both** directions, and across **both** manifests. Verified 2026-08-21: 50 / 50 / 50, zero
+  drift, and `excludedRequestDomains` ≡ `excludedInitiatorDomains`.
+
+So the fifty hosts do not differ in *code path*. They differ only in *list membership*, and list
+membership is inherited from EasyPrivacy's GPC section — a list maintained continuously by more
+people than we have. Re-deriving someone else's blocklist by hand is not a use of the one scarce
+resource this project has, which is human attention.
+
+**What the two-site check actually buys.** The failure modes worth catching are mechanism failures,
+and each shows up on a single site:
+
+| Failure | Caught by |
+|---|---|
+| `exclude_matches` silently not applied → property present on an excepted host | the excepted host reading `true` instead of `undefined` |
+| GPC never installed at all → the feature is dead everywhere | the control host reading `undefined` instead of `true` |
+| Content script excluded but the loader stalls waiting for its boot nonce → **fingerprint protection silently dies on all fifty** | the excepted host still getting a persona |
+
+That third row is the one that would actually have hurt, and it is a *mechanism* bug by
+construction — it cannot be host-specific. (Checked 2026-08-21: `maybeDeliver()` gates on the shim
+nonce only and treats the GPC nonce as optional, with a comment saying why. Correct already.)
+
+**What this does NOT license.** It does not license trusting the list's *contents*. If a user
+reports GPC breakage on a host not in the list, that is a real bug and the fix is a new entry — the
+recovery path (`setSiteException`) exists precisely because the shipped list will be incomplete.
+And it does not license skipping the render: reading the JSON is not the check. **Two real page
+loads in real Chrome, or it did not happen.**
+
+**Chosen host:** `open.spotify.com` — in the shipped list, publicly reachable, needs no account,
+and is not a bank or a checkout, so a tester can run it without risking anything that matters.
+
+---
+
+## D18 — The blocking layer needs a POSITIVE proof, and it is a harness, not a counter. 2026-08-21.
+
+**Decision:** `harness/blocking-proof.html` is the artifact that closes "does blocking actually
+happen." It requests six real tracker library URLs and three allowlisted control URLs and reports
+which were cancelled.
+
+**Why the popup counter was not enough.** The counter was the only evidence, and it is the weakest
+possible kind: a number our own code computes about our own behaviour. Two ways it lies —
+
+1. **It can read zero while blocking works.** In a *packed* build Chrome withholds
+   `onRuleMatchedDebug` (unpacked-only), so the listener never registers and the popup falls back
+   to `getMatchedRules()`. Dev-mode testing exercises the path real users never get.
+2. **It can read non-zero while blocking does nothing.** Both DNR feedback APIs report every rule
+   that *acted* on a request, not just blocking ones — `gpc.json` rule 5000 touches nearly every
+   request, and allowlist `allowAllRequests` rules fire exactly where we blocked nothing.
+   `classifyMatchedRule()` exists to sort that out, and a bug in it is invisible from inside.
+
+The harness is independent of both: it observes the *network*, not our bookkeeping. A cancelled
+request is cancelled whatever our counters believe.
+
+**The two are now a cross-check, not redundant.** Harness says blocked + popup says zero → the
+counting path is broken. Harness says loaded + popup says blocked → `classifyMatchedRule()` is
+miscounting non-blocking matches. Neither reading alone would have surfaced either bug.
+
+**Design constraints honoured.** Every probe URL is a static library asset (`analytics.js`,
+`fbevents.js`, `gpt.js`), never an event beacon (`/collect`, `/tr?`) — running the test must not
+record a page view or a conversion for anyone, least of all from a privacy tool. The page discloses
+that it contacts these hosts when the extension is off, and requires a click.
+
+**It refuses to score a pass in the wrong browser.** The page detects Electron / non-Chrome and
+downgrades any verdict to `NOT AUTHORITATIVE`. This project has twice built conclusions on a
+measurement taken in the in-app Electron pane and labelled Chrome; that lesson is now in code
+rather than in a comment someone has to remember to read.
+
+**Calibrated 2026-08-21** in the Electron pane as a deliberate negative control: 0/6 trackers
+blocked, 3/3 controls loaded, `globalPrivacyControl` undefined — i.e. all nine URLs are live and
+reachable, so under a real install any "blocked" row is attributable to Nullecho and not to a dead
+URL. Verified readable in light and dark.

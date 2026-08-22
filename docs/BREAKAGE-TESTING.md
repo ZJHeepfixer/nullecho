@@ -114,10 +114,19 @@ A flow that is already broken with the extension off is not our bug — that che
 
 ### Tier C — our own claims.
 
-15. **GPC exception list** — visit each of the ~50 EasyPrivacy-listed sites (USAA, Costco, Spotify,
-    Delta at minimum) and confirm our exceptions actually suppress the JS property, not just the
-    header. **This is the single most likely source of an S0 we ship by accident**, because GPC is
-    the feature most likely to be on by default.
+15. **GPC exception mechanism** — **two page loads, not fifty** (DECISIONS.md **D17**).
+    - On `open.spotify.com` (a shipped exception): `navigator.globalPrivacyControl` must be
+      `undefined`, **and the page must still get a fingerprint persona** — the third failure mode,
+      and the only one that would silently kill protection on all fifty hosts at once.
+    - On any non-excepted site: it must be `true`.
+    - The other 48 follow by construction: `validate.mjs` fails the build if any entry is missing
+      from `gpc.json`, `manifest.json`, or `manifest.firefox.json`, in both directions. Verified
+      2026-08-21 — 50/50/50, zero drift. The fifty hosts share one code path; they differ only in
+      list membership, which is EasyPrivacy's to maintain.
+    - **Reading the JSON is not the check.** Two real page loads in real Chrome, or it did not
+      happen.
+    GPC is still the feature most likely to be on by default and therefore the likeliest source of
+    an accidental S0 — what changed is the cost of proving it, not its importance.
 16. **Allowlist** — toggle the extension off for one site. Confirm blocking stops immediately, and
     confirm the documented residual: a statically-declared content script cannot be un-declared, so
     the shim patches and restores a few ms later. Verify that restore actually happens.
@@ -125,6 +134,15 @@ A flow that is already broken with the extension off is not our bug — that che
     mid-session. Note that some sites will treat this as a new device and demand re-auth; that is
     why `autoRotateDays` defaults to 0.
 18. **Regression protocol** — `research/BASELINE.md` steps 1–4, in real Chrome, not the Electron pane.
+19. **Blocking actually blocks** — open `harness/blocking-proof.html` in the Chrome profile that
+    has Nullecho installed and click Run. Requires **BLOCKING PROVEN**: all six tracker hosts
+    cancelled, all three allowlisted controls loaded. The page refuses to score a pass outside real
+    Chrome. See DECISIONS.md **D18** for why the popup counter alone was never sufficient evidence.
+20. **The popup counter agrees with the network** — with that same page open, open the popup and
+    confirm a **non-zero** blocked count. Harness-blocked + popup-zero means the *counting* path is
+    broken even though blocking works; harness-loaded + popup-nonzero means `classifyMatchedRule()`
+    is scoring non-blocking rule matches as blocks. This pairing is the only place either bug is
+    visible.
 
 ---
 
@@ -164,7 +182,10 @@ Site broken with extension ON?
 
 - **Zero S0** across Tier A and Tier C.
 - Every S1 either fixed or documented with a shipped exception.
-- The GPC exception list verified **by rendering**, on real sites — not by reading the JSON.
+- The GPC exception **mechanism** verified **by rendering** — one excepted host, one control host,
+  real Chrome (D17). Not by reading the JSON.
+- `harness/blocking-proof.html` returns **BLOCKING PROVEN**, and the popup's blocked count agrees
+  with it (D18). Without this the extension is only known to *run*.
 - A written breakage log committed to the repo, including what we chose *not* to fix and why.
 
 ## The honest note
@@ -209,3 +230,34 @@ persona on a Mac host — the hardest consistency case). Ran a battery of real-w
 **Read:** the fingerprint shim — the layer most likely to break sites — does not break realistic
 canvas/WebGL/audio/font/form workloads even under a cross-OS persona. The network-blocking layer
 against real login/checkout flows is the remaining unknown and needs a human + a real unpacked install.
+
+### 2026-08-21 — static verification pass + blocking-proof harness built
+
+No new browser measurement. Everything below was verified by reading the shipped artifacts, and is
+recorded because each item was previously *assumed*.
+
+| Check | Result |
+|---|---|
+| GPC list coherence across all three copies | **PASS** — `gpc.json` 50, `manifest.json` 50, `manifest.firefox.json` 50, symmetric difference empty in both directions |
+| `excludedRequestDomains` ≡ `excludedInitiatorDomains` | **PASS** — identical sets |
+| `validate.mjs` enforces GPC drift | **PASS** — errors in both directions, per manifest (lines 336–347) |
+| All 176 DNR rules valid, ids unique | **PASS** |
+| Test suite | **PASS** — 196/196 |
+| Fraud-vendor tier really is off by default | **PASS** — rule 4700 `allow` at **priority 100** outranks 4500–4507 `block` at priority 1. Tier A.4's "verify that default actually holds" is satisfied at the rule level; the live bank login is still owed |
+| Loader does not stall where `gpc.js` is excluded | **PASS** — `maybeDeliver()` gates on the shim nonce only; the GPC nonce is explicitly optional. **This was the failure that would have silently killed fingerprint protection on all 50 GPC-excepted hosts** and it is already handled, with the reasoning in-comment |
+| Packed-build blocked-count path exists | **PASS** — `onRuleMatchedDebug` is unpacked-only and correctly guarded; `matchedRulesForTab()` is the packed fallback via `getMatchedRules()`. The popup labels which it is showing |
+| `webRequest` permission is actually used | **PASS** — `heuristics.js` registers three non-blocking listeners. Not a gratuitous permission warning |
+
+**Built: `harness/blocking-proof.html`** (DECISIONS.md D18) — the positive proof that blocking
+happens, independent of our own counters. Calibrated in the Electron pane as a **negative control**:
+0/6 trackers blocked, 3/3 controls loaded, `globalPrivacyControl` undefined. That is the correct
+reading for "no extension present", and it confirms all nine probe URLs are live — so under a real
+install, a "blocked" row is attributable to Nullecho rather than to a dead URL. Render-verified in
+light and dark; the page refuses to score a pass outside real Chrome.
+
+**Gate reduced, not weakened:** Tier C.15 goes from ~50 site visits to 2 (D17). Tier C gains items
+19 and 20. Net human effort on Tier C is down from an afternoon to a few minutes; what is proven
+went **up**, because nothing previously proved that blocking blocks.
+
+**Still owed, unchanged:** Tier A checkout + bank login on real sites, and the Linux renderer
+strings (hard release blocker #1 — see `RELEASE-CHECKLIST.md` for the three options).
