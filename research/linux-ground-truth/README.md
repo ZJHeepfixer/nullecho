@@ -56,7 +56,16 @@ slice. **It is not. That speculation is withdrawn** — 22.04.5 + 6.8.0 is the m
 The **five WebGL renderer strings**. Those are GPU-hardware-specific and no container or VM can
 produce them. Still blocker #1.
 
-## Recommended fix
+## Recommended fix — ✅ APPLIED 2026-09-16 (option 1: ship all 180)
+
+`FONT_SETS['ubuntu-22']` now *is* this measurement. `gen-fontset.mjs` (this folder) generates
+`ext/src/linux-ground-truth.js` from `ubuntu2204-families.txt` (one rule: undo fc-list's backslash
+escaping) and rewrites only the `'ubuntu-22'` entry of the shim's GENERATED MIRROR block;
+`persona-validator.js` rejects any Linux font not in the measured list, and `personas.test.js` §8
+pins module → `.txt`, pool → module, and rejects the old five-phantom set by name. **The GPU
+strings section above is unchanged: still blocker #1.**
+
+Original recommendation, kept for the record:
 
 Replace `FONT_SETS['ubuntu-22']` with the measured list. Two options, both defensible — the choice
 is an anonymity-set question, not a correctness one:

@@ -19,6 +19,7 @@ import {
   FONT_SETS, PERSONAS, FAMILIES, OS_FAMILY, PLATFORM_FAMILY, familyOf,
   MIN_PERSONAS_PER_FAMILY,
 } from './personas.js';
+import { LINUX_FONT_GROUND_TRUTH } from './linux-ground-truth.js';
 
 // Re-exported: these moved to personas.js when selection started depending on
 // them (D12). Importers of the validator keep working.
@@ -503,6 +504,40 @@ export function validatePersona(persona) {
     if (fontFamily && family && fontFamily !== family) {
       at(`font set ${JSON.stringify(fontKey)} is a ${fontFamily} set but the platform ` +
          `${JSON.stringify(persona.platform)} is ${family}`);
+    }
+
+    // ── Linux: every claimed family must exist on a real default install ──
+    // Added after research/linux-ground-truth/ measured a default Ubuntu 22.04
+    // desktop (2026-08-21) and found FIVE families the pool claimed that no real
+    // install has: Noto Sans, Noto Serif, Century Schoolbook L, Dingbats, DejaVu
+    // Math TeX Gyre. Font detection records present/absent per probed family, so
+    // a persona that says "present" where every real Ubuntu says "absent" is the
+    // D2 self-contradiction — and Noto Sans is on most probe lists, so an
+    // ordinary script catches it, not just an adversary looking for us.
+    //
+    // The marker check above proves the list is the right OS. This one proves
+    // every entry is REAL: the shipped list is generated from the measurement
+    // (src/linux-ground-truth.js) and this check is what stops a hand edit from
+    // re-inventing a family. A Linux fonts key with no measurement behind it is
+    // rejected outright — "contains no phantom today" is not the invariant,
+    // "derived from a real install" is. Windows and macOS have no measured list
+    // in this repo yet, so this is Linux-only. That is a gap, not a pass.
+    if (family === 'linux' && isStr(fontKey)) {
+      const truth = LINUX_FONT_GROUND_TRUTH[fontKey];
+      if (!truth) {
+        at(`fonts key ${JSON.stringify(fontKey)} has no measured ground truth in ` +
+           'src/linux-ground-truth.js — a Linux font set is derived from a real default ' +
+           'install (research/linux-ground-truth/) or it does not ship');
+      } else if (Array.isArray(fontList)) {
+        const real = new Set(truth);
+        for (const f of fontList) {
+          if (!real.has(f)) {
+            at(`font list claims ${JSON.stringify(f)}, which does not exist on a real default ` +
+               `${fontKey} desktop (research/linux-ground-truth/) — present here, absent on ` +
+               'every real install, is a self-contradicting persona (D2)');
+          }
+        }
+      }
     }
 
     if (Array.isArray(fontList) && family) {

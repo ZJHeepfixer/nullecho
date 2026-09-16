@@ -15,6 +15,17 @@ fingerprint* — the exact failure the whole design exists to prevent. Do not sh
    emits identifies every Nullecho-on-Linux user uniquely. **Verify each Linux persona's WebGL
    renderer against a real Ubuntu + Chrome install before any release that includes the Linux
    family, or ship without the Linux family until then.**
+   - ✅ **The FONT half of this blocker is closed (2026-09-16).** `FONT_SETS['ubuntu-22']` is now
+     ground-truth-derived: generated from a measured default Ubuntu 22.04 desktop
+     (`research/linux-ground-truth/`, 180 families) by `gen-fontset.mjs`, never typed. The five
+     families it used to claim that no real install has (Noto Sans, Noto Serif, Century
+     Schoolbook L, Dingbats, DejaVu Math TeX Gyre) are gone, and a validator invariant plus seven
+     tests reject any Linux font a real install lacks. Procedure and detail:
+     `LINUX-PERSONA-VERIFICATION.md`.
+   - 🔴 **The GPU half is NOT closed by that work, and it is the half that keeps #1 open.** The
+     font measurement ran in a Docker container on an M2, which has no Linux GPU driver — Chrome
+     there would report SwiftShader, not a real Mesa/NVIDIA string — so nothing about the five
+     renderer strings was verified. Read the font fix as *narrowing* #1, not clearing it.
 2. **`uaData.platformVersion` is a per-family constant** (`mac 14.6.0 / win 15.0.0 / linux 6.8.0`)
    across the entire user base. That is an anonymity-set cost of the same shape as the "everyone
    reports 8 GB" tell the pool already warns about — not a linkage leak, but a population-level tell.
@@ -260,4 +271,6 @@ light and dark; the page refuses to score a pass outside real Chrome.
 went **up**, because nothing previously proved that blocking blocks.
 
 **Still owed, unchanged:** Tier A checkout + bank login on real sites, and the Linux renderer
-strings (hard release blocker #1 — see `RELEASE-CHECKLIST.md` for the three options).
+strings (hard release blocker #1 — see `RELEASE-CHECKLIST.md` for the three options). The Linux
+*font* list was fixed from measured ground truth on 2026-09-16 (203/203 tests); that leaves the
+renderer strings as the whole of blocker #1, still open.

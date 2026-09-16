@@ -42,7 +42,18 @@
  *     spreads across ≥ 3 deviceMemory buckets.
  */
 
-/** Stock font sets. Deliberately conservative: stock OS install, no creative suites. */
+import { UBUNTU_2204_FAMILIES } from './linux-ground-truth.js';
+
+/**
+ * Stock font sets. Deliberately conservative: stock OS install, no creative suites.
+ *
+ * 'windows-11' and 'macos-14' are hand-written from stock-install knowledge and have no
+ * measured ground truth in this repo yet. 'ubuntu-22' is not written here at all: it IS
+ * the measured `fc-list` of a default Ubuntu 22.04 desktop (src/linux-ground-truth.js,
+ * generated from research/linux-ground-truth/). The hand-written version claimed five
+ * families no real install has — see that folder's README — and persona-validator.js now
+ * rejects any Linux font a real install lacks, so a hand edit cannot bring one back.
+ */
 export const FONT_SETS = {
   'windows-11': [
     'Arial', 'Arial Black', 'Bahnschrift', 'Calibri', 'Cambria', 'Candara',
@@ -72,16 +83,9 @@ export const FONT_SETS = {
     'SignPainter', 'Skia', 'Snell Roundhand', 'Tahoma', 'Times New Roman',
     'Trattatello', 'Trebuchet MS', 'Verdana', 'Zapfino',
   ],
-  'ubuntu-22': [
-    'Bitstream Charter', 'C059', 'Century Schoolbook L', 'D050000L',
-    'DejaVu Math TeX Gyre', 'DejaVu Sans', 'DejaVu Sans Mono', 'DejaVu Serif',
-    'Dingbats', 'Liberation Mono', 'Liberation Sans', 'Liberation Sans Narrow',
-    'Liberation Serif', 'Nimbus Mono PS', 'Nimbus Roman', 'Nimbus Sans',
-    'Nimbus Sans Narrow', 'Noto Color Emoji', 'Noto Mono', 'Noto Sans',
-    'Noto Sans Mono', 'Noto Serif', 'P052', 'Standard Symbols PS',
-    'Ubuntu', 'Ubuntu Condensed', 'Ubuntu Mono', 'URW Bookman', 'URW Gothic',
-    'Z003',
-  ],
+  // Measured, not curated — 180 families, verbatim from a real default install.
+  // Regenerate with `node research/linux-ground-truth/gen-fontset.mjs`; never type here.
+  'ubuntu-22': UBUNTU_2204_FAMILIES,
 };
 
 // ── OS families ────────────────────────────────────────────────────────────
@@ -505,6 +509,13 @@ export const PERSONAS = [
   // release — a renderer string that no driver emits is a fingerprint of
   // Nullecho itself, which is the D2 failure mode. Same caveat applies to
   // `uaData.platformVersion` on Linux.
+  //
+  // ✅ What IS verified on this family (2026-09-16): `fonts: 'ubuntu-22'` is the
+  // measured font list of a real default Ubuntu 22.04 desktop
+  // (src/linux-ground-truth.js, from research/linux-ground-truth/). ONLY the
+  // fonts. The renderer strings above remain unverified — a container or VM has
+  // no Linux GPU driver and reports SwiftShader/llvmpipe, which proves nothing
+  // about them. Do not read the font fix as clearing release blocker #1.
   //
   // Pool policy for the Linux strip: 27 px, the GNOME top bar.
   {

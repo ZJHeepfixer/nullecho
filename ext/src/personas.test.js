@@ -41,6 +41,7 @@ import {
   validatePersona, validatePool, validateFamilies, MAX_DEVICE_MEMORY, HDR_PANELS,
   FAMILY_WEIGHT_TOTAL, MAX_FAMILY_COLLISION,
 } from './persona-validator.js';
+import { UBUNTU_2204_FAMILIES, LINUX_FONT_GROUND_TRUTH } from './linux-ground-truth.js';
 
 const SALT_A = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
 const SALT_B = '00112233445566778899aabbccddeeff';
@@ -67,6 +68,10 @@ function baseWindows(overrides = {}) {
 }
 function baseMac(overrides = {}) {
   const base = structuredClone(PERSONAS.find((p) => p.id === 'macos-chrome-m1'));
+  return { ...base, ...overrides, id: overrides.id ?? 'fixture' };
+}
+function baseLinux(overrides = {}) {
+  const base = structuredClone(PERSONAS.find((p) => p.id === 'linux-chrome-mesa'));
   return { ...base, ...overrides, id: overrides.id ?? 'fixture' };
 }
 
@@ -884,4 +889,127 @@ test('src/shim.js constrains its FALLBACK persona to the host family too', () =>
     src.indexOf('const HOST_FAMILY = ') < src.indexOf('function installInto'),
     'shim.js detects the host family after installInto() is defined — check the ordering',
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 8. Linux fonts are MEASURED, not curated (research/linux-ground-truth/)
+//
+//    2026-08-21: a real default Ubuntu 22.04 desktop was measured (Canonical's
+//    ISO manifest → every font package → `fc-list : family`). The hand-written
+//    30-family 'ubuntu-22' set claimed FIVE families no real install has. A font
+//    that measures present here and absent on every real Ubuntu is the D2
+//    self-contradiction, caught by any ordinary probe list — Noto Sans is on
+//    most of them. These tests make that unrepeatable: the .txt is the source of
+//    truth, the module is pinned to it, the shipped set is pinned to the module,
+//    and the validator rejects the old set outright.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const MEASURED_TXT = new URL('../../research/linux-ground-truth/ubuntu2204-families.txt', import.meta.url);
+
+/**
+ * Independent re-derivation — deliberately NOT imported from gen-fontset.mjs, so
+ * the two implementations of "read the measurement" have to agree. fc-list
+ * backslash-escapes `-` `:` `,` `\` inside family names (fontconfig's
+ * FcNameUnparse); undoing that is the only transformation either side makes.
+ */
+function measuredUbuntu2204() {
+  return fs.readFileSync(MEASURED_TXT, 'utf8')
+    .split('\n').filter((l) => l.length > 0)
+    .map((l) => l.replace(/\\(.)/g, '$1'));
+}
+
+/**
+ * FONT_SETS['ubuntu-22'] exactly as shipped before the measurement, kept verbatim
+ * as the regression fixture. Five of these thirty do not exist on a real install.
+ */
+const UBUNTU_22_HAND_WRITTEN_2026_08 = [
+  'Bitstream Charter', 'C059', 'Century Schoolbook L', 'D050000L',
+  'DejaVu Math TeX Gyre', 'DejaVu Sans', 'DejaVu Sans Mono', 'DejaVu Serif',
+  'Dingbats', 'Liberation Mono', 'Liberation Sans', 'Liberation Sans Narrow',
+  'Liberation Serif', 'Nimbus Mono PS', 'Nimbus Roman', 'Nimbus Sans',
+  'Nimbus Sans Narrow', 'Noto Color Emoji', 'Noto Mono', 'Noto Sans',
+  'Noto Sans Mono', 'Noto Serif', 'P052', 'Standard Symbols PS',
+  'Ubuntu', 'Ubuntu Condensed', 'Ubuntu Mono', 'URW Bookman', 'URW Gothic',
+  'Z003',
+];
+const PHANTOM_FIVE = ['Noto Sans', 'Noto Serif', 'Century Schoolbook L', 'Dingbats', 'DejaVu Math TeX Gyre'];
+
+test('src/linux-ground-truth.js is exactly the measured fc-list of a default Ubuntu 22.04 desktop', () => {
+  const measured = measuredUbuntu2204();
+  assert.equal(measured.length, 180, 'the measurement README records 180 families');
+  assert.equal(new Set(measured).size, measured.length, 'measured list has duplicates');
+  assert.deepEqual([...UBUNTU_2204_FAMILIES], measured,
+    'src/linux-ground-truth.js has drifted from ubuntu2204-families.txt — ' +
+    'run `node research/linux-ground-truth/gen-fontset.mjs`, never edit it by hand');
+  assert.ok(measured.includes('padmaa-Bold.1.1'), 'fc-list escaping must be undone (padmaa\\-Bold.1.1)');
+  assert.equal(LINUX_FONT_GROUND_TRUTH['ubuntu-22'], UBUNTU_2204_FAMILIES);
+});
+
+test("FONT_SETS['ubuntu-22'] is the WHOLE measured default-desktop set (D3: a real, high-population install)", () => {
+  assert.deepEqual([...FONT_SETS['ubuntu-22']], measuredUbuntu2204(),
+    "FONT_SETS['ubuntu-22'] must be the measured list, not a hand edit of it");
+  for (const f of PHANTOM_FIVE) {
+    assert.ok(!FONT_SETS['ubuntu-22'].includes(f),
+      `${f} does not exist on a real Ubuntu 22.04 desktop and is back in the pool`);
+  }
+  // Families a real Ubuntu has that the hand-written set denied, and that sit on
+  // common probe lists. They must be claimed now — a Linux that knows no CJK or
+  // Indic fonts does not look like Ubuntu.
+  for (const f of ['FreeSans', 'FreeMono', 'FreeSerif', 'Droid Sans Fallback', 'Noto Sans CJK JP', 'Lohit Devanagari']) {
+    assert.ok(FONT_SETS['ubuntu-22'].includes(f), `${f} ships on every Ubuntu 22.04 desktop`);
+  }
+});
+
+test('every Linux persona, as the shim receives it, claims only fonts a real Ubuntu has', () => {
+  const real = new Set(measuredUbuntu2204());
+  for (const o of origins(50)) {
+    const p = personaFor(SALT_A, o, 'linux');
+    const phantoms = p.fontList.filter((f) => !real.has(f));
+    assert.deepEqual(phantoms, [], `${p.id} claims fonts no real Ubuntu has`);
+  }
+});
+
+test('rejects: the hand-written 2026-08 ubuntu-22 set — all five phantom families named', () => {
+  const p = baseLinux({ id: 'broken-linux-hand-written-fonts', fontList: UBUNTU_22_HAND_WRITTEN_2026_08 });
+  const { valid, errors } = validatePersona(p);
+  assert.equal(valid, false, 'the old set must be REJECTED');
+  for (const f of PHANTOM_FIVE) {
+    assert.ok(
+      errors.some((e) => e.includes(`claims ${JSON.stringify(f)}`) && /does not exist on a real default/.test(e)),
+      `no error names phantom ${f}:\n${errors.join('\n')}`,
+    );
+  }
+  // …and ONLY the phantoms. The 25 real families must not be flagged, or the
+  // check is rejecting the truth along with the lie.
+  const flagged = errors.filter((e) => /does not exist on a real default/.test(e));
+  assert.equal(flagged.length, PHANTOM_FIVE.length, `expected exactly 5 phantom errors:\n${flagged.join('\n')}`);
+});
+
+test('rejects: one phantom appended to the real list (Noto Sans — the most-probed of the five)', () => {
+  assertRejected(
+    baseLinux({ id: 'broken-linux-noto-sans', fontList: [...FONT_SETS['ubuntu-22'], 'Noto Sans'] }),
+    /claims "Noto Sans", which does not exist on a real default ubuntu-22 desktop/,
+    'Linux + Noto Sans',
+  );
+});
+
+test('rejects: a Linux font-set key with no measured ground truth (a curated list cannot ship)', () => {
+  // 'fedora-40' is a legitimate OS_FAMILY key with no measurement behind it. Even
+  // handed a font list that is entirely real, the validator refuses: the
+  // invariant is "derived from a measurement", not "contains no phantom today".
+  assertRejected(
+    baseLinux({ id: 'broken-linux-unmeasured-key', fonts: 'fedora-40', fontList: [...FONT_SETS['ubuntu-22']] }),
+    /"fedora-40" has no measured ground truth in src\/linux-ground-truth\.js/,
+    'Linux font key without ground truth',
+  );
+});
+
+test('the Linux ground-truth check does not fire on Windows or macOS personas', () => {
+  // Scope guard: the invariant is Linux-only because only Linux has a measured
+  // list. It must not start rejecting the other families' stock sets — and this
+  // test must NOT be read as verifying those sets; they have no ground truth yet.
+  for (const p of [baseWindows({ id: 'scope-win' }), baseMac({ id: 'scope-mac' })]) {
+    const { errors } = validatePersona(p);
+    assert.ok(!errors.some((e) => /ground truth|does not exist on a real default/.test(e)), errors.join('\n'));
+  }
 });
