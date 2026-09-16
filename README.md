@@ -92,6 +92,7 @@ cd nullecho && python3 -m http.server 4886
 | Shim breakage battery | ✅ 0 failures |
 | Full Tier A breakage suite | ⏳ incomplete |
 | **Linux personas** | 🚫 **GPU renderer strings unverified on real hardware — release blocker** |
+| **Adversarial review (2026-09-16)** | 🔴 **NOT shippable as-is** — a page can strip protection without winning the boot race (prototype hooks around the nonce), canvas/audio noise is invertible, HTTP UA/Client-Hints headers aren't rewritten. Findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). Fixes in progress. |
 | Published to stores | ❌ not yet |
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)
