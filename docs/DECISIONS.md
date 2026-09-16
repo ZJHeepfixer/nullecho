@@ -249,22 +249,36 @@ feature that quietly raised prices would be worse than useless.
 **What IS defensible (feature (b), narrowly):** a Checkout Report showing which companies the page
 contacted, which fingerprinting surfaces it read, and — the novel part — whether the page carried
 the algorithmic-pricing disclosure that **four states have now enacted** (verified from primary
-statute text 2026-08-21). **The detector must match a FAMILY of strings case-insensitively, not one
+statute text 2026-08-21; Connecticut re-verified 2026-09-16 after two repeal-and-replace acts — see
+the CT bullet). **The detector must match a FAMILY of strings case-insensitively, not one
 literal** — and real implementations bury/re-case them (WSJ all-caps standalone; Instacart lowercase
 mid-sentence):
 - **NY GBL §349-a** (law 2025-07-08, *enforced 2025-11-10* after the NRF dismissal): `THIS PRICE WAS
   SET BY AN ALGORITHM USING YOUR PERSONAL DATA`
 - **MD Com. Law §13-322** (eff. 2026-10-01): `THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR
   PERSONAL DATA`
-- **CT PA 26-64 §11(b)** (eff. 2026-10-01): `THIS PRICE WAS INCREASED BY A PRICE SETTING DEVICE USING
-  YOUR PERSONAL DATA` — ⚠️ **note "PRICE SETTING DEVICE", NOT "an algorithm"** (widely misreported),
-  and CT is the **only** state whose string is not fixed: the statute permits "a substantially
-  similar disclosure", so an exact-string matcher will miss compliant CT notices.
-- **NJ Fair Price Protection Act** (~2027): groceries-only *ban*, not a disclosure string.
+- **CT P.A. 26-130 §11** (H.B. 5563, approved 2026-06-04, **eff. 2027-07-01**): `THIS PRICE WAS
+  INCREASED USING YOUR PERSONAL DATA` — or "a substantially similar disclosure", so CT is still the
+  **only** state whose string is not fixed and an exact-string matcher will miss compliant CT
+  notices.
+  ⚠️ **Corrected 2026-09-16.** This bullet originally cited P.A. 26-64 §11(b) (S.B. 4, approved
+  2026-05-27, eff. 2026-10-01) and its string `…INCREASED BY A PRICE SETTING DEVICE USING…`. That
+  section was **repealed** by P.A. 26-100 §66 (H.B. 5222, approved 2026-06-02; replacement §44,
+  eff. 2027-02-01), and §44 was in turn **repealed** by P.A. 26-130 §19 (approved 2026-06-04) and
+  replaced by §11. Three enactments in nine days; the first two are dead law, and **"price setting
+  device" no longer exists anywhere in Connecticut statute.** That is itself a finding: a detector
+  built to the June text would have matched *nothing compliant* in CT, and the client alerts that
+  still quote it are quoting repealed text. Cite `2026PA-00130-R00HB-05563-PA.PDF`, not 26-64.
+- **NJ Fair Price Protection Act** (P.L. 2026, c. 65; eff. 2027-08-01): groceries-only *ban*, not a
+  disclosure string.
 
-Match on the stable core substrings (`set by an algorithm`, `price setting device`, `using your
-personal data`) case-insensitively — statutorily fixed → near-zero false positives. **No compliance
-SaaS exists** (unlike cookie banners); every instance is hand-written, so text matching is the only
+Match on the stable core substrings case-insensitively — statutorily fixed → near-zero false
+positives. **Substring list as of 2026-09-16:** `set by an algorithm` (NY + MD) and `using your
+personal data` (NY + MD + CT — the one substring that survives all three strings, including
+Connecticut's re-enacted one). **`price setting device` is now a dead substring**: it matches no
+live statute. Keeping it in the list is harmless (nobody renders repealed text by accident) but it
+must not be the *only* CT anchor; `increased using your personal data` is the CT-specific anchor if
+one is wanted. **No compliance SaaS exists** (unlike cookie banners); every instance is hand-written, so text matching is the only
 method and it's sufficient. Observed compliers: subscription publishers (WSJ, Wired, New Yorker) +
 Instacart; general retail/travel = **zero** — counsel advises *avoiding* the trigger. Habitat is
 renewal **emails** (a content script can't read those) + account/pricing pages, NOT general checkout.
@@ -286,17 +300,28 @@ overclaimers, "we checked and it doesn't work" is what earns trust.
 - The Robinson-Patman "applies only to purchasers for resale" framing is **wrong**: §2(a) reaches
   goods sold "for use, consumption, or resale." The real barrier to consumer claims is the
   **competitive-injury** element, not the purchaser type.
-- ⏰ **California AB 2564 faces an 2026-08-31 floor deadline** — would be a 5th state / 4th ban.
+- ~~⏰ California AB 2564 faces an 2026-08-31 floor deadline — would be a 5th state / 4th ban.~~
+  **Resolved 2026-09-16: AB 2564 is dead for the 2025–26 session.** The Senate passed it 2026-08-31
+  (22–14, as amended); the Assembly never voted on concurrence in the Senate amendments; never
+  enrolled, never reached the Governor, no chapter. Leginfo's "Active" label is an artefact of
+  *sine die* being 2026-11-30. **Not a fifth state.** Reframe as a data point — a retail *ban*
+  cleared both chambers and still died on a procedural step — not as a live regime. Author says he
+  will carry it into 2027.
 
 **📌 Scope note (Jason, 2026-08-21):** California pricing legislation is **deprioritized** — he will
 handle that with counsel. It imposes nothing on Nullecho either way: these statutes bind *businesses
 that set prices*, not browser extensions. The only contact point is the Checkout Report's detector
-string list, which is a maintenance item.
+string list, which is a maintenance item. **Update 2026-09-16:** moot for now — AB 2564 died on
+concurrence, so California has no pricing statute and no mandated string to detect. The CCPA
+purpose-limitation sweep (brief §5) is the only California angle and it produces no on-page text.
+Nothing to add to the detector list.
 
 ⚖️ For whoever picks this up: do not assume these laws will be struck down. NRF's First Amendment
 challenge to NY §349-a was **dismissed** (Judge Rakoff, Oct 2025) under *Zauderer* — the mandated
 string was held "factual and uncontroversial," which draws lenient review, not strict scrutiny.
-On appeal to the 2d Cir., **argument not yet held** as of 2026-08-21. Treat the outcome as open.
+On appeal to the 2d Cir. (No. 25-2818): **fully briefed since 2026-02-24; no ruling and no recorded
+argument as of 2026-09-16** (per the court's own opinion and argument-audio indexes — say that, not
+"not calendared"). Treat the outcome as open.
 
 **Gate before building:** a sweep for real §349-a compliance is running
 (`research/NY-349A-COMPLIANCE-SWEEP.md`). If retailers show the disclosure → build the detector. If

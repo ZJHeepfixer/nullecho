@@ -1,6 +1,8 @@
 # Outreach note for the algorithmic-pricing compliance brief
 
-Drafted 2026-08-21. Companion to `research/ALGORITHMIC-PRICING-COMPLIANCE-BRIEF.md`.
+Drafted 2026-08-21; legislative facts refreshed 2026-09-16 (Connecticut's section was repealed and
+re-enacted twice in June; California AB 2564 died on concurrence — see the brief's "Legislative
+changes since first draft" note). Companion to `research/ALGORITHMIC-PRICING-COMPLIANCE-BRIEF.md`.
 
 **Rules for this pitch, and they are the whole point.** The findings are strong stated plainly and
 weaker stated loudly. No "exclusive," no "bombshell," no implied scoop we cannot defend. Every
@@ -11,8 +13,8 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 
 ## The pitch (email body)
 
-> **Subject:** Four states now mandate different algorithmic-pricing disclosures. We checked who's
-> actually showing them.
+> **Subject:** Three states mandate different algorithmic-pricing disclosures; a fourth bans the
+> practice outright. We checked who's actually showing them.
 >
 > Hi [name],
 >
@@ -26,12 +28,15 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 >
 > - New York: `THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL DATA`
 > - Maryland: `THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR PERSONAL DATA`
-> - Connecticut: `THIS PRICE WAS INCREASED BY A PRICE SETTING DEVICE USING YOUR PERSONAL DATA`
->   — or "a substantially similar disclosure," the only one of the three that isn't fixed
+> - Connecticut: `THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA` — or "a substantially
+>   similar disclosure," the only one of the three that isn't fixed
 >
-> Maryland's and Connecticut's both take effect **October 1, 2026**. A national retailer can't
-> satisfy all three with one banner. Connecticut's doesn't just reword the others — it asserts the
-> price was *increased*.
+> Maryland's takes effect **October 1, 2026**. Connecticut's is now **July 1, 2027**: the
+> legislature enacted the section on May 27, then repealed and replaced it twice in the first week
+> of June (P.A. 26-64 → 26-100 → 26-130), and the operative string dropped the "price setting
+> device" wording that most client alerts still quote. A national retailer can't satisfy all three
+> with one banner. Connecticut's doesn't just reword the others — it asserts the price was
+> *increased*, and it names no mechanism at all, only the use of personal data.
 >
 > **2. Most of the coverage calls these "disclosure laws." Three of the four aren't.** Maryland,
 > Connecticut and New Jersey each contain outright *bans* alongside or instead of disclosure —
@@ -62,7 +67,9 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 > Assembly Privacy Committee's March 25 analysis of AB 2564, the coalition *supporting* the bill
 > says "no existing federal or state law prohibits companies from using the data they collect to
 > charge consumers individually different prices." That's the pro-regulation side conceding the
-> gap, which is much better than any lawyer's opinion on it.
+> gap, which is much better than any lawyer's opinion on it. (The bill itself later passed both
+> houses and died on Assembly concurrence at the August 31 deadline — it never reached the
+> Governor. The committee record stands regardless.)
 >
 > One footnote on that I haven't seen anyone write up: on **Data Privacy Day 2022** the same office
 > ran a nearly identical sweep — retail, home improvement, travel, food services — hooked on the
@@ -135,8 +142,9 @@ The natural home for the four-state matrix itself. IAPP's readership is privacy 
 professionals who need the table more than they need the narrative, and IAPP has already covered
 the FTC statement.
 
-- **Lead with:** the conflicting mandated strings and the October 1 double deadline. This audience
-  has a job to do by then.
+- **Lead with:** the conflicting mandated strings and the Maryland October 1 deadline — plus the
+  fact that Connecticut's string changed after most of the client alerts went out. This audience
+  has a job to do by then, and some of it is currently building to repealed text.
 - **Offer:** the matrix as a contributed piece under Jason's byline, or as source material for
   their own staff write-up. Either is fine; say so.
 - **Do not** lead with the compliance sweep. This audience will read "near-zero compliance" as an
@@ -151,7 +159,9 @@ the nation, and the FTC's non-binding statement asking for more than the binding
 - **Lead with:** New Jersey's private right of action and the pending Second Circuit appeal. That
   is a risk story for in-house counsel, which is who reads it.
 - **Expect:** they will want the case posture exactly right. Have the docket number (2d Cir. No.
-  25-2818), the district court date (2025-10-08), and the fact that no argument has been held.
+  25-2818), the district court date (2025-10-08), and the appellate posture in these words: fully
+  briefed since February 24, 2026; no ruling and no recorded argument as of September 16. Do not
+  say "not calendared" — that asserts something the public indexes don't show.
 
 ### Secondary channels, lower effort, still worth it
 
@@ -178,10 +188,20 @@ Written down because these are the specific ways this pitch could go wrong.
   avoid-the-trigger advice is being followed.
 - **Do not describe the FTC statement as a rule, a requirement, or an enforcement action.** It is
   proposed, out for comment, and says on its own face that it does not bind anyone.
-- **Do not say the One Fair Price Act "will" be signed**, predict the Second Circuit, or predict
-  California AB 2564. All three are open. "Passed both houses, not signed, no chapter number as of
-  [date]" is the whole claim, and the AB 2564 equivalent is "ordered to third reading August 18, no
-  action since, house-passage deadline August 31."
+- **Do not say the One Fair Price Act "will" be signed** or predict the Second Circuit. Both are
+  open. "Passed both houses, not signed, not delivered, no chapter number as of [date]" is the whole
+  claim. Do not repeat the ICSC line that the bill "went to the Governor" — the official Assembly
+  and Senate pages show no delivery.
+- **Do not call California a fifth state, and do not say AB 2564 "failed in the Senate."** The
+  Senate passed it August 31 (22–14, as amended); it died because the Assembly never took up
+  concurrence in the Senate amendments before the deadline. Never enrolled, never reached the
+  Governor, no chapter. Leginfo still shows "Active" only because sine die is November 30. The
+  accurate sentence is "passed both houses in different forms, died on concurrence." Its use in
+  the pitch is as a data point about how contested a *ban* is, not as a live regime.
+- **Do not cite Connecticut P.A. 26-64 or quote "price setting device."** Both were repealed in
+  June. The operative act is P.A. 26-130 § 11 (H.B. 5563), effective July 1, 2027, and the string
+  is "THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA." A stale Connecticut cite sent to a legal
+  outlet is the kind of error that ends the conversation.
 - **Do not say the California AG "invoked § 1798.100(c)" or "cited 11 CCR § 7002."** He did not
   cite anything. He named a principle; law firms supplied the section numbers afterward. Getting
   this wrong in a pitch to a legal outlet would end the conversation.
@@ -203,12 +223,21 @@ Written down because these are the specific ways this pitch could go wrong.
 ## Before sending
 
 1. Re-verify the One Fair Price Act's status **the morning you send** — it is the most perishable
-   fact in the pitch, and being wrong about it is the fastest way to lose the contact.
-2. Re-verify **California AB 2564** — it faces an August 31 floor deadline, so between now and then
-   its status can change in a day. If it passes, that becomes the lead of the pitch, not a
-   footnote: five states, and the largest consumer market in the country goes to a ban.
-3. Re-verify that the Second Circuit still has not ruled.
-4. Confirm the recipient's current outlet and address.
-5. Have the four statute PDFs ready to send in one follow-up: MD Ch. 154, CT P.A. 26-64, NJ A.4085
-   Third Reprint, FTC P034101 — plus the NY A.9349-B strike-through, which is the single clearest
-   artifact for showing what New York would lose if the bill is signed.
+   fact in the pitch, and being wrong about it is the fastest way to lose the contact. As of
+   September 16 the official Assembly and Senate pages show passage on June 4 and **no delivery to
+   the Governor**; the ICSC claim that it was sent to her is contradicted by the record.
+2. **California AB 2564 is settled for this session** — it died on Assembly concurrence at the
+   August 31 deadline (see "What not to claim"). It is not a fifth state and it does not lead the
+   pitch. If it appears at all it is the one-line data point that a ban cleared both chambers and
+   still did not reach the Governor. Re-check only if a 2027 reintroduction surfaces.
+3. Re-verify that the Second Circuit still has not ruled. As of September 16: fully briefed since
+   February 24, 2026; the court's opinion and argument-audio indexes show neither a ruling nor a
+   recorded argument.
+4. Re-verify the Connecticut cite — it has already changed twice this year. The current act is
+   **P.A. 26-130 § 11 (H.B. 5563), effective July 1, 2027**. If the 2027 session touches it again,
+   the string in point 1 changes with it.
+5. Confirm the recipient's current outlet and address.
+6. Have the four statute PDFs ready to send in one follow-up: MD Ch. 154, **CT P.A. 26-130** (not
+   26-64 — that PDF is repealed law), NJ A.4085 Third Reprint, FTC P034101 — plus the NY A.9349-B
+   strike-through, which is the single clearest artifact for showing what New York would lose if
+   the bill is signed.

@@ -163,9 +163,13 @@ Enforce Surveillance Pricing. It Won't."* (2026-08-21) — I could not fetch it 
   mandated statement "factual and uncontroversial" — and denied the injunction as moot.
   **Enforcement began 2025-11-10.**
 - **California AB 446 (2025) — failed.** Narrowed under industry pressure, did not pass.
-- **California AB 2564 (2026) — live right now.** The "End Surveillance Pricing Act." Passed the
-  Assembly 2026-05-27; second reading, ordered to third reading as of **2026-08-18**. Not
-  signed. Co-sponsored by Consumer Reports.
+- **California AB 2564 (2026) — dead for the session** *(corrected 2026-09-16; this entry
+  originally read "live right now")*. The "End Surveillance Pricing Act" — advocates' name, not a
+  codified title. Passed the Assembly 2026-05-27 and the Senate 2026-08-31 (22–14, as amended),
+  then died because the Assembly never took up concurrence in the Senate amendments before the
+  08-31 house-passage deadline: never enrolled, never reached the Governor, no chapter. Leginfo
+  still says "Active" only because *sine die* is 2026-11-30. Co-sponsored by Consumer Reports; the
+  author says he will reintroduce in 2027.
 - Colorado HB 1264 (2025) covered surveillance pricing *and* surveillance wages. CR counted
   **13 state bills** on surveillance pricing introduced in 2025.
 
@@ -540,7 +544,7 @@ lose nothing.
 - FTC press release, 2025-01-17, *"…Wide Range of Personal Data Used to Set Individualized Consumer Prices"* (vote 3–2; Ferguson & Holyoak dissent)
 - FTC staff, *Issue Spotlight: The Rise of Surveillance Pricing* — `ftc.gov/system/files/ftc_gov/pdf/sp6b-issue-spotlight.pdf` (staff list includes Alan Mislove, co-author of Hannak et al. 2014)
 - N.Y. Gen. Bus. Law § 349-a; *NRF v. James*, S.D.N.Y., motion to dismiss granted 2025-10-08
-- Cal. AB 446 (2025, failed); Cal. AB 2564 (2026, in Senate); Colo. HB 1264 (2025)
+- Cal. AB 446 (2025, failed); Cal. AB 2564 (2026, passed both houses, died on concurrence 2026-08-31); Colo. HB 1264 (2025)
 - Cal. Civ. Code § 1798.125
 
 **Primary — measurement**
