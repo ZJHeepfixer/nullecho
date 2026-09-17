@@ -13,6 +13,10 @@ are not, and one of them hits every page:
    A 300-row measuring sweep goes from 0.5 ms to **19 ms**, which is longer than a
    60 fps frame. This is not a fingerprinting cost; it is the ordinary layout path,
    and the trigger is the *common* web font stack. This is the finding that matters.
+   ✅ **FIXED the same day — see the 2026-09-17 follow-up at the end of this document
+   and DECISIONS.md D34.** The sweep is now 3.55 ms; the per-element cost is +5 µs /
+   +12.7 µs. The recommendation in §2 below is left as written, because the follow-up
+   explains why its pre-check was not exactly correct and what shipped instead.
 2. 🟠 **Canvas readback is O(whole canvas) per read, not O(bytes requested).**
    Reading a 50×50 region of a 1920×1080 canvas costs **70–112 ms**. Full-canvas
    reads run ~120 ns per pixel: 300×200 costs +5–7 ms, 1920×1080 costs +250–280 ms.
@@ -555,3 +559,88 @@ Recorded because each one silently produced a wrong or absent number during this
    not a measurement. `paired()` refuses the ratio and reports added cost instead.
 6. **A rep count calibrated on a dirty layout** under-counts for the steady state.
    Calibration targets ~25 clock ticks, measured, not a hardcoded millisecond figure.
+
+---
+
+# FOLLOW-UP, 2026-09-17 (later the same day) — §2 fixed and re-measured
+
+The §2 recommendation is implemented and shipped as **DECISIONS.md D34**. This section
+records the before/after on the same instrument, and corrects the recommendation's own
+reasoning, which was not exactly right.
+
+## The rule that shipped, and why it is not the one recommended above
+
+§2 proposed: *is there a family earlier in the list than the first dropped family that
+actually renders on this machine?* That is **not sound**, because CSS font matching is
+per **glyph**, not per element. An earlier family that resolves can still lack a
+codepoint, and the browser falls through to later families — including the one about to
+be dropped. "An earlier family renders" therefore proves only that the dropped family is
+unused *for the glyphs the earlier family happens to cover*.
+
+What shipped instead: **does the MACHINE have the dropped family at all?** If it does
+not, the browser's font matching already skipped it at every codepoint — a family with no
+installed faces supplies no glyph — so the shim's removal is a no-op and the real
+measurement already *is* the shimmed measurement. That statement is about the machine, so
+it holds for every string, and needs no per-glyph reasoning. Host presence is decided once
+per family name per realm by a canvas width comparison over three generics and five
+scripts, using the natives captured at boot (D21), on a detached canvas — no layout, and
+nothing a `MutationObserver` can see. Undecidable reads as *present*, which keeps the slow
+path. Full rationale, including the `claimedFirst` clause that keeps every fingerprinter
+probe on the old path byte-for-byte, is in D34.
+
+## Before / after
+
+Same instrument, same machine, same afternoon: **real Chrome 151.0.7922.174**, macOS
+26.6.0, Apple M2 Max, persona `macos-chrome-m1-pro` (53 families), paired ABBA inside one
+page load, `?only=paired&q=1`. The tab was `visibilityState: hidden` for both runs, as
+before; synchronous main-thread work is not throttled and the calibration proves it.
+
+**The in-page null control — `Element.clientWidth`, which the shim never patches —
+read 1.00× on the before run and 1.00× on the after run.** The ratios below are
+comparable; the browser was not differently busy.
+
+| Cell | Before (added) | Before (ratio) | After (added) | After (ratio) |
+|---|---|---|---|---|
+| **LAYOUT — `offsetWidth` on a leaf** | +0.0258 ms | 39.0× | **+0.0050 ms** | **7.9×** |
+| **LAYOUT — `getBoundingClientRect` on a leaf** | +0.0525 ms | 40.3× | **+0.0127 ms** | **11.2×** |
+| **LAYOUT — sweep 300 leaf rows** | +15.50 ms | 43.9× | **+3.25 ms** | **11.0×** |
+| `measureText` in a chart render loop | +0.0724 ms | 54.9× | **+0.0034 ms** | **3.2×** |
+| font probe — `getBoundingClientRect`, per family | +0.2146 ms | 7.5× | +0.0204 ms | 1.7× |
+| font probe — `measureText`, per family | +0.0316 ms | 4.3× | +0.0086 ms | 2.8× |
+| LAYOUT — `getBoundingClientRect` on a container (gated out) | +0.0049 ms | 4.3× | +0.0041 ms | 4.2× |
+| **NULL CONTROL — `Element.clientWidth`** | +0.0000 ms | **1.00×** | +0.0000 ms | **1.00×** |
+
+**The headline.** A 300-row measuring sweep goes from **15.83 ms to 3.55 ms** total — from
+most of a 60 fps frame to a fifth of one. Per-element cost on the ordinary page stack drops
+**5×** for `offsetWidth` and **4×** for `getBoundingClientRect`. The 🔴 in this document's
+verdict is cleared; what remains is the 🟠 canvas sub-rect finding in §1, which is untouched.
+
+The font-probe rows drop too, and that is the same mechanism rather than a second effect:
+most of the harness's 60 probe families are absent from this machine, so dropping them was
+already a no-op and the early-out now says so. **The values those cells return did not
+move** — see the verification below.
+
+## Verification that nothing the page can see moved
+
+Run in the same real Chrome, against the live shim, comparing every reading to the pristine
+native getter the harness captured before `shim.js` loaded:
+
+- **57 probe families × `"F", monospace`, macOS persona: 0 leaks, 0 hidden.** No family the
+  persona lacks reports present; no family the persona claims reports absent. Identical to
+  the pre-change shim.
+- **Cross-OS sweep — Windows persona on this macOS host, all 57 claimed families: 0 hidden,
+  and 0 of the Mac-only families (`Helvetica` 648→564, `Avenir` 665→564, `Geneva` 694→564)
+  leaked.** Identical to the pre-change shim. This sweep is what caught the one case the
+  first version of the rule got wrong (`Symbol`: installed on macOS, no Latin glyph) and
+  forced the `claimedFirst` clause.
+- **An independent host-presence oracle** — `new FontFace(…, 'local("F")')`, which the shim
+  does not patch — found 7 families installed here and absent from the persona; 126 probes
+  across 3 generics and 6 scripts found **0 leaks**.
+- **Per-glyph attacks** (emoji, CJK, Arabic, Devanagari, symbols; a stack of only dropped
+  families; `"Segoe UI Emoji"` alone with emoji text; the probed family listed second):
+  shimmed value equals native exactly, in both `offsetWidth` and the fractional rect.
+
+One number did move, and it moved toward the truth: on a stack where a generic resolves
+before the claimed family, the ordinary page stack went from **474 px to 479 px**, and 479
+is what the un-shimmed browser reports. D34 explains why the old value had no defensive
+content. Stacks that name a system family first keep the old behaviour exactly.

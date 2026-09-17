@@ -1591,6 +1591,11 @@
     const setCtxFont = propWriter(Ctx2D, 'font');
     const offCtxFont = propReader(OffCtx2D, 'font');
     const setOffCtxFont = propWriter(OffCtx2D, 'font');
+    // D34 — the host-font probe reads these, and only these. Captured here, before
+    // any patch is installed, so the probe can never re-enter our own wrapper and
+    // can never be handed a page-supplied `measureText` or `TextMetrics.width`.
+    const origMeasureText = methodOf(Ctx2D, 'measureText');
+    const tmWidth = propReader(win.TextMetrics, 'width');
     const imgData = propReader(win.ImageData, 'data');
     const imgWidth = propReader(win.ImageData, 'width');
     const imgHeight = propReader(win.ImageData, 'height');
@@ -2485,24 +2490,170 @@
     function planFamilies(families) {
       const wf = webFontFamilies();
       const kept = [];
-      let dropped = false;
+      const droppedList = [];
       for (let i = 0; i < families.length; i++) {
         const f = families[i];
         if (isGeneric(f)) { pushOwn(kept, f); continue; }
         if (wf && setHas(wf, f)) { pushOwn(kept, f); continue; }       // page's own web font — untouchable
         if (!setHas(KNOWN_SYSTEM_FONTS, f)) { pushOwn(kept, f); continue; } // outside our universe — gap G3
         if (setHas(D().fontSet, f)) { pushOwn(kept, f); continue; }    // the persona has it
-        dropped = true;                                                // known system font the persona lacks
+        pushOwn(droppedList, f);                                       // known system font the persona lacks
       }
       // Whichever family actually gets used is the first non-generic survivor.
-      let claimed = null;
+      let claimed = null, claimedFirst = false;
       for (let i = 0; i < kept.length; i++) {
         const f = kept[i];
         if (isGeneric(f)) continue;
-        if (setHas(D().fontSet, f) && !(wf && setHas(wf, f))) claimed = f;
+        if (setHas(D().fontSet, f) && !(wf && setHas(wf, f))) { claimed = f; claimedFirst = i === 0; }
         break;
       }
-      return { kept, claimed, dropped };
+      return { kept, claimed, claimedFirst, dropped: droppedList.length > 0, droppedList };
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // D34 — the layout early-out.
+    //
+    // `dropped` is true on essentially every real page, because the ordinary
+    // stack `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, …` names
+    // "Segoe UI", which no macOS or Linux persona has. Before this, that made
+    // every text-bearing leaf pay two forced re-layouts (+31 µs per offsetWidth,
+    // +60 µs per getBoundingClientRect, 19 ms on a 300-row sweep —
+    // docs/PERFORMANCE-2026-09-17.md §2).
+    //
+    // The rule: removing a family from a stack can only change what is painted
+    // if the MACHINE actually has that family. If it does not, the browser's own
+    // font matching already skipped it — at every codepoint, because a family
+    // with no faces supplies no glyph — so the removal is a no-op and the real
+    // measurement already IS the shimmed one. Symmetrically, a family the persona
+    // CLAIMS needs no synthetic presence when the machine really has it: the
+    // truth and the persona already agree.
+    //
+    // Rejected alternative: "is a family EARLIER in the list installed?" That one
+    // is not exactly correct. CSS font matching is per GLYPH — an earlier family
+    // that lacks a codepoint falls through to later families — so an earlier
+    // resolving family does not prove the later one is unused. This rule needs no
+    // such assumption.
+    //
+    // The probe is a canvas width comparison against three generics over several
+    // scripts, run at most once per family name per realm and memoised. It uses
+    // the natives captured at boot and never touches the DOM, so it forces no
+    // layout and is invisible to a MutationObserver. Anything it cannot decide
+    // (no canvas, a rejected font shorthand, a throw) reads as PRESENT, which
+    // keeps the slow path and therefore the defense.
+    // ────────────────────────────────────────────────────────────────────────
+    const PROBE_GENERICS = ['monospace', 'sans-serif', 'serif'];
+    // Latin, CJK, Cyrillic+Greek, Arabic, emoji. A family installed for one script
+    // only — a CJK face, a symbol face — still shows up on one of these rows.
+    const PROBE_TEXTS = [
+      'mmmmmmmmmmlliWWW',
+      '\u6f22\u5b57\u30ab\u30ca\uc9c0',   // CJK + kana + hangul
+      '\u0410\u0431\u0432\u0413\u03b1\u03b2\u03b3', // Cyrillic + Greek
+      '\u0645\u0631\u062d\u0628\u0627',   // Arabic
+      '\ud83d\ude00\ud83c\udf0d',          // emoji
+    ];
+    const hostFontCache = new RawMap();
+    let probeCtx = null, probeCtxTried = false;
+
+    function probeContext() {
+      if (probeCtxTried) return probeCtx;
+      probeCtxTried = true;
+      if (!origMeasureText) return null;
+      try {
+        const c = docCreateElement('canvas');
+        setCanvasWidth(c, 8); setCanvasHeight(c, 8);
+        probeCtx = canvasGetContext(c, '2d') || null;
+      } catch (_) { probeCtx = null; }
+      return probeCtx;
+    }
+
+    /** Is family `name` actually installed on THIS machine? Memoised, conservative. */
+    function hostHasFamily(name) {
+      if (mapHas(hostFontCache, name)) return mapGet(hostFontCache, name);
+      let present = true;                       // undecidable ⇒ keep the slow path
+      const cx = probeContext();
+      if (cx) {
+        state.internal++;
+        try {
+          present = false;
+          const quoted = cssFamily(name);
+          for (let g = 0; g < PROBE_GENERICS.length && !present; g++) {
+            const baseFont = '72px ' + PROBE_GENERICS[g];
+            const testFont = '72px ' + quoted + ',' + PROBE_GENERICS[g];
+            setCtxFont(cx, baseFont);
+            const baseEcho = ctxFont(cx);
+            setCtxFont(cx, testFont);
+            // A shorthand the engine refused leaves `font` untouched: undecidable.
+            if (ctxFont(cx) === baseEcho) { present = true; break; }
+            for (let t = 0; t < PROBE_TEXTS.length; t++) {
+              setCtxFont(cx, baseFont);
+              const a = tmWidth(apply(origMeasureText, cx, [PROBE_TEXTS[t]]));
+              setCtxFont(cx, testFont);
+              const b = tmWidth(apply(origMeasureText, cx, [PROBE_TEXTS[t]]));
+              if (a !== b) { present = true; break; }
+            }
+          }
+        } catch (_) { present = true; } finally { state.internal--; }
+      }
+      mapSet(hostFontCache, name, present);
+      return present;
+    }
+
+    /**
+     * Can this plan be answered with the REAL measurement, with no forced layout?
+     *
+     * Two independent questions, and BOTH must come back "nothing to do":
+     *
+     *  1. Every family we would remove is absent from the machine anyway, so the
+     *     browser already skipped it — at every codepoint, because a family with
+     *     no faces supplies no glyph.
+     *
+     *  2. The family the persona CLAIMS needs no synthetic presence. That takes
+     *     two things, and the second one is not decoration:
+     *       · the machine really has it — otherwise the persona's claim is the
+     *         thing being forged and the measurement has to be built; and
+     *       · a generic family is listed BEFORE it, so it is not what the page's
+     *         text renders in and no probe can read its presence off this element.
+     *     A probe puts the family under test FIRST (`"Segoe UI", monospace`), so
+     *     `claimedFirst` keeps every probe on the old path, byte for byte. That
+     *     matters for a family which is installed but has no glyph for the text
+     *     being measured — macOS `Symbol` against Latin, say: the machine has it,
+     *     the width still falls back to the generic, and the synthetic presence
+     *     is the only thing that answers the probe.
+     */
+    function planIsNoOp(plan) {
+      const d = plan.droppedList;
+      for (let i = 0; i < d.length; i++) if (hostHasFamily(d[i])) return false;
+      if (plan.claimed && (plan.claimedFirst || !hostHasFamily(plan.claimed))) return false;
+      return true;
+    }
+
+    /**
+     * Parse + plan + early-out decision, memoised by the computed `font-family`
+     * string. It was rebuilt per element per call before this. The memo is
+     * generational on the web-font set, because a `@font-face` that loads later
+     * makes a family untouchable that was not before.
+     */
+    let planCache = new RawMap(), planCacheGen = -2;
+    function planFor(famCss) {
+      webFontFamilies();                                   // refresh webFontCount first
+      if (planCacheGen !== webFontCount) { planCache = new RawMap(); planCacheGen = webFontCount; }
+      if (mapHas(planCache, famCss)) return mapGet(planCache, famCss);
+      let p = null;
+      const families = parseFamilyList(famCss);
+      if (families.length !== 0) {
+        const plan = planFamilies(families);
+        if (plan.dropped || plan.claimed) {
+          p = {
+            claimed: plan.claimed,
+            noop: planIsNoOp(plan),
+            keptCss: familiesCss(plan.kept, false),
+            genericCss: familiesCss(plan.kept, true),
+          };
+        }
+      }
+      if (mapSizeGet(planCache) > 256) mapClear(planCache);
+      mapSet(planCache, famCss, p);
+      return p;
     }
 
     let measuring = false;
@@ -2557,12 +2708,15 @@
       const famCss = cs && csFontFamily(cs);
       if (!famCss) return real();
 
-      const families = parseFamilyList(famCss);
-      if (families.length === 0) return real();
-      const plan = planFamilies(families);
-      if (!plan.dropped && !plan.claimed) return real(); // nothing to decide
+      const plan = planFor(famCss);
+      if (!plan) return real();                          // nothing to decide
 
+      // The read is counted either way: the page probed a font stack, and whether
+      // we had work to do is our business, not a reason to lose the signal.
       touch('fonts');
+
+      // D34 — the plan changes nothing that the machine could have rendered.
+      if (plan.noop) return real();
 
       const parent = nodeParentElement(el);
       const parentW = parent ? elClientWidth(parent) : -1;
@@ -2572,11 +2726,11 @@
       let cache = wmGet(metricCache, el);
       if (cache && mapHas(cache, key)) return mapGet(cache, key);
 
-      const base = measureWithFamily(el, familiesCss(plan.kept, false), origGet);
+      const base = measureWithFamily(el, plan.keptCss, origGet);
       let result = base;
 
       if (plan.claimed) {
-        const fallback = measureWithFamily(el, familiesCss(plan.kept, true), origGet);
+        const fallback = measureWithFamily(el, plan.genericCss, origGet);
         // base === fallback ⇒ the claimed font is not really installed here, so the
         // persona's claim needs synthesising. Otherwise the real metric already
         // says "present" and we return it verbatim.
@@ -2677,19 +2831,20 @@
         try {
           const parsed = reExec(FONT_SHORTHAND, getFont(this) || '');
           if (!parsed) return m0;
-          const plan = planFamilies(parseFamilyList(parsed[3]));
-          if (!plan.dropped && !plan.claimed) return m0;
+          const plan = planFor(parsed[3]);
+          if (!plan) return m0;
 
           touch('fonts');
+          if (plan.noop) return m0;                    // D34 — nothing to substitute
           const prefix = parsed[1] + parsed[2] + ' ';
           const saved = getFont(this);
           state.internal++;
           try {
-            setFont(this, prefix + familiesCss(plan.kept, false));
+            setFont(this, prefix + plan.keptCss);
             m = apply(orig, this, arguments);
             if (plan.claimed) {
               const w1 = widthOfMetrics(m);
-              setFont(this, prefix + familiesCss(plan.kept, true));
+              setFont(this, prefix + plan.genericCss);
               const w2 = widthOfMetrics(apply(orig, this, arguments));
               if (w1 === w2 && TM && TM.prototype) {
                 const h = keyStr(D().fontKey, plan.claimed + '|measureText|' + parsed[2]);

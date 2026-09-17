@@ -1725,3 +1725,113 @@ and the zero-argument `measureText`; nothing the page can provoke reaches the pa
 that `shim.js` contains no `console.`; a genuine install failure and a genuine run-time failure both reach
 the loader stand-in tokened, capped, labels only; and the real loader prints from its own world, forwards,
 and ignores an unauthenticated failure list; `background.test.js` — the sticky, de-duplicated, capped `patchFailures` record; a synchronous-reply boot and a no-CSPRNG realm. 297/297 (277 + 8 from D32 + 12).
+
+---
+
+## D34 — The font path early-outs when the machine does not have the dropped family. 2026-09-17.
+
+**The problem, measured.** `docs/PERFORMANCE-2026-09-17.md` §2 found that the font-consistency
+shim forces two synchronous re-layouts on *every text-bearing leaf element on every page* — not
+on fingerprinting pages, on all of them. Measured paired in real Chrome 151 on an M2 Max:
+**+25.8 µs per `offsetWidth` (39×), +52.5 µs per `getBoundingClientRect` (40×), and +15.5 ms on a
+300-row measuring sweep (44×)** — a sweep that goes from 0.33 ms to 15.8 ms, which is most of a
+60 fps frame. The trigger is not exotic. The ordinary modern stack
+
+```css
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+```
+
+names `"Segoe UI"` and `Roboto`, neither of which a macOS or Linux persona has, so `planFamilies()`
+sets `dropped` and `fontMetric()` goes to `measureWithFamily()` twice: set `font-family` `!important`,
+read the metric back, restore the property. Virtualised lists, data grids, tooltip positioners,
+truncation logic and chart label layout all do this in loops.
+
+**The rule.** Removing a family from a stack can only change what is painted if the MACHINE
+actually has that family. If the host lacks it too, the browser's own font matching already
+skipped it, at *every* codepoint — a family with no installed faces supplies no glyph — so the
+shim's removal is a no-op and the real measurement already **is** the shimmed measurement. The two
+forced layouts are pure waste. Symmetrically, the family the persona *claims* needs no synthetic
+presence when the machine genuinely has it, **provided it is not the first family the page named**
+(see the `claimedFirst` clause below). When neither condition has work to do, `fontMetric()` and
+the `measureText` wrapper return the native answer and touch no layout.
+
+**The proposal that was NOT exactly correct, and why.** The performance report suggested a
+different pre-check: *is there a family earlier in the list than the first dropped family that
+actually renders on this machine?* That is not sound, because CSS font matching is **per glyph,
+not per element**. An earlier family that resolves can still lack a codepoint, and the browser then
+falls through to later families — including the one we are about to drop. So "an earlier family
+renders" proves only that the dropped family is unused *for the glyphs the earlier family covers*,
+which is not the same statement and is not decidable without knowing the text. The host-presence
+rule needs no such assumption: it is a statement about the machine, and it holds for every string.
+
+**`claimedFirst` — the clause that keeps the defense whole.** "The machine has the family" does not
+imply "a probe of this element can read the family off it." macOS ships `Symbol`, but `Symbol` has
+no Latin glyphs, so `"Symbol", monospace` measures exactly the monospace baseline on a real Mac.
+Under a host-presence test alone, a Windows persona (which claims `Symbol`) would stop synthesising
+its presence and a probe would read "absent" — one family flipping, measured, on a cross-OS
+configuration. So the claimed branch also requires that **a generic family precedes the claimed one
+in the surviving stack**. A fingerprinter's probe puts the family under test FIRST, so every probe
+shape stays on the old measuring path, byte for byte. What is dropped is only the case where the
+claimed family sits behind a generic that resolves (`-apple-system` on a Mac) and therefore cannot
+render and cannot be probed — where the old code was adding a ±1–6 px delta to an ordinary page's
+layout for no defensive gain.
+
+**The probe, and why it is not a layout.** Host presence is decided by a canvas width comparison —
+`72px "F", <generic>` against `72px <generic>` — over three generics and five scripts (Latin, CJK,
+Cyrillic+Greek, Arabic, emoji), so a family installed for one script only still registers. It runs
+through `CanvasRenderingContext2D.prototype.measureText` and `TextMetrics.width` **captured at boot**
+(D21), never through the live prototypes, on a detached 8×8 canvas that is never inserted into the
+document: no forced layout, nothing a `MutationObserver` can see, and no re-entry into our own
+wrapper. The answer is memoised per family name per realm, and the family universe is bounded by
+`KNOWN_SYSTEM_FONTS`. Anything undecidable — no canvas, a font shorthand the engine refused, a
+throw — reads as **present**, which keeps the slow path and therefore keeps the defense. The plan
+itself (`parseFamilyList` + `planFamilies` + the two CSS strings) is also memoised by computed
+`font-family` string, generational on the web-font set, because a later `@font-face` can make a
+family untouchable that was not before.
+
+**Measured result** (real Chrome 151.0.7922.174, macOS 26.6.0, M2 Max, persona `macos-chrome-m1-pro`,
+paired ABBA instrument, in-page null control 1.00× on both runs):
+
+| Cell (added cost) | Before | After | |
+|---|---|---|---|
+| `offsetWidth` on a leaf | +25.8 µs (39.0×) | **+5.0 µs (7.9×)** | 5× cheaper |
+| `getBoundingClientRect` on a leaf | +52.5 µs (40.3×) | **+12.7 µs (11.2×)** | 4× cheaper |
+| sweep 300 leaf rows | +15.50 ms (43.9×) | **+3.25 ms (11.0×)** | 4.8× cheaper |
+| `measureText` in a chart loop | +72.4 µs (54.9×) | **+3.4 µs (3.2×)** | 21× cheaper |
+
+The 300-row sweep goes from **15.8 ms to 3.55 ms**, back inside a 16.7 ms frame with room to spare.
+
+**The attack pass — what was tried, and what happened.** Every row below was run in real Chrome
+against the live shim, comparing the shimmed value to the pristine native getter captured before
+`shim.js` loaded.
+
+| Attack | Result |
+|---|---|
+| Per-glyph fallback: the ordinary stack with emoji, CJK, Arabic, Devanagari and symbol text | shim == native exactly, `offsetWidth` **and** the fractional rect. The drop is a no-op for every script, as the rule predicts. |
+| `font-family: "Segoe UI Emoji"` alone, emoji text — only the dropped family could supply the glyph | 72 == 72. The host lacks it, so the browser had already fallen through. |
+| A stack of **only** dropped families (`"Segoe UI", Roboto`) | 312 == 312, no forced layout. |
+| Generic-only stacks (`sans-serif`, `system-ui`) | never reach the font path; unchanged. |
+| The probed family listed **SECOND**, behind a host-absent unknown family | 564, identical to before the change. |
+| A dropped family the host **really has** — `Hiragino Sans`, `PingFang SC`, `Apple Color Emoji`, and every Mac-only family under a Windows persona | still on the slow path, still removed. `Hiragino Sans` 288 → 289; under the Windows persona `Helvetica` 648 → 564, `Avenir` 665 → 564, `Geneva` 694 → 564. 0 leaks. |
+| Full sweep: 57 probe families × `"F", monospace`, macOS persona | 0 families the persona lacks reported present; 0 families the persona claims reported absent. Identical to the pre-change shim. |
+| Cross-OS sweep: Windows persona on a macOS host, all 57 claimed families | 0 hidden — identical to the pre-change shim. This is the sweep that caught the `Symbol` flip and forced the `claimedFirst` clause; D12 means the shipped extension never produces this pairing, but it is the sharpest available test of the claim path. |
+| An independent host-presence oracle (`new FontFace(…, 'local("F")')`, which the shim does not patch) over the whole known-font universe | 7 families are installed here and absent from the persona; 126 probes (7 × 3 generics × 6 scripts) and **0 leaks** — the canvas probe agreed with `local()` on every one. |
+
+**The one behavioural difference, stated rather than buried.** On a stack where a generic resolves
+before the claimed family, the shim no longer applies the ±1–6 px presence delta. Measured: the
+ordinary stack on a Mac went from **474 to 479 px**, and 479 is what the un-shimmed browser
+reports. The old number was a fabrication with no defensive content — no probe can read Helvetica's
+presence off an element whose stack resolves at `-apple-system` — and it made the machine
+self-contradictory in the D11/D2 sense: it reported `Helvetica` and `sans-serif` as different
+widths on a Mac where they are literally the same font. Removing it is a fidelity gain, not a
+weakening. Stacks that name a system family first (`Helvetica, Arial, sans-serif` → 503, not 508)
+keep the delta and the slow path, unchanged.
+
+**Guards:** `ext/src/layout-early-out.test.js` — a `node:vm` realm whose layout is a deterministic
+function of a simulated host font set, so "did the shim change the number?" and "did the shim force
+a layout?" are both exactly observable (`style.setProperty('font-family', …)` is counted; only
+`measureWithFamily` calls it). Pins the fast path on the ordinary stack for `offsetWidth`,
+`getBoundingClientRect` and `measureText`; the slow path for a host-present dropped family, for a
+claimed family listed first, and for the `Symbol` shape (installed, but no glyph for the text);
+byte-identical probe output on hosts that have and lack the family; and that the host probe is
+memoised rather than run per element. 310/310 (297 + 13).
