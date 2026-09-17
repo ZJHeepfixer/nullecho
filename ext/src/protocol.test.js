@@ -38,6 +38,7 @@ import {
   ALLOW_RULE_ID_BASE,
   CONTENT_SCRIPT_LITERALS,
   CONTENT_SCRIPT_NUMERIC_LITERALS,
+  REVERSE_CHANNEL_PAYLOAD_FIELDS,
   FORBIDDEN_LITERALS,
 } from './protocol.js';
 
@@ -237,6 +238,30 @@ test('the numeric literals the content scripts inline match too', () => {
       assert.equal(
         inlinedNumber(src, name), value,
         `${rel}: const ${name} has drifted from src/protocol.js (expected ${value})`,
+      );
+    }
+  }
+});
+
+test('the reverse-channel payload field names (D30) are still used at their real call sites', () => {
+  // `reportTokens` and `token` are private vocabulary between the two files —
+  // not a protocol.js export re-declared as a `const`, so they don't fit
+  // CONTENT_SCRIPT_LITERALS's `inlinedString()` pinning above (see the comment
+  // on REVERSE_CHANNEL_PAYLOAD_FIELDS in protocol.js). This pins them the same
+  // way in spirit: read each file as text, fail on drift. Each pattern is the
+  // exact call site, not the bare word — both names also appear in comments
+  // and (for `reportTokens`) in shim.js's own `state.reportTokens` field, so a
+  // check for the word alone would keep passing after the call site that
+  // actually produces or reads the cross-file value had been renamed out from
+  // under it. It is not a substitute for the behavioral D30/C1 guards in
+  // review-2026-09-16.test.js and shim-handshake.test.js, which drive the real
+  // implementations against each other.
+  for (const [rel, fields] of Object.entries(REVERSE_CHANNEL_PAYLOAD_FIELDS)) {
+    const src = readSrc(rel);
+    for (const [field, pattern] of Object.entries(fields)) {
+      assert.match(
+        src, new RegExp(pattern),
+        `${rel}: the call site for '${field}' has drifted (expected to match /${pattern}/)`,
       );
     }
   }

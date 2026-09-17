@@ -33,14 +33,32 @@ export const MSG = {
 
 /** DOM CustomEvent names bridging ISOLATED ⇄ MAIN world. */
 export const EVENTS = {
-  /** loader → MAIN world. `detail` is a JSON **string** (see shim-loader.js for why). */
+  /**
+   * loader → MAIN world. `detail` is a JSON **string** (see shim-loader.js for
+   * why). On success: `{ ok, enabled, gpc, site, persona, nonce, gpcNonce,
+   * reportTokens }` — `reportTokens` is the list of one-time reply tokens the
+   * reverse channel (DETECT/STATUS below) spends from, one per report, in order
+   * (D30). On failure: `{ ok: false, reason, nonce, gpcNonce }`, no tokens.
+   */
   PERSONA: 'nullecho:persona',
-  /** MAIN world → loader. `detail` is a JSON string: { api, count }. */
+  /**
+   * MAIN world → loader. `detail` is a JSON string: `{ api, count, token }`.
+   * Authenticated by a one-time `token` (D30): the loader accepts a report only
+   * if it carries the token at the head of its `reportTokens` queue, spends it,
+   * and `stopImmediatePropagation()`s the event, so no page listener ever sees a
+   * live token. A report made before the handshake has delivered `reportTokens`
+   * carries no `token` at all — the loader drops it, and the shim re-sends it
+   * (tokened, from a bounded backlog) once the handshake lands.
+   */
   DETECT: 'nullecho:detect',
   /**
    * MAIN world → loader. `detail` is a JSON string. Two shapes:
-   *   { phase: 'boot', channel, nonce }   — first act of each MAIN-world script
-   *   { upgraded, lockedToFallback, reason } — everything after
+   *   { phase: 'boot', channel, nonce } — first act of each MAIN-world script.
+   *     UNAUTHENTICATED by necessity (it is what the reply tokens are minted in
+   *     response to): allowed to change only "something announced itself" and
+   *     that channel's nonce, and reports nothing to the service worker.
+   *   { upgraded, lockedToFallback, reason, token } — every status after the
+   *     boot event. Authenticated and swallowed exactly like DETECT above (D30).
    */
   STATUS: 'nullecho:status',
 };
@@ -122,6 +140,55 @@ export const HANDSHAKE = {
   /** `{ phase: <this> }` marks the one status event that carries a nonce. */
   BOOT_PHASE: 'boot',
 };
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * THE REVERSE CHANNEL — why DETECT/STATUS reports are authenticated too. D30.
+ * ════════════════════════════════════════════════════════════════════════════
+ *
+ * The nonce handshake above authenticates the FORWARD channel (loader → MAIN):
+ * a page cannot forge the persona delivery. Until 2026-09-16 nothing authenticated
+ * the REVERSE channel (MAIN → loader) the same way. `EVENTS.DETECT` and
+ * `EVENTS.STATUS` are DOM events on `document`, so a page could dispatch them
+ * itself — three lines raised the sticky `nonce-exposed` warning, overwrote a
+ * real `lockedToFallback` with a healthy status, and added a million to the
+ * popup's fingerprinting counter.
+ *
+ * A single shared secret does not fix this: the first tokened report (the
+ * upgrade status, sent within milliseconds) would hand that one token to any
+ * page listener, and from then on the page could mint as many "reports" as it
+ * likes. So the loader mints **32 one-time tokens** at `document_start` and
+ * delivers them as `reportTokens` inside the same nonce-authenticated persona
+ * payload described above. Every DETECT/STATUS report after that spends the
+ * next token in order; the loader accepts a report only if it carries the
+ * token at the head of its queue, then `stopImmediatePropagation()`s it — so a
+ * page never observes a live token, only the absence of an event. A token a
+ * page HAS observed is a token the loader has already spent, which closes
+ * harvest-and-replay by construction.
+ *
+ * This rests on the same ordering guarantee as the forward handshake, run in
+ * reverse: the loader listens on `window` in the CAPTURE phase, registered at
+ * `document_start` ahead of any page listener, so it sees every report before
+ * the page's own `document`-level listener could.
+ *
+ * The boot event (`{ phase: 'boot', ... }`) cannot itself carry a token — it is
+ * what the tokens are minted in reply to — so it stays unauthenticated and is
+ * trusted with almost nothing: not "the shim is healthy", only "something
+ * announced itself" and that channel's nonce. `shim-never-booted` now turns on
+ * an authenticated reply rather than on that forgeable event.
+ *
+ * The list is finite and a page controls how many DETECT reports the shim
+ * makes (its `touch()` schedule fires at read 1, 10, 50, then every 250 per
+ * API), so a page could spend the whole list on canvas reads alone and leave
+ * the shim unable to report a later stand-down or a locked fallback — the half
+ * of this channel that has to stay truthful. The last **four** tokens are
+ * reserved for statuses for exactly that reason.
+ *
+ * Full argument, residuals (lockstep substitution if the cross-world listener
+ * ordering claim is ever wrong; exhaustion and the status reserve it forced)
+ * and the guard tests: `docs/DECISIONS.md` D30, and the "THE REVERSE CHANNEL"
+ * comment block in `src/shim-loader.js` this is a shorter mirror of.
+ */
 
 /**
  * ⛔ REMOVED 2026-08-20: `BOOT_ATTR = 'data-nullecho-boot'`.
@@ -335,6 +402,52 @@ export const CONTENT_SCRIPT_LITERALS = {
 export const CONTENT_SCRIPT_NUMERIC_LITERALS = {
   'src/shim.js': { NONCE_BYTES: HANDSHAKE.NONCE_BYTES },
   'src/gpc.js': { NONCE_BYTES: HANDSHAKE.NONCE_BYTES },
+};
+
+/**
+ * Reverse-channel payload field names (D30): `reportTokens` (the one-time list,
+ * minted by `shim-loader.js` and delivered inside the persona payload) and
+ * `token` (the per-report spend, attached by `shim.js` and read by
+ * `shim-loader.js`).
+ *
+ * Deliberately NOT in `CONTENT_SCRIPT_LITERALS` above: that registry pins
+ * values THIS MODULE exports (`MSG`/`EVENTS`/`HANDSHAKE`) against a `const NAME
+ * = '<value>'` re-declaration in a content script, and neither field is a
+ * protocol.js export — both are private vocabulary between `shim-loader.js`
+ * and `shim.js` alone, written inline rather than declared as a named const in
+ * either file, so the existing `inlinedString()` pinning mechanism has nothing
+ * to match against.
+ *
+ * Pinned here the same way in spirit — read as text, fail on drift — but each
+ * entry is the exact functional call site (`payload string → regex source`),
+ * not bare presence of the word: `reportTokens` and `token` also appear in
+ * comments and in shim.js's own `state.reportTokens` field, so a check for the
+ * word alone would keep passing after the call site that actually produces or
+ * reads the cross-file value had been renamed out from under it.
+ *
+ * This does not stand in for the behavioral guards: the full contract
+ * (one-time, order-enforced, swallowed on accept, four reserved for statuses)
+ * is exercised against each file's REAL implementation by the D30/C1 guards in
+ * `review-2026-09-16.test.js` (`loaderRealm()` drives the real loader;
+ * `bootRealm()` drives the real shim against a hand-written loader stand-in
+ * that uses these same two field names) and by `shim-handshake.test.js`.
+ *
+ * @type {Record<string, Record<string, string>>} path → { field: regex source
+ *   matching the call site that produces or consumes it }
+ */
+export const REVERSE_CHANNEL_PAYLOAD_FIELDS = {
+  'src/shim-loader.js': {
+    // The delivery payload key: `reportTokens: replyTokens,` in maybeDeliver().
+    reportTokens: String.raw`reportTokens:\s*replyTokens\b`,
+    // The own-property read: `hasOwnProperty.call(d, 'token')` in spendToken().
+    token: String.raw`hasOwnProperty\.call\(d,\s*'token'\)`,
+  },
+  'src/shim.js': {
+    // The read of the delivered list: `ownField(payload, 'reportTokens')`.
+    reportTokens: String.raw`ownField\(payload,\s*'reportTokens'\)`,
+    // The per-report spend: `objDefineProperty(obj, 'token', …)` in report().
+    token: String.raw`objDefineProperty\(obj,\s*'token'`,
+  },
 };
 
 /**
