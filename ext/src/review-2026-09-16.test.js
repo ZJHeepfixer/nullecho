@@ -170,22 +170,36 @@ const DOM_SETUP = `
     });
   }
   class NavigatorUAData {}
-  const UAD = {
-    brands: Object.freeze([
-      { brand: 'Not;A=Brand', version: '99' }, { brand: 'Chromium', version: '152' }, { brand: 'Google Chrome', version: '152' },
-    ]),
-    mobile: false,
-    platform: 'macOS',
+  // Measured in real Chrome 151 (review B7, DECISIONS.md D27 as rewritten): the
+  // \`brands\` attribute hands back a NEW frozen array on every read, whose entries
+  // are ordinary writable objects. \`languages\` above, by contrast, IS the same
+  // frozen object every time — so this fake reproduces both, and the difference
+  // between them is what the B7 guards measure the shim against.
+  const REAL_BRANDS = [
+    { brand: 'Not;A=Brand', version: '99' }, { brand: 'Chromium', version: '152' }, { brand: 'Google Chrome', version: '152' },
+  ];
+  // Built with the freeze captured at rig-setup time and by index assignment, never
+  // \`map\`/\`push\`: this getter stands in for NATIVE code, and A2-timing hooks those
+  // three to throw. A native getter routes through none of them.
+  const rawFreeze = Object.freeze;
+  const freshBrands = () => {
+    const out = [];
+    for (let i = 0; i < REAL_BRANDS.length; i++) out[i] = { brand: REAL_BRANDS[i].brand, version: REAL_BRANDS[i].version };
+    return rawFreeze(out);
   };
+  const UAD = { mobile: false, platform: 'macOS' };
   for (const k of Object.keys(UAD)) {
     Object.defineProperty(NavigatorUAData.prototype, k, {
       get() { brand(this, NavigatorUAData); return UAD[k]; }, configurable: true, enumerable: true,
     });
   }
-  NavigatorUAData.prototype.toJSON = function () { brand(this, NavigatorUAData); return { ...UAD }; };
+  Object.defineProperty(NavigatorUAData.prototype, 'brands', {
+    get() { brand(this, NavigatorUAData); return freshBrands(); }, configurable: true, enumerable: true,
+  });
+  NavigatorUAData.prototype.toJSON = function () { brand(this, NavigatorUAData); return { ...UAD, brands: freshBrands() }; };
   NavigatorUAData.prototype.getHighEntropyValues = function () {
     brand(this, NavigatorUAData);
-    return Promise.resolve({ ...UAD, platformVersion: '26.6.0', architecture: 'arm', bitness: '64' });
+    return Promise.resolve({ ...UAD, brands: freshBrands(), platformVersion: '26.6.0', architecture: 'arm', bitness: '64' });
   };
   const uad = Object.create(NavigatorUAData.prototype);
   Object.defineProperty(Navigator.prototype, 'userAgentData', {
@@ -1198,64 +1212,88 @@ test('B6 REPRO: WebGPU architecture is one constant per vendor, so Iris Xe → "
   assert.equal(arch(withNoise(rtx4060)), 'ampere', 'RTX 4060 is Ada Lovelace; the shim says ampere');
 });
 
-// ✅ FIXED 2026-09-16 (DECISIONS.md D27). `brands` is a WebIDL FrozenArray
-// ATTRIBUTE: Chrome creates it once and hands out the same frozen object on every
-// read. The shim built a fresh unfrozen array per read, so `brands === brands` was
-// false — a one-line detector. It is now one frozen array cached on the derived
-// persona (`pushOwn` + `objFreeze`, D21). `languages` needs nothing: D25 stopped
-// patching it, so the realm's own FrozenArray comes through untouched.
-test('B7 GUARD: navigator.languages and userAgentData.brands return the SAME frozen array on every read, as Chrome does', () => {
+// ✅ FIXED 2026-09-16 (DECISIONS.md D27, REWRITTEN the same day against a
+// measurement). The review said Chrome caches the `brands` FrozenArray attribute
+// and hands out the same object on every read, and the first fix cached it. It is
+// not what Chrome does. MEASURED in Jason's real Chrome 151.0.0.0 on macOS, shim
+// OFF (not the Electron Browser pane — D21's BASELINE caveat):
+//
+//     navigator.userAgentData.brands === navigator.userAgentData.brands  // false
+//     Object.isFrozen(navigator.userAgentData.brands)                    // true
+//     Object.isFrozen(brands[0])                                         // false
+//     navigator.languages === navigator.languages                        // true
+//     await getHighEntropyValues(['fullVersionList'])                    // fresh array per call
+//
+// So: a NEW frozen array per read, ordinary writable entries — and `languages`
+// genuinely IS cached, which is the contrast that makes the brands result real
+// rather than a measuring artefact. The cache is reverted; these guards assert the
+// measurement. `languages` needs nothing either way: D25 stopped patching it, so
+// the engine's own getter answers.
+test('B7 GUARD: userAgentData.brands is a FRESH frozen array per read and navigator.languages is the same object, exactly as measured in Chrome 151', () => {
   const s = bootRealm();
   s.upgrade();
   assert.equal(s.page('navigator.languages === navigator.languages'), true, 'GUARD: languages identity (unpatched since D25)');
-  assert.equal(s.page('navigator.userAgentData.brands === navigator.userAgentData.brands'), true, 'GUARD: brands identity across reads');
+  assert.equal(s.page('navigator.userAgentData.brands === navigator.userAgentData.brands'), false,
+    'GUARD: a new array per read, as measured — caching it was the detector');
   assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands)'), true,
-    'GUARD: the array itself is frozen, as a FrozenArray attribute is (it was not before)');
+    'GUARD: each array is frozen, as a FrozenArray attribute is');
   assert.equal(s.page('navigator.userAgentData.brands[1].brand + "/" + navigator.userAgentData.brands[1].version'), 'Chromium/151',
     'and it is still the persona\'s brand list');
+  assert.deepEqual(plain(s.page('navigator.userAgentData.brands')), plain(s.page('navigator.userAgentData.brands')),
+    'GUARD: different objects, identical contents — the freshness is not an entropy source');
 
-  // A page cannot make the cached array grow or change length.
+  // A page cannot make an array it was handed grow or change length.
   assert.equal(s.page('(() => { const b = navigator.userAgentData.brands; try { b.length = 0; } catch (_) {} return b.length; })()'), 3,
-    'GUARD: frozen means frozen — a page cannot truncate the shared array');
+    'GUARD: frozen means frozen — a page cannot truncate the array it holds');
 
-  // The ENTRIES are deliberately NOT frozen. WebIDL's "create a frozen array"
-  // freezes the array alone, and now that the array is cached, a frozen entry
-  // would make an assignment that STICKS in Chrome silently no-op here — trading
-  // the identity detector for a mutation one. (D27; reasoned from the WebIDL
-  // algorithm, not measured in Chrome.)
+  // The ENTRIES are deliberately NOT frozen: measured `Object.isFrozen(brands[0])
+  // === false`, with `brand` writable. A write sticks on the array the page is
+  // holding and is gone on the next read, because that read builds a new one —
+  // which is what Chrome does.
   assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands[0])'), false,
-    'GUARD: entries stay ordinary objects, as a FrozenArray\'s elements are');
-  assert.equal(s.page('(() => { navigator.userAgentData.brands[0].brand = "zz"; return navigator.userAgentData.brands[0].brand; })()'), 'zz',
-    'GUARD: a write to an entry sticks, exactly as it does against Chrome\'s cached array');
+    'GUARD: entries stay ordinary objects, as measured');
+  assert.equal(s.page('(() => { const b = navigator.userAgentData.brands; b[0].brand = "zz"; return b[0].brand; })()'), 'zz',
+    'GUARD: a write to a held entry sticks — the entries are writable, as measured');
+  assert.notEqual(s.page('navigator.userAgentData.brands[0].brand'), 'zz',
+    'GUARD: and the next read is a fresh array, so the write did not persist');
 
   // The native brand check must still fire on the replaced getter.
   assert.throws(() => s.page('Object.getOwnPropertyDescriptor(NavigatorUAData.prototype, "brands").get.call({})'),
-    /Illegal invocation/, 'GUARD: caching did not cost the Illegal-invocation check');
+    /Illegal invocation/, 'GUARD: the Illegal-invocation check survived the revert');
 
-  // `toJSON()` and `getHighEntropyValues()` return IDL DICTIONARIES, not the
-  // attribute: each conversion builds a new plain array, so per-read is correct
-  // there and deliberately left alone.
+  // `toJSON()` and `getHighEntropyValues()` return IDL DICTIONARIES: each
+  // conversion builds a new plain array. Measured per-call freshness for
+  // `getHighEntropyValues(['fullVersionList'])` too.
   assert.equal(s.page('navigator.userAgentData.toJSON().brands === navigator.userAgentData.brands'), false,
     'toJSON() is a dictionary conversion — a fresh array, as in Chrome');
   assert.equal(s.page('navigator.userAgentData.toJSON().brands.length'), 3);
 
-  // Control: the unshimmed fakes behave like Chrome.
+  // Control: the unshimmed fakes behave the way Chrome was measured to.
   const control = vm.createContext({ console });
   vm.runInContext(DOM_SETUP, control);
-  assert.equal(vm.runInContext('navigator.languages === navigator.languages && navigator.userAgentData.brands === navigator.userAgentData.brands', control), true);
+  assert.equal(vm.runInContext('navigator.languages === navigator.languages', control), true);
+  assert.equal(vm.runInContext('navigator.userAgentData.brands === navigator.userAgentData.brands', control), false);
+  assert.equal(vm.runInContext('Object.isFrozen(navigator.userAgentData.brands)', control), true);
 });
 
-test('B7 GUARD: the cached brands array is per DERIVED PERSONA, and the read gate means it can never change under a page', () => {
+test('B7 GUARD: getHighEntropyValues hands back a fresh fullVersionList per call, and a refused upgrade does not change the brand VALUES', async () => {
   const s = bootRealm();
   // Reading first trips the D2 read gate, so the upgrade below is refused and the
-  // fallback persona stays. The array must be the same object on both sides of that.
-  const stable = s.page(`(() => { globalThis.__b0 = navigator.userAgentData.brands; return __b0 === navigator.userAgentData.brands; })()`);
-  assert.equal(stable, true, 'GUARD: stable on the fallback persona too');
+  // fallback persona stays. Nothing about the brands may change across that.
+  const before = plain(s.page('navigator.userAgentData.brands'));
   s.upgrade();
   assert.ok(s.statuses.some((d) => d.reason === 'api-read-before-handshake'), 'the read gate refused the swap, as D2 requires');
-  assert.equal(s.page('__b0 === navigator.userAgentData.brands'), true,
-    'GUARD: same derived persona → same array object, across the refused upgrade');
-  assert.equal(s.page('Object.isFrozen(__b0)'), true);
+  assert.deepEqual(plain(s.page('navigator.userAgentData.brands')), before,
+    'GUARD: same derived persona → same brand values, across the refused upgrade');
+  assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands)'), true);
+
+  const two = await s.page(`Promise.all([
+    navigator.userAgentData.getHighEntropyValues(['fullVersionList']),
+    navigator.userAgentData.getHighEntropyValues(['fullVersionList']),
+  ])`);
+  assert.equal(two[0].fullVersionList === two[1].fullVersionList, false,
+    'GUARD: a fresh fullVersionList per call, as measured in Chrome 151');
+  assert.deepEqual(plain(two[0].fullVersionList), plain(two[1].fullVersionList), 'with identical contents');
 });
 
 // ✅ FIXED 2026-09-16 (DECISIONS.md D26). `maxTouchPoints` is no longer pinned to

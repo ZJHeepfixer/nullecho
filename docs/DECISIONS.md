@@ -1168,56 +1168,63 @@ true already, nothing to edit there.
 entry exists so the next reviewer does not have to re-derive, from a REPRO-labelled test, that a
 finding whose fix already shipped is actually closed.
 
-## D27 — `userAgentData.brands` is one cached frozen array, as a FrozenArray attribute is. 2026-09-16.
+## D27 — `userAgentData.brands` is a FRESH frozen array per read, because that is what Chrome does. 2026-09-16.
 
-**Decision:** the `brands` getter returns a single frozen array built once in `derive()` and cached
-on the derived persona (`state.derived.brandsFrozen`). `toJSON()` and `getHighEntropyValues()` keep
-building a fresh, unfrozen array per call. `navigator.languages` needs no cache — D25 stopped
-patching it, so the engine's own FrozenArray comes through.
+*(REWRITTEN in place, the same day, after a measurement. The first version of this entry — and the
+commit `d7a055c` it described — cached the array, on the review's word that Chrome caches it. The
+measurement below says Chrome does not. The old text is not preserved here on purpose: a decisions
+log that keeps a disproved claim alongside the true one invites the next reader to re-derive which
+is which. What is preserved is **why** it was wrong, immediately below, because that is the part
+that generalises.)*
 
-**Why.** Review B7: `navigator.userAgentData.brands === navigator.userAgentData.brands` is `true` in
-Chrome and was `false` under the shim, and `Object.isFrozen(brands)` was `false` where Chrome's is
-`true`. One line, no probing, no statistics. The cause is a WebIDL distinction the old `copyBrands`
-flattened:
+**Decision:** the `brands` getter builds a new array on every read — `copyBrands` into a plain
+array, frozen with the captured `objFreeze`, entries left as ordinary writable objects. Nothing is
+cached on the derived persona. `toJSON()` and `getHighEntropyValues()` are unchanged: a fresh,
+unfrozen array per call. `navigator.languages` is not patched at all (D25), so the engine's own
+cached FrozenArray comes through.
 
-| Surface | WebIDL kind | Chrome | The shim, now |
-|---|---|---|---|
-| `userAgentData.brands` | **FrozenArray attribute** — created once, cached on the object | same frozen array every read | one frozen array per derived persona |
-| `toJSON()`, `getHighEntropyValues()` | **dictionary** members — converted per call | a fresh plain array each call | unchanged: fresh plain array each call |
+**The measurement.** Jason's real Chrome **151.0.0.0 on macOS**, Nullecho **off**, typed into that
+browser's own console — *not* the Electron Browser pane this project's harness runs in, which is the
+environment caveat D21 already carries and the one that burned this repo on 2026-08-20:
 
-Caching the dictionary paths too would have been its own detector, so they were deliberately left
-per-read.
+| Probe | Result |
+|---|---|
+| `navigator.userAgentData.brands === navigator.userAgentData.brands` | **`false`** — a new array per read |
+| `Object.isFrozen(navigator.userAgentData.brands)` | `true` |
+| `Object.isFrozen(brands[0])`, and `brands[0].brand = 'x'` | `false`, and the write sticks on the array you hold |
+| `navigator.languages === navigator.languages`, `Object.isFrozen(...)` | `true`, `true` |
+| `await getHighEntropyValues(['fullVersionList'])`, twice | a fresh array each call |
 
-**Only the array is frozen, not the entries.** `create a frozen array` in WebIDL performs
-`SetIntegrityLevel` on the array alone; the `NavigatorUABrandVersion` entries are ordinary objects.
-That matters now that the array is cached: in Chrome `brands[0].brand = 'x'` sticks, because the same
-dictionaries live in the same cached array. Freezing our entries — which the old code did on this
-path — would make that assignment silently no-op, trading one identity detector for a mutation one.
-⚠️ Reasoned from the WebIDL algorithm, not measured in Chrome; if a bench ever contradicts it, this
-paragraph is the thing to re-check, not the caching.
+The `languages` row is what makes the `brands` row trustworthy rather than a measuring artefact: the
+same engine, the same session, one attribute cached and the other not. Whatever the IDL says about
+"create a frozen array", Chrome 151 builds `brands` per get.
 
-**The upgrade case is unobservable, and that is the read gate's doing.** A persona upgrade re-derives
-and would hand out a new array once. No page can see that: reading the attribute at all calls
-`touch('navigator')`, and D2's read gate then refuses the swap (`api-read-before-handshake`) rather
-than mixing two machines' fields. So for any page that ever reads `brands`, the object is the same
-one for the life of the document — stronger than Chrome-parity, and pinned by the second B7 guard,
-which reads, watches the upgrade get refused, and requires identity across it.
+**Why the first fix was wrong, in one line:** it was reasoned from the WebIDL algorithm and from the
+review's summary of it, and neither was run. The old entry even flagged its own entry-freezing
+paragraph "⚠️ Reasoned from the WebIDL algorithm, not measured in Chrome" — the warning was in the
+right place and the conclusion above it was not. **A review finding is a claim too** (the repo's own
+standing lesson): B7 named a real detector — the shim's array was *unfrozen*, which Chrome's never is
+— and got the direction of the identity half backwards. The fix that followed the claim instead of
+the browser installed the mirror-image detector: `brands === brands` returning `true` is now exactly
+as loud as `false` was, because the population it separates you from is everyone running Chrome.
 
-**Guards.** Two `B7 GUARD`s: identity + frozenness + the persona's values + a page failing to
-truncate the shared array + entries staying unfrozen and writable + the Illegal-invocation brand
-check surviving + `toJSON().brands !== brands`; and the read-gate case above. Built with `pushOwn`
-and the captured `objFreeze`, so the `A2-lint GUARD` (D21) still passes.
+**What stays true from B7.** Freezing. Chrome's array is frozen and the pre-B7 shim's was not; that
+half of the finding is real, is fixed, and stays fixed. Only the caching is reverted.
 
-**Known residual — the array's REALM, in child frames.** The cached array is created in the shim's
-own realm, which for the top window is the page's realm, so nothing is observable there. When the
-parent's `installInto(childWindow)` is the outermost wrapper on an iframe, that frame's
-`navigator.userAgentData.brands` is a *parent-realm* array, and
-`frames[0].navigator.userAgentData.brands instanceof frames[0].Array` is `false` where Chrome says
-`true`. This predates the caching — `copyBrands` built its array in the same closure — and it is the
-same shape as open finding **B3** (a child realm presenting a different machine than its parent),
-so it belongs with that fix, not this one: the cure is to build the array in the realm being patched,
-which needs a per-realm capture of `Array`/`freeze` that `installInto` does not carry yet. Not
-guarded, because the test rig has no child realm to hang it on; noted here so B3's fix picks it up.
+**Guards.** Two `B7 GUARD`s, both asserting the measurement: a fresh array per read with identical
+contents, the array frozen, a page unable to truncate the array it holds, entries unfrozen and
+writable with the write gone on the next read, `toJSON().brands !== brands`, the Illegal-invocation
+brand check surviving, and `getHighEntropyValues(['fullVersionList'])` fresh per call. The fake
+`NavigatorUAData` in `review-2026-09-16.test.js` was changed to match the measurement too, and the
+control assertion in the first guard pins the *contrast* — fake `languages` cached, fake `brands` not
+— so the rig cannot drift back to modelling a browser that does not exist.
+
+**Known residual — the array's REALM, in child frames.** Closed by D31; see there. The array is
+created in the shim's own realm, so when the parent's `installInto(childWindow)` is the outermost
+wrapper on an iframe, that frame's `brands` used to be a *parent-realm* array and
+`frames[0].navigator.userAgentData.brands instanceof frames[0].Array` was `false` where Chrome says
+`true`. `installInto` now carries a per-realm `Array`/`freeze` capture and builds the array in the
+realm being patched.
 
 ## D29 — Every handshake field is read as an OWN property; nothing is inherited. 2026-09-16.
 

@@ -1163,11 +1163,6 @@
       cores: persona.cores,
       memory: persona.memory,
       brands: b.brands,
-      // The one object `navigator.userAgentData.brands` hands out for as long as
-      // this derived state is current — Chrome's FrozenArray caching (review B7,
-      // D27). Built here, at derive time, so a persona upgrade produces a new
-      // array exactly once rather than one per read.
-      brandsFrozen: frozenBrands(b.brands),
       fullVersionList: b.fullVersionList,
       uaFullVersion: b.full,
       uaData: persona.uaData || {},
@@ -1343,24 +1338,22 @@
   }
 
   /**
-   * Review B7. `navigator.userAgentData.brands` is a WebIDL **FrozenArray
-   * attribute**: Chrome creates the array once and returns THAT object on every
-   * read, so `brands === brands` is true and `Object.isFrozen(brands)` is true.
-   * We returned a fresh, unfrozen array per read — one line of page script told a
-   * Nullecho user from everyone else.
+   * `navigator.userAgentData.brands` — review B7, DECISIONS.md D27 as REWRITTEN
+   * against a measurement.
    *
-   * So the array is built once, here, and cached on the derived persona: one
-   * object for as long as `D()` points at the same derived state. A persona
-   * upgrade re-derives and would hand out a new array once — which in practice
-   * never happens under a page's nose, because reading the attribute at all trips
-   * the D2 read gate and the upgrade is then refused.
+   * The review said Chrome caches this FrozenArray attribute and hands out the
+   * same object on every read, and the first fix cached it on the derived persona.
+   * Measured in real Chrome 151.0.0.0 on macOS with the shim off, that is wrong:
    *
-   * Only the array is frozen. `create a frozen array` in WebIDL freezes the array
-   * and nothing else; the entries stay ordinary objects, and with the array now
-   * cached a page CAN write through to an entry — exactly as it can in Chrome,
-   * where the same cached FrozenArray holds the same dictionaries. Freezing them
-   * would make an assignment that sticks in Chrome silently no-op here.
-   * Built with `pushOwn` + the captured `objFreeze` (D21).
+   *     brands === brands            // FALSE — a new array per read
+   *     Object.isFrozen(brands)      // true
+   *     Object.isFrozen(brands[0])   // false, and `brand` is writable
+   *     navigator.languages === navigator.languages   // true (so the engine CAN
+   *                                                   //  cache; it just doesn't
+   *                                                   //  cache this one)
+   *
+   * So: a fresh array per read, frozen, with ordinary entries. Caching it was the
+   * detector. `copyBrands` + the captured `objFreeze`, built with `pushOwn` (D21).
    */
   function frozenBrands(list) {
     return objFreeze(copyBrands(list));
@@ -1531,7 +1524,8 @@
       if (!UAD || !UAD.prototype) return; // not a Chromium build
       const P = UAD.prototype;
 
-      spoofGetter(P, 'brands', 'navigator', () => D().brandsFrozen);
+      // A fresh frozen array per read — measured, D27. See `frozenBrands`.
+      spoofGetter(P, 'brands', 'navigator', () => frozenBrands(D().brands));
       spoofGetter(P, 'mobile', 'navigator', () => false);
       spoofGetter(P, 'platform', 'navigator', () => D().uaData.platform || '');
 
