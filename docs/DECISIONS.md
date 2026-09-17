@@ -1141,7 +1141,11 @@ beside that live surface, and the `Navigator.prototype` descriptor to be the ide
 before the shim ran. `harness/shim-test.html` now checks agreement with `ontouchstart` rather than
 a pinned 0.
 
-## D27 — C3 formally closed: the dead CANVAS/SUPERCOOKIE report path is now a regression guard. 2026-09-16.
+## D28 — C3 formally closed: the dead CANVAS/SUPERCOOKIE report path is now a regression guard. 2026-09-16.
+
+*(Renumbered from D27 to D28 after a concurrent-edit collision: two lanes independently computed
+D27 as the next free number and both committed. This entry lost the race in commit order, so it
+moves; the B7 entry keeps D27. No content below changed.)*
 
 **Decision:** `review-2026-09-16.test.js`'s C3 reproduction — "`handleContentReport()` waits for a
 `nullecho:signal` message no file sends" — is flipped from a REPRO to `C3 GUARD`. The code fix was
