@@ -1198,14 +1198,50 @@ test('B6 REPRO: WebGPU architecture is one constant per vendor, so Iris Xe → "
   assert.equal(arch(withNoise(rtx4060)), 'ampere', 'RTX 4060 is Ada Lovelace; the shim says ampere');
 });
 
-test('B7 REPRO: navigator.languages and userAgentData.brands return a fresh array per read (Chrome returns the same FrozenArray)', () => {
+// ✅ FIXED 2026-09-16 (DECISIONS.md D27). `brands` is a WebIDL FrozenArray
+// ATTRIBUTE: Chrome creates it once and hands out the same frozen object on every
+// read. The shim built a fresh unfrozen array per read, so `brands === brands` was
+// false — a one-line detector. It is now one frozen array cached on the derived
+// persona (`pushOwn` + `objFreeze`, D21). `languages` needs nothing: D25 stopped
+// patching it, so the realm's own FrozenArray comes through untouched.
+test('B7 GUARD: navigator.languages and userAgentData.brands return the SAME frozen array on every read, as Chrome does', () => {
   const s = bootRealm();
-  const before = s.page('navigator.languages === navigator.languages && navigator.userAgentData.brands === navigator.userAgentData.brands');
-  assert.equal(before, false, 'THE FINDING: identity across two reads is false under the shim');
+  s.upgrade();
+  assert.equal(s.page('navigator.languages === navigator.languages'), true, 'GUARD: languages identity (unpatched since D25)');
+  assert.equal(s.page('navigator.userAgentData.brands === navigator.userAgentData.brands'), true, 'GUARD: brands identity across reads');
+  assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands)'), true,
+    'GUARD: the array itself is frozen, as a FrozenArray attribute is (it was not before)');
+  assert.equal(s.page('navigator.userAgentData.brands[1].brand + "/" + navigator.userAgentData.brands[1].version'), 'Chromium/151',
+    'and it is still the persona\'s brand list');
+
+  // A page cannot make the cached array grow or change length.
+  assert.equal(s.page('(() => { const b = navigator.userAgentData.brands; try { b.length = 0; } catch (_) {} return b.length; })()'), 3,
+    'GUARD: frozen means frozen — a page cannot truncate the shared array');
+
+  // `toJSON()` and `getHighEntropyValues()` return IDL DICTIONARIES, not the
+  // attribute: each conversion builds a new plain array, so per-read is correct
+  // there and deliberately left alone.
+  assert.equal(s.page('navigator.userAgentData.toJSON().brands === navigator.userAgentData.brands'), false,
+    'toJSON() is a dictionary conversion — a fresh array, as in Chrome');
+  assert.equal(s.page('navigator.userAgentData.toJSON().brands.length'), 3);
+
   // Control: the unshimmed fakes behave like Chrome.
   const control = vm.createContext({ console });
   vm.runInContext(DOM_SETUP, control);
   assert.equal(vm.runInContext('navigator.languages === navigator.languages && navigator.userAgentData.brands === navigator.userAgentData.brands', control), true);
+});
+
+test('B7 GUARD: the cached brands array is per DERIVED PERSONA, and the read gate means it can never change under a page', () => {
+  const s = bootRealm();
+  // Reading first trips the D2 read gate, so the upgrade below is refused and the
+  // fallback persona stays. The array must be the same object on both sides of that.
+  const stable = s.page(`(() => { globalThis.__b0 = navigator.userAgentData.brands; return __b0 === navigator.userAgentData.brands; })()`);
+  assert.equal(stable, true, 'GUARD: stable on the fallback persona too');
+  s.upgrade();
+  assert.ok(s.statuses.some((d) => d.reason === 'api-read-before-handshake'), 'the read gate refused the swap, as D2 requires');
+  assert.equal(s.page('__b0 === navigator.userAgentData.brands'), true,
+    'GUARD: same derived persona → same array object, across the refused upgrade');
+  assert.equal(s.page('Object.isFrozen(__b0)'), true);
 });
 
 // ✅ FIXED 2026-09-16 (DECISIONS.md D26). `maxTouchPoints` is no longer pinned to

@@ -1163,3 +1163,42 @@ true already, nothing to edit there.
 **Cost.** None — no behaviour changed, only the test's classification and the decisions log. This
 entry exists so the next reviewer does not have to re-derive, from a REPRO-labelled test, that a
 finding whose fix already shipped is actually closed.
+
+## D27 — `userAgentData.brands` is one cached frozen array, as a FrozenArray attribute is. 2026-09-16.
+
+**Decision:** the `brands` getter returns a single frozen array built once in `derive()` and cached
+on the derived persona (`state.derived.brandsFrozen`). `toJSON()` and `getHighEntropyValues()` keep
+building a fresh, unfrozen array per call. `navigator.languages` needs no cache — D25 stopped
+patching it, so the engine's own FrozenArray comes through.
+
+**Why.** Review B7: `navigator.userAgentData.brands === navigator.userAgentData.brands` is `true` in
+Chrome and was `false` under the shim, and `Object.isFrozen(brands)` was `false` where Chrome's is
+`true`. One line, no probing, no statistics. The cause is a WebIDL distinction the old `copyBrands`
+flattened:
+
+| Surface | WebIDL kind | Chrome | The shim, now |
+|---|---|---|---|
+| `userAgentData.brands` | **FrozenArray attribute** — created once, cached on the object | same frozen array every read | one frozen array per derived persona |
+| `toJSON()`, `getHighEntropyValues()` | **dictionary** members — converted per call | a fresh plain array each call | unchanged: fresh plain array each call |
+
+Caching the dictionary paths too would have been its own detector, so they were deliberately left
+per-read.
+
+**Only the array is frozen, not the entries.** `create a frozen array` in WebIDL performs
+`SetIntegrityLevel` on the array alone; the `NavigatorUABrandVersion` entries are ordinary objects.
+That matters now that the array is cached: in Chrome `brands[0].brand = 'x'` sticks, because the same
+dictionaries live in the same cached array. Freezing our entries — which the old code did on this
+path — would make that assignment silently no-op, trading one identity detector for a mutation one.
+⚠️ Reasoned from the WebIDL algorithm, not measured in Chrome; if a bench ever contradicts it, this
+paragraph is the thing to re-check, not the caching.
+
+**The upgrade case is unobservable, and that is the read gate's doing.** A persona upgrade re-derives
+and would hand out a new array once. No page can see that: reading the attribute at all calls
+`touch('navigator')`, and D2's read gate then refuses the swap (`api-read-before-handshake`) rather
+than mixing two machines' fields. So for any page that ever reads `brands`, the object is the same
+one for the life of the document — stronger than Chrome-parity, and pinned by the second B7 guard,
+which reads, watches the upgrade get refused, and requires identity across it.
+
+**Guards.** Two `B7 GUARD`s: identity + frozenness + the persona's values + a page failing to
+truncate the shared array + `toJSON().brands !== brands`; and the read-gate case above. Built with
+`pushOwn` and the captured `objFreeze`, so the `A2-lint GUARD` (D21) still passes.

@@ -1147,6 +1147,11 @@
       cores: persona.cores,
       memory: persona.memory,
       brands: b.brands,
+      // The one object `navigator.userAgentData.brands` hands out for as long as
+      // this derived state is current — Chrome's FrozenArray caching (review B7,
+      // D27). Built here, at derive time, so a persona upgrade produces a new
+      // array exactly once rather than one per read.
+      brandsFrozen: frozenBrands(b.brands),
       fullVersionList: b.fullVersionList,
       uaFullVersion: b.full,
       uaData: persona.uaData || {},
@@ -1307,14 +1312,42 @@
 
   const INSTALLED = new RawWeakSet();
 
-  /** Fresh frozen copies of the persona's brand entries (B7 — still per-read; see the review). */
-  function copyBrands(list, freezeEach) {
+  /**
+   * A fresh plain copy of a brand list, for the paths that hand back an IDL
+   * DICTIONARY — `toJSON()` and `getHighEntropyValues()`. A dictionary's
+   * `sequence<NavigatorUABrandVersion>` member is converted anew on every call, so
+   * a fresh, unfrozen array is what Chrome produces there. Do NOT cache these: the
+   * attribute and the dictionary members are different objects in Chrome, and
+   * making them the same would be its own detector.
+   */
+  function copyBrands(list) {
     const out = [];
-    for (let i = 0; i < list.length; i++) {
-      const b = { brand: list[i].brand, version: list[i].version };
-      pushOwn(out, freezeEach ? objFreeze(b) : b);
-    }
+    for (let i = 0; i < list.length; i++) pushOwn(out, { brand: list[i].brand, version: list[i].version });
     return out;
+  }
+
+  /**
+   * Review B7. `navigator.userAgentData.brands` is a WebIDL **FrozenArray
+   * attribute**: Chrome creates the array once and returns THAT object on every
+   * read, so `brands === brands` is true and `Object.isFrozen(brands)` is true.
+   * We returned a fresh, unfrozen array per read — one line of page script told a
+   * Nullecho user from everyone else.
+   *
+   * So the array is built once, here, and cached on the derived persona: one
+   * object for as long as `D()` points at the same derived state. A persona
+   * upgrade re-derives and would hand out a new array once — which in practice
+   * never happens under a page's nose, because reading the attribute at all trips
+   * the D2 read gate and the upgrade is then refused.
+   *
+   * Only the array is frozen. `create a frozen array` in WebIDL freezes the array
+   * and nothing else; the entries stay ordinary objects, and with the array now
+   * cached a page CAN write through to an entry — exactly as it can in Chrome,
+   * where the same cached FrozenArray holds the same dictionaries. Freezing them
+   * would make an assignment that sticks in Chrome silently no-op here.
+   * Built with `pushOwn` + the captured `objFreeze` (D21).
+   */
+  function frozenBrands(list) {
+    return objFreeze(copyBrands(list));
   }
 
   function installInto(win) {
@@ -1482,7 +1515,7 @@
       if (!UAD || !UAD.prototype) return; // not a Chromium build
       const P = UAD.prototype;
 
-      spoofGetter(P, 'brands', 'navigator', () => copyBrands(D().brands, true));
+      spoofGetter(P, 'brands', 'navigator', () => D().brandsFrozen);
       spoofGetter(P, 'mobile', 'navigator', () => false);
       spoofGetter(P, 'platform', 'navigator', () => D().uaData.platform || '');
 
@@ -1500,7 +1533,7 @@
         if (state.standingDown) return apply(orig, this, arguments);
         touch('navigator');
         const d = D();
-        return { brands: copyBrands(d.brands, false), mobile: false, platform: d.uaData.platform || '' };
+        return { brands: copyBrands(d.brands), mobile: false, platform: d.uaData.platform || '' };
       });
 
       replaceMethod(P, 'getHighEntropyValues', (orig) => function getHighEntropyValues(hints) {
@@ -1510,7 +1543,7 @@
         const d = D();
         // Chrome always includes the low-entropy trio, then whatever was asked for.
         const out = {
-          brands: copyBrands(d.brands, false),
+          brands: copyBrands(d.brands),
           mobile: false,
           platform: d.uaData.platform || '',
         };
@@ -1520,7 +1553,7 @@
         if (setHas(want, 'model')) out.model = d.uaData.model || '';
         if (setHas(want, 'platformVersion')) out.platformVersion = d.uaData.platformVersion || '';
         if (setHas(want, 'uaFullVersion')) out.uaFullVersion = d.uaFullVersion;
-        if (setHas(want, 'fullVersionList')) out.fullVersionList = copyBrands(d.fullVersionList, false);
+        if (setHas(want, 'fullVersionList')) out.fullVersionList = copyBrands(d.fullVersionList);
         if (setHas(want, 'wow64')) out.wow64 = !!d.uaData.wow64;
         if (setHas(want, 'formFactors')) out.formFactors = ['Desktop'];
         return apply(realmPromiseResolve, RealmPromise, [out]);
