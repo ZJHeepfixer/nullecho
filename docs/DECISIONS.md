@@ -1067,3 +1067,46 @@ family, ≥3 memory buckets with none above 60%, collision below the cap; the va
 it and `personas.test.js` pins the shim mirror to the pool value-for-value. The options page's
 sample data no longer names the retired persona, and ARKENFOX-RESPONSE.md carries a dated note
 where it counted 16.
+
+## D25 — The locale is left real; `navigator.language`/`languages` are not spoofed. 2026-09-16.
+
+**Decision:** `src/shim.js` stops patching `navigator.language` and `navigator.languages`. They were
+pinned to `'en-US'` and `['en-US','en']`; they now report whatever the host reports, exactly as the
+display layer does since D11.
+
+**Why.** The locale is *one* browser preference, and Chrome mirrors it in three places the shim
+cannot reach:
+
+| Surface | Under the pin, on a German host |
+|---|---|
+| `Intl.DateTimeFormat().resolvedOptions().locale` | `de-DE` |
+| `(1234.5).toLocaleString()` / `toLocaleDateString()` | `1.234,5` / `16.9.2026` |
+| the `Accept-Language` request header (no DNR rule touches it) | `de-DE,de;q=0.9` |
+| `navigator.language` | **`en-US`** |
+
+Review B1 measured that in a child process under `LANG=de_DE.UTF-8`. Two lines of page script
+flagged every non-`en-US` user, and a server saw German on the wire next to American JS — the D2
+failure mode, identifying *and* evasive, reached the same way D12's foreign-OS personas reached it.
+
+**What the pin bought: nothing.** `personas.js` has no locale field and never had one — the pin was
+not persona-derived, so no pool data goes unused by this removal and the persona mirror is
+untouched. The only defensible alternative was to spoof `Intl` (`DateTimeFormat`, `NumberFormat`,
+`Collator`, `RelativeTimeFormat`, `PluralRules`, `ListFormat`, `DisplayNames`, `Segmenter`, plus
+every `toLocaleX` on `Date`/`Number`/`String`/`Array`/`BigInt`, and `resolvedOptions()` on each)
+*and* rewrite `Accept-Language` from a static DNR ruleset the way D19 rewrites the UA headers — a
+project, to hide a field that is not what the cross-site join is built on. D11: prefer a consistent
+leak to an inconsistent fake.
+
+**Cost, stated plainly.** Locale is real entropy — a rare language is more identifying than a common
+one — and we now leak it. It was already leaking through `Intl` and the header; the pin only added
+a second, contradicting copy. THREAT-MODEL.md's "unchanged" column is where locale belongs, beside
+timezone and the display layer, for the same reason: the engine describes it below JS.
+
+**Guards.** `B1 GUARD` in `review-2026-09-16.test.js` boots the real shim in a `LANG=de_DE.UTF-8`
+child and requires `navigator.language === Intl…locale`, `languages === ['de-DE','de']`, **and** that
+the `Navigator.prototype` descriptors are the identical getter objects that existed before the shim
+ran — so a future "harmless" re-patch fails even if it happened to return the right string.
+Two expectations were updated rather than weakened: the `A2-timing GUARD`'s `languages` line now
+pins the host's real list (its captured-`Object.freeze` coverage lives on in the `brands` assertion,
+which still runs while the page's `Object.freeze` throws), and `harness/shim-test.html` checks
+`language` against `Intl` instead of against `en-US`.

@@ -1442,18 +1442,27 @@
       // touch count next to a Win32/desktop persona is a free contradiction.
       spoofGetter(N, 'maxTouchPoints', 'navigator', () => 0);
     });
-    safe('navigator.languages', () => {
-      const N = ownerOf(win.navigator, 'languages');
-      // en-US/en is the single largest crowd and matches the personas' regions. NOT
-      // persona-derived: personas.js has no locale field, and a locale that
-      // disagrees with the timezone (which we leave real, see TIMEZONE) is worse
-      // than one that agrees with most of the planet's English-speaking traffic.
-      spoofGetter(N, 'languages', 'navigator', () => objFreeze(['en-US', 'en']));
-    });
-    safe('navigator.language', () => {
-      const N = ownerOf(win.navigator, 'language');
-      spoofGetter(N, 'language', 'navigator', () => 'en-US');
-    });
+    // ────────────────────────────────────────────────────────────────────────
+    // LOCALE — DELIBERATELY NOT SPOOFED  (reverted 2026-09-16, review B1, D25)
+    //
+    // `navigator.language` and `navigator.languages` were pinned to `en-US` /
+    // `['en-US','en']`. They are not any more, for the same measured reason the
+    // DISPLAY LAYER below is real: the locale is ONE browser preference and the
+    // engine mirrors it in three places we cannot touch —
+    //
+    //   Intl.DateTimeFormat().resolvedOptions().locale   → the real locale
+    //   (1234.5).toLocaleString() / toLocaleDateString() → real formatting
+    //   the `Accept-Language` request header             → real, on every request
+    //
+    // In a clean Chrome those never disagree with `navigator.language`. Under the
+    // pin, every non-en-US user was flagged by a two-line check — and a server
+    // saw `de-DE` on the wire while the page's JS claimed `en-US`, which is the
+    // D2 failure mode: identifying AND evasive. Spoofing `Intl` too, and
+    // rewriting `Accept-Language` by DNR, is a project; the pin bought nothing in
+    // return, because no persona carries a locale (personas.js has no such field,
+    // so nothing in the pool goes unused by this removal). D11: prefer a
+    // consistent leak to an inconsistent fake.
+    // ────────────────────────────────────────────────────────────────────────
 
     // navigator.userAgentData — patch NavigatorUAData.prototype rather than
     // substituting a fake object, so the object keeps its real class and passes

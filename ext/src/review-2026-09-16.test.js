@@ -715,7 +715,11 @@ test('A2-timing GUARD: with a dozen builtins hooked BEFORE the genuine handshake
   assert.equal(read.ua, DELIVERED.ua);
   assert.equal(read.cores, DELIVERED.cores, 'hardwareConcurrency (goes through a captured Math.max)');
   assert.equal(read.memory, DELIVERED.memory);
-  assert.deepEqual(plain(read.languages), ['en-US', 'en'], 'languages (captured Object.freeze)');
+  // Expectation changed 2026-09-16 (D25): `languages` is no longer patched, so it
+  // is the realm's own real list — the point here is that the hostile hooks did not
+  // disturb it either. Captured-`Object.freeze` coverage moved to `brands` below,
+  // which still builds frozen entries through `objFreeze` while the page's throws.
+  assert.deepEqual(plain(read.languages), plain(s.h.REAL.languages), 'languages stayed the host\'s real list (D25)');
   assert.equal(read.brands, 'Not;A=Brand/99 Chromium/151 Google Chrome/151', 'brands (no Array.prototype.map)');
   assert.equal(read.renderer, DELIVERED.gpu.renderer);
   assert.deepEqual(plain(read.extensions), ['WEBGL_compressed_texture_astc', 'WEBGL_debug_renderer_info', 'OES_texture_float'],
@@ -985,7 +989,13 @@ test('A5 FIXED: an ID-bearing query string from three attacker-controlled sites 
 // B — contradictions an unspoofed surface exposes
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('B1 REPRO: navigator.language is pinned to en-US while Intl / toLocaleString stay real (run under LANG=de_DE)', () => {
+// ✅ FIXED 2026-09-16 (DECISIONS.md D25). `navigator.language` / `languages` are
+// no longer patched at all: the locale is one browser preference that `Intl`,
+// `toLocaleString` and the untouched `Accept-Language` header all mirror, and no
+// persona carries one. D11 — a consistent leak beats an inconsistent fake. The
+// guard runs the REAL shim in a German child process and requires the navigator
+// to agree with `Intl` AND the prototype descriptor to be the untouched original.
+test('B1 GUARD: navigator.language / languages are left real and agree with Intl and toLocaleString (run under LANG=de_DE)', () => {
   const child = `
     import fs from 'node:fs'; import vm from 'node:vm'; import { webcrypto } from 'node:crypto';
     const SHIM = fs.readFileSync(${JSON.stringify(path.join(HERE, 'shim.js'))}, 'utf8');
@@ -994,8 +1004,14 @@ test('B1 REPRO: navigator.language is pinned to en-US while Intl / toLocaleStrin
     Object.defineProperty(CE.prototype, 'detail', { get() { return this._d; }, configurable: true });
     class Navigator {}
     Object.defineProperty(Navigator.prototype, 'language', { get() { return 'de-DE'; }, configurable: true });
-    Object.defineProperty(Navigator.prototype, 'languages', { get() { return Object.freeze(['de-DE', 'de']); }, configurable: true });
+    const REAL_LANGS = Object.freeze(['de-DE', 'de']);
+    Object.defineProperty(Navigator.prototype, 'languages', { get() { return REAL_LANGS; }, configurable: true });
     Object.defineProperty(Navigator.prototype, 'platform', { get() { return 'MacIntel'; }, configurable: true });
+    // The descriptors as they stood BEFORE the shim ran; a patch would replace \`get\`.
+    const D0 = {
+      language: Object.getOwnPropertyDescriptor(Navigator.prototype, 'language').get,
+      languages: Object.getOwnPropertyDescriptor(Navigator.prototype, 'languages').get,
+    };
     const doc = new ET(); doc.createElement = () => ({});
     const ctx = vm.createContext({ document: doc, EventTarget: ET, CustomEvent: CE, Navigator, navigator: Object.create(Navigator.prototype),
       location: { hostname: 'example.test', origin: 'https://example.test' }, crypto: { getRandomValues: (a) => webcrypto.getRandomValues(a) },
@@ -1003,6 +1019,9 @@ test('B1 REPRO: navigator.language is pinned to en-US while Intl / toLocaleStrin
     vm.runInContext(SHIM, ctx);
     console.log(JSON.stringify({
       language: ctx.navigator.language, languages: ctx.navigator.languages,
+      untouched: Object.getOwnPropertyDescriptor(Navigator.prototype, 'language').get === D0.language
+        && Object.getOwnPropertyDescriptor(Navigator.prototype, 'languages').get === D0.languages,
+      stableLangs: ctx.navigator.languages === ctx.navigator.languages,
       intl: vm.runInContext('Intl.DateTimeFormat().resolvedOptions().locale', ctx),
       number: vm.runInContext('(1234.5).toLocaleString()', ctx),
       date: vm.runInContext('new Date(Date.UTC(2026, 8, 16)).toLocaleDateString(undefined, { timeZone: "UTC" })', ctx),
@@ -1011,11 +1030,13 @@ test('B1 REPRO: navigator.language is pinned to en-US while Intl / toLocaleStrin
   const out = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', child], {
     env: { ...process.env, LANG: 'de_DE.UTF-8', LC_ALL: 'de_DE.UTF-8' }, encoding: 'utf8',
   }).trim());
-  assert.equal(out.language, 'en-US', 'the shim pins navigator.language');
-  assert.deepEqual(out.languages, ['en-US', 'en']);
-  assert.equal(out.intl, 'de-DE', 'THE FINDING: Intl still reports the real locale');
-  assert.equal(out.number, '1.234,5', 'and number formatting is German next to an en-US navigator');
+  assert.equal(out.intl, 'de-DE', 'the host really is German in this child process');
+  assert.equal(out.number, '1.234,5');
   assert.equal(out.date, '16.9.2026');
+  assert.equal(out.language, out.intl, 'GUARD: navigator.language equals the locale Intl reports');
+  assert.deepEqual(out.languages, ['de-DE', 'de'], 'GUARD: navigator.languages is the host list, not en-US/en');
+  assert.equal(out.untouched, true, 'GUARD: the shim installs no getter on language/languages at all (D25)');
+  assert.equal(out.stableLangs, true, 'GUARD: unpatched languages keeps Chrome FrozenArray identity (B7)');
 });
 
 // FIXED 2026-09-16 (DECISIONS.md D19). Three static `modifyHeaders` rulesets —
@@ -1252,9 +1273,29 @@ test('C2 GUARD: hooking WeakMap.prototype.get never sees NATIVE_SRC; toString ma
   assert.equal(out.patchedSrc, 'function get userAgent() { [native code] }', 'the mask still applied while the hook was live');
 });
 
-test('C3 REPRO: the heuristics layer waits for a nullecho:signal message that no file ever sends (CANVAS / SUPERCOOKIE strikes are dead)', () => {
+test('C3 GUARD: the CANVAS / SUPERCOOKIE page-report strike path is gone, not merely unreachable (D20)', () => {
+  // No file — including background.js, the message-surface owner — sends or
+  // wires up a page-side `nullecho:signal` report. (heuristics.js itself is
+  // excluded: it names the retired message type only in the prose explaining
+  // why handleContentReport() is a closed gate.)
   const senders = fs.readdirSync(HERE).filter((f) => f.endsWith('.js') && !f.includes('.test.') && f !== 'heuristics.js')
     .filter((f) => src(f).includes('nullecho:signal'));
-  assert.deepEqual(senders, [], 'THE FINDING: handleContentReport() is unreachable — the shim reports nullecho:fp-detected, which only bumps a counter');
+  assert.deepEqual(senders, [], 'REGRESSION: something references the retired nullecho:signal message type');
+
+  // handleContentReport() is a closed gate: it accepts nothing, for any shape
+  // of input, not just the one message the old finding quoted.
+  assert.equal(H.handleContentReport(), false);
   assert.equal(H.handleContentReport({ type: 'nullecho:fp-detected', api: 'canvas', count: 1 }, { url: 'https://x.example' }), false);
+  assert.equal(H.handleContentReport({ type: 'nullecho:signal', signal: 'canvas', scriptUrl: 'https://evil.example/s.js' }, { url: 'https://x.example' }), false);
+
+  // CANVAS / SUPERCOOKIE are not live strike sources: they exist only as
+  // reserved, non-promoting bits (D20 point 4 — kept so an old persisted
+  // bitmask reads correctly), never as part of the counting SIGNAL set.
+  assert.deepEqual(Object.keys(H.SIGNAL), ['COOKIE', 'SET_COOKIE'], 'REGRESSION: a CANVAS/SUPERCOOKIE bit re-entered the promoting SIGNAL set');
+  assert.deepEqual(Object.keys(H.RETIRED_SIGNAL_BITS).sort(), ['CANVAS', 'ID_PARAM', 'SUPERCOOKIE'], 'CANVAS and SUPERCOOKIE stay retired-only bits');
+
+  // ARCHITECTURE.md no longer documents a page-report signal path.
+  const arch = fs.readFileSync(path.resolve(EXT, '..', 'docs', 'ARCHITECTURE.md'), 'utf8');
+  assert.ok(!arch.includes('nullecho:signal'), 'REGRESSION: ARCHITECTURE.md still describes the retired nullecho:signal path');
+  assert.ok(!/CANVAS\s*\/\s*SUPERCOOKIE/i.test(arch), 'REGRESSION: ARCHITECTURE.md still describes a CANVAS/SUPERCOOKIE strike path');
 });

@@ -432,7 +432,12 @@ window.__evaluateBoot = () => {
     add('persona', 'deviceMemory', navigator.deviceMemory === P.memory, navigator.deviceMemory);
     add('persona', 'navigator.vendor', navigator.vendor === 'Google Inc.', navigator.vendor);
     add('persona', 'maxTouchPoints = 0 (desktop pool)', navigator.maxTouchPoints === 0, navigator.maxTouchPoints);
-    add('persona', 'navigator.languages', navigator.languages.join(',') === 'en-US,en', navigator.languages.join(','));
+    // Expectation changed 2026-09-16 (DECISIONS.md D25, review B1): the locale is no
+    // longer spoofed, so the check is CONSISTENCY with Intl — which is what a page
+    // actually tests — not a pinned en-US.
+    add('persona', 'navigator.language === Intl locale', navigator.language === Intl.DateTimeFormat().resolvedOptions().locale,
+      navigator.language + ' vs ' + Intl.DateTimeFormat().resolvedOptions().locale);
+    add('persona', 'navigator.languages[0] === navigator.language', navigator.languages[0] === navigator.language, navigator.languages.join(','));
 
     // ── GPU
     try {
