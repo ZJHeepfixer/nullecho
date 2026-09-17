@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nullecho — Independent Claim Verification</title>
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  INDEPENDENT CLAIM-VERIFICATION HARNESS
+  ══════════════════════════════════════════════════════════════════════════════
+
+  Every other verification in this repo used OUR probes (harness/fingerprint.js)
+  and OUR detectors (harness/shim-test.html). That is circular: it proves the shim
+  does what we told it to do, measured by code that knows what we told it. This
+  page points THIRD-PARTY, commercial-grade fingerprinting libraries at the shim
+  instead, and reports whatever they say.
+
+  THE CLAIM UNDER TEST (docs/THREAT-MODEL.md):
+    "Nullecho shows each site a different, internally consistent device profile,
+     which breaks the device-fingerprint join that ad-tech uses to follow you
+     between sites. It is detectable, it does not defeat a determined adversary,
+     and it does nothing about your IP address."
+
+  The load-bearing word is JOIN. A single-page reading proves nothing about a
+  join, so the measurement is: compute a real visitorId under two different SITE
+  KEYS and see whether they differ — and, just as important, compute it twice
+  under the SAME site key and see whether it is STABLE. An unstable fingerprint is
+  its own identifier (DECISIONS.md D2), so instability would be a failure, not a win.
+
+  ── THE LIBRARIES ─────────────────────────────────────────────────────────────
+  All three are VENDORED under harness/vendor/ (sources, versions, licenses and
+  SHA-256 in harness/vendor/README.md). Nothing is hotlinked: this page runs with
+  the network unplugged, which is also the only way the numbers are reproducible.
+
+    · FingerprintJS 5.2.0 (MIT) — the real thing; computes a `visitorId`.
+      ⚠ Loaded with `{ monitoring: false }`. The default is TRUE and fires a GET at
+        m1.openfpcdn.io, which would make this page neither offline nor reproducible.
+    · ClientJS 0.2.1 (Apache-2.0) — an independent second implementation, so one
+      library's quirks cannot become the finding.
+    · CreepJS @ master 2026-06-11 (MIT) — reports "lies detected" and tries to NAME
+      the privacy extension it thinks you are running. That is a direct outside test
+      of our own "it is detectable" clause, which until now we had only measured
+      with our own nine detectors.
+
+  ── HOW THE PERSONA GETS IN ───────────────────────────────────────────────────
+  Through the REAL handshake, exactly as harness/shim-test.html does it: wait for
+  the shim's `{phase:'boot', channel:'shim', nonce}` status event and echo the nonce
+  back in a `nullecho:persona` event. There is no test-only back door. The persona
+  blobs come from `harness/claim-personas.generated.js`, produced by
+  `node harness/gen-claim-personas.mjs` from the real `personaFor()` — not hand-written.
+
+  ── WHAT THIS PAGE STILL CANNOT DO ────────────────────────────────────────────
+  It is not an installed extension. It stands in for the MAIN-world content script
+  and for the service worker. So it does NOT prove:
+    · the MAIN-world injection race (a property of Chrome's scheduler),
+    · the service-worker round trip and salt storage,
+    · that the worker keys the two origins the way this page assumes.
+  That last one is checkable without a browser and is checked: see the
+  "WHAT A REAL INSTALL WOULD ADD" panel at the bottom of the page.
+
+  ── RUNNING IT ────────────────────────────────────────────────────────────────
+  ⚠ SERVE THE PROJECT ROOT (launch config `nullecho-root`, port 4886). This page
+  loads /ext/src/shim.js, which does not exist under a server rooted at harness/.
+
+    Control (no shim):   http://localhost:4886/harness/claim-verification.html?shim=off
+    Persona A:           http://localhost:4886/harness/claim-verification.html
+    Persona B:           http://127.0.0.1:4886/harness/claim-verification.html
+
+  Persona A vs B is NOT a query-string trick — the page keys itself on
+  `registrableDomain(location.hostname)`, which is what `background.js siteKeyFor()`
+  computes for a page URL, and `localhost` and `127.0.0.1` are two different site
+  keys to that function. Same port, same machine, two genuinely different sites.
+  (`?site=` forces a key by hand, for comparisons a real install could not produce.)
+
+  ⚠ CACHE-BUST EVERY MEASUREMENT. A stale shim.js has produced a wrong reading in
+  this project before. Every subresource here carries `?cb=`, taken from the page
+  URL's own `cb` param when present, so `...?cb=<something-new>` busts the whole
+  chain including this document.
+
+  PARAMS
+    ?shim=off       no shim at all — the control reading
+    ?site=<key>     force the site key (default: registrableDomain(hostname))
+    ?creep=off      skip CreepJS (it is slow and it mutates globals; it always runs last)
+    ?label=<name>   name this run in the stored table
+    ?cb=<nonce>     cache-buster, propagated to every subresource
+-->
+
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --dim:#8b949e;
+    --accent:#58a6ff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--bg);color:var(--text);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  h1{font-size:20px;margin:0 0 4px}
+  h2{font-size:12px;margin:28px 0 8px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px}
+  .sub{color:var(--dim);margin-bottom:16px;font-size:13px;max-width:900px}
+  .banner{border-radius:8px;padding:14px 16px;margin-bottom:14px;border:2px solid;font-weight:600}
+  .banner.error{background:#5c1d1a;border-color:var(--bad);color:#ffd7d4}
+  .banner.warn{background:#4a3a12;border-color:var(--warn);color:#ffeab8}
+  .banner.ok{background:#12351c;border-color:var(--ok);color:#c9f2d2}
+  .banner .why{font-weight:400;font-size:12.5px;margin-top:6px;opacity:.92}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+  button{background:var(--accent);color:#0d1117;border:0;padding:8px 14px;border-radius:6px;
+         font-weight:600;font-size:13px;cursor:pointer}
+  button.alt{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:default}
+  a{color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+  .card .label{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .card .val{font-family:var(--mono);font-size:20px;color:var(--accent);margin-top:3px;word-break:break-all}
+  table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  td.mono,th.mono{font-family:var(--mono);font-size:12px}
+  td.name{font-weight:600;white-space:nowrap}
+  .pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700}
+  .pill.ok{background:rgba(63,185,80,.15);color:var(--ok)}
+  .pill.bad{background:rgba(248,81,73,.15);color:var(--bad)}
+  .pill.warn{background:rgba(210,153,34,.15);color:var(--warn)}
+  .pill.dim{background:rgba(139,148,158,.15);color:var(--dim)}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;
+      overflow-x:auto;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+  textarea{width:100%;min-height:90px;background:var(--panel);color:var(--text);border:1px solid var(--line);
+           border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px}
+  .note{font-size:12.5px;color:var(--dim);margin-top:14px;padding:10px 14px;border-left:2px solid var(--line);max-width:920px}
+  details{margin-top:14px}
+  summary{cursor:pointer;color:var(--dim);font-size:13px}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STAGE 0 — runs BEFORE the shim. Three jobs, in this order:
+//   1. capture the REAL browser identity, because after shim.js runs navigator
+//      is the persona's and we could no longer tell Chrome from Electron;
+//   2. register the protocol listeners and the handshake responder;
+//   3. document.write the persona table and then the shim, in that order.
+//
+// Parser-inserted external scripts execute in insertion order and block the
+// parser, so claim-personas.generated.js has definitely run by the time shim.js
+// starts — and the handshake responder reads the persona table LAZILY, from
+// inside the boot-event listener, so it never depends on that ordering anyway.
+// ═══════════════════════════════════════════════════════════════════════════
+(() => {
+  const params = new URLSearchParams(location.search);
+  const CB = params.get('cb') || (String(Date.now()) + Math.random().toString(36).slice(2, 8));
+
+  // ── (1) the real browser, captured before anything is patched ─────────────
+  // ⚠ The in-app Browser pane is Electron/Chromium, NOT Chrome. That mistake
+  // produced a wrong baseline in this project once (memory, 2026-08-20). Any
+  // number reported from a UA containing "Electron" is labelled, not trusted.
+  const realUA = navigator.userAgent;
+  window.__ENV = {
+    realUA,
+    isElectron: /Electron/i.test(realUA),
+    looksLikeChrome: /Chrome\//.test(realUA) && !/Electron/i.test(realUA) && !/Edg\//.test(realUA),
+    realPlatform: navigator.platform,
+    realCores: navigator.hardwareConcurrency,
+    realMemory: navigator.deviceMemory,
+    realDpr: window.devicePixelRatio,
+    realScreen: screen.width + 'x' + screen.height + '@' + screen.colorDepth,
+    innerSize: window.innerWidth + 'x' + window.innerHeight,
+    cacheBuster: CB,
+  };
+
+  // ── site key: what background.js's siteKeyFor() would compute for this URL ──
+  // Verbatim from ext/src/suffixes.js registrableDomain(), minus the suffix table,
+  // which is irrelevant for the single-label / IP-literal hosts this page runs on.
+  // The generated persona file is keyed by the SAME function, run in node.
+  function registrableDomainLite(hostname) {
+    if (!hostname) return '';
+    const host = String(hostname).toLowerCase().replace(/\.$/, '').replace(/^\[|\]$/g, '');
+    if (host.indexOf(':') >= 0 || /^\d+\.\d+\.\d+\.\d+$/.test(host) || host.indexOf('.') < 0) return host;
+    const parts = host.split('.');
+    return parts.length <= 2 ? host : parts.slice(-2).join('.');
+  }
+
+  window.__MODE = params.get('shim') === 'off' ? 'off' : 'on';
+  window.__SITE_KEY = params.get('site') || registrableDomainLite(location.hostname);
+  window.__RUN_CREEP = params.get('creep') !== 'off';
+  window.__RUN_LABEL = params.get('label') || null;
+  window.__protocolLog = [];
+  window.__handshakeNonce = null;
+
+  document.addEventListener('nullecho:status', (ev) => {
+    window.__protocolLog.push({ ev: 'nullecho:status', detail: ev.detail, t: performance.now() });
+  }, true);
+  document.addEventListener('nullecho:detect', (ev) => {
+    window.__protocolLog.push({ ev: 'nullecho:detect', detail: ev.detail, t: performance.now() });
+  }, true);
+
+  // ── (3) subresources. Vendor libs go last so nothing they define can be in
+  // place before the shim patches the realm; they only PROBE when called anyway.
+  const w = (src) => document.write('<scr' + 'ipt src="' + src + (src.indexOf('?') < 0 ? '?' : '&') + 'cb=' + CB + '"></scr' + 'ipt>');
+
+  if (window.__MODE === 'on') {
+    // ── (2) the real handshake. Identical in shape to shim-loader.js: the shim
+    // announces a nonce, we echo the nonce back with the persona. A payload
+    // without the nonce is refused here exactly as it is on a live page.
+    //
+    // This must be answered SYNCHRONOUSLY. If any shimmed API is read before the
+    // handshake lands, the shim locks itself to its stage-1 fallback persona
+    // (`reason: 'api-read-before-handshake'`) and every number below would
+    // describe a persona nobody chose. The boot gate checks for exactly that.
+    document.addEventListener('nullecho:status', (ev) => {
+      let d = null;
+      try { d = JSON.parse(ev.detail); } catch { return; }
+      if (!d || d.phase !== 'boot' || d.channel !== 'shim') return;
+      if (window.__handshakeNonce) return;
+      window.__handshakeNonce = d.nonce || null;
+
+      const table = window.__NULLECHO_CLAIM_PERSONAS || {};
+      const persona = table[window.__SITE_KEY];
+      if (!persona) { window.__PERSONA_MISSING = true; return; }
+      window.__expectedPersona = persona;
+
+      document.dispatchEvent(new CustomEvent('nullecho:persona', {
+        detail: JSON.stringify({
+          ok: true, enabled: true, gpc: false,
+          site: window.__SITE_KEY, dev: true,
+          persona, nonce: d.nonce,
+        }),
+      }));
+    }, true);
+
+    w('claim-personas.generated.js');
+    w('/ext/src/shim.js');
+  }
+
+  w('vendor/fingerprintjs-5.2.0.umd.min.js');
+  w('vendor/clientjs-0.2.1.base.min.js');
+})();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT GATE — defined here, EVALUATED from the body script.
+//
+// A rig that reports success while the code under test never loaded is worse
+// than no rig; that is how a 404'd /ext/ path once produced a clean-looking pass.
+// But a gate that cries wolf is just as bad, so it asserts ONLY on surfaces the
+// shim still controls — nothing from the display layer, which is deliberately
+// truthful since D11.
+// ═══════════════════════════════════════════════════════════════════════════
+window.__evaluateBoot = () => {
+  if (window.__MODE === 'off') {
+    return { kind: 'off', severity: 'none', headline: 'CONTROL RUN — no shim. This is the unprotected browser, by design.' };
+  }
+  if (window.__PERSONA_MISSING) {
+    return {
+      kind: 'no-persona', severity: 'error',
+      headline: 'NO PERSONA FOR SITE KEY "' + window.__SITE_KEY + '" — the shim got no handshake.',
+      advice: 'claim-personas.generated.js has no entry for this key. Add it to SITE_KEYS in ' +
+              'harness/gen-claim-personas.mjs and re-run the generator, or load this page from a ' +
+              'hostname that is already in the table.',
+    };
+  }
+
+  const statuses = (window.__protocolLog || [])
+    .filter((e) => e.ev === 'nullecho:status')
+    .map((e) => { try { return JSON.parse(e.detail); } catch { return null; } })
+    .filter(Boolean);
+  const booted = statuses.some((s) => s.phase === 'boot');
+  const handshake = statuses.find((s) => s.upgraded !== undefined) || null;
+  const p = window.__expectedPersona;
+
+  const checks = p ? {
+    'navigator.userAgent': [navigator.userAgent, p.ua],
+    'navigator.platform': [navigator.platform, p.platform],
+    'hardwareConcurrency': [navigator.hardwareConcurrency, p.cores],
+    'deviceMemory': [navigator.deviceMemory, p.memory],
+  } : {};
+  const mismatches = Object.keys(checks)
+    .filter((k) => checks[k][0] !== checks[k][1])
+    .map((k) => k + ' = ' + JSON.stringify(String(checks[k][0]).slice(0, 60)) +
+                ', expected ' + JSON.stringify(String(checks[k][1]).slice(0, 60)));
+
+  if (!booted) return {
+    kind: 'script-never-ran', severity: 'error',
+    headline: 'THE SHIM NEVER RAN — every number below is the unprotected browser.',
+    advice: 'No nullecho:status {phase:"boot"} event. /ext/src/shim.js probably 404ed — serve the ' +
+            'PROJECT ROOT (launch config nullecho-root, port 4886), not harness/.',
+  };
+  if (!handshake) return {
+    kind: 'fallback-no-handshake', severity: 'warn',
+    headline: 'The shim is running on its STAGE-1 FALLBACK persona — no handshake arrived.',
+    advice: 'The page is shimmed, but not with the persona this run claims to be measuring.',
+  };
+  if (handshake.upgraded !== true) return {
+    kind: handshake.lockedToFallback ? 'locked-to-fallback' : 'handshake-refused',
+    severity: 'error',
+    headline: handshake.lockedToFallback
+      ? 'LOCKED TO FALLBACK — a shimmed API was read before the handshake landed.'
+      : 'The shim REFUSED the handshake (reason: ' + handshake.reason + ').',
+    advice: 'Reported by the shim itself: ' + JSON.stringify(handshake),
+  };
+  if (mismatches.length) return {
+    kind: 'applied-wrong', severity: 'error',
+    headline: 'The shim reported a successful upgrade, but does not present the persona.',
+    advice: 'A real defect in the shim, not a rig problem: ' + mismatches.join(' · '),
+  };
+  return {
+    kind: 'ok', severity: 'none',
+    headline: 'Shim booted, handshake accepted, persona applied: ' + p.id + ' (site key "' + window.__SITE_KEY + '").',
+  };
+};
+</script>
+</head>
+<body>
+
+<h1>Nullecho — independent claim verification</h1>
+<div class="sub">
+  Third-party fingerprinting libraries, vendored and run offline, pointed at
+  <code>ext/src/shim.js</code>. Everything on this page is measured by code that
+  does not know Nullecho exists.
+  <a href="../docs/THREAT-MODEL.md">The claim under test</a> ·
+  <a href="vendor/README.md">what is vendored, and under what licence</a>
+</div>
+
+<div id="envBanner" class="banner warn">checking environment…</div>
+<div id="bootBanner" class="banner warn">checking shim…</div>
+
+<div class="bar">
+  <button id="run">Run all libraries</button>
+  <button id="clear" class="alt">Clear stored runs</button>
+  <button id="copy" class="alt">Copy this run as JSON</button>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <div class="label">FingerprintJS 5.2.0 — visitorId</div>
+    <div class="val" id="fpjsId">— not yet run —</div>
+    <div class="label" id="fpjsMeta" style="margin-top:6px">&nbsp;</div>
+  </div>
+  <div class="card">
+    <div class="label">ClientJS 0.2.1 — getFingerprint()</div>
+    <div class="val" id="cjsId">— not yet run —</div>
+    <div class="label" id="cjsMeta" style="margin-top:6px">&nbsp;</div>
+  </div>
+  <div class="card">
+    <div class="label">CreepJS — SHA-256 of window.Creep</div>
+    <div class="val" id="creepId">— not yet run —</div>
+    <div class="label" id="creepMeta" style="margin-top:6px">&nbsp;</div>
+  </div>
+</div>
+
+<h2>The join test — stored runs on this origin</h2>
+<div class="sub" style="margin-bottom:8px">
+  Each page load stores one row. <b>The join is broken only if two different site keys
+  give different ids AND the same site key gives the same id twice.</b> A per-load
+  change is not a win — an unstable fingerprint is its own identifier (D2).
+  localStorage is per-origin, so runs from <code>127.0.0.1</code> do not appear here:
+  paste them into the box below.
+</div>
+<table id="runsTable"><thead><tr>
+  <th>Run</th><th>Mode</th><th>Site key</th><th>Persona</th>
+  <th class="mono">FingerprintJS visitorId</th><th class="mono">ClientJS</th><th class="mono">CreepJS</th>
+</tr></thead><tbody><tr><td colspan="7" style="color:var(--dim)">no runs stored yet</td></tr></tbody></table>
+
+<h2>Import a run from the other origin</h2>
+<div class="sub" style="margin-bottom:8px">
+  Load this page on <code>127.0.0.1</code>, press <b>Copy this run as JSON</b>, paste here, Import.
+</div>
+<textarea id="importBox" placeholder='{"label":"…","fingerprintjs":{…}}'></textarea>
+<div class="bar"><button id="import" class="alt">Import run</button></div>
+
+<h2>What an outside library recovered anyway</h2>
+<div class="sub" style="margin-bottom:8px">
+  Per-signal diff between the two most recent <b>shim-on runs with different site keys</b>.
+  A signal marked <span class="pill ok">joined</span> is identical across two personas — a
+  determined tracker can re-join on it. This is the honest half of the claim, measured rather
+  than assumed: <i>"engine-level invariants survive every persona."</i>
+</div>
+<table id="diffTable"><thead><tr>
+  <th>Library</th><th>Signal</th><th>Persona A</th><th>Persona B</th><th>Verdict</th>
+</tr></thead><tbody><tr><td colspan="5" style="color:var(--dim)">need two shim-on runs with different site keys</td></tr></tbody></table>
+
+<h2>Detectability — what an outside library says about us</h2>
+<div class="sub" style="margin-bottom:8px">
+  We publish "2 of 9 adversarial detectors fire", measured by us. CreepJS is not ours and
+  it is built specifically to catch spoofing: it counts "lies", collects "trash" (values that
+  are impossible rather than merely unusual), and tries to <b>name</b> the privacy tool.
+  If it flags us that is a finding, not a failure — we already publish that it is detectable.
+</div>
+<table id="detectTable"><thead><tr>
+  <th>CreepJS signal</th><th>Value</th><th>Reading</th>
+</tr></thead><tbody><tr><td colspan="3" style="color:var(--dim)">not yet run</td></tr></tbody></table>
+<details><summary>Every lie CreepJS recorded, verbatim</summary><pre id="lieDump">—</pre></details>
+
+<h2>Engine invariants — the surfaces we never claimed to cover</h2>
+<table id="invTable"><thead><tr>
+  <th>Surface</th><th class="mono">Value</th><th>Why it is here</th>
+</tr></thead><tbody><tr><td colspan="3" style="color:var(--dim)">not yet run</td></tr></tbody></table>
+
+<h2>What a real install would add</h2>
+<div id="installPanel" class="card" style="font-size:13px"></div>
+
+<details><summary>Raw result object for this run</summary><pre id="raw">—</pre></details>
+<details><summary>Shim protocol log</summary><pre id="proto">—</pre></details>
+
+<div class="note">
+  <b>Reading these numbers.</b> A visitorId is only comparable against another visitorId taken in
+  the <i>same browser at the same window size</i>: FingerprintJS hashes screen geometry, and the
+  display layer is deliberately truthful in Nullecho (D11), so resizing the window changes the id
+  on its own. Run the control and both personas without touching the window.
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// MEASUREMENT
+// ═══════════════════════════════════════════════════════════════════════════
+const $ = (id) => document.getElementById(id);
+const STORE_KEY = 'nullecho-claim-runs-v1';
+
+// ── environment banner ──────────────────────────────────────────────────────
+// Reported from the UA captured in stage 0, BEFORE the shim replaced navigator.
+// After the shim runs, navigator.userAgent is the persona's and could not tell
+// Chrome from Electron at all.
+(() => {
+  const e = window.__ENV;
+  const el = $('envBanner');
+  if (e.isElectron) {
+    el.className = 'banner error';
+    el.innerHTML = '⚠ ELECTRON, NOT CHROME — do not report these numbers as authoritative.' +
+      '<div class="why">The in-app Browser pane is Electron/Chromium. It has produced a wrong baseline ' +
+      'in this project before. Re-run in real Chrome.<br>real UA: <code>' + e.realUA + '</code></div>';
+  } else if (e.looksLikeChrome) {
+    el.className = 'banner ok';
+    el.innerHTML = '✓ Real Chrome — UA contains <code>Chrome/</code> and no <code>Electron</code>.' +
+      '<div class="why">' + e.realUA + '<br>host: ' + e.realPlatform + ' · ' + e.realCores + ' cores · ' +
+      e.realMemory + ' GB · screen ' + e.realScreen + ' @' + e.realDpr + 'x · window ' + e.innerSize + '</div>';
+  } else {
+    el.className = 'banner warn';
+    el.innerHTML = 'Unrecognised browser — label any number from this run with the engine.' +
+      '<div class="why">real UA: <code>' + e.realUA + '</code></div>';
+  }
+})();
+
+// ── boot gate ───────────────────────────────────────────────────────────────
+const BOOT = window.__boot = window.__evaluateBoot
+  ? window.__evaluateBoot()
+  : { kind: 'unknown', severity: 'error', headline: 'boot gate did not run' };
+(() => {
+  const el = $('bootBanner');
+  el.className = 'banner ' + (BOOT.severity === 'error' ? 'error' : BOOT.severity === 'warn' ? 'warn' : 'ok');
+  el.innerHTML = BOOT.headline + (BOOT.advice ? '<div class="why">' + BOOT.advice + '</div>' : '');
+})();
+const BOOT_HEALTHY = BOOT.kind === 'ok' || BOOT.kind === 'off';
+
+// ── helpers ─────────────────────────────────────────────────────────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+const short = (h, n = 16) => (h == null ? '—' : String(h).slice(0, n));
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+function stable(v) {
+  // Deterministic stringify so a component's hash does not move on key order.
+  if (v === null || typeof v !== 'object') return JSON.stringify(v) ?? String(v);
+  if (Array.isArray(v)) return '[' + v.map(stable).join(',') + ']';
+  return '{' + Object.keys(v).sort().map((k) => JSON.stringify(k) + ':' + stable(v[k])).join(',') + '}';
+}
+
+// ── library 1: FingerprintJS ────────────────────────────────────────────────
+async function runFingerprintJS() {
+  if (typeof FingerprintJS === 'undefined') return { error: 'FingerprintJS did not load (check harness/vendor/)' };
+  // monitoring:false — the default fires a GET at m1.openfpcdn.io, which would
+  // make this page neither offline nor reproducible.
+  const agent = await FingerprintJS.load({ monitoring: false });
+  const res = await agent.get({ debug: false });
+  const components = {};
+  for (const [name, entry] of Object.entries(res.components || {})) {
+    if (entry && entry.error) { components[name] = { hash: 'ERROR', preview: String(entry.error.message || entry.error).slice(0, 80) }; continue; }
+    const s = stable(entry ? entry.value : undefined);
+    components[name] = { hash: await sha256(s), preview: s.length > 90 ? s.slice(0, 90) + '…' : s };
+  }
+  return { visitorId: res.visitorId, version: res.version, confidence: res.confidence, components };
+}
+
+// ── library 2: ClientJS ─────────────────────────────────────────────────────
+function runClientJS() {
+  if (typeof ClientJS === 'undefined') return { error: 'ClientJS did not load (check harness/vendor/)' };
+  const c = new ClientJS();
+  const signals = {};
+  // One entry per public getter that is a device signal (not a parse of the UA
+  // we already have). ClientJS folds these into getFingerprint() via murmurhash.
+  const getters = ['getUserAgent', 'getBrowser', 'getBrowserVersion', 'getEngine', 'getOS', 'getOSVersion',
+    'getDevice', 'getCPU', 'getScreenPrint', 'getColorDepth', 'getCurrentResolution',
+    'getAvailableResolution', 'getDeviceXDPI', 'getDeviceYDPI', 'getPlugins', 'getMimeTypes',
+    'getFonts', 'getTimeZone', 'getLanguage', 'getSystemLanguage', 'isCanvas', 'getCanvasPrint'];
+  for (const g of getters) {
+    try { signals[g] = typeof c[g] === 'function' ? c[g]() : '(absent)'; }
+    catch (err) { signals[g] = 'ERROR: ' + (err && err.message); }
+  }
+  return { fingerprint: String(c.getFingerprint()), signals };
+}
+
+// ── library 3: CreepJS ──────────────────────────────────────────────────────
+// Loaded last and on demand: it is slow, it assigns window.OfflineAudioContext,
+// and it opens a WebRTC connection. Nothing else should run after it.
+function loadCreepJS() {
+  return new Promise((resolve) => {
+    // The ids CreepJS patches. Its patch() returns null for a missing element, so
+    // these are not strictly required — they exist so it takes its normal path.
+    const host = document.createElement('div');
+    host.style.cssText = 'position:absolute;left:-99999px;top:0;width:1200px';
+    host.innerHTML = ['fingerprint-data', 'creep-fingerprint', 'fuzzy-fingerprint', 'creep-resize',
+      'pixel-emoji-container', 'status-info', 'svg-container', 'svgBox', 'webrtc-connection']
+      .map((id) => '<div id="' + id + '"></div>').join('');
+    document.body.appendChild(host);
+
+    const s = document.createElement('script');
+    s.src = 'vendor/creepjs-2026-06-11.js?cb=' + window.__ENV.cacheBuster;
+    s.onerror = () => resolve({ error: 'creep.js failed to load' });
+    document.head.appendChild(s);
+
+    const started = Date.now();
+    const poll = setInterval(() => {
+      if (window.Fingerprint) {
+        clearInterval(poll);
+        resolve(null);
+      } else if (Date.now() - started > 40000) {
+        clearInterval(poll);
+        resolve({ error: 'CreepJS did not finish in 40s' });
+      }
+    }, 250);
+  });
+}
+
+async function runCreepJS() {
+  const fail = await loadCreepJS();
+  if (fail) return fail;
+  const F = window.Fingerprint || {};
+  const lies = F.lies || {};
+  const trash = F.trash || {};
+  const errors = F.capturedErrors || {};
+  const resistance = F.resistance || {};
+  // CreepJS does not expose its own hash on window; this is our SHA-256 of the
+  // same object it hashes (window.Creep), so it is comparable run-to-run here
+  // but is NOT the id creepjs.com would show.
+  const creepId = window.Creep ? await sha256(stable(window.Creep)) : null;
+  const sections = {};
+  for (const [k, v] of Object.entries(F)) {
+    if (v && typeof v === 'object' && v.$hash) sections[k] = v.$hash;
+  }
+  const headless = F.headless || {};
+  return {
+    creepId,
+    sections,
+    lieCount: typeof lies.totalLies === 'number' ? lies.totalLies : (lies.data ? Object.keys(lies.data).length : null),
+    lieProps: lies.data ? Object.keys(lies.data).length : null,
+    lieData: lies.data || null,
+    lieHash: lies.$hash || null,
+    trashCount: trash.trashBin ? trash.trashBin.length : null,
+    trashBin: trash.trashBin || null,
+    errorCount: errors.data ? errors.data.length : null,
+    errorData: errors.data || null,
+    // `resistance` in this build carries `engine` + `extensionHashPattern`; the
+    // privacy/security/mode/extension fields only populate for browsers CreepJS
+    // recognises (Tor, Firefox RFP, Brave). Report what is actually there.
+    resistance: { ...resistance },
+    // CreepJS's bot/stealth heuristics. `stealth.hasToStringProxy` is the one that
+    // matters to us: it fires on a patched Function.prototype.toString.
+    stealth: headless.stealth || null,
+    headlessFlags: headless.headless || null,
+  };
+}
+
+// ── engine invariants ───────────────────────────────────────────────────────
+// The threat model asserts these survive every persona. This measures that claim
+// rather than restating it. None of them is spoofed; several are deliberately
+// truthful (D11 display layer, D25 locale, D26 touch).
+async function runInvariants() {
+  const inv = {};
+  const M = [Math.acos(0.123456789), Math.asinh(1e300), Math.atanh(0.5), Math.cbrt(100),
+    Math.cosh(492), Math.expm1(1), Math.sinh(492), Math.tan(-1e308), Math.tanh(0.123),
+    Math.pow(Math.PI, -100)];
+  inv.libm = { value: await sha256(M.join('|')), why: 'libm/CPU artifacts. Unfakeable from JS without breaking arithmetic.' };
+
+  // CSS @media, evaluated in the style engine BELOW JS. Nullecho stopped spoofing
+  // the display layer entirely (D11) precisely because this is unreachable.
+  const style = document.createElement('style');
+  style.textContent = '@media (min-resolution: 2dppx){#__mq{--dppx:2}}' +
+    '@media (color-gamut: p3){#__mq{--gamut:p3}}' +
+    '@media (dynamic-range: high){#__mq{--hdr:high}}' +
+    '@media (pointer: fine){#__mq{--ptr:fine}}';
+  const probe = document.createElement('div');
+  probe.id = '__mq';
+  document.head.appendChild(style); document.body.appendChild(probe);
+  const cs = getComputedStyle(probe);
+  inv.cssMedia = {
+    value: ['dppx=' + (cs.getPropertyValue('--dppx').trim() || '1'),
+      'gamut=' + (cs.getPropertyValue('--gamut').trim() || 'srgb'),
+      'hdr=' + (cs.getPropertyValue('--hdr').trim() || 'standard'),
+      'ptr=' + (cs.getPropertyValue('--ptr').trim() || 'coarse')].join(' '),
+    why: 'CSS @media, below the JS layer. Truthful by decision (D11) — a contradiction was worse than a leak.',
+  };
+  inv.display = { value: screen.width + 'x' + screen.height + '@' + screen.colorDepth + ' dpr=' + devicePixelRatio,
+    why: 'Deliberately NOT spoofed since D11. Mirrors the host exactly.' };
+  inv.timezone = { value: Intl.DateTimeFormat().resolvedOptions().timeZone + ' / offset ' + new Date().getTimezoneOffset(),
+    why: 'Not spoofed. Leaks the host region.' };
+  inv.locale = { value: navigator.language + ' [' + navigator.languages.join(',') + ']',
+    why: 'Left real by D25 — a spoofed locale contradicted Intl.' };
+  inv.touch = { value: 'maxTouchPoints=' + navigator.maxTouchPoints, why: 'Left real by D26.' };
+
+  // Canvas timing. Per-pixel noise is not free, and a tracker can benchmark it.
+  const cv = document.createElement('canvas'); cv.width = 300; cv.height = 200;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#4488cc'; ctx.fillRect(0, 0, 300, 200);
+  ctx.fillStyle = '#fff'; ctx.font = '18px sans-serif'; ctx.fillText('Nullecho claim check \u{1F512}', 8, 40);
+  const t0 = performance.now(); for (let i = 0; i < 20; i++) ctx.getImageData(0, 0, 300, 200); const t1 = performance.now();
+  const t2 = performance.now(); for (let i = 0; i < 20; i++) cv.toDataURL(); const t3 = performance.now();
+  inv.canvasTiming = { value: 'getImageData ' + ((t1 - t0) / 20).toFixed(3) + ' ms/op · toDataURL ' + ((t3 - t2) / 20).toFixed(3) + ' ms/op',
+    why: 'Per-pixel noise has a cost, and the cost is itself a signal. Compare against ?shim=off.' };
+
+  // The ten-line detector we publish in ARKENFOX-RESPONSE.md, run here by the
+  // same page the outside libraries run in, so the two readings are comparable.
+  const c2 = document.createElement('canvas'); c2.width = 128; c2.height = 128;
+  const x2 = c2.getContext('2d');
+  x2.fillStyle = 'rgb(128,128,128)'; x2.fillRect(0, 0, 128, 128);
+  const px = x2.getImageData(0, 0, 128, 128).data;
+  const vals = new Set(); for (let i = 0; i < px.length; i += 4) vals.add(px[i]);
+  inv.uniformFillNoise = { value: vals.size + ' distinct red values {' + [...vals].sort((a, b) => a - b).join(',') + '}',
+    why: 'Clean browser: 1. Anything above 1 is canvas farbling — the detector we already publish.' };
+
+  // ── the detector CreepJS found that our own nine never tested ─────────────
+  // Our adversarial suite checks what a patched function SAYS (`toString` →
+  // "[native code]") and what it does with a wrong receiver. CreepJS checks the
+  // function OBJECT's shape, and that is where a plain `function(){}` gives
+  // itself away: it carries an own `prototype`, so it is a constructor and
+  // `class X extends f {}` does not throw. A native accessor has exactly
+  // `length,name` and is not constructible. Three one-line probes, no heuristics.
+  // The control rows below are load-bearing: without them this is a claim about
+  // Chrome, not a measurement of the shim.
+  const shape = (obj, prop) => {
+    const d = Object.getOwnPropertyDescriptor(obj, prop);
+    const f = d && (d.get || d.value);
+    if (!f) return 'absent';
+    let ext = 'no-throw';
+    try { /* eslint-disable-next-line */ (class extends f {}); } catch (e) { ext = e.constructor.name; }
+    return '[' + Object.getOwnPropertyNames(f).sort().join(',') + '] extends→' + ext;
+  };
+  inv.nativeShapePatched = {
+    value: 'Navigator.userAgent ' + shape(Navigator.prototype, 'userAgent') +
+           ' · ctx.getImageData ' + shape(CanvasRenderingContext2D.prototype, 'getImageData'),
+    why: 'Shimmed surfaces. Native is "[length,name] extends→TypeError". A third value means the patch is a plain function.',
+  };
+  // ── the same-tick pristine child realm, and what it costs the toString lie ──
+  // DECISIONS/THREAT-MODEL already record that `window[n]` on an iframe appended
+  // in the same synchronous block reaches a realm before any observer fires, and
+  // that it leaks one persona field. What was not recorded is the second, larger
+  // consequence: that realm's `Function.prototype.toString` is unpatched, so it
+  // reports the shim's REAL source for every patched function. That is the root
+  // of CreepJS's "failed toString" on ~200 properties and of its bot verdict.
+  try {
+    const n = window.length;
+    const frame = document.createElement('iframe');
+    frame.style.display = 'none';
+    document.documentElement.appendChild(frame);
+    const W = window[n];
+    const pristine = W.Function.prototype.toString;
+    const uaGetter = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
+    const src = pristine.call(uaGetter);
+    const tsSrc = pristine.call(Function.prototype.toString);
+    inv.pristineRealm = {
+      value: 'child cores=' + W.navigator.hardwareConcurrency + ' platform=' + W.navigator.platform +
+             ' · pristine toString(userAgent getter) says [native code]? ' + /\[native code\]/.test(src) +
+             ' · toString(Function.prototype.toString) says [native code]? ' + /\[native code\]/.test(tsSrc),
+      why: 'A same-tick window[n] realm. "false" here means a page can read the shim’s own source, ' +
+           'which defeats the [native code] lie everywhere at once. Unclosable from an extension.',
+    };
+    frame.remove();
+  } catch (e) {
+    inv.pristineRealm = { value: 'probe failed: ' + e.message, why: 'same-tick child realm probe' };
+  }
+
+  // ── the shim prints its own product name into the page console ─────────────
+  // Found by CreepJS: its `failed call interface error` / `failed new instance
+  // error` probes call a patched method with an illegal receiver, the ORIGINAL
+  // correctly throws "Illegal invocation" (which is the brand check working), and
+  // the shim's error handler reads that as "the patch failed" and logs a
+  // page-visible console.error naming the product. Two problems at once:
+  //   1. it is a FALSE ALARM — the API is patched and working, verified below;
+  //   2. a page can hook console.error and read the literal string "[Nullecho]".
+  // That is a NOMINATIVE detector in three lines, not a "this looks farbled" one.
+  {
+    const seen = [];
+    const realErr = console.error;
+    console.error = function (...a) { seen.push(a.map(String).join(' ')); return realErr.apply(this, a); };
+    try { CanvasRenderingContext2D.prototype.measureText.call({}, 'x'); } catch (_) { /* expected */ }
+    console.error = realErr;
+    // …and prove the "UNPROTECTED" claim in that message is false.
+    const cv2 = document.createElement('canvas');
+    const cx = cv2.getContext('2d');
+    cx.font = '16px "Bahnschrift"';
+    const stillWorks = cx.measureText('mmmmmmmmmmlli').width > 0;
+    inv.consoleNameLeak = {
+      value: 'console.error captured ' + seen.length + ' message(s); names "Nullecho": ' +
+             seen.some((s) => /Nullecho/i.test(s)) + ' · measureText still functional: ' + stillWorks,
+      why: 'A page-installed console.error hook plus one illegal-receiver call. "true" means the ' +
+           'extension announces itself BY NAME, and the "UNPROTECTED" text is a false alarm.',
+    };
+  }
+
+  inv.nativeShapeControl = {
+    value: 'Navigator.webdriver ' + shape(Navigator.prototype, 'webdriver') +
+           ' · Screen.width ' + shape(Screen.prototype, 'width'),
+    why: 'POSITIVE CONTROL — never patched (Screen.* is truthful by D11). If these differ from native, the probe is broken, not the shim.',
+  };
+  return inv;
+}
+
+// ── orchestration ───────────────────────────────────────────────────────────
+async function runAll() {
+  $('run').disabled = true;
+  $('run').textContent = 'running…';
+  const result = {
+    label: window.__RUN_LABEL || (window.__MODE === 'off' ? 'control (no shim)' : window.__SITE_KEY),
+    when: new Date().toISOString(),
+    url: location.href,
+    mode: window.__MODE,
+    bootKind: BOOT.kind,
+    bootHealthy: BOOT_HEALTHY,
+    siteKey: window.__SITE_KEY,
+    personaId: window.__expectedPersona ? window.__expectedPersona.id : null,
+    env: window.__ENV,
+    shimPersonaId: (window.__nullechoDev && window.__nullechoDev.personaId) || null,
+  };
+  try { result.fingerprintjs = await runFingerprintJS(); } catch (e) { result.fingerprintjs = { error: String(e) }; }
+  try { result.clientjs = runClientJS(); } catch (e) { result.clientjs = { error: String(e) }; }
+  try { result.invariants = await runInvariants(); } catch (e) { result.invariants = { error: String(e) }; }
+  if (window.__RUN_CREEP) {
+    try { result.creepjs = await runCreepJS(); } catch (e) { result.creepjs = { error: String(e) }; }
+  } else {
+    result.creepjs = { skipped: 'creep=off' };
+  }
+
+  window.__claimResult = result;
+  store(result);
+  render(result);
+  $('run').disabled = false;
+  $('run').textContent = 'Run all libraries';
+  return result;
+}
+
+function store(r) {
+  let runs = [];
+  try { runs = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { runs = []; }
+  runs.push(r);
+  // Keep the last 12: enough for control + two personas + repeats.
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(runs.slice(-12))); } catch { /* private mode */ }
+}
+function loadRuns() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; }
+}
+
+// ── rendering ───────────────────────────────────────────────────────────────
+function render(r) {
+  const fp = r.fingerprintjs || {}, cj = r.clientjs || {}, cr = r.creepjs || {};
+  $('fpjsId').textContent = fp.visitorId || fp.error || '—';
+  $('fpjsMeta').textContent = fp.version ? ('v' + fp.version + ' · confidence ' +
+    (fp.confidence ? fp.confidence.score : '?') + ' · ' + Object.keys(fp.components || {}).length + ' components') : '';
+  $('cjsId').textContent = cj.fingerprint || cj.error || '—';
+  $('cjsMeta').textContent = cj.signals ? (Object.keys(cj.signals).length + ' signals · murmurhash of the lot') : '';
+  $('creepId').textContent = cr.creepId ? short(cr.creepId, 32) : (cr.error || cr.skipped || '—');
+  $('creepMeta').textContent = cr.lieCount != null ? (cr.lieCount + ' lies · ' + (cr.trashCount ?? '?') + ' trash') : '';
+
+  renderRuns();
+  renderDiff();
+  renderDetect(cr);
+  renderInvariants(r.invariants || {});
+  $('raw').textContent = JSON.stringify(r, null, 1);
+  $('proto').textContent = JSON.stringify(window.__protocolLog, null, 1);
+}
+
+function renderRuns() {
+  const runs = loadRuns();
+  const tb = $('runsTable').querySelector('tbody');
+  if (!runs.length) return;
+  tb.innerHTML = runs.map((r) => {
+    const fp = (r.fingerprintjs || {}).visitorId || '—';
+    return '<tr>' +
+      '<td class="name">' + esc(r.label) + '</td>' +
+      '<td>' + (r.mode === 'off' ? '<span class="pill dim">no shim</span>' : '<span class="pill ok">shim on</span>') +
+      (r.bootHealthy ? '' : ' <span class="pill bad">boot ' + esc(r.bootKind) + '</span>') + '</td>' +
+      '<td class="mono">' + esc(r.siteKey || '—') + '</td>' +
+      '<td class="mono">' + esc(r.personaId || '—') + '</td>' +
+      '<td class="mono">' + esc(fp) + '</td>' +
+      '<td class="mono">' + esc((r.clientjs || {}).fingerprint || '—') + '</td>' +
+      '<td class="mono">' + esc(short((r.creepjs || {}).creepId, 16)) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  // The verdict the whole page exists for.
+  const on = runs.filter((r) => r.mode === 'on' && r.bootHealthy && (r.fingerprintjs || {}).visitorId);
+  const byKey = {};
+  for (const r of on) (byKey[r.siteKey] = byKey[r.siteKey] || []).push(r.fingerprintjs.visitorId);
+  const keys = Object.keys(byKey);
+  const rows = [];
+  if (keys.length >= 2) {
+    const [a, b] = keys.slice(-2);
+    rows.push(byKey[a][0] !== byKey[b][0]
+      ? '<tr><td class="name">Join broken?</td><td colspan="6"><span class="pill ok">YES</span> ' +
+        esc(a) + ' and ' + esc(b) + ' produce different FingerprintJS visitorIds.</td></tr>'
+      : '<tr><td class="name">Join broken?</td><td colspan="6"><span class="pill bad">NO</span> ' +
+        esc(a) + ' and ' + esc(b) + ' produce the SAME visitorId — these two sites are joinable.</td></tr>');
+  }
+  for (const k of keys) {
+    if (byKey[k].length < 2) continue;
+    const stableId = byKey[k].every((v) => v === byKey[k][0]);
+    rows.push('<tr><td class="name">Stable on ' + esc(k) + '?</td><td colspan="6">' +
+      (stableId ? '<span class="pill ok">YES</span> ' + byKey[k].length + ' loads, one visitorId.'
+                : '<span class="pill bad">NO</span> ' + byKey[k].length + ' loads, ' +
+                  new Set(byKey[k]).size + ' visitorIds — instability is itself an identifier (D2).') +
+      '</td></tr>');
+  }
+  if (rows.length) tb.innerHTML += rows.join('');
+}
+
+function renderDiff() {
+  const runs = loadRuns().filter((r) => r.mode === 'on' && r.bootHealthy);
+  const tb = $('diffTable').querySelector('tbody');
+  const keys = [...new Set(runs.map((r) => r.siteKey))];
+  if (keys.length < 2) return;
+  const A = runs.filter((r) => r.siteKey === keys[keys.length - 2]).pop();
+  const B = runs.filter((r) => r.siteKey === keys[keys.length - 1]).pop();
+  const rows = [];
+  const push = (lib, name, a, b) => {
+    const same = a === b;
+    rows.push('<tr><td>' + lib + '</td><td class="name">' + esc(name) + '</td>' +
+      '<td class="mono">' + esc(short(a, 14)) + '</td><td class="mono">' + esc(short(b, 14)) + '</td>' +
+      '<td>' + (same ? '<span class="pill ok">joined</span>' : '<span class="pill warn">split</span>') + '</td></tr>');
+  };
+  const ca = (A.fingerprintjs || {}).components || {}, cb = (B.fingerprintjs || {}).components || {};
+  for (const k of Object.keys(ca)) if (cb[k]) push('FingerprintJS', k, ca[k].hash, cb[k].hash);
+  const sa = (A.creepjs || {}).sections || {}, sb = (B.creepjs || {}).sections || {};
+  for (const k of Object.keys(sa)) if (sb[k]) push('CreepJS', k, sa[k], sb[k]);
+  const joined = rows.filter((r) => r.includes('pill ok')).length;
+  tb.innerHTML =
+    '<tr><td colspan="5"><b>' + esc(A.siteKey) + '</b> (' + esc(A.personaId) + ') vs <b>' + esc(B.siteKey) +
+    '</b> (' + esc(B.personaId) + ') — <b>' + joined + ' of ' + rows.length +
+    '</b> signals are identical across the two personas and re-join them.</td></tr>' +
+    rows.join('');
+}
+
+function renderDetect(cr) {
+  const tb = $('detectTable').querySelector('tbody');
+  if (!cr || cr.error || cr.skipped) { tb.innerHTML = '<tr><td colspan="3" style="color:var(--dim)">' + esc(cr.error || cr.skipped || 'not run') + '</td></tr>'; return; }
+  const row = (n, v, note, pill) => '<tr><td class="name">' + esc(n) + '</td><td class="mono">' +
+    (pill ? '<span class="pill ' + pill + '">' + esc(v) + '</span>' : esc(v)) + '</td><td>' + note + '</td></tr>';
+  const r = cr.resistance || {};
+  const st = cr.stealth || {};
+  tb.innerHTML = [
+    row('lies detected', String(cr.lieCount ?? '?'), 'CreepJS’s own count of lie RECORDS. Compare against the control run — a clean browser scores 0.', cr.lieCount ? 'bad' : 'ok'),
+    row('properties flagged', String(cr.lieProps ?? '?'), 'How many distinct APIs CreepJS caught lying. Each can fail several independent structural checks.', cr.lieProps ? 'bad' : 'ok'),
+    row('trash', String(cr.trashCount ?? '?'), '⚠ Read against the control: this host scores 2 with NO extension (WebGL "suspicious gpu"/"suspicious capabilities").', 'dim'),
+    row('captured errors', String(cr.errorCount ?? '?'), 'Errors thrown while probing — a shim that throws where native does not is a tell.', cr.errorCount ? 'warn' : 'ok'),
+    row('stealth.hasToStringProxy', String(st.hasToStringProxy ?? '—'),
+      '<b>A patched <code>Function.prototype.toString</code>, named as such.</b> This is CreepJS’s anti-bot heuristic firing on a privacy shim.',
+      st.hasToStringProxy ? 'bad' : 'ok'),
+    row('stealth.hasIframeProxy', String(st.hasIframeProxy ?? '—'), 'Whether CreepJS thinks iframe accessors are proxied.', st.hasIframeProxy ? 'warn' : 'ok'),
+    row('resistance.extensionHashPattern',
+      (r.extensionHashPattern && typeof r.extensionHashPattern === 'object')
+        ? (Object.keys(r.extensionHashPattern).length + ' API entries')
+        : String(r.extensionHashPattern ?? '—'),
+      '<b>CreepJS trying to NAME the extension.</b> Entries here mean an outside library built a signature of the tool itself. A clean browser has none.',
+      (r.extensionHashPattern && Object.keys(r.extensionHashPattern).length) ? 'bad' : 'ok'),
+    row('resistance.privacy', String(r.privacy ?? '—'), 'Populated only for browsers CreepJS recognises (Tor, Firefox RFP, Brave). "—" means it did not classify us as a privacy browser.', 'dim'),
+    row('resistance.engine', String(r.engine ?? '—'), 'Engine CreepJS detected from an error-message probe the shim does not touch.'),
+  ].join('');
+  $('lieDump').textContent = JSON.stringify(cr.lieData, null, 1) +
+    '\n\n--- trash ---\n' + JSON.stringify(cr.trashBin, null, 1) +
+    '\n\n--- captured errors ---\n' + JSON.stringify(cr.errorData, null, 1) +
+    '\n\n--- stealth / headless heuristics ---\n' + JSON.stringify({ stealth: cr.stealth, headless: cr.headlessFlags }, null, 1);
+}
+
+function renderInvariants(inv) {
+  const tb = $('invTable').querySelector('tbody');
+  const keys = Object.keys(inv).filter((k) => inv[k] && inv[k].value !== undefined);
+  if (!keys.length) return;
+  tb.innerHTML = keys.map((k) => '<tr><td class="name">' + esc(k) + '</td><td class="mono">' +
+    esc(inv[k].value) + '</td><td style="color:var(--dim)">' + esc(inv[k].why) + '</td></tr>').join('');
+}
+
+// ── the install panel: what this page cannot do, and exactly what would ──────
+(() => {
+  const keyed = window.__NULLECHO_CLAIM_PERSONAS || {};
+  const rows = Object.keys(keyed).map((k) => '<li><code>' + esc(k) + '</code> → <code>' + esc(keyed[k].id) + '</code></li>').join('');
+  $('installPanel').innerHTML =
+    '<p style="margin-top:0"><b>This page stands in for the content script. It does not replace the extension.</b> ' +
+    'What is genuinely verified here is the shim: given a persona, does third-party fingerprinting code ' +
+    'produce a different id? What is <i>assumed</i> here is the half that lives in the service worker — ' +
+    'that two hostnames really do get two different personas.</p>' +
+    '<p><b>That assumption is checkable without a browser, and it holds.</b> ' +
+    '<code>background.js siteKeyFor(url)</code> is <code>registrableDomain(u.hostname)</code>, and ' +
+    '<code>registrableDomain</code> returns single-label hosts and IPv4 literals unchanged. So ' +
+    '<code>localhost</code> and <code>127.0.0.1</code> are two different site keys, and ' +
+    '<code>personaFor(salt, key, family)</code> maps them to:</p><ul>' + rows + '</ul>' +
+    '<p><b>⚠ Ports are not part of a site key.</b> <code>localhost:4886</code> and <code>localhost:4887</code> ' +
+    'are ONE site to Nullecho and get ONE persona. Two ports is not a two-origin test; two hostnames is. ' +
+    'No <code>/etc/hosts</code> edit is needed.</p>' +
+    '<p><b>To run the rigorous version:</b> load <code>ext/</code> unpacked at <code>chrome://extensions</code>, ' +
+    'open this page with <code>?shim=off</code> (so the page does not fight the real content script) on ' +
+    '<code>http://localhost:4886</code> and then on <code>http://127.0.0.1:4886</code>, and compare the ' +
+    'visitorIds. The extension supplies the persona; this page only measures. Note the persona will differ ' +
+    'from the table above unless the extension’s stored salt equals ' +
+    '<code>' + esc(window.__NULLECHO_CLAIM_SALT || '(unset)') + '</code> — the <i>identity</i> of the personas ' +
+    'does not matter to the claim, only that the two site keys get different ones.</p>' +
+    '<p><b>Still out of reach even then:</b> the MAIN-world injection race (Chrome’s scheduler), ' +
+    'Web Workers (no content script in a worker scope), WASM-compiled fingerprinting, and the TLS/IP layer.</p>';
+})();
+
+// ── wiring ──────────────────────────────────────────────────────────────────
+$('run').addEventListener('click', runAll);
+$('clear').addEventListener('click', () => { localStorage.removeItem(STORE_KEY); location.reload(); });
+$('copy').addEventListener('click', async () => {
+  const t = JSON.stringify(window.__claimResult || {});
+  try { await navigator.clipboard.writeText(t); $('copy').textContent = 'copied'; }
+  catch { $('importBox').value = t; $('copy').textContent = 'put in the box below'; }
+  setTimeout(() => { $('copy').textContent = 'Copy this run as JSON'; }, 2000);
+});
+$('import').addEventListener('click', () => {
+  try {
+    const r = JSON.parse($('importBox').value);
+    if (!r || !r.fingerprintjs) throw new Error('not a run object');
+    r.label = (r.label || 'imported') + ' (imported)';
+    store(r); renderRuns(); renderDiff();
+    $('importBox').value = '';
+  } catch (e) { alert('Could not import: ' + e.message); }
+});
+
+renderRuns();
+renderDiff();
+
+// Auto-run, so a bare navigation is a complete measurement. `window.__claimDone`
+// is the promise an automated driver awaits.
+window.__claimDone = runAll();
+</script>
+</body>
+</html>
