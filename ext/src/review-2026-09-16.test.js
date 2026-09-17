@@ -259,7 +259,7 @@ const DOM_SETUP = `
     getParameter(p) { brand(this, WebGLRenderingContext); return p in REAL_GL ? REAL_GL[p] : 0; }
     getSupportedExtensions() { brand(this, WebGLRenderingContext); return ['WEBGL_compressed_texture_astc', 'WEBGL_debug_renderer_info', 'OES_texture_float']; }
     getExtension(n) { brand(this, WebGLRenderingContext); return { name: n }; }
-    readPixels(x, y, w, h, f, t, px) { brand(this, WebGLRenderingContext); for (let i = 0; i < px.length; i++) px[i] = 200; }
+    readPixels(x, y, w, h, f, t, px, off) { brand(this, WebGLRenderingContext); const o = off | 0; for (let i = 0; i < w * h * 4 && o + i < px.length; i++) px[o + i] = 200; }
   }
   class GPUAdapterInfo {}
   const REAL_GPU = { vendor: 'apple', architecture: 'metal-3', device: '', description: '', subgroupMinSize: 32, subgroupMaxSize: 32 };
@@ -1145,6 +1145,23 @@ test('B5 GUARD: a sub-rectangle read equals the same region of a full read byte 
   const blank = s.canvas(32, 32).getContext('2d');
   assert.ok(blank.getImageData(0, 0, 8, 8).data.every((v) => v === 0) && blank.getImageData(0, 0, 32, 32).data.every((v) => v === 0),
     'a never-drawn canvas reads all zeros on both paths');
+});
+
+test('A1d GUARD: readPixels noise is keyed on the read REGION only — a page reusing a bigger scratch buffer with a changing tail gets the same bytes every read', () => {
+  const s = bootRealm();
+  s.upgrade();
+  const out = s.page(`
+    const gl = new WebGLRenderingContext(document.createElement('canvas'));
+    const RGBA = 0x1908, UB = 0x1401;
+    const region = 8 * 8 * 4;
+    const buf = new Uint8Array(region * 2);      // twice the region: the tail is page scratch
+    const read = (tail) => { buf.fill(tail, region); gl.readPixels(0, 0, 8, 8, RGBA, UB, buf, 0); return Array.from(buf.subarray(0, region)); };
+    const a = read(1), b = read(2), c = read(1);
+    JSON.stringify({ noised: a.some((v) => v !== 200), same_ab: JSON.stringify(a) === JSON.stringify(b), same_ac: JSON.stringify(a) === JSON.stringify(c) });
+  `);
+  const r = JSON.parse(out);
+  assert.ok(r.noised, 'the region is noised');
+  assert.ok(r.same_ab && r.same_ac, 'GUARD: the tail of the buffer is not part of the content — the same region reads the same every time');
 });
 
 test('B6 REPRO: WebGPU architecture is one constant per vendor, so Iris Xe → "gen-9" and RTX 4060 → "ampere"', () => {

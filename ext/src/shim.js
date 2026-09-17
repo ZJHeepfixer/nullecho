@@ -1216,7 +1216,11 @@
    */
   /**
    * One pass over a byte buffer: is there any ink, and a 32-bit FNV-1a digest of
-   * every byte from `from`. For RGBA pixels (`alphaOnly`) ink means a non-zero
+   * every byte in [`from`, `to`). Bound it to the CONTENT — a page may hand
+   * `readPixels` a larger scratch buffer whose tail it scribbles on between reads,
+   * and a digest that included the tail would change the noise on an unchanged
+   * region (per-read noise: the averaging attack back). For RGBA pixels
+   * (`alphaOnly`) ink means a non-zero
    * alpha; for a byte spectrum it means any non-zero bin. Written into `facts`
    * (one shared record, no per-read allocation). The length comes from the
    * captured `%TypedArray%.prototype.length` getter: the live one, hooked to
@@ -1224,10 +1228,11 @@
    * back the real pixels untouched (review A2e).
    */
   const facts = { ink: false, digest: 0 };
-  function scanBytes(data, from, alphaOnly) {
+  function scanBytes(data, from, to, alphaOnly) {
     const len = taLength(data);
+    const end = to < len ? to : len;
     let h = 0x811c9dc5, ink = false;
-    for (let p = from; p < len; p++) {
+    for (let p = from; p < end; p++) {
       const v = data[p];
       h = mathImul(h ^ v, 0x01000193) >>> 0;
       if (v !== 0 && (!alphaOnly || (p & 3) === 3)) ink = true;
@@ -1235,7 +1240,7 @@
     facts.ink = ink;
     facts.digest = fin32(h);
   }
-  function scanRGBA(data, from) { scanBytes(data, from || 0, true); }
+  function scanRGBA(data) { scanBytes(data, 0, taLength(data), true); }
 
   /**
    * Same for a Float32Array, bit-exact through a Uint32 view over the same memory
@@ -1796,7 +1801,7 @@
             // Same blank-buffer rule as the canvas kernel: never invent content in
             // a read that came back entirely empty. Keyed on the read's content
             // (D22) — a known drawing teaches nothing about another one.
-            scanRGBA(pixels, dstOffset);
+            scanBytes(pixels, dstOffset, dstOffset + w * h * 4, true);
             if (!facts.ink) return r;
             const key = contentKey(D().webglKey, w, h, facts.digest);
             for (let row = 0; row < h; row++) {
@@ -2074,7 +2079,7 @@
           // Byte spectra clamp to 0 below minDecibels, so zero bins are the norm
           // in real output and a silent spectrum is all zeros (B4). Never touch a
           // zero bin; never touch a silent spectrum; key on the bins (D22).
-          scanBytes(array, 0, false);
+          scanBytes(array, 0, len, false);
           if (!facts.ink) return;
           const key = contentKey(D().audioKey, anFftSize(this) | 0, len | 0, facts.digest);
           for (let i = 0; i < len; i++) {
