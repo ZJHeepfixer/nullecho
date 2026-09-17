@@ -1446,6 +1446,17 @@ to say things out loud; the loader simply does not believe them yet.
    with no token, and its `CONTENT_SCRIPT_LITERALS` registry does not know about `reportTokens`.
    That file belongs to another lane in this session and was deliberately not touched; it is a docs
    drift of exactly the kind review finding C3 was about, and it should be the next edit there.
+5. **Past exhaustion, the detect reports become page-visible.** OPEN, severity low, found by
+   review-2 (`R2-3 REPRO`). Residual 2 says exhaustion costs the page its read counter. It costs one
+   more thing it did not name: `report()` still `emit()`s when the tokens are gone, the loader
+   refuses an untokened report, and a refused message is deliberately **not** swallowed (D21 — eating
+   a page's own event would be a free "Nullecho is here" probe). So past exhaustion every detect the
+   shim makes propagates to a page listener instead of dying at the loader. What it carries is
+   `{api, count}` and nothing else — no persona field, no noise key, no token — i.e. the page's own
+   read count for an API it has just hammered a few thousand times, on a page it has already proved
+   is shimmed. Left open on the merits: going silent at N would replace this with a *cleaner* oracle,
+   and swallowing untokened reports would hand back the probe D21 closed. Pinned by `R2-3 REPRO`,
+   which also asserts what a leaked detect may contain, so a future change cannot widen it quietly.
 
 **Guards.** Five `C1 GUARD`s in `review-2026-09-16.test.js`, driving the real `shim-loader.js`: a
 page forges nothing (no status, no count) and the loader's own tokens still work; a spent token

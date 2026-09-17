@@ -1974,3 +1974,43 @@ test('R2-2 GUARD: the D21 lint covers for…of and the iterator protocol, not ju
   assert.throws(() => check('probe', 'for (const x of list) { x.startsWith("a"); }'));
   assert.throws(() => check('probe', 'const n = Number(x);'));
 });
+
+// ── R2-3 ───────────────────────────────────────────────────────────────────
+// D30 residual 2 says exhaustion costs the page its own read COUNTER. It costs
+// something else it does not mention: `report()` still `emit()`s once the tokens
+// are gone, the loader refuses an untokened report — and the D21 rule is that a
+// refused message is NOT swallowed, because eating a page's own event would be a
+// free "Nullecho is here" probe. So past exhaustion every detect the shim makes
+// propagates to a page listener instead of dying at the loader.
+//
+// Recorded rather than fixed. What propagates is `{api, count}` — the page's own
+// read count for an API it just hammered a few thousand times, on a page it has
+// already proved is shimmed. No persona field, no noise key, no token. The two
+// alternatives are worse: going silent would replace this with a cleaner oracle
+// (the events stop at exactly N), and swallowing the untokened ones would hand
+// the page the probe D21 closed. See DECISIONS.md D30 residual 5.
+test('R2-3 REPRO: past token exhaustion the shim\'s detect reports propagate to a page listener', () => {
+  const TOKENS = Array.from({ length: 6 }, (_, i) => `short${String(i).padStart(11, '0')}`);
+  const s = bootRealm();
+  s.page(`
+    globalThis.__seen = [];
+    globalThis.EventTarget.prototype.addEventListener.call(globalThis, 'nullecho:detect',
+      (ev) => { globalThis.__seen.push(String(ev.detail)); }, true);
+  `);
+  s.upgrade(DELIVERED, { reportTokens: TOKENS });
+  s.page(`
+    const c = document.createElement('canvas'); const g = c.getContext('2d');
+    for (let i = 0; i < 1200; i++) g.getImageData(0, 0, 2, 2);
+  `);
+  const seen = s.page('__seen.slice()');
+  assert.ok(seen.length > 0, 'REPRO: untokened detects reach a page listener once the list is spent');
+  // …and what they carry is only the page's own read count. No token, nothing else.
+  for (const raw of seen) {
+    const d = JSON.parse(raw);
+    assert.deepEqual(Object.keys(d).sort(), ['api', 'count'], 'a leaked detect carries only api + count');
+    assert.equal(d.token, undefined, 'and never a live token');
+  }
+  // The status reserve still holds: the health channel is not what leaked.
+  assert.ok(s.statuses.some((d) => d.upgraded === true && typeof d.token === 'string'),
+    'the tokened upgrade status still got through to the loader');
+});
