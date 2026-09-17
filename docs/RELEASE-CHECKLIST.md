@@ -3,7 +3,7 @@
 One ordered list. `BREAKAGE-TESTING.md` is the *protocol*; this is the *queue*.
 Last revised 2026-08-21.
 
-**Where things stand:** 196/196 tests, 176 DNR rules valid, ~16k lines, loads clean in real
+**Where things stand:** 258/258 tests, 182 DNR rules valid, ~16k lines, loads clean in real
 Chrome 151, open-sourced and public but **announced nowhere**. The code is in good shape. Nearly
 everything below needs a human in front of a browser, which is the actual bottleneck — so the work
 this pass went into making each item *small*, not into writing more code.

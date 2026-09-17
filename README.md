@@ -3,7 +3,7 @@
 **A browser extension that blocks trackers, defends against fingerprinting, and collects nothing
 about you — which is exactly why it ships a button that lets you measure whether it's working.**
 
-> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 196 tests passing, but breakage testing is
+> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 258 tests passing, but breakage testing is
 > incomplete and there are open release blockers (see [Status](#status)). Not yet published to any
 > store. Don't rely on it as your only protection yet.
 
@@ -24,7 +24,7 @@ We can't see the result either.
 ## What it does
 
 - **Blocks trackers** — ads, analytics, social pixels, and commercial fingerprinting vendors
-  (176 rules, sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
+  (182 rules, sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
 - **Per-origin device personas** — each site sees a *different but internally consistent* machine
   drawn from a pool of real, high-population configurations. Site A and Site B can't join you.
 - **Global Privacy Control** — legally enforceable in California and several other states.
@@ -66,7 +66,7 @@ Full reasoning: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/DECISIO
 
 ```bash
 git clone <repo> && cd nullecho/ext
-npm test          # 196 tests
+npm test          # 258 tests
 ```
 
 Chrome: `chrome://extensions` → Developer mode → **Load unpacked** → select `ext/`.
@@ -86,13 +86,13 @@ cd nullecho && python3 -m http.server 4886
 
 | | |
 |---|---|
-| Tests | 256 passing |
+| Tests | 258 passing |
 | Loads in Chrome 151 | ✅ verified |
 | reCAPTCHA / Google SSO | ✅ verified unbroken |
 | Shim breakage battery | ✅ 0 failures |
 | Full Tier A breakage suite | ⏳ incomplete |
 | **Linux personas** | 🚫 **GPU renderer strings unverified on real hardware — release blocker** |
-| **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed the same day**, each reproduction flipped into a regression guard: A2/C2/A3 (prototype hooks around the nonce; D21), A5 (attacker-forgeable strikes; D20), B2 (UA / Client-Hints headers; D19, residual retired by D24), A1/B4/B5 (invertible canvas/audio noise → content-keyed; D22), A4 (two disagreeing suffix tables → one; D23). **Still open:** A8 workers, B1 `navigator.language` vs `Intl`, B3 same-origin child frames, B6 WebGPU architecture, B7/B8/B9, C1 unauthenticated reverse channel, C3 dead signal path. The review's own ship gate names B1 among them. |
+| **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed:** A1–A5, B1, B2, B4, B5, B7, B8, C2, C3 — each reproduction flipped into a regression guard (D19–D28; see `docs/DECISIONS.md`). **Still open:** A8 workers, B3 same-origin child frames, B6 WebGPU architecture, B9 `Object.prototype` pollution, C1 unauthenticated reverse channel. Full status + effort estimates: [`docs/RELEASE-READINESS-2026-09-16.md`](docs/RELEASE-READINESS-2026-09-16.md). |
 | Published to stores | ❌ not yet |
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)
