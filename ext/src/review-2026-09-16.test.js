@@ -1264,7 +1264,7 @@ test('B8 GUARD: maxTouchPoints is the host\'s real value and agrees with the tou
     'GUARD: the shim installs no getter on maxTouchPoints at all (D26)');
 });
 
-// ✅ FIXED 2026-09-16 (DECISIONS.md D28). Every field the handshake branches on is
+// ✅ FIXED 2026-09-16 (DECISIONS.md D29). Every field the handshake branches on is
 // read as an OWN property, through the captured `Object.prototype.hasOwnProperty`.
 // The genuine payload never carries `dev`, so `payload.dev` used to resolve up the
 // prototype chain into whatever the page had put on `Object.prototype` — and the

@@ -2659,7 +2659,7 @@
     if (!accepted) return;
     try { if (RAW.stopImmediatePropagation) apply(RAW.stopImmediatePropagation, ev, []); } catch (_) {}
     // Own-property reads, and `null` where the loader sent nothing — review B9,
-    // D28. Both halves matter. The failure payload (`{ok:false, reason, nonce,
+    // D29. Both halves matter. The failure payload (`{ok:false, reason, nonce,
     // gpcNonce}`) carries neither `gpc` nor `enabled`, so reading them through the
     // prototype handed the page the values; and relaying `undefined` is the same
     // hole one step later, because `JSON.stringify` DROPS an undefined member and
@@ -2678,7 +2678,7 @@
   function status(obj) { emit(EV_STATUS, obj); }
 
   /**
-   * Own-property reads throughout (review B9, D28): a genuine payload whose
+   * Own-property reads throughout (review B9, D29): a genuine payload whose
    * persona was truncated must FAIL here rather than be completed from whatever
    * the page left on `Object.prototype`. Every field `derive()` then consumes is
    * either checked here or has a literal default in `derive()` itself.
@@ -2709,7 +2709,7 @@
     // A failed check does NOT consume the one-shot. If it did, a page could shout
     // one junk message at document_start and permanently deny the salted-persona
     // upgrade, turning an authentication check into a downgrade attack.
-    // `ownField` throughout, never `payload.x` — review B9, D28.
+    // `ownField` throughout, never `payload.x` — review B9, D29.
     if (!payload || typeof payload !== 'object' || !nonceMatches(ownField(payload, 'nonce'))) {
       state.forged++;
       if (!state.forgeryReported) {
@@ -2739,7 +2739,7 @@
   }
 
   function applyAuthenticated(payload) {
-    // EVERY branch below reads an OWN property (review B9, D28). Authentication
+    // EVERY branch below reads an OWN property (review B9, D29). Authentication
     // proves the message came from the loader; it says nothing about the fields
     // the loader left OUT, and an absent own property is exactly when `[[Get]]`
     // asks `Object.prototype` — which the page owns.
@@ -2767,7 +2767,7 @@
     // `{ok:true, enabled:false}` and being obeyed — is gone: this line is now
     // unreachable without the boot nonce, which no page script can have seen. See
     // the AUTHENTICATE FIRST gate above and the contract in src/protocol.js.
-    // ✅ And since D28 it cannot be reached by `Object.prototype.enabled = false`
+    // ✅ And since D29 it cannot be reached by `Object.prototype.enabled = false`
     // either — the read is own-only, so a payload that omits `enabled` omits it.
     if (ownField(payload, 'enabled') === false) {
       state.standingDown = true;

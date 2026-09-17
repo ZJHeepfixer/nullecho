@@ -1207,7 +1207,10 @@ which reads, watches the upgrade get refused, and requires identity across it.
 truncate the shared array + `toJSON().brands !== brands`; and the read-gate case above. Built with
 `pushOwn` and the captured `objFreeze`, so the `A2-lint GUARD` (D21) still passes.
 
-## D28 — Every handshake field is read as an OWN property; nothing is inherited. 2026-09-16.
+## D29 — Every handshake field is read as an OWN property; nothing is inherited. 2026-09-16.
+
+*(Renumbered from D28 to D29: the C3 lane had already claimed D28 in the same hour. The commit that
+introduced this entry says D28; this heading is the number that stands.)*
 
 **Decision:** `src/shim.js` reads every field of the persona payload through `ownField(obj, key)` —
 the captured `Object.prototype.hasOwnProperty`, then an ordinary read — and never as `payload.x`.
