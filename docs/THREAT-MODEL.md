@@ -24,7 +24,7 @@ Every clause is load-bearing and every one is backed by a measurement:
 |---|---|
 | "different … per site" | `personaFor(salt, eTLD+1)` — measured: 5 sites, 4 distinct personas. |
 | "internally consistent" | 39/39 consistency assertions in `harness/shim-test.html`. |
-| "breaks the join" | Composite `0c5e721f1ea5ac` → `1e2351e8d63403`, 8 of 14 signals changed, stable across runs. |
+| "breaks the join" | Composite `0c5e721f1ea5ac` → `1e2351e8d63403`, 8 of 14 signals changed, stable across runs. ⚠ That hash was recoverable by subtraction until 2026-09-16 (review A1); the noise is content-keyed now (D22) and `review-2026-09-16.test.js` A1a/A1b guard it. |
 | "it is detectable" | 2 of 9 adversarial detectors fire, and we say so rather than hiding it. |
 | "does not defeat a determined adversary" | Engine-level invariants (libm, rasterizer, display via CSS `@media`) survive every persona. |
 | "nothing about your IP" | Unreachable from a WebExtension. |

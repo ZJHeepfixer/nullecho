@@ -937,3 +937,72 @@ render of the harness is still owed before any ship claim (BASELINE rule).
 injection race, THREAT-MODEL.md), it can pre-hook what we capture. That was always outside the
 page's power to fix and is still measured by the loader (`nonce-exposed`). D21 makes the race the
 *only* way in, which is what section 0a claimed and did not deliver.
+
+## D22 — Noise is keyed on the content it perturbs; silence is never noised; one digest per read. 2026-09-16.
+
+**Decision:** every noise value the shim produces — canvas `getImageData`/`toDataURL`/`toBlob`/
+`convertToBlob`, WebGL `readPixels`, `AudioBuffer` channel data, `AnalyserNode` spectra — is now a
+function of `(persona noise key, geometry, digest(real content), position)`. The digest is FNV-1a
+over every byte (bit-exact over float samples via a `Uint32Array` view), finalised and mixed into
+the key with `keyMix`. For a 2D canvas the digest and the ink gate are computed over the **whole
+canvas once per read** and the returned rectangle is sliced from that. A buffer with no content —
+no ink, all-zero samples, an all-`-Infinity` dB spectrum, an all-zero byte spectrum — is returned
+untouched, and for `AudioBuffer` is *not* remembered as noised, so a later fill gets noised on the
+next read. Zero bins inside a live byte spectrum are also left alone.
+
+**What A1 was.** The kernel's own docstring said it: the perturbation for a pixel depended only on
+`(persona key, canvas w×h, absolute coordinate)` — never on the pixel. So the pattern for a given
+canvas size was a *constant*, and a page could learn it from any input it chose: draw a uniform
+grey, read it back, subtract 128 — that is the pattern; subtract the pattern from the real
+fingerprint canvas — that is the real machine, byte-exact (review A1a). Two sites with two personas
+gave two patterns and two noised outputs, and the same recovered bytes: the cross-site join we exist
+to break, restored in twenty lines (A1b). Audio was worse: a never-written `AudioBuffer` read back
+as the noise vector itself, so the "probe" did not even need content (A1c, B4). The docs published
+the uniform-fill detector `{126,127,128,129,130}` as "what canvas noise is" — the first half of the
+attack, in our own README.
+
+**Why content keying closes it.** A pattern is now specific to the exact bytes it was computed for.
+The attacker's probe yields the pattern for *the probe*; the fingerprint canvas has a different
+digest, hence an unrelated key, hence an unrelated pattern; subtraction leaves the noise in place
+(A1a guard: recovered ≠ truth, and a fill one LSB away yields a different pattern). Two sites still
+differ after subtraction and neither recovers the truth (A1b guard). The averaging defence is
+unchanged: same content → same digest → same key → the same bytes on every read, on every path
+(`toDataURL` encodes exactly what `getImageData` returns; the shim's 50-read self-test still
+reports one hash).
+
+**B5 rode along, and it forced the whole-canvas rule.** With the ink gate evaluated on the *returned
+rect*, a transparent corner read alone came back as zeros while the same corner inside a full read
+was noised — two reads of one region disagreed, contradicting the kernel's own promise. Keying on
+the digest of the returned rect would have kept that disagreement (different rect, different
+digest). So a partial `getImageData` now performs one extra native full-canvas read to compute the
+gate and the digest, then noises only the requested rectangle at absolute coordinates. Cost: one
+extra copy per *partial* read; whole-canvas reads (what fingerprinters do) pay nothing extra. Not
+done for WebGL `readPixels`, where the read region is all we have — it is keyed on the region's
+bytes, so sub-rectangle and full reads of one framebuffer disagree there as they did before
+(different `w×h` already gave different keys). Recorded, not hidden.
+
+**What this does not do.** Bounded, sparse, additive noise is inherently vulnerable to a
+*dictionary* attack: a page holding a library of known real renderings can test each candidate by
+checking whether `noised − candidate` looks like our kernel (values in {0, ±1, ±2}, ~1 in 8 pixels).
+No keying defeats that; only noise indistinguishable from real rendering variance would, and that
+would be a different product. The honest claim (D9/D11) already says "detectable, does not defeat a
+determined adversary"; this decision narrows what a page can do *without* such a library from
+"recover the real bytes with one probe" to "nothing".
+
+**Implementation notes, so nobody re-opens it.** `scanBytes`/`scanF32` write into one shared
+`facts` record (no per-read allocation) and read lengths through the captured
+`%TypedArray%.prototype.length` (D21 — the A2e hook). The float digest needs three new captures
+(`Uint32Array`, `buffer`, `byteOffset`); Float32 views are 4-byte aligned by construction so the
+view never throws. `patchGetImageData` now takes the width/height readers for the context's *own*
+canvas type — the `HTMLCanvasElement` getters applied to an `OffscreenCanvas` throw, which
+previously routed every offscreen partial read to `fail()` un-noised. `noiseRGBA` no longer gates;
+callers gate on the whole canvas. Regression guards: A1a, A1b, A1c, B4, B5 in
+`review-2026-09-16.test.js`, each the inverse of the reproduction it replaced.
+
+**Measured in real Chrome (2026-09-16, `harness/shim-test.html` on 127.0.0.1, this Mac):** 50
+consecutive reads → 1 `toDataURL` hash and 1 `getImageData` hash; 10× stability → 1 value; 39/39
+consistency assertions. The A1a attack itself, run live against a `?shim=off` capture of the same
+64×32 text drawing: the noised read differs from the truth on 261 of 2048 pixels (≈1 in 8, as
+designed); subtracting the pattern learned from a 128-grey fill leaves **482** pixels wrong — it
+adds error instead of removing it; fills of 128 and 129 yield different patterns (750 vs 708
+non-zero deltas, disjoint). Before D22 the same subtraction was byte-exact.

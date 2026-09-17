@@ -37,7 +37,9 @@
  * ──────────────────────────────────────────────────────────────────────────────
  * THE ONE PROPERTY THAT MATTERS: DETERMINISM
  * ──────────────────────────────────────────────────────────────────────────────
- * Every noise value is a pure function of (persona noise key, stable coordinates).
+ * Every noise value is a pure function of (persona noise key, a digest of the real
+ * content, stable coordinates) — D22. Content-keyed, so a known input teaches a page
+ * nothing about the pattern on any other image; deterministic, so repeated reads agree.
  * No call counters, no Math.random, no time. Reading the same canvas 50 times
  * returns 50 identical results, which is what defeats the averaging attack that
  * broke Brave's per-read farbling in 2025. Noise that varies per read is not a
@@ -190,6 +192,7 @@
   const RawWeakMap = WeakMap;
   const RawWeakSet = WeakSet;
   const RawUint8Array = Uint8Array;
+  const RawUint32Array = Uint32Array;   // bit-exact float digests (D22)
   const RawError = Error;
   const symIterator = Symbol.iterator;
 
@@ -239,6 +242,8 @@
   const TypedArrayProto = objGetPrototypeOf(Uint8Array.prototype);
   const taLength = uncurry(getterOf(TypedArrayProto, 'length'));
   const taByteLength = uncurry(getterOf(TypedArrayProto, 'byteLength'));
+  const taBuffer = uncurry(getterOf(TypedArrayProto, 'buffer'));
+  const taByteOffset = uncurry(getterOf(TypedArrayProto, 'byteOffset'));
   const taJoin = uncurry(TypedArrayProto.join);
   // ─── END CAPTURED BUILTINS ────────────────────────────────────────────────
 
@@ -1182,10 +1187,19 @@
   /**
    * Sub-perceptual RGBA noise.
    *
-   *  · Deterministic: the perturbation for a pixel depends only on the persona's
-   *    canvas key, the canvas dimensions and the pixel's ABSOLUTE coordinates.
-   *    Reading a sub-rectangle therefore yields the same bytes as reading the whole
-   *    canvas — the two read paths cannot be differenced against each other.
+   *  · Deterministic AND content-keyed (D22): the perturbation for a pixel depends
+   *    on the persona's canvas key, the canvas dimensions, a digest of the WHOLE
+   *    canvas's real pixels, and the pixel's ABSOLUTE coordinates. The digest is
+   *    what closed review A1: with noise that was a function of coordinates alone,
+   *    a page drew a uniform fill, read the pattern off it and subtracted that
+   *    pattern from the real fingerprint canvas — exact recovery, join restored.
+   *    Now a known input yields a pattern that says nothing about any other image.
+   *    Same content still gives the same bytes on every read, so the averaging
+   *    attack stays defeated.
+   *  · The digest and the ink gate are computed over the whole canvas ONCE per
+   *    read and the returned rectangle is sliced from that (review B5): a
+   *    sub-rectangle read yields exactly the bytes of the same region inside a
+   *    full read, whichever path a page takes. Callers gate; this kernel does not.
    *  · Bounded: ±1 or ±2 on R/G/B only, roughly 1 pixel in 8. Never alpha, never
    *    geometry, never a coordinate. Charts, games and captchas still render.
    *  · Non-degenerate: if a perturbation would clamp (0 or 255) the sign flips, so
@@ -1195,12 +1209,12 @@
    * BLANK-CANVAS REALISM. A canvas that has never been drawn on reads back as all
    * zeros in every real browser, and a fingerprinter can check that in two lines —
    * so noising an untouched canvas would be a louder tell than the value it hides.
-   * We therefore skip a region that contains no ink at all. But once a region does
-   * contain ink we noise ALL of it, transparent margins included: an earlier
-   * version skipped transparent pixels individually, and the harness's
-   * `canvasPixels` probe — which hashes only the first 400 bytes, i.e. the blank
-   * rows above the text — came back byte-identical to the unshimmed machine. Whole
-   * regions, or nothing.
+   * We therefore skip a CANVAS that contains no ink at all (`scanRGBA` decides, on
+   * the whole canvas). But once the canvas has ink we noise ALL of every read,
+   * transparent margins included: an earlier version skipped transparent pixels
+   * individually, and the harness's `canvasPixels` probe — which hashes only the
+   * first 400 bytes, i.e. the blank rows above the text — came back byte-identical
+   * to the unshimmed machine. Whole canvas, or nothing.
    *
    * NOTE: ARCHITECTURE.md phrases this as "±1-2 LSB on alpha". We perturb RGB and
    * leave alpha untouched instead — an alpha change alters compositing and can
@@ -1208,14 +1222,54 @@
    * hit-testing code reads. Same entropy, less blast radius. Flagged so the doc and
    * the code can be reconciled deliberately.
    */
-  function noiseRGBA(data, canvasW, key, ox, oy, w, h) {
-    // Length through the captured `%TypedArray%.prototype.length` getter. The live
-    // one, hooked to return 0 for one read, made the ink scan see an empty buffer
-    // and this function return the real pixels untouched (review A2e).
+  /**
+   * One pass over a byte buffer: is there any ink, and a 32-bit FNV-1a digest of
+   * every byte from `from`. For RGBA pixels (`alphaOnly`) ink means a non-zero
+   * alpha; for a byte spectrum it means any non-zero bin. Written into `facts`
+   * (one shared record, no per-read allocation). The length comes from the
+   * captured `%TypedArray%.prototype.length` getter: the live one, hooked to
+   * return 0 for one read, once made the ink scan see an empty buffer and hand
+   * back the real pixels untouched (review A2e).
+   */
+  const facts = { ink: false, digest: 0 };
+  function scanBytes(data, from, alphaOnly) {
     const len = taLength(data);
-    let hasInk = false;
-    for (let p = 3; p < len; p += 4) { if (data[p] !== 0) { hasInk = true; break; } }
-    if (!hasInk) return;
+    let h = 0x811c9dc5, ink = false;
+    for (let p = from; p < len; p++) {
+      const v = data[p];
+      h = mathImul(h ^ v, 0x01000193) >>> 0;
+      if (v !== 0 && (!alphaOnly || (p & 3) === 3)) ink = true;
+    }
+    facts.ink = ink;
+    facts.digest = fin32(h);
+  }
+  function scanRGBA(data, from) { scanBytes(data, from || 0, true); }
+
+  /**
+   * Same for a Float32Array, bit-exact through a Uint32 view over the same memory
+   * (Float32 views are 4-byte aligned by construction, so the view always
+   * succeeds). `facts.ink` here means "any sample whose bits differ from
+   * `silentBits`" — 0 for samples, the bits of -Infinity for dB spectra.
+   */
+  function scanF32(arr, silentBits, count) {
+    const n = count == null ? taLength(arr) : count;
+    const u = new RawUint32Array(taBuffer(arr), taByteOffset(arr), n);
+    let h = 0x811c9dc5, ink = false;
+    for (let i = 0; i < n; i++) {
+      const v = u[i];
+      h = mathImul(h ^ (v & 0xffff), 0x01000193) >>> 0;
+      h = mathImul(h ^ (v >>> 16), 0x01000193) >>> 0;
+      if (v !== silentBits) ink = true;
+    }
+    facts.ink = ink;
+    facts.digest = fin32(h);
+  }
+  const NEG_INF_BITS = 0xff800000;
+
+  /** The per-read key: persona key × geometry × content digest (D22). */
+  function contentKey(base, a, b, digest) { return keyMix(keyMix(base, a, b), digest, 0x5ecb1a7e); }
+
+  function noiseRGBA(data, canvasW, key, ox, oy, w, h) {
     for (let row = 0; row < h; row++) {
       const ay = oy + row;
       const rowBase = row * w;
@@ -1239,7 +1293,7 @@
     }
   }
 
-  /** Float audio noise: ≤8e-7 amplitude — below the 24-bit LSB, i.e. inaudible. */
+  /** Float audio noise: ≤8e-7 amplitude — below the 24-bit LSB, i.e. inaudible. Callers gate on silence and key on content (D22). */
   function noiseFloat(arr, key, count) {
     const n = count == null ? taLength(arr) : count;
     for (let i = 0; i < n; i++) {
@@ -1518,7 +1572,8 @@
     const origOffPutImageData = OffCtx2D && OffCtx2D.prototype && OffCtx2D.prototype.putImageData;
     const origOffDrawImage = OffCtx2D && OffCtx2D.prototype && OffCtx2D.prototype.drawImage;
 
-    function canvasKeyFor(w, h) { return keyMix(D().canvasKey, w, h); }
+    /** Key for one canvas read: call only after `scanRGBA` has run on the WHOLE canvas. */
+    function canvasKeyFor(w, h) { return contentKey(D().canvasKey, w, h, facts.digest); }
 
     /**
      * Produce a same-size canvas holding the noised pixels of `src`. `drawImage`
@@ -1542,12 +1597,22 @@
       if (!tctx) return null;
       apply(origDrawImage, tctx, [src, 0, 0]);
       const img = apply(origGetImageData, tctx, [0, 0, w, h]);
-      noiseRGBA(imgData(img), w, canvasKeyFor(w, h), 0, 0, w, h);
+      const data = imgData(img);
+      scanRGBA(data);
+      if (!facts.ink) return null;                       // blank canvas: native bytes are the honest answer
+      noiseRGBA(data, w, canvasKeyFor(w, h), 0, 0, w, h);
       apply(origPutImageData, tctx, [img, 0, 0]);
       return tmp;
     }
 
-    function patchGetImageData(proto, label) {
+    /**
+     * `widthOf`/`heightOf` are the captured readers for the context's OWN canvas
+     * type — an HTMLCanvasElement getter applied to an OffscreenCanvas throws.
+     * The whole canvas is read (through the native original) whenever the request
+     * is a sub-rectangle, so the ink gate and the content digest describe the
+     * canvas, not the rectangle (B5). One extra native read per partial read.
+     */
+    function patchGetImageData(proto, label, widthOf, heightOf) {
       replaceMethod(proto, 'getImageData', (orig) => function getImageData(sx, sy) {
         const img = apply(orig, this, arguments);
         if (state.standingDown) return img;
@@ -1555,24 +1620,28 @@
         try {
           const cv = ctxCanvas(this);
           const iw = imgWidth(img) | 0, ih = imgHeight(img) | 0;
-          const cw = cv ? canvasWidth(cv) | 0 : iw;
-          const ch = cv ? canvasHeight(cv) | 0 : ih;
+          const cw = cv ? widthOf(cv) | 0 : iw;
+          const ch = cv ? heightOf(cv) | 0 : ih;
           // sw/sh may be negative; the real origin is the top-left of the rect.
           const x = (sx | 0), y = (sy | 0);
           const sw = arguments.length > 2 ? (arguments[2] | 0) : iw;
           const sh = arguments.length > 3 ? (arguments[3] | 0) : ih;
           const ox = sw < 0 ? x + sw : x;
           const oy = sh < 0 ? y + sh : y;
-          noiseRGBA(imgData(img), cw, canvasKeyFor(cw, ch), ox, oy, iw, ih);
+          const whole = ox === 0 && oy === 0 && iw === cw && ih === ch;
+          const data = imgData(img);
+          scanRGBA(whole ? data : imgData(apply(orig, this, [0, 0, cw, ch])));
+          if (!facts.ink) return img;
+          noiseRGBA(data, cw, canvasKeyFor(cw, ch), ox, oy, iw, ih);
         } catch (err) { fail(label, err); }
         return img;
       });
     }
 
-    safe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData'));
+    safe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', canvasWidth, canvasHeight));
     safe('offscreenCanvas.getImageData', () => {
       if (!OffCtx2D || !OffCtx2D.prototype) return;
-      patchGetImageData(OffCtx2D.prototype, 'offscreenCanvas.getImageData');
+      patchGetImageData(OffCtx2D.prototype, 'offscreenCanvas.getImageData', offWidth, offHeight);
     });
 
     safe('canvas.toDataURL', () => {
@@ -1612,8 +1681,12 @@
             if (tctx) {
               apply(origOffDrawImage, tctx, [this, 0, 0]);
               const img = apply(origOffGetImageData, tctx, [0, 0, w, h]);
-              noiseRGBA(imgData(img), w, canvasKeyFor(w, h), 0, 0, w, h);
-              apply(origOffPutImageData, tctx, [img, 0, 0]);
+              const data = imgData(img);
+              scanRGBA(data);
+              if (facts.ink) {
+                noiseRGBA(data, w, canvasKeyFor(w, h), 0, 0, w, h);
+                apply(origOffPutImageData, tctx, [img, 0, 0]);
+              } else { tmp = null; }
             } else { tmp = null; }
           }
         } catch (err) { if (!err || err.name !== 'SecurityError') fail('offscreenCanvas.convertToBlob', err); tmp = null; }
@@ -1728,12 +1801,12 @@
           if (format === GL.RGBA && arrayBufferIsView(pixels) && isByteView(pixels)) {
             const w = width | 0, h = height | 0;
             const len = taLength(pixels);
-            const key = keyMix(D().webglKey, w, h);
             // Same blank-buffer rule as the canvas kernel: never invent content in
-            // a read that came back entirely empty.
-            let hasInk = false;
-            for (let p = dstOffset + 3; p < len; p += 4) { if (pixels[p] !== 0) { hasInk = true; break; } }
-            if (!hasInk) return r;
+            // a read that came back entirely empty. Keyed on the read's content
+            // (D22) — a known drawing teaches nothing about another one.
+            scanRGBA(pixels, dstOffset);
+            if (!facts.ink) return r;
+            const key = contentKey(D().webglKey, w, h, facts.digest);
             for (let row = 0; row < h; row++) {
               for (let col = 0; col < w; col++) {
                 const abs = (y + row) * 4096 + (x + col); // stable virtual coords
@@ -1938,8 +2011,13 @@
       let seen = wmGet(noisedChannels, buffer);
       if (!seen) { seen = new RawSet(); wmSet(noisedChannels, buffer, seen); }
       if (setHas(seen, channel)) return;
+      // Silence is never noised (B4): a never-written buffer reads all zeros in
+      // every real browser. Not marked either — if the page fills it later, the
+      // next read noises it then. Keyed on the samples' bits (D22).
+      scanF32(arr, 0);
+      if (!facts.ink) return;
       setAdd(seen, channel);
-      noiseFloat(arr, keyMix(D().audioKey, channel, abLength(buffer) | 0));
+      noiseFloat(arr, contentKey(D().audioKey, channel, abLength(buffer) | 0, facts.digest));
     }
 
     safe('AudioBuffer.getChannelData', () => {
@@ -1983,7 +2061,9 @@
           // dB values, typically -100..0. ±1e-4 dB is far below anything audible or
           // visible in a spectrum display, and is stable per bin.
           const len = taLength(array);
-          const key = keyMix(D().audioKey, anFftSize(this) | 0, len | 0);
+          scanF32(array, NEG_INF_BITS);            // a silent spectrum is -Infinity in every bin
+          if (!facts.ink) return;
+          const key = contentKey(D().audioKey, anFftSize(this) | 0, len | 0, facts.digest);
           for (let i = 0; i < len; i++) {
             const hh = prf(key, i);
             if ((hh & 3) !== 0) continue;
@@ -1999,11 +2079,17 @@
         touch('audio');
         try {
           const len = taLength(array);
-          const key = keyMix(D().audioKey, anFftSize(this) | 0, len | 0);
+          // Byte spectra clamp to 0 below minDecibels, so zero bins are the norm
+          // in real output and a silent spectrum is all zeros (B4). Never touch a
+          // zero bin; never touch a silent spectrum; key on the bins (D22).
+          scanBytes(array, 0, false);
+          if (!facts.ink) return;
+          const key = contentKey(D().audioKey, anFftSize(this) | 0, len | 0, facts.digest);
           for (let i = 0; i < len; i++) {
             const hh = prf(key, i);
             if ((hh & 7) !== 0) continue;
             const v = array[i];
+            if (v === 0) continue;
             let n = v + ((hh >>> 3) & 1 ? 1 : -1);
             if (n < 0 || n > 255) n = v - ((hh >>> 3) & 1 ? 1 : -1);
             if (n < 0) n = 0; else if (n > 255) n = 255;

@@ -384,32 +384,57 @@ const plain = (x) => JSON.parse(JSON.stringify(x));
 const deltaFrom = (data, fill) => Array.from(data, (v, i) => (i % 4 === 3 ? 0 : v - fill));
 
 // ═══════════════════════════════════════════════════════════════════════════
-// A1 — content-independent noise is INVERTIBLE (canvas + audio)
+// A1 — content-independent noise was INVERTIBLE (canvas + audio)
+//
+// ✅ FIXED 2026-09-16 (DECISIONS.md D22). The noise key now folds in a digest
+// of the real content — `key = mix(personaKey, w, h, digest(pixels))` — so a
+// pattern learned from a known input says nothing about any other image. The
+// digest and the ink gate are taken over the WHOLE canvas once per read and
+// the returned rectangle is sliced from that (B5), and silence is never noised
+// (B4). Each test below asserts the attack now fails AND that determinism —
+// the averaging defence — survived: same content, same bytes, every read.
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('A1a REPRO: a uniform fill reveals the canvas noise pattern; subtracting it recovers the real pixels', () => {
+/** The bytes of rect (x,y,w,h) inside a full W-wide RGBA read. */
+const sliceOfFull = (full, W, x, y, w, h) => {
+  const out = [];
+  for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) for (let k = 0; k < 4; k++) out.push(full[(((y + r) * W) + (x + c)) * 4 + k]);
+  return out;
+};
+
+test('A1a GUARD: the pattern learned from a uniform fill no longer subtracts back to the real pixels; reads stay deterministic', () => {
   const s = bootRealm();
   s.upgrade();
 
-  // The page draws a known input and reads it back: the difference IS the pattern.
   const probe = s.canvas(64, 32);
   const pc = probe.getContext('2d'); pc.fillStyle = 'rgb(128,128,128)'; pc.fillRect(0, 0, 64, 32);
   const pattern = deltaFrom(pc.getImageData(0, 0, 64, 32).data, 128);
-  assert.ok(pattern.some((d) => d !== 0), 'the shim did not noise the uniform fill (nothing to invert)');
+  assert.ok(pattern.some((d) => d !== 0), 'a uniform fill is still noised — it has ink');
 
-  // The real fingerprint canvas, same dimensions.
+  // Content-keyed: a fill one LSB away must produce an unrelated pattern.
+  const probe2 = s.canvas(64, 32);
+  const pc2 = probe2.getContext('2d'); pc2.fillStyle = 'rgb(129,129,129)'; pc2.fillRect(0, 0, 64, 32);
+  const pattern2 = deltaFrom(pc2.getImageData(0, 0, 64, 32).data, 129);
+  assert.ok(!bytesEqual(pattern, pattern2), 'two fills one LSB apart yield different patterns');
+
   const target = s.canvas(64, 32);
   const truth = paintReal(target);
-  const noised = target.getContext('2d').getImageData(0, 0, 64, 32).data;
-  assert.ok(!bytesEqual(noised, truth), 'the fingerprint read was not noised at all');
+  const ctx = target.getContext('2d');
+  const noised = ctx.getImageData(0, 0, 64, 32).data;
+  assert.ok(!bytesEqual(noised, truth), 'the fingerprint read is noised');
 
-  // Subtract the learned pattern.
   const recovered = Array.from(noised, (v, i) => v - pattern[i]);
-  assert.ok(bytesEqual(recovered, truth),
-    'THE FINDING: real canvas bytes recovered exactly by subtracting a pattern learned from a uniform fill');
+  assert.ok(!bytesEqual(recovered, truth),
+    'GUARD: subtracting the learned pattern does NOT recover the real bytes');
+
+  // The averaging defence: identical content → identical bytes on every read path.
+  assert.ok(bytesEqual(ctx.getImageData(0, 0, 64, 32).data, noised), 'a second read is byte-identical');
+  assert.equal(target.toDataURL(), 'data:fake,' + Array.from(noised).join(','),
+    'toDataURL encodes exactly the bytes getImageData returns');
 });
 
-test('A1b REPRO: the recovered bytes are the same on two sites with different personas — the join is back', () => {
+test('A1b GUARD: after subtraction the two sites still disagree and neither yields the real bytes — the join stays broken', () => {
+  let truth = null;
   const recoverOn = (hostname, persona) => {
     const s = bootRealm({ hostname, origin: `https://${hostname}` });
     s.upgrade(persona);
@@ -417,38 +442,49 @@ test('A1b REPRO: the recovered bytes are the same on two sites with different pe
     const pc = probe.getContext('2d'); pc.fillStyle = 'rgb(128,128,128)'; pc.fillRect(0, 0, 64, 32);
     const pattern = deltaFrom(pc.getImageData(0, 0, 64, 32).data, 128);
     const target = s.canvas(64, 32);
-    paintReal(target, 7); // same "machine" draws the same real content on both sites
+    truth = paintReal(target, 7); // same "machine" draws the same real content on both sites
     const noised = target.getContext('2d').getImageData(0, 0, 64, 32).data;
     return { noised, recovered: Array.from(noised, (v, i) => v - pattern[i]) };
   };
   const a = recoverOn('news.example', DELIVERED);
   const b = recoverOn('shop.example', DELIVERED_B);
-  assert.ok(!bytesEqual(a.noised, b.noised), 'sanity: the two sites were noised differently (the product working as designed)');
-  assert.ok(bytesEqual(a.recovered, b.recovered),
-    'THE FINDING: after subtraction both sites yield identical bytes — a cross-site canvas join');
+  assert.ok(!bytesEqual(a.noised, b.noised), 'the two sites are noised differently');
+  assert.ok(!bytesEqual(a.recovered, b.recovered), 'GUARD: no cross-site join by subtraction');
+  assert.ok(!bytesEqual(a.recovered, truth) && !bytesEqual(b.recovered, truth), 'GUARD: neither site recovers the truth');
 });
 
-test('A1c REPRO: a silent AudioBuffer returns the noise vector in the clear; subtracting it recovers the real samples', () => {
+test('A1c GUARD: a silent AudioBuffer reads back all zeros, and a pattern learned from a known buffer does not subtract to the real samples', () => {
   const s = bootRealm();
   s.upgrade();
   const N = 4096;
+
   const silent = s.page(`new AudioBuffer(${N})`);
-  const vector = Float32Array.from(silent.getChannelData(0));
-  assert.ok(vector.some((v) => v !== 0),
-    'B4 half: a never-written AudioBuffer read back non-zero (every real browser returns all zeros)');
+  assert.ok(Array.from(silent.getChannelData(0)).every((v) => v === 0),
+    'B4 half: a never-written AudioBuffer reads back all zeros, as in every real browser');
+
+  // The attacker's probe: a constant fill, read back, pattern "learned".
+  const known = s.page(`new AudioBuffer(${N})`);
+  known._d[0].fill(0.25);
+  const learned = Array.from(known.getChannelData(0), (v) => v - 0.25);
+  assert.ok(learned.some((d) => d !== 0), 'a written buffer is noised');
 
   const real = s.page(`new AudioBuffer(${N})`);
   const truth = new Float32Array(N);
   for (let i = 0; i < N; i++) truth[i] = Math.sin(i / 7) * 0.5;
   real._d[0].set(truth);
-  const noised = real.getChannelData(0);
+  const noised = Float32Array.from(real.getChannelData(0));
   let maxNoise = 0, maxErr = 0;
   for (let i = 0; i < N; i++) {
     maxNoise = Math.max(maxNoise, Math.abs(noised[i] - truth[i]));
-    maxErr = Math.max(maxErr, Math.abs((noised[i] - vector[i]) - truth[i]));
+    maxErr = Math.max(maxErr, Math.abs((noised[i] - learned[i]) - truth[i]));
   }
-  assert.ok(maxNoise >= 1e-7, 'sanity: the audio was noised');
-  assert.ok(maxErr < 1e-7, `THE FINDING: real samples recovered to float32 rounding (max error ${maxErr}) — the noise is a fixed per-length vector`);
+  assert.ok(maxNoise >= 1e-7, 'the real buffer is noised');
+  assert.ok(maxErr >= 1e-7, `GUARD: subtracting the learned pattern leaves error ${maxErr} — the noise is keyed on the content`);
+
+  // Determinism: the same content in a fresh buffer gets the same samples.
+  const again = s.page(`new AudioBuffer(${N})`);
+  again._d[0].set(truth);
+  assert.ok(bytesEqual(Float32Array.from(again.getChannelData(0)), noised), 'identical content → identical noised samples');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1052,25 +1088,31 @@ test('B3b REPRO: the service worker refuses about:blank / about:srcdoc senders, 
   assert.deepEqual(res, { ok: false, error: 'unsupported scheme' }, 'sender.url wins over sender.origin, and about: is unsupported');
 });
 
-test('B4 REPRO: silence is noised — getByteFrequencyData on an all-zero analyser returns 1s', () => {
+test('B4 GUARD: silence is not noised — a silent analyser returns all-zero bytes and all -Infinity floats', () => {
   const s = bootRealm();
   s.upgrade();
-  const out = s.page('const a = new AnalyserNode(); const u = new Uint8Array(1024); a.getByteFrequencyData(u); Array.from(u).filter((v) => v !== 0).length');
-  assert.ok(out > 0, 'THE FINDING: a silent spectrum has non-zero bins (never true in a real browser)');
+  const bytes = s.page('const a = new AnalyserNode(); const u = new Uint8Array(1024); a.getByteFrequencyData(u); Array.from(u).filter((v) => v !== 0).length');
+  assert.equal(bytes, 0, 'GUARD: a silent byte spectrum has no non-zero bins');
+  const floats = s.page('const a2 = new AnalyserNode(); const f = new Float32Array(1024); a2.getFloatFrequencyData(f); Array.from(f).filter((v) => v !== -Infinity).length');
+  assert.equal(floats, 0, 'GUARD: a silent float spectrum is -Infinity in every bin');
 });
 
-test('B5 REPRO: a transparent sub-rectangle reads un-noised while the same region inside a full read is noised', () => {
+test('B5 GUARD: a sub-rectangle read equals the same region of a full read byte for byte — inked or blank', () => {
   const s = bootRealm();
   s.upgrade();
   const c = s.canvas(32, 32);
   const ctx = c.getContext('2d');
   ctx.fillStyle = 'rgb(200,30,30)'; ctx.fillRect(16, 16, 16, 16); // ink only bottom-right
-  const corner = ctx.getImageData(0, 0, 8, 8).data;
-  assert.ok(corner.every((v) => v === 0), 'sub-rect of the transparent corner: no ink → kernel skips → zeros');
   const full = ctx.getImageData(0, 0, 32, 32).data;
-  const cornerOfFull = [];
-  for (let r = 0; r < 8; r++) for (let col = 0; col < 8; col++) for (let k = 0; k < 4; k++) cornerOfFull.push(full[((r * 32) + col) * 4 + k]);
-  assert.ok(cornerOfFull.some((v) => v !== 0), 'THE FINDING: the same pixels inside a full read carry noise — two reads of one region disagree');
+  const corner = ctx.getImageData(0, 0, 8, 8).data;
+  assert.ok(bytesEqual(corner, sliceOfFull(full, 32, 0, 0, 8, 8)), 'GUARD: transparent corner — sub-rect read === slice of the full read');
+  assert.ok(corner.some((v) => v !== 0), 'and it is noised: the canvas has ink, so the whole region is (margins included)');
+  const inked = ctx.getImageData(16, 16, 16, 16).data;
+  assert.ok(bytesEqual(inked, sliceOfFull(full, 32, 16, 16, 16, 16)), 'GUARD: inked quadrant — sub-rect read === slice of the full read');
+
+  const blank = s.canvas(32, 32).getContext('2d');
+  assert.ok(blank.getImageData(0, 0, 8, 8).data.every((v) => v === 0) && blank.getImageData(0, 0, 32, 32).data.every((v) => v === 0),
+    'a never-drawn canvas reads all zeros on both paths');
 });
 
 test('B6 REPRO: WebGPU architecture is one constant per vendor, so Iris Xe → "gen-9" and RTX 4060 → "ampere"', () => {

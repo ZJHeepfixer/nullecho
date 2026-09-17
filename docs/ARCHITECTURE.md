@@ -33,7 +33,7 @@ Nullecho's answer is a middle path — randomize, but at the granularity of a **
 ```
 seed = HMAC(session_salt, eTLD+1)
 persona = pick_from_pool(seed)      # a whole coherent machine, not loose values
-noise   = derive_noise(seed)        # canvas/audio/webgl jitter, deterministic from seed
+noise   = derive_noise(seed, digest(content))   # canvas/audio/webgl jitter, deterministic per content (D22)
 ```
 
 Three properties fall out of that one line:
@@ -141,8 +141,10 @@ no one. Firefox's own `resistFingerprinting` is shipped as advanced-users-only f
 - Per-origin allowlist, one click from the toolbar.
 - Never spoof `deviceMemory`/`cores` to values that break WASM thread-pool sizing — clamp to
   plausible-and-safe (4/8, never 1).
-- Canvas noise must be **sub-perceptual**: ±1-2 LSB on alpha, never on geometry. A visibly
-  corrupted canvas breaks charts and games.
+- Canvas noise must be **sub-perceptual**: ±1-2 LSB on R/G/B (never alpha — it compounds across
+  draws and hit-testing reads it), never on geometry. A visibly corrupted canvas breaks charts and
+  games. And it must be **keyed on the content** it perturbs, or a page learns the pattern from a
+  uniform fill and subtracts it from the real canvas (D22).
 - Site-breakage triage doc before public release.
 
 ## Explicit non-goals
