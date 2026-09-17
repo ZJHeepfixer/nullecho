@@ -172,11 +172,41 @@ async function init() {
 
   await Promise.all([
     applyRulesets().catch(warn('applyRulesets')),
+    applyUaRuleset().catch(warn('applyUaRuleset')),
     syncAllowlistRules().catch(warn('syncAllowlistRules')),
   ]);
 }
 
 const warn = (where) => (err) => console.warn(`[nullecho] ${where} failed:`, err);
+
+// ── DNR: the host family's User-Agent / Client-Hint ruleset ─────────────────
+//
+// The shim pins `navigator.userAgent` / `userAgentData` to the persona, but a
+// header the browser writes contradicts it on every request unless it is
+// rewritten too (REVIEW-2026-09-16 B2). Personas are per-origin, and the persona
+// for an origin is only known after that origin's handshake — which is AFTER its
+// first `main_frame` request has gone out. What is known before any request is
+// the host's OS family (D12), and every persona this machine can be shown — the
+// pre-handshake fallback included — belongs to it. So the header is rewritten at
+// FAMILY level by one of three static rulesets, and this picks the right one.
+//
+// Static ruleset enablement persists across browser sessions and is reset only
+// by an extension update, and `init()` runs at every worker start, so the window
+// in which real headers go out is the few milliseconds of the first worker start
+// after install/update — no worse than the state before the rulesets existed.
+// See DECISIONS.md D19 for the residuals this leaves.
+
+/** manifest `rule_resources[].id` per host family. Mirrored in rules/gen-ua.mjs. */
+export const UA_RULESETS = { win: 'ua-win', mac: 'ua-mac', linux: 'ua-linux' };
+
+export async function applyUaRuleset() {
+  if (!api.declarativeNetRequest?.updateEnabledRulesets) return;
+  const want = UA_RULESETS[hostFamily()] ?? UA_RULESETS.win;
+  await api.declarativeNetRequest.updateEnabledRulesets({
+    enableRulesetIds: [want],
+    disableRulesetIds: Object.values(UA_RULESETS).filter((id) => id !== want),
+  });
+}
 
 /**
  * The persona key for a URL. Returns '' for anything we do not shim
@@ -282,7 +312,8 @@ async function applyRulesets() {
  * site". Priority is set far above the static rulesets so it always wins.
  *
  * Rule-id ranges in use across the extension, all disjoint:
- *     1 000 –     5 000  static rulesets (ads/analytics/social/fingerprinting/gpc)
+ *     1 000 –     5 099  static rulesets (ads/analytics/social/fingerprinting/gpc)
+ *     5 100 –     5 399  static per-family UA / Client-Hint rulesets (ua-win/mac/linux)
  *   900 000 –   900 999  this allowlist            (ALLOW_RULE_ID_BASE)
  * 1 000 000 – 1 049 999  heuristics block rules
  * 1 050 000 – 1 099 999  heuristics cookie-block rules
@@ -423,11 +454,11 @@ const SHELL_TYPES = new Set(Object.values(MSG));
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // ── §1 ──
-  // Signals the page can see but the network layer cannot: canvas readbacks
-  // and localStorage supercookies, forwarded by the layer-2 shim's isolated
-  // world bridge.
-  if (heuristics.handleContentReport(message, sender)) return false;
-
+  // There is deliberately NO page-side strike source here. The shim's
+  // `nullecho:fp-detected` report says "some script read the canvas"; it does
+  // not say WHICH third party's script, and blaming an unattributed read on
+  // whichever third party happens to be on the page would let a page get an
+  // arbitrary domain blocked. See heuristics.js `handleContentReport`.
   switch (message?.type) {
     case 'nullecho:heuristics:state':
       heuristics.getState().then(sendResponse);

@@ -24,6 +24,8 @@ import assert from 'node:assert/strict';
 
 const store = {};
 const dynamicRules = new Map();
+const webRequestListeners = {};
+const evt = (name) => ({ addListener(fn) { webRequestListeners[name] = fn; } });
 
 globalThis.chrome = {
   storage: {
@@ -40,13 +42,16 @@ globalThis.chrome = {
     },
   },
   webRequest: {
-    onBeforeRequest: { addListener() {} },
-    onBeforeSendHeaders: { addListener() {} },
-    onHeadersReceived: { addListener() {} },
+    onBeforeRequest: evt('onBeforeRequest'),
+    onBeforeSendHeaders: evt('onBeforeSendHeaders'),
+    onHeadersReceived: evt('onHeadersReceived'),
   },
 };
 
 const H = await import('./heuristics.js');
+
+/** Wait for the fire-and-forget `recordSignal` calls the observers make. */
+const settle = () => new Promise((r) => setTimeout(r, 20));
 
 const BLOCK_BASE = 1_000_000;
 const COOKIE_BASE = 1_050_000;
@@ -109,7 +114,7 @@ test('two sites is not enough to promote', async () => {
 test('the third distinct site promotes to blocked', async () => {
   await H.recordSignal('t.tracker.example', 'news.test', H.SIGNAL.COOKIE);
   await H.recordSignal('t.tracker.example', 'shop.test', H.SIGNAL.SET_COOKIE);
-  const result = await H.recordSignal('t.tracker.example', 'blog.test', H.SIGNAL.CANVAS);
+  const result = await H.recordSignal('t.tracker.example', 'blog.test', H.SIGNAL.COOKIE);
 
   assert.equal(result, 'blocked');
   assert.equal(dynamicRules.size, 1);
@@ -152,7 +157,7 @@ test('never-block domains are never promoted, however they behave', async () => 
   for (const host of untouchable) {
     for (const site of ['a.test', 'b.test', 'c.test', 'd.test', 'e.test']) {
       await H.recordSignal(host, site, H.SIGNAL.COOKIE);
-      await H.recordSignal(host, site, H.SIGNAL.CANVAS);
+      await H.recordSignal(host, site, H.SIGNAL.SET_COOKIE);
     }
   }
   assert.equal(dynamicRules.size, 0, 'a never-block domain was promoted');
@@ -209,8 +214,8 @@ test('allowing a blocked domain drops its rule and is sticky', async () => {
   assert.equal(dynamicRules.size, 0);
 
   // Further evidence must not re-promote it — the user already decided.
-  await H.recordSignal('t.tracker.example', 'd.test', H.SIGNAL.CANVAS);
-  await H.recordSignal('t.tracker.example', 'e.test', H.SIGNAL.CANVAS);
+  await H.recordSignal('t.tracker.example', 'd.test', H.SIGNAL.SET_COOKIE);
+  await H.recordSignal('t.tracker.example', 'e.test', H.SIGNAL.SET_COOKIE);
   assert.equal(await statusOf('tracker.example'), 'allowed');
   assert.equal(dynamicRules.size, 0);
 });
@@ -259,13 +264,13 @@ test('promotion is flushed to storage immediately, not debounced', async () => {
 
 test('getState reports strikes, sites and signal names', async () => {
   await H.recordSignal('t.tracker.example', 'a.test', H.SIGNAL.COOKIE);
-  await H.recordSignal('t.tracker.example', 'b.test', H.SIGNAL.CANVAS);
+  await H.recordSignal('t.tracker.example', 'b.test', H.SIGNAL.SET_COOKIE);
 
   const [entry] = await H.getState();
   assert.equal(entry.domain, 'tracker.example');
   assert.equal(entry.strikes, 2);
   assert.deepEqual(entry.sites.sort(), ['a.test', 'b.test']);
-  assert.deepEqual(entry.signals.sort(), ['CANVAS', 'COOKIE']);
+  assert.deepEqual(entry.signals.sort(), ['COOKIE', 'SET_COOKIE']);
 });
 
 test('stats counts each outcome', async () => {
@@ -279,32 +284,169 @@ test('stats counts each outcome', async () => {
   assert.equal(s.observed, 2);
 });
 
-// ── shim reports ──────────────────────────────────────────────────────────
+// ── retired strike sources (REVIEW-2026-09-16 A5 + C3, DECISIONS.md D20) ──
+//
+// A strike has to be something the THIRD PARTY did. Three sources failed that
+// bar and are gone: ID_PARAM (the embedding page writes the URL), and the
+// CANVAS / SUPERCOOKIE page reports (never sent with attribution, so the only
+// way to count them would be to blame some third party on the page).
 
-test('a canvas report without a script URL is dropped, not blamed on the page', async () => {
-  // Attribution matters more than coverage here: guessing would let any page
-  // get an arbitrary third party blocked.
-  assert.equal(
-    H.handleContentReport({ type: 'nullecho:signal', signal: 'canvas' }, { origin: 'https://a.test' }),
-    false,
-  );
+test('only COOKIE and SET_COOKIE exist as signals; the retired bits are reserved, not reused', () => {
+  assert.deepEqual(Object.keys(H.SIGNAL).sort(), ['COOKIE', 'SET_COOKIE']);
+  assert.deepEqual(H.RETIRED_SIGNAL_BITS, { SUPERCOOKIE: 4, CANVAS: 8, ID_PARAM: 16 });
+  for (const bit of Object.values(H.RETIRED_SIGNAL_BITS)) {
+    assert.ok(!Object.values(H.SIGNAL).includes(bit), `bit ${bit} was reassigned to a live signal`);
+  }
+});
+
+test('a retired signal bit is dropped, not stored — no caller can resurrect a strike source by number', async () => {
+  for (const bit of [4, 8, 16, 32, 0, -1, NaN, 'CANVAS']) {
+    assert.equal(await H.recordSignal('t.tracker.example', 'a.test', bit), null);
+  }
+  assert.equal((await H.getState()).length, 0, 'a retired signal created a record');
+
+  // A live bit OR'd with a retired one keeps only the live part.
+  await H.recordSignal('t.tracker.example', 'a.test', H.SIGNAL.COOKIE | 16);
+  const [entry] = await H.getState();
+  assert.deepEqual(entry.signals, ['COOKIE']);
+});
+
+test('a page-side report is never accepted, whatever it claims to attribute', async () => {
+  // The old message shape, fully attributed — exactly what the removed path
+  // would have promoted on. It must be refused, because the shim cannot
+  // actually produce the attribution and a forged one is the A5 hole.
+  for (const site of ['https://a.test', 'https://b.test', 'https://c.test']) {
+    assert.equal(
+      H.handleContentReport(
+        { type: 'nullecho:signal', signal: 'canvas', scriptUrl: 'https://fp.tracker.example/fp.js' },
+        { origin: site },
+      ),
+      false,
+    );
+  }
+  assert.equal(H.handleContentReport({ type: 'nullecho:fp-detected', api: 'canvas', count: 1 }, { url: 'https://a.test' }), false);
+  assert.equal(H.handleContentReport({ type: 'nullecho:get-persona' }, {}), false);
+  assert.equal(H.handleContentReport(null, {}), false);
+  await settle();
+  assert.equal((await H.getState()).length, 0, 'a page report created a record');
+});
+
+test('state written by an earlier build is scrubbed of retired bits on the way in', () => {
+  const stored = {
+    version: 1,
+    domains: {
+      // Two ID_PARAM-only sites and one real cookie site: 3 strikes then, 1 now.
+      'decorated.example': {
+        sites: { 'a.test': 16, 'b.test': 16, 'c.test': 1 },
+        status: 'observing', ruleId: null, firstSeen: 1, lastSeen: 2,
+      },
+      // Mixed bits on one site: the live part survives.
+      'mixed.example': {
+        sites: { 'a.test': 1 | 8 | 16, 'b.test': 2 | 4 },
+        status: 'observing', ruleId: null, firstSeen: 1, lastSeen: 2,
+      },
+    },
+  };
+  const state = H.normaliseStored(stored);
+  // `sites` / `domains` are null-prototype on purpose; compare their contents.
+  assert.deepEqual({ ...state.domains['decorated.example'].sites }, { 'c.test': 1 });
+  assert.deepEqual({ ...state.domains['mixed.example'].sites }, { 'a.test': 1, 'b.test': 2 });
+  assert.equal(state.domains['decorated.example'].status, 'observing', 'everything but the masks is carried over');
+
+  // Unknown versions and garbage start clean rather than throwing.
+  assert.deepEqual({ ...H.normaliseStored(undefined).domains }, {});
+  assert.deepEqual({ ...H.normaliseStored({ version: 7, domains: {} }).domains }, {});
+});
+
+// ── the observers that remain ─────────────────────────────────────────────
+
+const attackerUrl = 'https://cdn.victim.example/logo.png?gclid=' + 'Q7'.repeat(12);
+const req = (site, over = {}) => ({ tabId: 1, type: 'image', url: attackerUrl, initiator: `https://${site}`, ...over });
+
+test('install() registers cookie observers only — nothing derived from the request URL', () => {
+  H.install();
+  assert.equal(webRequestListeners.onBeforeRequest, undefined, 'a URL-only observer is the A5 hole');
+  assert.equal(typeof webRequestListeners.onBeforeSendHeaders, 'function');
+  assert.equal(typeof webRequestListeners.onHeadersReceived, 'function');
+});
+
+test('an identifier-bearing URL from three sites earns nothing, through every observer that exists', async () => {
+  H.install();
+  for (const site of ['a1.github.io', 'a2.github.io', 'a3.github.io']) {
+    webRequestListeners.onBeforeSendHeaders(req(site, { requestHeaders: [{ name: 'Accept', value: '*/*' }] }));
+    webRequestListeners.onHeadersReceived(req(site, { responseHeaders: [{ name: 'Content-Type', value: 'image/png' }] }));
+  }
+  await settle();
+  assert.equal((await H.getState()).length, 0, 'the victim was recorded on the strength of a URL the attacker wrote');
+  assert.equal(dynamicRules.size, 0);
+});
+
+test('a Set-Cookie the browser would refuse cross-site (no SameSite=None) is not a strike', async () => {
+  H.install();
+  // A plain session cookie on an image response — every PHP/Java/ASP.NET
+  // server does this. Chrome drops it from a cross-site response, so it can
+  // track nobody; counting it would let an attacker get any such site blocked
+  // by embedding it on three pages.
+  for (const site of ['a1.github.io', 'a2.github.io', 'a3.github.io']) {
+    webRequestListeners.onHeadersReceived(req(site, {
+      responseHeaders: [
+        { name: 'Set-Cookie', value: 'PHPSESSID=8f3a9c1d2e4b6a7f8c9d0e1f2a3b4c5d; Path=/; HttpOnly' },
+        { name: 'Set-Cookie', value: 'JSESSIONID=5F3A9C1D2E4B6A7F8C9D0E1F2A3B4C5D; Path=/; SameSite=Lax' },
+        { name: 'Set-Cookie', value: 'ref=Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7; Path=/; SameSite=Strict; Secure' },
+      ],
+    }));
+  }
+  await settle();
   assert.equal((await H.getState()).length, 0);
 });
 
-test('an attributed canvas report counts as a strike', async () => {
-  for (const site of ['https://a.test', 'https://b.test', 'https://c.test']) {
-    H.handleContentReport(
-      { type: 'nullecho:signal', signal: 'canvas', scriptUrl: 'https://fp.tracker.example/fp.js' },
-      { origin: site },
-    );
+test('a Partitioned (CHIPS) cookie is not a strike — it cannot join two sites', async () => {
+  H.install();
+  for (const site of ['a1.github.io', 'a2.github.io', 'a3.github.io']) {
+    webRequestListeners.onHeadersReceived(req(site, {
+      responseHeaders: [{ name: 'Set-Cookie', value: 'uid=8f3a9c1d2e4b6a7f8c9d0e1f2a3b4c5d; Path=/; Secure; SameSite=None; Partitioned' }],
+    }));
   }
-  await H.flush();
+  await settle();
+  assert.equal((await H.getState()).length, 0);
+});
+
+test('a cross-site-capable identifying Set-Cookie from three sites still promotes — the learner is alive', async () => {
+  H.install();
+  for (const site of ['news.test', 'shop.test', 'blog.test']) {
+    webRequestListeners.onHeadersReceived({
+      tabId: 1, type: 'script', url: 'https://t.tracker.example/px.js', initiator: `https://${site}`,
+      responseHeaders: [{ name: 'Set-Cookie', value: 'uid=8f3a9c1d2e4b6a7f8c9d0e1f2a3b4c5d; Path=/; Secure; SameSite=None' }],
+    });
+  }
+  for (let i = 0; i < 50 && (await statusOf('tracker.example')) !== 'blocked'; i++) await settle();
+  assert.equal(await statusOf('tracker.example'), 'blocked');
+  assert.equal([...dynamicRules.values()][0].action.type, 'block');
+});
+
+test('a Cookie header carrying an identifier to a third party still counts', async () => {
+  H.install();
+  for (const site of ['news.test', 'shop.test', 'blog.test']) {
+    webRequestListeners.onBeforeSendHeaders({
+      tabId: 1, type: 'image', url: 'https://t.tracker.example/px', initiator: `https://${site}`,
+      requestHeaders: [{ name: 'Cookie', value: '__cf_bm=abcdefabcdefabcdefabcdef1234; uid=8f3a9c1d2e4b6a7f8c9d0e1f2a3b4c5d' }],
+    });
+  }
+  for (let i = 0; i < 50 && (await statusOf('tracker.example')) !== 'blocked'; i++) await settle();
   assert.equal(await statusOf('tracker.example'), 'blocked');
 });
 
-test('unrelated messages are ignored', () => {
-  assert.equal(H.handleContentReport({ type: 'nullecho:get-persona' }, {}), false);
-  assert.equal(H.handleContentReport(null, {}), false);
+test('parseSetCookie / isCrossSiteCapable read attributes case-insensitively', () => {
+  const c = H.parseSetCookie('uid=abc; Path=/; SECURE; samesite=NONE');
+  assert.equal(c.name, 'uid');
+  assert.equal(c.value, 'abc');
+  assert.equal(c.attrs.samesite, 'none');
+  assert.ok('secure' in c.attrs);
+  assert.equal(H.isCrossSiteCapable(c.attrs), true);
+  assert.equal(H.isCrossSiteCapable(H.parseSetCookie('uid=abc; SameSite=None; Partitioned').attrs), false);
+  assert.equal(H.isCrossSiteCapable(H.parseSetCookie('uid=abc; SameSite=Lax').attrs), false);
+  assert.equal(H.isCrossSiteCapable(H.parseSetCookie('uid=abc').attrs), false, 'no attribute means Lax in Chrome');
+  assert.equal(H.parseSetCookie('flagonly').value, '');
 });
 
 // ── reset ─────────────────────────────────────────────────────────────────

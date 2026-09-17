@@ -27,12 +27,15 @@ off a whole category.
 | `4500–4699` | `fingerprinting.json` — tier B, anti-fraud device ID | 8 (`4500–4507`) | static |
 | `4700–4799` | `fingerprinting.json` — tier C, first-party exceptions | 1 | static |
 | `5000–5099` | `gpc.json` | 1 | static |
+| `5100–5199` | `ua-win.json` — Windows-family UA / Client-Hint headers (**generated**) | 2 | static, ships disabled |
+| `5200–5299` | `ua-mac.json` — macOS-family (**generated**) | 2 | static, ships disabled |
+| `5300–5399` | `ua-linux.json` — Linux-family (**generated**) | 2 | static, ships disabled |
 | `900000–999999` | per-site allowlist (`protocol.js` `ALLOW_RULE_ID_BASE`) | — | dynamic |
 | `1000000–1049999` | heuristics: learned blocks | — | dynamic |
 | `1050000–1099999` | heuristics: learned cookie-blocks | — | dynamic |
 | `1100000–1100999` | GPC per-site exceptions | — | dynamic |
 
-**176 static rules, 176 unique ids.** Verified, not assumed — `validate.mjs`
+**182 static rules, 182 unique ids.** Verified, not assumed — `validate.mjs`
 fails on a duplicate, an out-of-range id, or an id that lands in a range
 reserved for runtime rules.
 
@@ -219,9 +222,66 @@ on what GPC actually achieves.
 
 ---
 
+## `ua-*.json` — the host family's request headers (generated; D19)
+
+The fingerprint shim pins `navigator.userAgent` and `navigator.userAgentData` to
+the persona (Chrome/151, the persona's platform, architecture, …). Until
+2026-09-16 the browser then sent its **real** `User-Agent` and `Sec-CH-UA-*`
+headers on every request — a JS-vs-header contradiction on every page, and the
+"standard spoof check" fingerprinting vendors run server-side
+(REVIEW-2026-09-16 B2). These three rulesets close it.
+
+**Why one per OS family, and not one per origin.** Personas are per-origin (D2),
+but an origin's persona is derived only after that origin's handshake — and the
+`main_frame` navigation, the first request a server sees, is sent before any
+content script exists. A per-origin rule therefore cannot cover the request that
+matters most. The host's OS family, on the other hand, is known before any
+request, and D12 pins every persona this machine can be shown — the
+pre-handshake fallback included — to it. Within a family the pool's `ua` /
+`uaData` fields are constant except for one (below). So: one static ruleset per
+family, all three registered `"enabled": false`, and `background.js` enables the
+host family's one at every worker start (`applyUaRuleset()`).
+
+**What each file does.** Two `modifyHeaders` rules at priority 1: one sets
+`User-Agent` on every request; one sets the ten `Sec-CH-UA*` headers
+(`Sec-CH-UA`, `-Mobile`, `-Platform`, `-Full-Version-List`, `-Full-Version`,
+`-Platform-Version`, `-Arch`, `-Bitness`, `-Model`, `-WoW64`) on `https`/`wss`
+requests only, because Chrome never sends Client Hints over plain HTTP. Both
+cover `main_frame` and exclude `chromewebstore.google.com` / `addons.mozilla.org`,
+where content scripts cannot run and the page's JS is therefore always real.
+
+**Priority 1 is load-bearing.** DNR applies a `modifyHeaders` rule only when it
+outranks every matching `allow` / `allowAllRequests` rule. The per-site
+allowlist writes `allowAllRequests` at priority 100000, so on a site where the
+user switched Nullecho off — where the shim stands down and `navigator` is
+real — these rules are suppressed too and the real headers go out. GPC's
+per-site exceptions are `modifyHeaders remove`, not `allow`, so they do not
+interact.
+
+**They are generated. Never edit them by hand.** The values are
+`src/personas.js` (`ua`, `uaData`) and the GREASE brand constant in
+`src/shim.js`; `node rules/gen-ua.mjs` rewrites the files, and `validate.mjs`
+fails if the shipped bytes differ from what the generator emits. A hand edit is
+the exact defect the files exist to close. When the pool's Chrome version or
+`uaData` moves, regenerate; `rules/ua.test.js` and the B2 guard in
+`src/review-2026-09-16.test.js` (which boots the real shim per persona and
+compares its `navigator` to these bytes) will tell you if you forgot.
+
+**The residual, stated exactly.** The header is the family's weight-majority
+value; one persona disagrees on one header: `macos-chrome-intel-iris` reports
+`architecture: "x86"` in JS while the macOS ruleset sends `Sec-CH-UA-Arch: "arm"`
+(the other five macOS personas, 92% of the family's weight, say `arm`). The
+generator prints it; `rules/ua.test.js` pins the residual list to exactly that
+entry. The clean fix is to retire that persona in `src/personas.js` (the family
+still clears `MIN_PERSONAS_PER_FAMILY`). The other residuals — hints sent
+without an `Accept-CH` request, worker scope, Firefox — are in DECISIONS.md D19.
+
+---
+
 ## Maintenance
 
 1. Edit the JSON directly — it is the source of truth, not a build artifact.
+   **Exception:** `ua-*.json` are artifacts of `gen-ua.mjs`; regenerate, never edit.
 2. Keep the new id inside the file's range.
 3. Justify it against one of the three sources above; if it is in none of them,
    do not add it.

@@ -64,6 +64,21 @@
         "id": "gpc",
         "enabled": true,
         "path": "rules/gpc.json"
+      },
+      {
+        "id": "ua-win",
+        "enabled": false,
+        "path": "rules/ua-win.json"
+      },
+      {
+        "id": "ua-mac",
+        "enabled": false,
+        "path": "rules/ua-mac.json"
+      },
+      {
+        "id": "ua-linux",
+        "enabled": false,
+        "path": "rules/ua-linux.json"
       }
     ]
   },

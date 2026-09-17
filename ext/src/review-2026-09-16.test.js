@@ -322,10 +322,13 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
   const h = ctx.__h;
 
   const statuses = [];
-  let boot = null;
+  let boot = null, gpcBoot = null;
   ctx.document.addEventListener('nullecho:status', (ev) => {
     const d = JSON.parse(ev.detail);
-    if (d.phase === 'boot') { if (d.channel === 'shim' && !boot) boot = d; }
+    if (d.phase === 'boot') {
+      if (d.channel === 'shim' && !boot) boot = d;
+      else if (d.channel === 'gpc' && !gpcBoot) gpcBoot = d;
+    }
     else statuses.push(d);
   }, true);
 
@@ -341,8 +344,12 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
   const page = (code) => vm.runInContext(code, ctx, { filename: 'page.js' });
 
   return {
-    ctx, win, h, logs, boot, statuses, send, page,
-    upgrade: (persona = DELIVERED, over = {}) => send({ ok: true, enabled: true, gpc: true, site: hostname, persona, nonce: boot.nonce, ...over }),
+    ctx, win, h, logs, boot, gpcBoot, statuses, send, page,
+    /** The loader's delivery: shim nonce always; the gpc nonce whenever gpc.js booted, as shim-loader.js does. */
+    upgrade: (persona = DELIVERED, over = {}) => send({
+      ok: true, enabled: true, gpc: true, site: hostname, persona, nonce: boot.nonce,
+      gpcNonce: gpcBoot ? gpcBoot.nonce : null, ...over,
+    }),
     ua: () => ctx.navigator.userAgent,
     canvas: (w, h2) => { const c = page('document.createElement("canvas")'); c.width = w; c.height = h2; return c; },
   };
@@ -446,37 +453,47 @@ test('A1c REPRO: a silent AudioBuffer returns the noise vector in the clear; sub
 
 // ═══════════════════════════════════════════════════════════════════════════
 // A2 — page hooks on uncaptured builtins reach the shim's native originals
+//
+// ✅ FIXED 2026-09-16 (DECISIONS.md D21). Every test below was a reproduction;
+// each is now the inverse — a regression guard asserting the hook changes
+// NOTHING. The hooks are installed AFTER the shim boots and after the genuine
+// handshake (the review's timing); `A2-timing` below installs them before the
+// handshake lands and keeps them live through it. Both timings must hold.
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('A2a REPRO: hooking Function.prototype.call hands the page the NATIVE navigator getters', () => {
+test('A2a GUARD: hooking Function.prototype.call sees NO call from the shim and gets no native getter', () => {
   const s = bootRealm();
   s.upgrade();
   assert.equal(s.ua(), DELIVERED.ua, 'sanity: the persona is in place');
 
-  const realUA = s.page(`
+  const out = s.page(`
     const leaked = [];
     const origCall = Function.prototype.call;
     Function.prototype.call = function (thisArg, ...args) {
       leaked.push(this);
       return Reflect.apply(this, thisArg, args);
     };
-    try { void navigator.userAgent; } finally { Function.prototype.call = origCall; }
-    // The shim delegated to the original getter for its brand check — and passed it to us as \`this\`.
-    // An attacker does not need to know which leaked function is the native one: try each against
-    // navigator and keep the one that answers differently from the spoofed value.
-    const spoofed = navigator.userAgent;
+    let spoofed;
+    try {
+      spoofed = navigator.userAgent;
+      void navigator.hardwareConcurrency; void navigator.deviceMemory; void navigator.platform;
+      void navigator.userAgentData.brands;
+    } finally { Function.prototype.call = origCall; }
+    // The attacker's harvest: any leaked function that answers differently from the spoof.
     const replacement = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
     let real = null;
     for (const fn of leaked) {
       if (fn === replacement) continue;
       try { const v = Reflect.apply(fn, navigator, []); if (typeof v === 'string' && v !== spoofed) { real = v; break; } } catch {}
     }
-    real;
+    ({ spoofed, real, calls: leaked.length });
   `);
-  assert.equal(realUA, REAL_UA, 'THE FINDING: the real userAgent was read through the shim\'s own delegation');
+  assert.equal(out.spoofed, DELIVERED.ua, 'the spoof held while the hook was live');
+  assert.equal(out.real, null, 'REGRESSION: a native navigator getter reached the page through a .call hook');
+  assert.equal(out.calls, 0, 'REGRESSION: the shim invoked Function.prototype.call at run time (D21: every builtin is captured at boot)');
 });
 
-test('A2b REPRO: hooking Function.prototype.apply leaks native toDataURL and getParameter (real canvas + real GPU)', () => {
+test('A2b GUARD: hooking Function.prototype.apply sees NO call from the shim; toDataURL stays noised, getParameter stays spoofed', () => {
   const s = bootRealm();
   s.upgrade();
   const c = s.canvas(16, 16);
@@ -491,60 +508,71 @@ test('A2b REPRO: hooking Function.prototype.apply leaks native toDataURL and get
     };
     const canvas = document.createElement('canvas'); canvas.width = 16; canvas.height = 16;
     const gl = new WebGLRenderingContext(canvas);
-    let spoofed;
+    let spoofed, hookedDataURL;
     try {
       spoofed = gl.getParameter(0x9246);
-      void __c.toDataURL();
+      hookedDataURL = __c.toDataURL();
     } finally { Function.prototype.apply = origApply; }
     const nativeGetParameter = leaked.find((f) => f.name === 'getParameter' && f !== WebGLRenderingContext.prototype.getParameter);
     const nativeToDataURL = leaked.find((f) => f.name === 'toDataURL' && f !== HTMLCanvasElement.prototype.toDataURL);
     ({
-      spoofed,
+      spoofed, hookedDataURL, applies: leaked.length,
       real: nativeGetParameter ? Reflect.apply(nativeGetParameter, gl, [0x9246]) : null,
       realDataURL: nativeToDataURL ? Reflect.apply(nativeToDataURL, __c, []) : null,
       shimDataURL: __c.toDataURL(),
     });
   `.replace(/__c/g, '__canvasUnderTest'), Object.assign(s.ctx, { __canvasUnderTest: c }));
-  assert.equal(out.spoofed, DELIVERED.gpu.renderer, 'sanity: the persona GPU was presented');
-  assert.equal(out.real, REAL_RENDERER, 'THE FINDING: the real GPU renderer was read via the leaked native getParameter');
-  assert.notEqual(out.shimDataURL, out.realDataURL, 'sanity: the shim noises toDataURL');
-  assert.equal(out.realDataURL, 'data:fake,' + Array.from(c.getContext('2d')._buf).join(','),
-    'THE FINDING: the un-noised canvas was read via the leaked native toDataURL');
+  const rawDataURL = 'data:fake,' + Array.from(c.getContext('2d')._buf).join(',');
+  assert.equal(out.spoofed, DELIVERED.gpu.renderer, 'the persona GPU was presented while the hook was live');
+  assert.equal(out.real, null, 'REGRESSION: the native getParameter reached the page through an .apply hook');
+  assert.equal(out.realDataURL, null, 'REGRESSION: the native toDataURL reached the page through an .apply hook');
+  assert.equal(out.applies, 0, 'REGRESSION: the shim invoked Function.prototype.apply at run time');
+  assert.notEqual(out.hookedDataURL, rawDataURL, 'REGRESSION: toDataURL under the hook returned the un-noised canvas');
+  assert.equal(out.hookedDataURL, out.shimDataURL, 'determinism: the hooked read equals the unhooked read');
 });
 
-test('A2c REPRO: hooking String.prototype.charCodeAt makes nonceMatches() accept ANY 32-char nonce → forged stand-down', () => {
+test('A2c GUARD: hooking String.prototype.charCodeAt no longer makes a forged nonce match; the genuine one still does under the hook', () => {
   const s = bootRealm();
+  const fallbackUA = s.ua();
   s.page(`
-    const orig = String.prototype.charCodeAt;
+    globalThis.__origCharCodeAt = String.prototype.charCodeAt;
     String.prototype.charCodeAt = function () { return 0; };
-    try {
-      document.dispatchEvent(new CustomEvent('nullecho:persona', {
-        detail: JSON.stringify({ ok: true, enabled: false, nonce: '0'.repeat(32) }),
-      }));
-    } finally { String.prototype.charCodeAt = orig; }
+    document.dispatchEvent(new CustomEvent('nullecho:persona', {
+      detail: JSON.stringify({ ok: true, enabled: false, nonce: '0'.repeat(32) }),
+    }));
   `);
-  assert.equal(s.ua(), REAL_UA,
-    'THE FINDING: a page that never saw the nonce stood the shim down and got the real machine');
-  assert.ok(s.statuses.some((d) => d.reason === 'allowlisted'), 'the shim even reported the forged stand-down as a legitimate allowlist');
+  assert.notEqual(s.ua(), REAL_UA, 'REGRESSION: a page that never saw the nonce stood the shim down');
+  assert.equal(s.ua(), fallbackUA, 'the forgery changed nothing: still the fallback persona');
+  assert.ok(s.statuses.some((d) => d.reason === 'forged-handshake-rejected'), 'the forgery was reported as such');
+  assert.ok(!s.statuses.some((d) => d.reason === 'allowlisted'), 'and not as an allowlist');
+  // Timing 2: the hook is STILL installed when the loader's genuine delivery lands.
+  s.upgrade();
+  assert.equal(s.ua(), DELIVERED.ua, 'the genuine handshake authenticated through the captured charCodeAt while the live one was hooked');
+  s.page('String.prototype.charCodeAt = globalThis.__origCharCodeAt;');
 });
 
-test('A2d REPRO: the same charCodeAt hook deletes navigator.globalPrivacyControl through gpc.js', () => {
+test('A2d GUARD: the same charCodeAt hook cannot delete navigator.globalPrivacyControl through gpc.js; the real gpcNonce still can', () => {
   const s = bootRealm({ gpc: true });
   assert.equal(s.ctx.navigator.globalPrivacyControl, true, 'sanity: gpc.js set the signal');
+  assert.ok(s.gpcBoot && typeof s.gpcBoot.nonce === 'string', 'sanity: gpc.js published its own boot nonce');
   s.page(`
-    const orig = String.prototype.charCodeAt;
+    globalThis.__origCharCodeAt = String.prototype.charCodeAt;
     String.prototype.charCodeAt = function () { return 0; };
-    try {
-      document.dispatchEvent(new CustomEvent('nullecho:persona', {
-        detail: JSON.stringify({ gpc: false, gpcNonce: '0'.repeat(32), nonce: '0'.repeat(32) }),
-      }));
-    } finally { String.prototype.charCodeAt = orig; }
+    document.dispatchEvent(new CustomEvent('nullecho:persona', {
+      detail: JSON.stringify({ gpc: false, gpcNonce: '0'.repeat(32), nonce: '0'.repeat(32) }),
+    }));
   `);
-  assert.equal(s.ctx.navigator.globalPrivacyControl, undefined,
-    'THE FINDING: the site the do-not-sell signal is aimed at switched it off without the nonce');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, true,
+    'REGRESSION: the site the do-not-sell signal is aimed at switched it off without the nonce');
+  // Timing 2: the loader's genuine delivery (both nonces) with the hook still live.
+  // It reaches gpc.js through the shim's relay (A3 below) and must still be honoured.
+  s.upgrade(DELIVERED, { gpc: false });
+  assert.equal(s.ua(), DELIVERED.ua, 'the shim half authenticated');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, undefined, 'the gpc half authenticated its own nonce under the hook');
+  s.page('String.prototype.charCodeAt = globalThis.__origCharCodeAt;');
 });
 
-test('A2e REPRO: hooking %TypedArray%.prototype.length during one read skips the canvas noise entirely', () => {
+test('A2e GUARD: hooking %TypedArray%.prototype.length during a read no longer skips the canvas noise', () => {
   const s = bootRealm();
   s.upgrade();
   const c = s.canvas(32, 16);
@@ -558,12 +586,12 @@ test('A2e REPRO: hooking %TypedArray%.prototype.length during one read skips the
     finally { Object.defineProperty(TAP, 'length', d); }
     img.data;
   `.replace(/__c/g, '__canvasUnderTest'), Object.assign(s.ctx, { __canvasUnderTest: c }));
-  assert.ok(bytesEqual(out, truth), 'THE FINDING: getImageData returned the real, un-noised pixels');
+  assert.ok(!bytesEqual(out, truth), 'REGRESSION: getImageData under the hook returned the real, un-noised pixels');
   const honest = c.getContext('2d').getImageData(0, 0, 32, 16).data;
-  assert.ok(!bytesEqual(honest, truth), 'sanity: without the hook the same read is noised');
+  assert.ok(bytesEqual(out, honest), 'determinism: the hooked read equals the unhooked read');
 });
 
-test('A2f REPRO: hooking Math.imul makes the noise persona-independent — identical output on two sites', () => {
+test('A2f GUARD: hooking Math.imul no longer changes the noise — two sites still differ, and each equals its unhooked read', () => {
   const hookedRead = (hostname, persona) => {
     const s = bootRealm({ hostname, origin: `https://${hostname}` });
     s.upgrade(persona);
@@ -580,27 +608,195 @@ test('A2f REPRO: hooking Math.imul makes the noise persona-independent — ident
   const a = hookedRead('news.example', DELIVERED);
   const b = hookedRead('shop.example', DELIVERED_B);
   assert.ok(!bytesEqual(a.plain, b.plain), 'sanity: unhooked reads differ per site');
-  assert.ok(bytesEqual(a.hooked, b.hooked), 'THE FINDING: with Math.imul neutered, both sites return the same bytes');
+  assert.ok(bytesEqual(a.hooked, a.plain), 'REGRESSION: Math.imul hook altered site A\'s noise');
+  assert.ok(bytesEqual(b.hooked, b.plain), 'REGRESSION: Math.imul hook altered site B\'s noise');
+  assert.ok(!bytesEqual(a.hooked, b.hooked), 'REGRESSION: with Math.imul neutered, both sites returned the same bytes');
+});
+
+/**
+ * A2, the OTHER timing. The review's tests hook after the upgrade. Here every
+ * hook goes in after boot but BEFORE the loader's genuine delivery, stays live
+ * through the handshake, and stays live while the page reads. Hostile where the
+ * fake DOM can bear it (wrong answers), observing where the fake dispatcher
+ * itself needs the primitive (`call`/`apply` forward, but record every use).
+ */
+test('A2-timing GUARD: with a dozen builtins hooked BEFORE the genuine handshake lands, the upgrade, the spoof and the noise are unchanged', async () => {
+  const s = bootRealm();
+  const c = s.canvas(24, 12);
+  const truth = paintReal(c, 11);
+  // `call`, `apply` and `WeakMap.get` are OBSERVING hooks (the fake dispatcher in
+  // DOM_SETUP needs them working — a real browser's is native) that record every
+  // receiver they see; the harvest below is what an attacker would do with them.
+  // The rest are hostile: they answer wrongly or throw.
+  s.page(`
+    const LEAKED = globalThis.__leaked = [];      // every function routed through .call / .apply
+    const MAPS = globalThis.__maps = [];          // every WeakMap routed through .get
+    const H = globalThis.__hooks = [];
+    const hook = (obj, name, impl) => {
+      const d = Object.getOwnPropertyDescriptor(obj, name); H[H.length] = [obj, name, d];
+      Object.defineProperty(obj, name, { ...d, ...(d.get ? { get: impl } : { value: impl }) });
+    };
+    const TAP = Object.getPrototypeOf(Uint8ClampedArray.prototype);
+    const origWmGet = WeakMap.prototype.get;
+    hook(Function.prototype, 'call', function (t, ...a) { LEAKED[LEAKED.length] = this; return Reflect.apply(this, t, a); });
+    hook(Function.prototype, 'apply', function (t, a) { LEAKED[LEAKED.length] = this; return Reflect.apply(this, t, a || []); });
+    hook(WeakMap.prototype, 'get', function (k) { MAPS[MAPS.length] = this; return Reflect.apply(origWmGet, this, [k]); });
+    hook(String.prototype, 'charCodeAt', () => 0);
+    hook(Math, 'imul', () => 0);
+    hook(Math, 'floor', () => NaN); hook(Math, 'max', () => NaN); hook(Math, 'min', () => NaN);
+    hook(TAP, 'length', function () { return 0; });
+    hook(Set.prototype, 'has', () => false);
+    hook(Set.prototype, 'add', function () { return this; });
+    hook(Array, 'isArray', () => false);
+    hook(ArrayBuffer, 'isView', () => false);
+    hook(Object, 'freeze', () => { throw new Error('page-owned freeze'); });
+    hook(Promise, 'resolve', () => { throw new Error('page-owned Promise.resolve'); });
+    hook(Array.prototype, 'filter', () => { throw new Error('page-owned filter'); });
+    hook(Array.prototype, 'map', () => { throw new Error('page-owned map'); });
+    hook(Array.prototype, 'push', () => { throw new Error('page-owned push'); });
+  `);
+
+  // The loader's genuine delivery lands NOW, with every hook live.
+  s.upgrade();
+  assert.ok(s.statuses.some((d) => d.upgraded === true), 'the shim reported the upgrade with charCodeAt hooked');
+  assert.equal(s.ctx.navigator.hardwareConcurrency, DELIVERED.cores, 'the delivered persona is in place (cores)');
+  assert.equal(s.ctx.navigator.deviceMemory, DELIVERED.memory, 'the delivered persona is in place (memory)');
+
+  const read = s.page(`(() => {
+    const gl = new WebGLRenderingContext(document.createElement('canvas'));
+    const img = Array.from(__c.getContext('2d').getImageData(0, 0, 24, 12).data); // plain array: own .length
+    const he = navigator.userAgentData.getHighEntropyValues(['architecture', 'platformVersion']);
+    const brands = navigator.userAgentData.brands; let brandStr = '';
+    for (let i = 0; i < brands.length; i++) brandStr += (i ? ' ' : '') + brands[i].brand + '/' + brands[i].version;
+    return {
+      ua: navigator.userAgent, cores: navigator.hardwareConcurrency, memory: navigator.deviceMemory,
+      languages: navigator.languages, brands: brandStr,
+      renderer: gl.getParameter(0x9246), extensions: gl.getSupportedExtensions(),
+      toDataURL: __c.toDataURL(), img, he,
+    };
+  })()`.replace(/__c/g, '__canvasUnderTest'), Object.assign(s.ctx, { __canvasUnderTest: c }));
+
+  assert.equal(read.ua, DELIVERED.ua);
+  assert.equal(read.cores, DELIVERED.cores, 'hardwareConcurrency (goes through a captured Math.max)');
+  assert.equal(read.memory, DELIVERED.memory);
+  assert.deepEqual(plain(read.languages), ['en-US', 'en'], 'languages (captured Object.freeze)');
+  assert.equal(read.brands, 'Not;A=Brand/99 Chromium/151 Google Chrome/151', 'brands (no Array.prototype.map)');
+  assert.equal(read.renderer, DELIVERED.gpu.renderer);
+  assert.deepEqual(plain(read.extensions), ['WEBGL_compressed_texture_astc', 'WEBGL_debug_renderer_info', 'OES_texture_float'],
+    'an Apple persona strips nothing; the list came back through an index loop, not .filter');
+  assert.ok(!bytesEqual(read.img, truth), 'getImageData was noised with %TypedArray%.length and Math.imul hooked');
+  const rawDataURL = 'data:fake,' + Array.from(c.getContext('2d')._buf).join(',');
+  assert.notEqual(read.toDataURL, rawDataURL, 'toDataURL was noised');
+  const he = await read.he;
+  assert.equal(he.architecture, DELIVERED.uaData.architecture, 'getHighEntropyValues (captured Promise.resolve, Set.has, Array.isArray)');
+
+  // THE HARVEST. Everything that went through the hooked call/apply/get: does any
+  // of it answer with the real machine, the raw canvas, or the patched-function oracle?
+  const harvest = s.page(`(() => {
+    const gl = new WebGLRenderingContext(document.createElement('canvas'));
+    const spoofedUA = navigator.userAgent;
+    const patchedUA = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
+    let realUA = null, realRenderer = null, rawDataURL = null, oracle = false;
+    for (const fn of __leaked) {
+      if (typeof fn !== 'function') continue;
+      try { const v = Reflect.apply(fn, navigator, []); if (typeof v === 'string' && v !== spoofedUA && v.startsWith('Mozilla/')) realUA = v; } catch {}
+      try { const v = Reflect.apply(fn, gl, [0x9246]); if (v === ${JSON.stringify(REAL_RENDERER)}) realRenderer = v; } catch {}
+      try { const v = Reflect.apply(fn, __c, []); if (typeof v === 'string' && v === ${JSON.stringify(rawDataURL)}) rawDataURL = v; } catch {}
+    }
+    for (const m of __maps) { try { if (WeakMap.prototype.has.call(m, patchedUA)) oracle = true; } catch {} }
+    return { realUA, realRenderer, rawDataURL, oracle, routed: __leaked.length, maps: __maps.length };
+  })()`.replace(/__c/g, '__canvasUnderTest'));
+  assert.equal(harvest.realUA, null, 'REGRESSION: a native navigator getter was routed through the live call/apply');
+  assert.equal(harvest.realRenderer, null, 'REGRESSION: the native getParameter was routed through the live call/apply');
+  assert.equal(harvest.rawDataURL, null, 'REGRESSION: the native toDataURL was routed through the live call/apply');
+  assert.equal(harvest.oracle, false, 'REGRESSION: NATIVE_SRC was routed through the live WeakMap.prototype.get (C2)');
+
+  // Unhook, read again: byte-identical. Hook state cannot be a side channel either.
+  s.page('for (const [obj, name, d] of globalThis.__hooks.reverse()) Object.defineProperty(obj, name, d);');
+  const again = s.page(`Array.from(__c.getContext('2d').getImageData(0, 0, 24, 12).data)`.replace(/__c/g, '__canvasUnderTest'));
+  assert.ok(bytesEqual(again, read.img), 'determinism across hook state');
+  assert.equal(s.page('__canvasUnderTest.toDataURL()'), read.toDataURL);
+});
+
+/**
+ * D21's invariant, as a lint: after the captured-builtins block, neither
+ * MAIN-world script may name a builtin global or call a builtin prototype
+ * method bare. Comments and string literals are stripped first; the shim's
+ * generated persona mirror and its boot-only `registrableDomain` (which A4c
+ * lifts out verbatim and runs in a bare context) are exempt.
+ */
+test('A2-lint GUARD: shim.js and gpc.js call no builtin prototype after the capture block (D21)', () => {
+  const stripped = (src) => src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:\\])\/\/.*$/gm, '$1')
+    .replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, '""');
+  const GLOBALS = /\b(Math|JSON|Reflect|Object|Array|ArrayBuffer|Symbol|Promise|String|Number|RegExp|WeakMap|WeakSet|Set|Map)\s*\./g;
+  const CTORS = /\bnew\s+(Set|Map|WeakMap|WeakSet)\s*\(/g;
+  const METHODS = /\.(call|apply|bind|charCodeAt|imul|isArray|freeze|toLowerCase|has|add|filter|map|forEach|indexOf|then|exec|test|replace|trim|slice|join|push|reduce|concat|split|padStart|toString|some|every|keys|values|entries|get|set|clear|delete)\s*\(/g;
+
+  const check = (label, body) => {
+    const hits = [];
+    for (const re of [GLOBALS, CTORS, METHODS]) {
+      for (const m of body.matchAll(re)) {
+        const line = body.slice(0, m.index).split('\n').length;
+        hits.push(`${label}: "${m[0].trim()}" near line ${line}`);
+      }
+    }
+    assert.deepEqual(hits, [], `bare builtin use after the capture block:\n${hits.join('\n')}`);
+  };
+
+  let shim = SHIM_SRC.slice(SHIM_SRC.indexOf('END CAPTURED BUILTINS'));
+  shim = shim.replace(/BEGIN GENERATED MIRROR[\s\S]*?END GENERATED MIRROR/, '');
+  shim = shim.replace(/const MULTI_LABEL_SUFFIXES[\s\S]*?function registrableDomain\(hostname\) \{[\s\S]*?\n  \}/, '');
+  assert.ok(SHIM_SRC.includes('BEGIN CAPTURED BUILTINS') && SHIM_SRC.includes('END CAPTURED BUILTINS'), 'shim.js lost its capture-block markers');
+  check('shim.js', stripped(shim));
+
+  const start = GPC_SRC.indexOf('END CAPTURED BUILTINS');
+  const end = GPC_SRC.indexOf('// ══ extension half');
+  assert.ok(start > 0 && end > start, 'gpc.js lost its capture-block or extension-half markers');
+  check('gpc.js (page half)', stripped(GPC_SRC.slice(start, end)));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
 // A3 — the persona payload (noise keys included) is readable by the page
+//
+// ✅ FIXED 2026-09-16 (D21): the shim stops the authenticated event dead and
+// relays a stripped `{ ok, enabled, gpc, gpcNonce }` for gpc.js, which stops
+// that in turn. Page listeners on window (capture) — the earliest a page can
+// be — see neither.
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('A3 REPRO: the shim never stops propagation, so a page listener reads the delivered noise keys and seed', () => {
+test('A3 GUARD: a page window-capture listener sees neither the persona delivery nor the gpc relay; gpc.js still gets its config', () => {
+  const s = bootRealm({ gpc: true });
+  assert.equal(s.ctx.navigator.globalPrivacyControl, true, 'sanity: gpc.js is up');
+  s.page(`
+    globalThis.__stolen = null; globalThis.__fires = 0;
+    globalThis.EventTarget.prototype.addEventListener.call(globalThis, 'nullecho:persona', (ev) => {
+      globalThis.__fires++; globalThis.__stolen = JSON.parse(ev.detail);
+    }, true);
+    document.addEventListener('nullecho:persona', (ev) => { globalThis.__fires++; }, true);
+    document.addEventListener('nullecho:persona', (ev) => { globalThis.__fires++; });
+  `);
+  s.upgrade(DELIVERED, { gpc: false });
+  assert.equal(s.ua(), DELIVERED.ua, 'the shim consumed the handshake');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, undefined, 'gpc.js heard {gpc:false} through the shim\'s relay');
+  assert.equal(s.ctx.__stolen, null, 'REGRESSION: a page listener read the delivered payload');
+  assert.equal(s.ctx.__fires, 0, 'REGRESSION: a page listener fired on the delivery or on the relay');
+});
+
+test('A3 GUARD: with gpc.js absent (excluded host) nothing is relayed, and an unauthenticated event is left to the page', () => {
   const s = bootRealm();
   s.page(`
-    globalThis.__stolen = null;
-    window_capture: {
-      globalThis.EventTarget.prototype.addEventListener.call(globalThis, 'nullecho:persona', (ev) => { globalThis.__stolen = JSON.parse(ev.detail); }, true);
-    }
+    globalThis.__seen = [];
+    globalThis.EventTarget.prototype.addEventListener.call(globalThis, 'nullecho:persona', (ev) => { globalThis.__seen.push(JSON.parse(ev.detail)); }, true);
   `);
-  s.upgrade();
-  assert.equal(s.ua(), DELIVERED.ua, 'sanity: the shim consumed the handshake first');
-  const stolen = s.ctx.__stolen;
-  assert.ok(stolen, 'THE FINDING: the page listener fired at all — nothing called stopImmediatePropagation()');
-  assert.deepEqual(plain(stolen.persona.noise), DELIVERED.noise, 'the per-origin noise keys were handed to the page');
-  assert.equal(stolen.persona.seed, DELIVERED.seed);
+  s.upgrade();                                     // gpcNonce: null → no relay
+  assert.equal(s.ua(), DELIVERED.ua);
+  assert.deepEqual(plain(s.ctx.__seen), [], 'nothing reached the page: no delivery, no relay');
+  // The page's own event (wrong nonce) is not ours to swallow — swallowing it would be a free presence probe.
+  s.send({ ok: true, enabled: false, nonce: 'f'.repeat(32) });
+  assert.equal(s.ctx.__seen.length, 1, 'an unauthenticated event propagates normally');
+  assert.equal(s.ua(), DELIVERED.ua, 'and changes nothing');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -663,23 +859,55 @@ test('A4d REPRO: the two suffix tables disagree on 41 entries (no test pinned th
 // ═══════════════════════════════════════════════════════════════════════════
 // A5 — heuristics: three attacker pages can get an arbitrary domain blocked
 // ═══════════════════════════════════════════════════════════════════════════
+//
+// FIXED 2026-09-16 (DECISIONS.md D20). The URL-derived `ID_PARAM` strike is
+// gone — retired, not tightened, because the network layer cannot distinguish
+// a parameter the third party originated from one the embedding page pasted
+// in — and `SET_COOKIE` now counts only cookies the browser would actually
+// keep cross-site (`SameSite=None`, not `Partitioned`), so "embed any site with
+// a session cookie on three pages" is closed too. The test is now the guard.
 
-test('A5 REPRO: an ID-bearing query string from three attacker-controlled sites promotes a victim domain to a dynamic block rule', async () => {
+test('A5 FIXED: an ID-bearing query string from three attacker-controlled sites earns the victim NOTHING — no record, no rule', async () => {
   await H.reset();
   dynamicRuleCalls.length = 0;
-  const onBeforeRequest = webRequestListeners.onBeforeRequest;
-  assert.equal(typeof onBeforeRequest, 'function', 'heuristics.install() registered the observer');
+  assert.equal(webRequestListeners.onBeforeRequest, undefined,
+    'a URL-only observer is registered again — the attacker controls every byte of the URL');
+  const { onBeforeSendHeaders, onHeadersReceived } = webRequestListeners;
+  assert.equal(typeof onBeforeSendHeaders, 'function');
+  assert.equal(typeof onHeadersReceived, 'function');
+
+  const url = 'https://cdn.victim.example/logo.png?gclid=' + 'Q7'.repeat(12);
   // github.io subdomains are (correctly) separate registrable domains — three free
-  // pages are three "unrelated first parties". The URL is entirely the attacker's.
+  // pages are three "unrelated first parties". Everything the attacker can arrange
+  // is here: the decorated URL, no cookie for the victim (the attacker cannot
+  // write the victim's jar), and a victim server that does what ordinary servers
+  // do — sets a session cookie and even reflects the parameter into one — but
+  // without `SameSite=None`, which Chrome drops from a cross-site response.
   for (const site of ['a1.github.io', 'a2.github.io', 'a3.github.io']) {
-    onBeforeRequest({ tabId: 1, type: 'image', url: 'https://cdn.victim.example/logo.png?gclid=' + 'Q7'.repeat(12), initiator: `https://${site}` });
+    const base = { tabId: 1, type: 'image', url, initiator: `https://${site}` };
+    onBeforeSendHeaders({ ...base, requestHeaders: [{ name: 'Accept', value: 'image/avif,image/webp,*/*' }] });
+    onHeadersReceived({ ...base, responseHeaders: [
+      { name: 'Content-Type', value: 'image/png' },
+      { name: 'Set-Cookie', value: 'PHPSESSID=8f3a9c1d2e4b6a7f8c9d0e1f2a3b4c5d; Path=/; HttpOnly' },
+      { name: 'Set-Cookie', value: 'gclid=' + 'Q7'.repeat(12) + '; Path=/; SameSite=Lax' },
+    ] });
   }
-  for (let i = 0; i < 20 && (await H.getState()).find((d) => d.domain === 'victim.example')?.status !== 'blocked'; i++) {
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal((await H.getState()).find((d) => d.domain === 'victim.example'), undefined,
+    'victim.example was recorded on the strength of a URL the attacker wrote');
+  assert.deepEqual(dynamicRuleCalls.flatMap((c) => c.addRules ?? []), [], 'a rule was written');
+
+  // Positive control — the learner is still alive for a third party that DOES
+  // set a cross-site identifier on three unrelated sites (EFF's three strikes).
+  for (const site of ['news.test', 'shop.test', 'blog.test']) {
+    onHeadersReceived({ tabId: 1, type: 'script', url: 'https://t.tracker.example/px.js', initiator: `https://${site}`,
+      responseHeaders: [{ name: 'Set-Cookie', value: 'uid=8f3a9c1d2e4b6a7f8c9d0e1f2a3b4c5d; Path=/; Secure; SameSite=None' }] });
+  }
+  for (let i = 0; i < 50 && (await H.getState()).find((d) => d.domain === 'tracker.example')?.status !== 'blocked'; i++) {
     await new Promise((r) => setTimeout(r, 5));
   }
-  const rec = (await H.getState()).find((d) => d.domain === 'victim.example');
-  assert.equal(rec?.status, 'blocked', 'THE FINDING: victim.example is now blocked for this user, everywhere it appears as a third party');
-  const rule = dynamicRuleCalls.flatMap((c) => c.addRules ?? []).find((r) => r.condition?.requestDomains?.[0] === 'victim.example');
+  assert.equal((await H.getState()).find((d) => d.domain === 'tracker.example')?.status, 'blocked');
+  const rule = dynamicRuleCalls.flatMap((c) => c.addRules ?? []).find((r) => r.condition?.requestDomains?.[0] === 'tracker.example');
   assert.equal(rule?.action?.type, 'block');
   await H.reset();
 });
@@ -721,17 +949,82 @@ test('B1 REPRO: navigator.language is pinned to en-US while Intl / toLocaleStrin
   assert.equal(out.date, '16.9.2026');
 });
 
-test('B2 REPRO: the persona pins Chrome 151 in JS regardless of the real Chrome (152 here); nothing rewrites the UA / Client-Hint headers', () => {
-  const s = bootRealm(); // host navigator says Chrome/152
-  assert.match(s.ua(), /Chrome\/151\.0\.0\.0/, 'fallback persona reports 151');
-  const brands = s.page('navigator.userAgentData.brands.map((b) => b.brand + "/" + b.version).join(" ")');
-  assert.match(brands, /Chromium\/151 Google Chrome\/151/);
-  assert.match(s.h.REAL.userAgent, /Chrome\/152/, 'the browser will send Chrome/152 in User-Agent and Sec-CH-UA on every request');
-  // Static half: no rule or code path touches those request headers.
-  const shipped = fs.readdirSync(path.join(EXT, 'rules')).filter((f) => f.endsWith('.json'))
-    .map((f) => fs.readFileSync(path.join(EXT, 'rules', f), 'utf8')).join('\n')
-    + fs.readdirSync(HERE).filter((f) => f.endsWith('.js') && !f.includes('.test.')).map((f) => src(f)).join('\n');
-  assert.doesNotMatch(shipped, /user-agent|sec-ch-ua/i, 'THE FINDING: header and JS disagree the moment Chrome updates');
+// FIXED 2026-09-16 (DECISIONS.md D19). Three static `modifyHeaders` rulesets —
+// one per host OS family, generated from personas.js + the shim's GREASE brand —
+// rewrite `User-Agent` and every `Sec-CH-UA-*` request header; background.js
+// enables the host family's one. Family-level rather than per-origin because the
+// `main_frame` request precedes any content script, so a per-origin rule cannot
+// exist for the first request to a site — while D12 already pins every persona
+// this host can be shown (fallback included) to one family. The guard boots the
+// REAL shim once per persona and compares what its navigator says to the bytes
+// the ruleset would put on the wire, field by field.
+
+test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the host family\'s values, which equal the JS persona\'s field by field (one documented residual)', async () => {
+  const s0 = bootRealm(); // host navigator says Chrome/152
+  assert.match(s0.h.REAL.userAgent, /Chrome\/152/, 'the browser itself would send Chrome/152');
+  assert.match(s0.ua(), /Chrome\/151\.0\.0\.0/, 'the JS persona still says 151 — the header follows it, not the other way round');
+
+  const WANT = ['User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform', 'Sec-CH-UA-Full-Version-List',
+    'Sec-CH-UA-Full-Version', 'Sec-CH-UA-Platform-Version', 'Sec-CH-UA-Arch', 'Sec-CH-UA-Bitness', 'Sec-CH-UA-Model', 'Sec-CH-UA-WoW64'];
+  const families = { win: 'ua-win.json', mac: 'ua-mac.json', linux: 'ua-linux.json' };
+  const familyOfPlatform = { Win32: 'win', MacIntel: 'mac', 'Linux x86_64': 'linux' };
+  // Chrome's wire form (RFC 8941), written out here rather than imported so this
+  // check does not lean on the generator it is checking.
+  const q = (v) => `"${String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  const list = (arr) => Array.from(arr, (b) => `${q(b.brand)};v=${q(b.version)}`).join(', ');
+  const bool = (b) => (b ? '?1' : '?0');
+
+  // Both manifests register the three rulesets, DISABLED — the worker picks one.
+  for (const name of ['manifest.json', 'manifest.firefox.json']) {
+    const m = JSON.parse(fs.readFileSync(path.join(EXT, name), 'utf8'));
+    for (const [fam, file] of Object.entries(families)) {
+      const r = m.declarative_net_request.rule_resources.find((x) => x.path === `rules/${file}`);
+      assert.ok(r, `${name} does not register ${file}`);
+      assert.equal(r.id, `ua-${fam}`);
+      assert.equal(r.enabled, false, `${name}: three enabled at once would fight over the same headers`);
+    }
+  }
+
+  const mismatches = [];
+  let checked = 0;
+  for (const [fam, file] of Object.entries(families)) {
+    const rules = JSON.parse(fs.readFileSync(path.join(EXT, 'rules', file), 'utf8'));
+    const wire = {};
+    for (const r of rules) {
+      assert.equal(r.action.type, 'modifyHeaders');
+      assert.ok(r.condition.resourceTypes.includes('main_frame'), 'the navigation is the first request the server sees');
+      for (const h of r.action.requestHeaders) { assert.equal(h.operation, 'set'); wire[h.header] = h.value; }
+    }
+    assert.deepEqual(Object.keys(wire).sort(), [...WANT].sort(), `${file} rewrites exactly these headers`);
+
+    for (const p of PERSONAS.filter((p) => familyOfPlatform[p.platform] === fam)) {
+      const s = bootRealm();
+      s.upgrade({ ...p, fontList: ['Helvetica'], noise: { canvas: 0.31, audio: 0.57, webgl: 0.73 }, seed: 1 });
+      assert.equal(s.statuses.at(-1)?.upgraded, true, `${p.id}: the shim did not accept the persona`);
+      const hi = await s.page('navigator.userAgentData.getHighEntropyValues(["architecture","bitness","model","platformVersion","uaFullVersion","fullVersionList","wow64"])');
+      const js = {
+        'User-Agent': s.ua(),
+        'Sec-CH-UA': list(s.page('navigator.userAgentData.brands')),
+        'Sec-CH-UA-Mobile': bool(s.page('navigator.userAgentData.mobile')),
+        'Sec-CH-UA-Platform': q(s.page('navigator.userAgentData.platform')),
+        'Sec-CH-UA-Full-Version-List': list(hi.fullVersionList),
+        'Sec-CH-UA-Full-Version': q(hi.uaFullVersion),
+        'Sec-CH-UA-Platform-Version': q(hi.platformVersion),
+        'Sec-CH-UA-Arch': q(hi.architecture),
+        'Sec-CH-UA-Bitness': q(hi.bitness),
+        'Sec-CH-UA-Model': q(hi.model),
+        'Sec-CH-UA-WoW64': bool(hi.wow64),
+      };
+      for (const name of WANT) {
+        checked += 1;
+        if (js[name] !== wire[name]) mismatches.push({ persona: p.id, header: name, js: js[name], wire: wire[name] });
+      }
+    }
+  }
+  assert.equal(checked, PERSONAS.length * WANT.length, 'every persona × every header was compared');
+  assert.deepEqual(mismatches, [
+    { persona: 'macos-chrome-intel-iris', header: 'Sec-CH-UA-Arch', js: '"x86"', wire: '"arm"' },
+  ], 'THE RESIDUAL (D19): one persona, one header. Anything else here is B2 back — or a pool change that needs D19 revisited');
 });
 
 test('B3a REPRO: an about:blank / srcdoc child is keyed on location.origin (a URL string), not the parent\'s eTLD+1', () => {
@@ -849,23 +1142,23 @@ test('C1 REPRO: the MAIN→ISOLATED reverse channel is unauthenticated — a pag
   assert.ok(toWorker.some((m) => m.type === 'nullecho:fp-detected' && m.count === 1e6), 'a page-forged detect count was forwarded verbatim');
 });
 
-test('C2 REPRO: hooking WeakMap.prototype.get exposes NATIVE_SRC — a membership oracle for every patched function', () => {
+test('C2 GUARD: hooking WeakMap.prototype.get never sees NATIVE_SRC; toString masking still works under the hook (fixed with A2, D21)', () => {
   const s = bootRealm();
   const out = s.page(`
-    let map = null;
+    let map = null, gets = 0;
     const origGet = WeakMap.prototype.get;
-    WeakMap.prototype.get = function (k) { map = this; return origGet.call(this, k); };
-    try { (function () {}).toString(); } finally { WeakMap.prototype.get = origGet; }
-    const has = (fn) => WeakMap.prototype.has.call(map, fn);
-    ({
-      gotMap: map instanceof WeakMap,
-      patchedUA: has(Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get),
-      patchedToDataURL: has(HTMLCanvasElement.prototype.toDataURL),
-      untouched: has(Array.prototype.push),
-    });
+    WeakMap.prototype.get = function (k) { gets++; map = this; return origGet.call(this, k); };
+    let plainSrc, patchedSrc;
+    try {
+      plainSrc = (function pageFn() { return 1; }).toString();
+      patchedSrc = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get.toString();
+    } finally { WeakMap.prototype.get = origGet; }
+    ({ gotMap: map instanceof WeakMap, gets, plainSrc, patchedSrc });
   `);
-  assert.deepEqual(plain(out), { gotMap: true, patchedUA: true, patchedToDataURL: true, untouched: false },
-    'THE FINDING: certain, false-positive-free detection of every function the shim replaced');
+  assert.equal(out.gotMap, false, 'REGRESSION: the shim consulted NATIVE_SRC through the live WeakMap.prototype.get');
+  assert.equal(out.gets, 0, 'REGRESSION: the patched toString invoked WeakMap.prototype.get at run time');
+  assert.match(out.plainSrc, /return 1/, 'an ordinary function still prints its source');
+  assert.equal(out.patchedSrc, 'function get userAgent() { [native code] }', 'the mask still applied while the hook was live');
 });
 
 test('C3 REPRO: the heuristics layer waits for a nullecho:signal message that no file ever sends (CANVAS / SUPERCOOKIE strikes are dead)', () => {

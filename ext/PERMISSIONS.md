@@ -13,13 +13,23 @@ than it can account for has already lost the argument it exists to make.
 ## Requested
 
 ### `declarativeNetRequest`
-Runs the five static blocking rulesets (`rules/ads.json`, `analytics`, `social`,
-`fingerprinting`, `gpc`) and the dynamic per-site allowlist rules.
+Runs the five static rulesets (`rules/ads.json`, `analytics`, `social`,
+`fingerprinting`, `gpc`), the three per-OS-family header rulesets
+(`rules/ua-win.json`, `ua-mac`, `ua-linux` — registered disabled; the service
+worker enables the host family's one, see `rules/README.md`), and the dynamic
+per-site allowlist rules.
 
 This is the *narrow* form on purpose. Nullecho does not request `webRequest` +
 `webRequestBlocking` on Chrome: DNR rules are evaluated by the browser, so the
 extension never sees the URL of a request it did not block. Less capability, less
 data reaching us, and nothing lost — the blocklists are static rules.
+
+The header rulesets rewrite `User-Agent` and the `Sec-CH-UA-*` request headers
+to the persona's values (2026-09-16, REVIEW B2 / DECISIONS D19). That is
+`modifyHeaders`, which this permission plus `host_permissions` already covers —
+`declarativeNetRequestWithHostAccess` is the alternative for extensions that
+lack the `declarativeNetRequest` permission, and is **not** needed. No new
+permission was added for it, on either platform.
 
 ### `declarativeNetRequestFeedback`
 The only way to know *what* was blocked so the popup can say "47 requests blocked
@@ -59,6 +69,13 @@ it did not block. Nothing is transmitted — there is no network endpoint — bu
 capability is real, and it is the reason `src/heuristics.js` keeps only aggregate
 per-domain strike counts rather than a request log.
 
+Since 2026-09-16 the observer registers **no `onBeforeRequest` listener at all**
+— only `onBeforeSendHeaders` and `onHeadersReceived`, for the `Cookie` /
+`Set-Cookie` headers. The URL-derived strike it used to take from
+`onBeforeRequest` was attacker-forgeable (REVIEW B2's neighbour, A5; DECISIONS
+D20), and dropping it also means the one thing the observer reads is what a
+third party *sent*, not what a page *asked for*.
+
 ### Not `scripting`
 Worth recording, because an earlier draft of this file requested it.
 
@@ -77,10 +94,12 @@ re-registration.
 ### `host_permissions: ["<all_urls>"]`
 The one large ask. Three things need it and none of them can be scoped down:
 
-1. **GPC header injection.** DNR `modifyHeaders` rules require host permission for
+1. **Header rewriting.** DNR `modifyHeaders` rules require host permission for
    the request being modified. `Sec-GPC: 1` is only meaningful if it is sent
    everywhere — a do-not-sell signal you send to a curated subset of sites is not
-   a signal.
+   a signal. The same applies to the `User-Agent` / `Sec-CH-UA-*` rewrite: a
+   persona header that reaches only some sites would contradict the JS persona on
+   the rest, which is the defect it exists to remove.
 2. **The fingerprint shim** has to run on every site, because "the site I forgot to
    add to the list" is exactly the site that fingerprints you.
 3. **Per-site reporting.** Reading the active tab's URL in the popup, and matching

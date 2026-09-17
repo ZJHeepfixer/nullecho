@@ -109,21 +109,33 @@
   // 0a. PRISTINE PRIMITIVES — captured before anything else in this file runs.
   //
   // Everything below is page machinery, and this script's only advantage over the
-  // page is arrival order. It has to spend that advantage immediately: the four
-  // primitives the handshake depends on are all page-patchable, and a page that
-  // patched them could read the nonce out of a legitimate delivery and forge a
-  // stand-down with it.
+  // page is arrival order. It has to spend that advantage immediately, and it has
+  // to spend it on EVERYTHING it will ever call — not just the four handshake
+  // primitives the first version captured.
   //
-  //   JSON.parse                      — could rewrite the payload it parses
-  //   CustomEvent.prototype.detail    — could rewrite what `ev.detail` returns
-  //   addEventListener / dispatchEvent — could drop or redirect our messages
-  //   crypto.getRandomValues          — could make the nonce predictable
+  // DECISIONS.md D21, the lesson of the 2026-09-16 review (A2/C2): a shim that
+  // captures `JSON.parse` and `CustomEvent.prototype.detail` but then does
+  // `expected.charCodeAt(i)` or `origGet.call(this)` at run time has not made the
+  // handshake depend on the document_start race at all. Any page script, at any
+  // later moment, can hook `String.prototype.charCodeAt` (→ every nonce matches →
+  // forged stand-down), `Function.prototype.call` (→ receives the NATIVE getter
+  // the brand check delegates to → real userAgent/cores/GPU), `Math.imul` (→ noise
+  // becomes persona-independent), `%TypedArray%.prototype.length` (→ the ink scan
+  // sees an empty buffer → no noise), `WeakMap.prototype.get` (→ receives
+  // NATIVE_SRC → an exact membership oracle for every patched function).
   //
-  // Capturing them makes the ONLY way to beat the handshake winning the
-  // document_start race — which is the same race that already decides whether
-  // this shim protects anything (docs/THREAT-MODEL.md, "MAIN-world injection
-  // race"). It does not close that race. Nothing in the page can.
+  // THE RULE: the shim never calls a prototype at run time. Every builtin it uses
+  // is captured here into a local constant and invoked through a boot-captured
+  // `Reflect.apply`. `review-2026-09-16.test.js` hooks each of these from the page
+  // and asserts nothing changes, and lints this file for bare `.call(`, `.apply(`,
+  // `Math.`, `.charCodeAt(`, `new Set(` … outside this block.
+  //
+  // What this does NOT change: if the page owns the realm BEFORE this script runs
+  // (the MAIN-world injection race, docs/THREAT-MODEL.md), it can pre-hook what we
+  // capture. That race is measured by the loader (`nonce-exposed`); nothing in
+  // the page can close it.
   // ══════════════════════════════════════════════════════════════════════════
+  // ─── BEGIN CAPTURED BUILTINS — the lint in review-2026-09-16.test.js starts after END ───
   const RAW = {
     jsonParse: JSON.parse,
     jsonStringify: JSON.stringify,
@@ -138,6 +150,17 @@
         return d && d.get;
       } catch (_) { return null; }
     })(),
+    // Resolved through the CustomEvent chain so a realm whose fake CustomEvent
+    // does not extend Event (test rigs) still yields one. In Chrome this is
+    // `Event.prototype.stopImmediatePropagation`. Used to keep the persona payload
+    // (noise keys, seed) out of page listeners — review finding A3.
+    stopImmediatePropagation: (() => {
+      try {
+        const CE = globalThis.CustomEvent;
+        const f = CE && CE.prototype && CE.prototype.stopImmediatePropagation;
+        return typeof f === 'function' ? f : null;
+      } catch (_) { return null; }
+    })(),
     getRandomValues: (() => {
       try {
         const c = globalThis.crypto;
@@ -145,6 +168,144 @@
       } catch (_) { return null; }
     })(),
   };
+
+  // `Reflect.apply` is the one primitive everything else routes through: it is an
+  // intrinsic that consults no prototype when invoked. `uncurry(fn)` turns a
+  // prototype method into a plain function taking the receiver first; the rest
+  // parameter builds a fresh array (no iterator protocol involved).
+  const apply = Reflect.apply;
+  const uncurry = (fn) => (thisArg, ...args) => apply(fn, thisArg, args);
+  const getterOf = (obj, prop) => {
+    try {
+      const d = obj && Object.getOwnPropertyDescriptor(obj, prop);
+      return d && typeof d.get === 'function' ? d.get : null;
+    } catch (_) { return null; }
+  };
+
+  // Constructors and statics. A page can reassign `window.Set`/`window.Math`
+  // outright; a local binding cannot be reassigned by anyone.
+  const RawString = String;
+  const RawSet = Set;
+  const RawMap = Map;
+  const RawWeakMap = WeakMap;
+  const RawWeakSet = WeakSet;
+  const RawUint8Array = Uint8Array;
+  const RawError = Error;
+  const symIterator = Symbol.iterator;
+
+  const objDefineProperty = Object.defineProperty;
+  const objGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+  const objGetPrototypeOf = Object.getPrototypeOf;
+  const objGetOwnPropertyNames = Object.getOwnPropertyNames;
+  const objFreeze = Object.freeze;
+  const objCreate = Object.create;
+  const arrayIsArray = Array.isArray;
+  const arrayBufferIsView = ArrayBuffer.isView;
+  const mathImul = Math.imul;
+  const mathFloor = Math.floor;
+  const mathRound = Math.round;
+  const mathAbs = Math.abs;
+  const mathMax = Math.max;
+  const mathMin = Math.min;
+
+  // Prototype methods, uncurried. Receiver first.
+  const fnHasInstance = uncurry(Function.prototype[Symbol.hasInstance]);
+  const strCharCodeAt = uncurry(String.prototype.charCodeAt);
+  const strToLowerCase = uncurry(String.prototype.toLowerCase);
+  const strIndexOf = uncurry(String.prototype.indexOf);
+  const strSlice = uncurry(String.prototype.slice);
+  const strTrim = uncurry(String.prototype.trim);
+  const strSplit = uncurry(String.prototype.split);   // boot-time tables only
+  const numToString = uncurry(Number.prototype.toString);
+  const arrayJoin = uncurry(Array.prototype.join);
+  const arrayValues = uncurry(Array.prototype.values);
+  const reExec = uncurry(RegExp.prototype.exec);
+  const setHas = uncurry(Set.prototype.has);
+  const setAdd = uncurry(Set.prototype.add);
+  const setSizeGet = uncurry(getterOf(Set.prototype, 'size'));
+  const mapGet = uncurry(Map.prototype.get);
+  const mapSet = uncurry(Map.prototype.set);
+  const mapHas = uncurry(Map.prototype.has);
+  const mapClear = uncurry(Map.prototype.clear);
+  const mapSizeGet = uncurry(getterOf(Map.prototype, 'size'));
+  const wmGet = uncurry(WeakMap.prototype.get);
+  const wmSet = uncurry(WeakMap.prototype.set);
+  const wmHas = uncurry(WeakMap.prototype.has);
+  const wsHas = uncurry(WeakSet.prototype.has);
+  const wsAdd = uncurry(WeakSet.prototype.add);
+  const promiseThen = uncurry(Promise.prototype.then);
+  // `%TypedArray%.prototype.length` / `byteLength` — the review's A2e hook. The
+  // getters are generic over every typed array, in any realm.
+  const TypedArrayProto = objGetPrototypeOf(Uint8Array.prototype);
+  const taLength = uncurry(getterOf(TypedArrayProto, 'length'));
+  const taByteLength = uncurry(getterOf(TypedArrayProto, 'byteLength'));
+  const taJoin = uncurry(TypedArrayProto.join);
+  // ─── END CAPTURED BUILTINS ────────────────────────────────────────────────
+
+  // ── small helpers built only from the captures above ──────────────────────
+
+  /** `re.test(s)` without `RegExp.prototype.test` → `exec` lookup on the way. Non-global regexes only. */
+  const reTest = (re, s) => reExec(re, s) !== null;
+
+  /**
+   * Append to one of OUR arrays without `Array.prototype.push`, which goes
+   * through [[Set]] and would invoke a setter a page had defined for that index
+   * on `Array.prototype`. `DefineOwnProperty` consults nothing.
+   */
+  function pushOwn(arr, value) {
+    objDefineProperty(arr, arr.length, { value, writable: true, enumerable: true, configurable: true });
+    return arr;
+  }
+
+  /** A Set built without the constructor's iterable path (which calls `add` through the prototype). */
+  function setOf(list) {
+    const s = new RawSet();
+    for (let i = 0; i < list.length; i++) setAdd(s, list[i]);
+    return s;
+  }
+
+  /** `list.indexOf(x) >= 0` for our own arrays, without `Array.prototype.indexOf`. */
+  function listHas(list, x) {
+    for (let i = 0; i < list.length; i++) if (list[i] === x) return true;
+    return false;
+  }
+
+  /** `String(x)`, then `toLowerCase`, both captured. */
+  const lower = (x) => strToLowerCase(RawString(x));
+
+  /** One byte per element? Decided from captured getters; a DataView (no `length`) is simply "no". */
+  function isByteView(view) {
+    try { return taByteLength(view) === taLength(view); } catch (_) { return false; }
+  }
+
+  /**
+   * Read a prototype accessor through a captured getter, or fall back to a plain
+   * property read when the realm has no such accessor (test rigs define these as
+   * own instance properties; every real browser has the accessor).
+   */
+  function propReader(Ctor, prop) {
+    const g = getterOf(Ctor && Ctor.prototype, prop);
+    return g ? (obj) => apply(g, obj, []) : (obj) => obj[prop];
+  }
+  function propWriter(Ctor, prop) {
+    let s = null;
+    try {
+      const d = Ctor && Ctor.prototype && objGetOwnPropertyDescriptor(Ctor.prototype, prop);
+      s = d && typeof d.set === 'function' ? d.set : null;
+    } catch (_) { s = null; }
+    return s ? (obj, v) => apply(s, obj, [v]) : (obj, v) => { obj[prop] = v; };
+  }
+  function methodOf(Ctor, prop) {
+    try {
+      const d = Ctor && Ctor.prototype && objGetOwnPropertyDescriptor(Ctor.prototype, prop);
+      return d && typeof d.value === 'function' ? d.value : null;
+    } catch (_) { return null; }
+  }
+  /** Invoke a captured method, or the live one when the realm exposes no prototype method (test rigs). */
+  function methodCaller(Ctor, prop) {
+    const m = methodOf(Ctor, prop);
+    return m ? (obj, ...args) => apply(m, obj, args) : (obj, ...args) => apply(obj[prop], obj, args);
+  }
 
   /**
    * The handshake nonce. 128 bits from the CSPRNG, minted before this script has
@@ -162,10 +323,10 @@
   function mintNonce() {
     if (!RAW.getRandomValues) return null;
     try {
-      const bytes = new Uint8Array(NONCE_BYTES);
+      const bytes = new RawUint8Array(NONCE_BYTES);
       RAW.getRandomValues(bytes);
       let out = '';
-      for (let i = 0; i < bytes.length; i++) out += (bytes[i] + 0x100).toString(16).slice(1);
+      for (let i = 0; i < NONCE_BYTES; i++) out += strSlice(numToString(bytes[i] + 0x100, 16), 1);
       return out.length === NONCE_BYTES * 2 ? out : null;
     } catch (_) { return null; }
   }
@@ -175,13 +336,17 @@
    * guesses as it likes (a wrong nonce deliberately does not consume the one-shot),
    * so it gets unlimited attempts at a timing oracle. 128 bits makes guessing
    * hopeless and this makes measuring pointless; neither costs anything.
+   *
+   * Compared through the CAPTURED `charCodeAt`. With the live one, a page that set
+   * `String.prototype.charCodeAt = () => 0` made every 32-character string match
+   * (review A2c) — and a matching nonce is the whole authentication.
    */
   function nonceMatches(candidate) {
     const expected = nonceBox.value;
     if (typeof expected !== 'string' || typeof candidate !== 'string') return false;
     if (candidate.length !== expected.length) return false;
     let diff = 0;
-    for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ candidate.charCodeAt(i);
+    for (let i = 0; i < expected.length; i++) diff |= strCharCodeAt(expected, i) ^ strCharCodeAt(candidate, i);
     return diff === 0;
   }
 
@@ -455,7 +620,11 @@
   ];
   // ─── END GENERATED MIRROR ─────────────────────────────────────────────────
 
-  const POOL_IDS = new Set(PERSONAS.map((p) => p.id));
+  const POOL_IDS = (() => {
+    const s = new RawSet();
+    for (let i = 0; i < PERSONAS.length; i++) setAdd(s, PERSONAS[i].id);
+    return s;
+  })();
 
   /**
    * HOST OS FAMILY — DECISIONS.md D12. Mirrors `familyFromPlatformString()` and
@@ -473,11 +642,11 @@
 
   function familyFromPlatformString(value) {
     if (!value) return null;
-    const v = String(value).toLowerCase();
-    if (v.indexOf('win') >= 0) return 'win';
-    if (v.indexOf('mac') >= 0 || v.indexOf('darwin') >= 0) return 'mac';
-    if (v.indexOf('cros') >= 0 || v.indexOf('chrome os') >= 0) return 'linux';
-    if (v.indexOf('linux') >= 0 || v.indexOf('x11') >= 0 || v.indexOf('bsd') >= 0) return 'linux';
+    const v = lower(value);
+    if (strIndexOf(v, 'win') >= 0) return 'win';
+    if (strIndexOf(v, 'mac') >= 0 || strIndexOf(v, 'darwin') >= 0) return 'mac';
+    if (strIndexOf(v, 'cros') >= 0 || strIndexOf(v, 'chrome os') >= 0) return 'linux';
+    if (strIndexOf(v, 'linux') >= 0 || strIndexOf(v, 'x11') >= 0 || strIndexOf(v, 'bsd') >= 0) return 'linux';
     return null;
   }
 
@@ -499,7 +668,13 @@
 
   /** The personas this host may be shown. Never empty. */
   const HOST_POOL = (() => {
-    const of = (fam) => PERSONAS.filter((p) => familyFromPlatformString(p.platform) === fam);
+    const of = (fam) => {
+      const out = [];
+      for (let i = 0; i < PERSONAS.length; i++) {
+        if (familyFromPlatformString(PERSONAS[i].platform) === fam) pushOwn(out, PERSONAS[i]);
+      }
+      return out;
+    };
     const list = of(HOST_FAMILY);
     return list.length ? list : of(DEFAULT_FAMILY);
   })();
@@ -508,7 +683,7 @@
   // the fallback and the salted persona come from one pool with one algorithm.
   function hashString(str) {
     let h = 0x811c9dc5;
-    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    for (let i = 0; i < str.length; i++) { h ^= strCharCodeAt(str, i); h = mathImul(h, 0x01000193) >>> 0; }
     return h >>> 0;
   }
   function rngFrom(seed) {
@@ -524,9 +699,12 @@
     // HOST_POOL, not PERSONAS: the stage-1 fallback must be the same OS as the
     // machine, or every page that fingerprints before the handshake lands gets
     // the cross-OS contradiction back.
-    const total = HOST_POOL.reduce((a, p) => a + p.weight, 0);
+    let total = 0;
+    for (let i = 0; i < HOST_POOL.length; i++) total += HOST_POOL[i].weight;
     let roll = rand() * total;
     let chosen = HOST_POOL[HOST_POOL.length - 1];
+    // Boot-only (runs before any page script), so the array iterator is safe here;
+    // personas.test.js pins this exact loop as the D12 pool constraint.
     for (const p of HOST_POOL) { roll -= p.weight; if (roll <= 0) { chosen = p; break; } }
     const out = {};
     for (const k in chosen) out[k] = chosen[k];
@@ -541,6 +719,11 @@
    * fallback persona and the salted persona are keyed identically — otherwise the
    * "upgrade" would be a *different machine*, not the same one re-salted.
    * Same v0.1 approximation, same TODO(v0.2): use a real PSL.
+   *
+   * ⚠ `registrableDomain` below is BOOT-ONLY and is kept byte-identical on
+   * purpose: review-2026-09-16.test.js (A4c) lifts it out of this file by regex
+   * and runs it in a bare context, so it must not reference the captured
+   * builtins. The D21 lint exempts exactly this function.
    */
   const MULTI_LABEL_SUFFIXES = new Set(('co.uk|org.uk|ac.uk|gov.uk|net.uk|me.uk|ltd.uk|plc.uk|com.au|net.au|' +
     'org.au|edu.au|gov.au|id.au|co.nz|net.nz|org.nz|govt.nz|ac.nz|co.jp|ne.jp|or.jp|ac.jp|go.jp|ad.jp|com.br|' +
@@ -573,7 +756,7 @@
     persona: null,
     derived: null,
     reads: 0,          // the upgrade gate
-    perApi: Object.create(null),
+    perApi: objCreate(null),
     handshakeDone: false,
     upgraded: false,
     standingDown: false,
@@ -586,18 +769,18 @@
   };
 
   /** APIs worth telling the service worker about. UA reads would drown the signal. */
-  const REPORTABLE = new Set(['canvas', 'webgl', 'webgpu', 'audio', 'fonts']);
+  const REPORTABLE = setOf(['canvas', 'webgl', 'webgpu', 'audio', 'fonts']);
 
   function emit(name, obj) {
     try {
       // Pristine ctor + dispatcher (section 0a): a page that replaced either one
       // could otherwise swallow our reports, and the boot report carries the nonce.
-      RAW.dispatchEvent.call(document, new RAW.CustomEvent(name, { detail: RAW.jsonStringify(obj) }));
+      apply(RAW.dispatchEvent, document, [new RAW.CustomEvent(name, { detail: RAW.jsonStringify(obj) })]);
     } catch (_) { /* a page that broke CustomEvent is not our problem to solve */ }
   }
 
   function fail(label, err) {
-    state.failures.push({ label, error: String((err && err.stack) || err) });
+    pushOwn(state.failures, { label, error: RawString((err && err.stack) || err) });
     try {
       console.error(
         '[Nullecho] shim could NOT patch "' + label + '". That API is UNPROTECTED on this page. ' +
@@ -619,7 +802,7 @@
     if (state.internal > 0 || state.standingDown) return;
     state.reads++;
     const n = (state.perApi[api] = (state.perApi[api] || 0) + 1);
-    if (!REPORTABLE.has(api)) return;
+    if (!setHas(REPORTABLE, api)) return;
     // Bounded reporting: first read, then a coarsening schedule. 40 canvas reads in
     // one page is not a UI rendering; it is a repeated-sampling attack. We keep
     // returning the same value regardless — this only makes it visible to the user.
@@ -631,11 +814,7 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   const RESTORES = [];
-  const NATIVE_SRC = new WeakMap();
-
-  const objDefineProperty = Object.defineProperty;
-  const objGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-  const objGetPrototypeOf = Object.getPrototypeOf;
+  const NATIVE_SRC = new RawWeakMap();
 
   /**
    * Requirement 1: `Function.prototype.toString` on a patched function must report
@@ -644,7 +823,10 @@
    *
    * We register the *exact* string Chrome would emit and consult a WeakMap from a
    * patched `Function.prototype.toString`. WeakMap, not a property, so the mapping
-   * is not enumerable, not reachable, and not forgeable from the page.
+   * is not enumerable, not reachable, and not forgeable from the page — PROVIDED
+   * it is consulted through the captured `WeakMap.prototype.get`. Through the live
+   * one, a page hook received the map itself as `this` and could then `has()` any
+   * function: an exact, enumerable oracle of everything we patched (review C2).
    */
   function markNative(fn, name, model) {
     try {
@@ -653,23 +835,23 @@
         objDefineProperty(fn, 'length', { value: model.length, writable: false, enumerable: false, configurable: true });
       }
     } catch (_) { /* name/length are best-effort; the toString mapping is the load-bearing part */ }
-    NATIVE_SRC.set(fn, 'function ' + name + '() { [native code] }');
+    wmSet(NATIVE_SRC, fn, 'function ' + name + '() { [native code] }');
     return fn;
   }
 
   function patchFunctionToString(win) {
     const FP = win.Function.prototype;
     const d = objGetOwnPropertyDescriptor(FP, 'toString');
-    if (!d || typeof d.value !== 'function') throw new Error('Function.prototype.toString missing');
-    if (NATIVE_SRC.has(d.value)) return; // this realm is already done
+    if (!d || typeof d.value !== 'function') throw new RawError('Function.prototype.toString missing');
+    if (wmHas(NATIVE_SRC, d.value)) return; // this realm is already done
     const orig = d.value;
     const replacement = function toString() {
-      const src = NATIVE_SRC.get(this);
+      const src = wmGet(NATIVE_SRC, this);
       if (src !== undefined) return src;
-      return orig.call(this);
+      return apply(orig, this, []);
     };
     markNative(replacement, 'toString', orig);
-    RESTORES.push({ target: FP, prop: 'toString', desc: d });
+    pushOwn(RESTORES, { target: FP, prop: 'toString', desc: d });
     objDefineProperty(FP, 'toString', {
       value: replacement, writable: d.writable, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -688,13 +870,13 @@
    */
   function replaceGetter(target, prop, impl) {
     const d = objGetOwnPropertyDescriptor(target, prop);
-    if (!d) throw new Error('no own descriptor for "' + prop + '"');
-    if (!d.get) throw new Error('"' + prop + '" is not an accessor');
-    if (!d.configurable) throw new Error('"' + prop + '" is not configurable');
+    if (!d) throw new RawError('no own descriptor for "' + prop + '"');
+    if (!d.get) throw new RawError('"' + prop + '" is not an accessor');
+    if (!d.configurable) throw new RawError('"' + prop + '" is not configurable');
     const origGet = d.get;
-    const getter = function () { return impl.call(this, origGet); };
+    const getter = function () { return apply(impl, this, [origGet]); };
     markNative(getter, 'get ' + prop, origGet);
-    RESTORES.push({ target, prop, desc: d });
+    pushOwn(RESTORES, { target, prop, desc: d });
     objDefineProperty(target, prop, {
       get: getter, set: d.set, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -713,25 +895,30 @@
    *
    * becomes a three-line, 100%-reliable detector for the whole shim. Delegating
    * first makes the replacement throw exactly where the original would.
+   *
+   * The delegation goes through the CAPTURED `Reflect.apply`. Written as
+   * `origGet.call(this)` it went through the live `Function.prototype.call`, and a
+   * page hook there received the NATIVE getter as `this` — the real userAgent,
+   * cores, memory and GPU on a silver plate (review A2a/A2b).
    */
   function spoofGetter(target, prop, api, read) {
     return replaceGetter(target, prop, function (origGet) {
-      const real = origGet.call(this);            // brand check + real value
+      const real = apply(origGet, this, []);      // brand check + real value
       if (state.standingDown) return real;
       touch(api);
-      return read.call(this, origGet, real);
+      return apply(read, this, [origGet, real]);
     });
   }
 
   /** Replace a method, preserving `writable`/`enumerable`/`configurable`. */
   function replaceMethod(target, prop, factory) {
     const d = objGetOwnPropertyDescriptor(target, prop);
-    if (!d || typeof d.value !== 'function') throw new Error('no method "' + prop + '"');
-    if (!d.configurable) throw new Error('method "' + prop + '" is not configurable');
+    if (!d || typeof d.value !== 'function') throw new RawError('no method "' + prop + '"');
+    if (!d.configurable) throw new RawError('method "' + prop + '" is not configurable');
     const orig = d.value;
     const impl = factory(orig);
     markNative(impl, prop, orig);
-    RESTORES.push({ target, prop, desc: d });
+    pushOwn(RESTORES, { target, prop, desc: d });
     objDefineProperty(target, prop, {
       value: impl, writable: d.writable, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -747,23 +934,25 @@
 
   // ── deterministic pseudo-random function ───────────────────────────────────
   // No state, no counter, no clock. prf(key, i) is the whole noise source.
+  // Captured `Math.imul` throughout: with the live one, `Math.imul = () => 0`
+  // collapsed every key to 0 and the noise became the same on every site (A2f).
 
   function fin32(x) {
     x = (x ^ (x >>> 16)) >>> 0;
-    x = Math.imul(x, 0x7feb352d) >>> 0;
+    x = mathImul(x, 0x7feb352d) >>> 0;
     x = (x ^ (x >>> 15)) >>> 0;
-    x = Math.imul(x, 0x846ca68b) >>> 0;
+    x = mathImul(x, 0x846ca68b) >>> 0;
     return (x ^ (x >>> 16)) >>> 0;
   }
-  function prf(key, i) { return fin32((key ^ Math.imul((i + 1) | 0, 0x9e3779b1)) >>> 0); }
+  function prf(key, i) { return fin32((key ^ mathImul((i + 1) | 0, 0x9e3779b1)) >>> 0); }
   function keyFromUnit(u) {
-    const k = Math.floor((typeof u === 'number' ? u : 0.5) * 4294967296) >>> 0;
+    const k = mathFloor((typeof u === 'number' ? u : 0.5) * 4294967296) >>> 0;
     return k || 0x9e3779b9;
   }
-  function keyMix(key, a, b) { return fin32((fin32((key ^ Math.imul(a >>> 0, 0x85ebca6b)) >>> 0) ^ Math.imul(b >>> 0, 0xc2b2ae35)) >>> 0); }
+  function keyMix(key, a, b) { return fin32((fin32((key ^ mathImul(a >>> 0, 0x85ebca6b)) >>> 0) ^ mathImul(b >>> 0, 0xc2b2ae35)) >>> 0); }
   function keyStr(key, s) {
     let h = key >>> 0;
-    for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0;
+    for (let i = 0; i < s.length; i++) h = mathImul(h ^ strCharCodeAt(s, i), 0x01000193) >>> 0;
     return fin32(h);
   }
 
@@ -788,10 +977,12 @@
    * version already present in the persona's UA string, which keeps Client Hints
    * agreeing with the UA field-by-field (the personas.js invariant).
    */
+  const CHROME_VERSION_RE = /Chrome\/([\d.]+)/;
   function brandsFor(ua) {
-    const m = /Chrome\/([\d.]+)/.exec(ua || '');
+    const m = reExec(CHROME_VERSION_RE, ua || '');
     const full = (m && m[1]) || '151.0.0.0';
-    const major = full.split('.')[0];
+    const dot = strIndexOf(full, '.');
+    const major = dot < 0 ? full : strSlice(full, 0, dot);
     return {
       full,
       major,
@@ -822,8 +1013,8 @@
    * they are already crowd values and overwriting them would make us differ from
    * the crowd. We only substitute if the build leaks something GPU-specific there.
    */
-  const UNIFORM_GL_VENDOR = new Set(['WebKit', 'Mozilla']);
-  const UNIFORM_GL_RENDERER = new Set(['WebKit WebGL', 'Mozilla']);
+  const UNIFORM_GL_VENDOR = setOf(['WebKit', 'Mozilla']);
+  const UNIFORM_GL_RENDERER = setOf(['WebKit WebGL', 'Mozilla']);
 
   /**
    * WebGPU adapter identity per GPU family. `device`/`description` are empty on
@@ -836,12 +1027,14 @@
    * so they need field validation before release, and they belong in personas.js
    * next to the WebGL strings rather than here.
    */
+  const RE_APPLE = /Apple/i, RE_NVIDIA = /NVIDIA/i, RE_AMD = /AMD|Radeon/i, RE_INTEL = /Intel/i;
+  const RE_D3D11 = /Direct3D11|D3D11/i, RE_MESA = /Mesa/i;
   function webgpuIdentity(gpu) {
     const r = (gpu && gpu.renderer) || '';
-    if (/Apple/i.test(r)) return { vendor: 'apple', architecture: 'metal-3', subgroupMinSize: 32, subgroupMaxSize: 32 };
-    if (/NVIDIA/i.test(r)) return { vendor: 'nvidia', architecture: 'ampere', subgroupMinSize: 32, subgroupMaxSize: 32 };
-    if (/AMD|Radeon/i.test(r)) return { vendor: 'amd', architecture: 'gcn-5', subgroupMinSize: 32, subgroupMaxSize: 64 };
-    if (/Intel/i.test(r)) return { vendor: 'intel', architecture: 'gen-9', subgroupMinSize: 8, subgroupMaxSize: 32 };
+    if (reTest(RE_APPLE, r)) return { vendor: 'apple', architecture: 'metal-3', subgroupMinSize: 32, subgroupMaxSize: 32 };
+    if (reTest(RE_NVIDIA, r)) return { vendor: 'nvidia', architecture: 'ampere', subgroupMinSize: 32, subgroupMaxSize: 32 };
+    if (reTest(RE_AMD, r)) return { vendor: 'amd', architecture: 'gcn-5', subgroupMinSize: 32, subgroupMaxSize: 64 };
+    if (reTest(RE_INTEL, r)) return { vendor: 'intel', architecture: 'gen-9', subgroupMinSize: 8, subgroupMaxSize: 32 };
     return { vendor: '', architecture: '', subgroupMinSize: 4, subgroupMaxSize: 128 };
   }
 
@@ -869,20 +1062,31 @@
     // Mesa on desktop Intel exposes ETC2, but not ASTC or PVRTC.
     'webgl_compressed_texture_astc', 'webgl_compressed_texture_pvrtc',
   ];
+  // Built ONCE at boot. `derive()` runs at handshake time — after page scripts —
+  // and `new Set(list)` goes through `Set.prototype.add`, which a page could have
+  // made a no-op to empty the deny list and get the real extension list back.
+  const GL_DENY_D3D11_SET = setOf(GL_DENY_D3D11);
+  const GL_DENY_MESA_SET = setOf(GL_DENY_MESA);
+  const GL_DENY_NONE = setOf([]);
 
   function glExtensionDenyFor(persona) {
     const r = (persona.gpu && persona.gpu.renderer) || '';
-    if (/Direct3D11|D3D11/i.test(r)) return new Set(GL_DENY_D3D11);
-    if (/Mesa/i.test(r)) return new Set(GL_DENY_MESA);
+    if (reTest(RE_D3D11, r)) return GL_DENY_D3D11_SET;
+    if (reTest(RE_MESA, r)) return GL_DENY_MESA_SET;
     // Apple/Metal genuinely exposes ASTC, ETC and S3TC — nothing to strip.
-    return new Set();
+    return GL_DENY_NONE;
   }
 
   /** Features we allow through. We can only ever *remove*, never invent. */
   const WEBGPU_FEATURES_CORE = ['core-features-and-limits', 'depth-clip-control', 'depth32float-stencil8',
     'indirect-first-instance', 'rg11b10ufloat-renderable', 'shader-f16', 'float32-filterable',
     'bgra8unorm-storage', 'timestamp-query', 'texture-compression-bc'];
-  const WEBGPU_FEATURES_APPLE = WEBGPU_FEATURES_CORE.concat(['texture-compression-etc2', 'texture-compression-astc']);
+  const WEBGPU_FEATURES_APPLE = ['core-features-and-limits', 'depth-clip-control', 'depth32float-stencil8',
+    'indirect-first-instance', 'rg11b10ufloat-renderable', 'shader-f16', 'float32-filterable',
+    'bgra8unorm-storage', 'timestamp-query', 'texture-compression-bc',
+    'texture-compression-etc2', 'texture-compression-astc'];
+  const WEBGPU_FEATURES_CORE_SET = setOf(WEBGPU_FEATURES_CORE);
+  const WEBGPU_FEATURES_APPLE_SET = setOf(WEBGPU_FEATURES_APPLE);
 
   /**
    * WebGPU spec default limits. Every conformant adapter supports at least these,
@@ -916,27 +1120,32 @@
    * family is never called "Segoe UI", so it can never be stripped by accident.
    * Cost: a locally-installed font outside this list passes through (gap G3).
    */
-  const FONT_UNIVERSE_EXTRA = ('Bookman|Cantarell|Century Gothic|Courier|Helvetica Neue|Lucida Bright|Perpetua|' +
+  const FONT_UNIVERSE_EXTRA = strSplit('Bookman|Cantarell|Century Gothic|Courier|Helvetica Neue|Lucida Bright|Perpetua|' +
     'Roboto|SF Pro|SF Pro Display|SF Pro Text|Times|Apple Chancery|Apple Color Emoji|Apple SD Gothic Neo|' +
-    'Segoe UI Variable|MS Sans Serif|MS Serif|Sitka Text|Yu Mincho|Meiryo|PingFang SC|Hiragino Sans').split('|');
+    'Segoe UI Variable|MS Sans Serif|MS Serif|Sitka Text|Yu Mincho|Meiryo|PingFang SC|Hiragino Sans', '|');
 
-  const KNOWN_SYSTEM_FONTS = new Set(
-    FONT_SETS['windows-11'].concat(FONT_SETS['macos-14'], FONT_SETS['ubuntu-22'], FONT_UNIVERSE_EXTRA)
-  );
+  const KNOWN_SYSTEM_FONTS = (() => {
+    const s = new RawSet();
+    const lists = [FONT_SETS['windows-11'], FONT_SETS['macos-14'], FONT_SETS['ubuntu-22'], FONT_UNIVERSE_EXTRA];
+    for (let l = 0; l < lists.length; l++) for (let i = 0; i < lists[l].length; i++) setAdd(s, lists[l][i]);
+    return s;
+  })();
 
-  const GENERIC_FAMILIES = new Set(('serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|' +
+  const GENERIC_FAMILIES = setOf(strSplit('serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-serif|ui-sans-serif|' +
     'ui-monospace|ui-rounded|math|emoji|fangsong|-apple-system|BlinkMacSystemFont|inherit|initial|unset|revert|' +
-    'revert-layer|default').split('|'));
+    'revert-layer|default', '|'));
 
   function derive(persona) {
     const b = brandsFor(persona.ua);
     const scr = persona.screen || {};
     const noise = persona.noise || {};
     const gpu = persona.gpu || {};
+    const ua = RawString(persona.ua || '');
+    const fontList = persona.fontList || FONT_SETS[persona.fonts] || [];
     return {
       persona,
       ua: persona.ua,
-      appVersion: String(persona.ua || '').replace(/^Mozilla\//, ''),
+      appVersion: strIndexOf(ua, 'Mozilla/') === 0 ? strSlice(ua, 8) : ua,
       platform: persona.platform,
       cores: persona.cores,
       memory: persona.memory,
@@ -955,10 +1164,10 @@
       },
       gpu,
       webgpu: webgpuIdentity(gpu),
-      webgpuFeatures: new Set(/Apple/i.test(gpu.renderer || '') ? WEBGPU_FEATURES_APPLE : WEBGPU_FEATURES_CORE),
+      webgpuFeatures: reTest(RE_APPLE, gpu.renderer || '') ? WEBGPU_FEATURES_APPLE_SET : WEBGPU_FEATURES_CORE_SET,
       glExtensionDeny: glExtensionDenyFor(persona),
-      fontList: persona.fontList || FONT_SETS[persona.fonts] || [],
-      fontSet: new Set(persona.fontList || FONT_SETS[persona.fonts] || []),
+      fontList,
+      fontSet: setOf(fontList),
       canvasKey: keyFromUnit(noise.canvas),
       audioKey: keyFromUnit(noise.audio),
       webglKey: keyFromUnit(noise.webgl),
@@ -1000,8 +1209,12 @@
    * the code can be reconciled deliberately.
    */
   function noiseRGBA(data, canvasW, key, ox, oy, w, h) {
+    // Length through the captured `%TypedArray%.prototype.length` getter. The live
+    // one, hooked to return 0 for one read, made the ink scan see an empty buffer
+    // and this function return the real pixels untouched (review A2e).
+    const len = taLength(data);
     let hasInk = false;
-    for (let p = 3; p < data.length; p += 4) { if (data[p] !== 0) { hasInk = true; break; } }
+    for (let p = 3; p < len; p += 4) { if (data[p] !== 0) { hasInk = true; break; } }
     if (!hasInk) return;
     for (let row = 0; row < h; row++) {
       const ay = oy + row;
@@ -1028,7 +1241,7 @@
 
   /** Float audio noise: ≤8e-7 amplitude — below the 24-bit LSB, i.e. inaudible. */
   function noiseFloat(arr, key, count) {
-    const n = count == null ? arr.length : count;
+    const n = count == null ? taLength(arr) : count;
     for (let i = 0; i < n; i++) {
       const hh = prf(key, i);
       if ((hh & 7) !== 0) continue;
@@ -1041,14 +1254,99 @@
   // 6. The patches
   // ══════════════════════════════════════════════════════════════════════════
 
-  const INSTALLED = new WeakSet();
+  const INSTALLED = new RawWeakSet();
+
+  /** Fresh frozen copies of the persona's brand entries (B7 — still per-read; see the review). */
+  function copyBrands(list, freezeEach) {
+    const out = [];
+    for (let i = 0; i < list.length; i++) {
+      const b = { brand: list[i].brand, version: list[i].version };
+      pushOwn(out, freezeEach ? objFreeze(b) : b);
+    }
+    return out;
+  }
 
   function installInto(win) {
-    if (!win || INSTALLED.has(win)) return;
-    INSTALLED.add(win);
+    if (!win || wsHas(INSTALLED, win)) return;
+    wsAdd(INSTALLED, win);
 
     const doc = win.document;
     const D = () => state.derived;
+
+    // ── Per-realm natives, captured NOW (first touch of this realm, which for the
+    //    main window is document_start and for a child realm is the first
+    //    `contentWindow` read — before the page can have hooked anything in it).
+    //    Constructors and statics a page could reassign on `win`, plus every DOM
+    //    accessor / method the noise and font paths read at run time. The old
+    //    code read `this.width`, `img.data`, `this.canvas`, `tmp.getContext()`
+    //    through the live prototypes: a page that hooked `ImageData.prototype.data`
+    //    fed the noise kernel a decoy buffer and kept the real one; a hook on
+    //    `HTMLCanvasElement.prototype.width` returning 0 made `noisedCopy()` bail
+    //    and `toDataURL` fall open to the native, un-noised call.
+    const RealmTypeError = win.TypeError;
+    const RealmInt32Array = win.Int32Array;
+    const RealmFloat32Array = win.Float32Array;
+    const RealmPromise = win.Promise;
+    const realmPromiseResolve = RealmPromise && RealmPromise.resolve;
+    const RealmDOMRect = win.DOMRect;
+    const RealmHTMLElement = win.HTMLElement;
+    const RealmMutationObserver = win.MutationObserver;
+    const realmGetComputedStyle = win.getComputedStyle;
+
+    const Ctx2D = win.CanvasRenderingContext2D;
+    const OffCtx2D = win.OffscreenCanvasRenderingContext2D;
+    const canvasWidth = propReader(win.HTMLCanvasElement, 'width');
+    const canvasHeight = propReader(win.HTMLCanvasElement, 'height');
+    const setCanvasWidth = propWriter(win.HTMLCanvasElement, 'width');
+    const setCanvasHeight = propWriter(win.HTMLCanvasElement, 'height');
+    const canvasGetContext = methodCaller(win.HTMLCanvasElement, 'getContext');
+    const offWidth = propReader(win.OffscreenCanvas, 'width');
+    const offHeight = propReader(win.OffscreenCanvas, 'height');
+    const offGetContext = methodCaller(win.OffscreenCanvas, 'getContext');
+    const ctxCanvas = propReader(Ctx2D, 'canvas');
+    const ctxFont = propReader(Ctx2D, 'font');
+    const setCtxFont = propWriter(Ctx2D, 'font');
+    const offCtxFont = propReader(OffCtx2D, 'font');
+    const setOffCtxFont = propWriter(OffCtx2D, 'font');
+    const imgData = propReader(win.ImageData, 'data');
+    const imgWidth = propReader(win.ImageData, 'width');
+    const imgHeight = propReader(win.ImageData, 'height');
+    const docCreateElement = (() => {
+      const owner = doc && ownerOf(doc, 'createElement');
+      const d = owner && objGetOwnPropertyDescriptor(owner, 'createElement');
+      const fn = d && typeof d.value === 'function' ? d.value : null;
+      return fn ? (tag) => apply(fn, doc, [tag]) : (tag) => doc.createElement(tag);
+    })();
+    const abLength = propReader(win.AudioBuffer, 'length');
+    const anFftSize = propReader(win.AnalyserNode, 'fftSize');
+    const rectWidth = propReader(win.DOMRectReadOnly, 'width');
+    const rectHeight = propReader(win.DOMRectReadOnly, 'height');
+    const rectX = propReader(win.DOMRectReadOnly, 'x');
+    const rectY = propReader(win.DOMRectReadOnly, 'y');
+    const elStyle = propReader(win.HTMLElement, 'style');
+    const nodeType = propReader(win.Node, 'nodeType');
+    const nodeTextContent = propReader(win.Node, 'textContent');
+    const nodeIsConnected = propReader(win.Node, 'isConnected');
+    const nodeParentElement = propReader(win.Node, 'parentElement');
+    const elChildElementCount = propReader(win.Element, 'childElementCount');
+    const elClientWidth = propReader(win.Element, 'clientWidth');
+    const elTagName = propReader(win.Element, 'tagName');
+    const elQuerySelectorAll = methodCaller(win.Element, 'querySelectorAll');
+    const nodeListLength = propReader(win.NodeList, 'length');
+    const recordAddedNodes = propReader(win.MutationRecord, 'addedNodes');
+    const cssGetPropertyValue = methodCaller(win.CSSStyleDeclaration, 'getPropertyValue');
+    const cssGetPropertyPriority = methodCaller(win.CSSStyleDeclaration, 'getPropertyPriority');
+    const cssSetProperty = methodCaller(win.CSSStyleDeclaration, 'setProperty');
+    const cssRemoveProperty = methodCaller(win.CSSStyleDeclaration, 'removeProperty');
+    const csFontFamily = propReader(win.CSSStyleDeclaration, 'fontFamily');
+    const csFontSize = propReader(win.CSSStyleDeclaration, 'fontSize');
+    const csFontWeight = propReader(win.CSSStyleDeclaration, 'fontWeight');
+    const csFontStyle = propReader(win.CSSStyleDeclaration, 'fontStyle');
+    const csLetterSpacing = propReader(win.CSSStyleDeclaration, 'letterSpacing');
+    const docFonts = propReader(win.Document, 'fonts');
+    const ffsSize = propReader(win.FontFaceSet, 'size');
+    const ffsForEach = methodCaller(win.FontFaceSet, 'forEach');
+    const ffFamily = propReader(win.FontFace, 'family');
 
     // ── Function.prototype.toString FIRST: everything patched after it must
     //    already be maskable, and it is itself a patched function.
@@ -1073,7 +1371,7 @@
       const N = ownerOf(win.navigator, 'hardwareConcurrency');
       // Never below 4: WASM/worker pools size themselves off this and 1 breaks them
       // (ARCHITECTURE.md, compatibility posture). The pool never goes below 8 anyway.
-      spoofGetter(N, 'hardwareConcurrency', 'navigator', () => Math.max(4, D().cores | 0));
+      spoofGetter(N, 'hardwareConcurrency', 'navigator', () => mathMax(4, D().cores | 0));
     });
     safe('navigator.deviceMemory', () => {
       const N = ownerOf(win.navigator, 'deviceMemory');
@@ -1099,7 +1397,7 @@
       // persona-derived: personas.js has no locale field, and a locale that
       // disagrees with the timezone (which we leave real, see TIMEZONE) is worse
       // than one that agrees with most of the planet's English-speaking traffic.
-      spoofGetter(N, 'languages', 'navigator', () => Object.freeze(['en-US', 'en']));
+      spoofGetter(N, 'languages', 'navigator', () => objFreeze(['en-US', 'en']));
     });
     safe('navigator.language', () => {
       const N = ownerOf(win.navigator, 'language');
@@ -1114,46 +1412,48 @@
       if (!UAD || !UAD.prototype) return; // not a Chromium build
       const P = UAD.prototype;
 
-      spoofGetter(P, 'brands', 'navigator', () => D().brands.map((b) => Object.freeze({ ...b })));
+      spoofGetter(P, 'brands', 'navigator', () => copyBrands(D().brands, true));
       spoofGetter(P, 'mobile', 'navigator', () => false);
       spoofGetter(P, 'platform', 'navigator', () => D().uaData.platform || '');
 
       // `instanceof` stands in for the native brand check on these two: unlike an
       // accessor we cannot cheaply delegate (getHighEntropyValues does real async
       // work), but a replacement that answers for `{}` is a free shim detector.
+      // Through the captured `Function.prototype[Symbol.hasInstance]`, so a page
+      // cannot redefine the check.
       const brandCheck = (self) => {
-        if (!(self instanceof UAD)) throw new win.TypeError('Illegal invocation');
+        if (!fnHasInstance(UAD, self)) throw new RealmTypeError('Illegal invocation');
       };
 
       replaceMethod(P, 'toJSON', (orig) => function toJSON() {
         brandCheck(this);
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('navigator');
         const d = D();
-        return { brands: d.brands.map((b) => ({ ...b })), mobile: false, platform: d.uaData.platform || '' };
+        return { brands: copyBrands(d.brands, false), mobile: false, platform: d.uaData.platform || '' };
       });
 
       replaceMethod(P, 'getHighEntropyValues', (orig) => function getHighEntropyValues(hints) {
         brandCheck(this);
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('navigator');
         const d = D();
         // Chrome always includes the low-entropy trio, then whatever was asked for.
         const out = {
-          brands: d.brands.map((b) => ({ ...b })),
+          brands: copyBrands(d.brands, false),
           mobile: false,
           platform: d.uaData.platform || '',
         };
-        const want = new Set(Array.isArray(hints) ? hints : []);
-        if (want.has('architecture')) out.architecture = d.uaData.architecture || '';
-        if (want.has('bitness')) out.bitness = d.uaData.bitness || '';
-        if (want.has('model')) out.model = d.uaData.model || '';
-        if (want.has('platformVersion')) out.platformVersion = d.uaData.platformVersion || '';
-        if (want.has('uaFullVersion')) out.uaFullVersion = d.uaFullVersion;
-        if (want.has('fullVersionList')) out.fullVersionList = d.fullVersionList.map((b) => ({ ...b }));
-        if (want.has('wow64')) out.wow64 = !!d.uaData.wow64;
-        if (want.has('formFactors')) out.formFactors = ['Desktop'];
-        return win.Promise.resolve(out);
+        const want = setOf(arrayIsArray(hints) ? hints : []);
+        if (setHas(want, 'architecture')) out.architecture = d.uaData.architecture || '';
+        if (setHas(want, 'bitness')) out.bitness = d.uaData.bitness || '';
+        if (setHas(want, 'model')) out.model = d.uaData.model || '';
+        if (setHas(want, 'platformVersion')) out.platformVersion = d.uaData.platformVersion || '';
+        if (setHas(want, 'uaFullVersion')) out.uaFullVersion = d.uaFullVersion;
+        if (setHas(want, 'fullVersionList')) out.fullVersionList = copyBrands(d.fullVersionList, false);
+        if (setHas(want, 'wow64')) out.wow64 = !!d.uaData.wow64;
+        if (setHas(want, 'formFactors')) out.formFactors = ['Desktop'];
+        return apply(realmPromiseResolve, RealmPromise, [out]);
       });
     });
 
@@ -1208,12 +1508,15 @@
     // CANVAS — all three read paths. Patching only toDataURL is trivially caught
     // by the harness's canvasPixels probe, which reads raw bytes instead.
     // ────────────────────────────────────────────────────────────────────────
-    const Ctx2D = win.CanvasRenderingContext2D;
-    const OffCtx2D = win.OffscreenCanvasRenderingContext2D;
-
     const origGetImageData = Ctx2D && Ctx2D.prototype.getImageData;
     const origPutImageData = Ctx2D && Ctx2D.prototype.putImageData;
     const origDrawImage = Ctx2D && Ctx2D.prototype.drawImage;
+    // The Offscreen context has its OWN interface; `CanvasRenderingContext2D`'s
+    // methods throw Illegal invocation on it. The previous convertToBlob used the
+    // on-screen originals, threw, and fell open to the un-noised native call.
+    const origOffGetImageData = OffCtx2D && OffCtx2D.prototype && OffCtx2D.prototype.getImageData;
+    const origOffPutImageData = OffCtx2D && OffCtx2D.prototype && OffCtx2D.prototype.putImageData;
+    const origOffDrawImage = OffCtx2D && OffCtx2D.prototype && OffCtx2D.prototype.drawImage;
 
     function canvasKeyFor(w, h) { return keyMix(D().canvasKey, w, h); }
 
@@ -1224,37 +1527,43 @@
      * pixel by ±1, and that shift is deterministic too.
      * Returns null when noising is impossible (zero-size, or a tainted canvas —
      * in which case the original call will throw SecurityError exactly as native).
+     *
+     * Every DOM read here goes through a getter captured at install: `width`,
+     * `height`, `getContext`, `createElement`, `ImageData.data`. A page hook on
+     * any of them used to make this return null (→ the native, un-noised call) or
+     * hand the kernel a decoy buffer.
      */
     function noisedCopy(src) {
-      const w = src.width | 0, h = src.height | 0;
+      const w = canvasWidth(src) | 0, h = canvasHeight(src) | 0;
       if (!w || !h) return null;
-      const tmp = doc.createElement('canvas');
-      tmp.width = w; tmp.height = h;
-      const tctx = tmp.getContext('2d', { willReadFrequently: true });
+      const tmp = docCreateElement('canvas');
+      setCanvasWidth(tmp, w); setCanvasHeight(tmp, h);
+      const tctx = canvasGetContext(tmp, '2d', { willReadFrequently: true });
       if (!tctx) return null;
-      origDrawImage.call(tctx, src, 0, 0);
-      const img = origGetImageData.call(tctx, 0, 0, w, h);
-      noiseRGBA(img.data, w, canvasKeyFor(w, h), 0, 0, w, h);
-      origPutImageData.call(tctx, img, 0, 0);
+      apply(origDrawImage, tctx, [src, 0, 0]);
+      const img = apply(origGetImageData, tctx, [0, 0, w, h]);
+      noiseRGBA(imgData(img), w, canvasKeyFor(w, h), 0, 0, w, h);
+      apply(origPutImageData, tctx, [img, 0, 0]);
       return tmp;
     }
 
     function patchGetImageData(proto, label) {
       replaceMethod(proto, 'getImageData', (orig) => function getImageData(sx, sy) {
-        const img = orig.apply(this, arguments);
+        const img = apply(orig, this, arguments);
         if (state.standingDown) return img;
         touch('canvas');
         try {
-          const cv = this.canvas;
-          const cw = cv ? cv.width | 0 : img.width;
-          const ch = cv ? cv.height | 0 : img.height;
+          const cv = ctxCanvas(this);
+          const iw = imgWidth(img) | 0, ih = imgHeight(img) | 0;
+          const cw = cv ? canvasWidth(cv) | 0 : iw;
+          const ch = cv ? canvasHeight(cv) | 0 : ih;
           // sw/sh may be negative; the real origin is the top-left of the rect.
           const x = (sx | 0), y = (sy | 0);
-          const sw = arguments.length > 2 ? (arguments[2] | 0) : img.width;
-          const sh = arguments.length > 3 ? (arguments[3] | 0) : img.height;
+          const sw = arguments.length > 2 ? (arguments[2] | 0) : iw;
+          const sh = arguments.length > 3 ? (arguments[3] | 0) : ih;
           const ox = sw < 0 ? x + sw : x;
           const oy = sh < 0 ? y + sh : y;
-          noiseRGBA(img.data, cw, canvasKeyFor(cw, ch), ox, oy, img.width, img.height);
+          noiseRGBA(imgData(img), cw, canvasKeyFor(cw, ch), ox, oy, iw, ih);
         } catch (err) { fail(label, err); }
         return img;
       });
@@ -1268,23 +1577,23 @@
 
     safe('canvas.toDataURL', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toDataURL', (orig) => function toDataURL() {
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('canvas');
         let tmp = null;
         try { tmp = noisedCopy(this); }
         catch (err) { if (!err || err.name !== 'SecurityError') fail('canvas.toDataURL', err); }
-        return orig.apply(tmp || this, arguments);
+        return apply(orig, tmp || this, arguments);
       });
     });
 
     safe('canvas.toBlob', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toBlob', (orig) => function toBlob() {
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('canvas');
         let tmp = null;
         try { tmp = noisedCopy(this); }
         catch (err) { if (!err || err.name !== 'SecurityError') fail('canvas.toBlob', err); }
-        return orig.apply(tmp || this, arguments);
+        return apply(orig, tmp || this, arguments);
       });
     });
 
@@ -1292,23 +1601,23 @@
       const OC = win.OffscreenCanvas;
       if (!OC || !OC.prototype || !OC.prototype.convertToBlob) return;
       replaceMethod(OC.prototype, 'convertToBlob', (orig) => function convertToBlob() {
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('canvas');
         let tmp = null;
         try {
-          const w = this.width | 0, h = this.height | 0;
-          if (w && h) {
+          const w = offWidth(this) | 0, h = offHeight(this) | 0;
+          if (w && h && origOffGetImageData && origOffPutImageData && origOffDrawImage) {
             tmp = new OC(w, h);
-            const tctx = tmp.getContext('2d');
+            const tctx = offGetContext(tmp, '2d');
             if (tctx) {
-              tctx.drawImage(this, 0, 0);
-              const img = origGetImageData.call(tctx, 0, 0, w, h);
-              noiseRGBA(img.data, w, canvasKeyFor(w, h), 0, 0, w, h);
-              origPutImageData.call(tctx, img, 0, 0);
+              apply(origOffDrawImage, tctx, [this, 0, 0]);
+              const img = apply(origOffGetImageData, tctx, [0, 0, w, h]);
+              noiseRGBA(imgData(img), w, canvasKeyFor(w, h), 0, 0, w, h);
+              apply(origOffPutImageData, tctx, [img, 0, 0]);
             } else { tmp = null; }
           }
         } catch (err) { if (!err || err.name !== 'SecurityError') fail('offscreenCanvas.convertToBlob', err); tmp = null; }
-        return orig.apply(tmp || this, arguments);
+        return apply(orig, tmp || this, arguments);
       });
     });
 
@@ -1339,8 +1648,10 @@
       replaceMethod(P, 'getParameter', (orig) => function getParameter(pname) {
         // Always delegate first, even for parameters we fully replace: it performs
         // the native brand check, so `getParameter.call({}, 0x9245)` throws
-        // Illegal invocation exactly as it would unpatched.
-        const real = orig.apply(this, arguments);
+        // Illegal invocation exactly as it would unpatched. Through the captured
+        // `Reflect.apply` — a live `Function.prototype.apply` hook received the
+        // native `getParameter` and read the real renderer with it (review A2b).
+        const real = apply(orig, this, arguments);
         if (state.standingDown) return real;
         touch('webgl');
         const d = D();
@@ -1349,9 +1660,9 @@
           case GL.UNMASKED_VENDOR_WEBGL: return gpu.unmaskedVendor || gpu.vendor;
           case GL.UNMASKED_RENDERER_WEBGL: return gpu.renderer;
           case GL.VENDOR:
-            return UNIFORM_GL_VENDOR.has(real) ? real : gpu.vendor;
+            return setHas(UNIFORM_GL_VENDOR, real) ? real : gpu.vendor;
           case GL.RENDERER:
-            return UNIFORM_GL_RENDERER.has(real) ? real : gpu.renderer;
+            return setHas(UNIFORM_GL_RENDERER, real) ? real : gpu.renderer;
           case GL.VERSION:
             return isGL2 ? 'WebGL 2.0 (OpenGL ES 3.0 Chromium)' : 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
           case GL.SHADING_LANGUAGE_VERSION:
@@ -1363,35 +1674,48 @@
           case GL.MAX_RENDERBUFFER_SIZE:
             return gpu.maxTextureSize || real;
           case GL.MAX_VIEWPORT_DIMS: {
+            // Sized, then indexed: `new Int32Array([n, n])` would iterate the
+            // literal through `Array.prototype[Symbol.iterator]`.
             const n = gpu.maxTextureSize || 16384;
-            return new win.Int32Array([n, n]);
+            const dims = new RealmInt32Array(2); dims[0] = n; dims[1] = n;
+            return dims;
           }
-          case GL.ALIASED_LINE_WIDTH_RANGE:
-            return new win.Float32Array([1, 1]); // universal on ANGLE; every persona is ANGLE
+          case GL.ALIASED_LINE_WIDTH_RANGE: {
+            const range = new RealmFloat32Array(2); range[0] = 1; range[1] = 1; // universal on ANGLE; every persona is ANGLE
+            return range;
+          }
           default:
             return real;
         }
       });
 
       replaceMethod(P, 'getSupportedExtensions', (orig) => function getSupportedExtensions() {
-        const real = orig.apply(this, arguments);
+        const real = apply(orig, this, arguments);
         if (state.standingDown || !real) return real;
         touch('webgl');
         const deny = D().glExtensionDeny;
-        if (!deny.size) return real;
-        return real.filter((e) => !deny.has(String(e).toLowerCase()));
+        if (!setSizeGet(deny)) return real;
+        // Index loop + own-property writes, never `real.filter(...)`: `filter`
+        // resolved through `Array.prototype` and its species lookup, and either
+        // hook received the REAL extension list as `this`.
+        const out = [];
+        for (let i = 0; i < real.length; i++) {
+          const e = real[i];
+          if (!setHas(deny, lower(e))) pushOwn(out, e);
+        }
+        return out;
       });
 
       replaceMethod(P, 'getExtension', (orig) => function getExtension(name) {
         // Delegate first: brand check, and the real object for the allowed case.
-        const real = orig.apply(this, arguments);
+        const real = apply(orig, this, arguments);
         if (state.standingDown) return real;
         touch('webgl');
-        return D().glExtensionDeny.has(String(name).toLowerCase()) ? null : real;
+        return setHas(D().glExtensionDeny, lower(name)) ? null : real;
       });
 
       replaceMethod(P, 'readPixels', (orig) => function readPixels(x, y, width, height, format) {
-        const r = orig.apply(this, arguments);
+        const r = apply(orig, this, arguments);
         if (state.standingDown) return r;
         touch('webgl');
         try {
@@ -1399,13 +1723,16 @@
           const dstOffset = arguments.length > 7 ? (arguments[7] | 0) : 0;
           // Only the 8-bit RGBA path — the one fingerprinters use. Float/half-float
           // reads are left alone rather than corrupted with a wrongly-scaled delta.
-          if (format === GL.RGBA && ArrayBuffer.isView(pixels) && pixels.BYTES_PER_ELEMENT === 1) {
+          // "8-bit" is decided from the captured `byteLength`/`length` getters, not
+          // `BYTES_PER_ELEMENT` (a plain data property on the page's prototype).
+          if (format === GL.RGBA && arrayBufferIsView(pixels) && isByteView(pixels)) {
             const w = width | 0, h = height | 0;
+            const len = taLength(pixels);
             const key = keyMix(D().webglKey, w, h);
             // Same blank-buffer rule as the canvas kernel: never invent content in
             // a read that came back entirely empty.
             let hasInk = false;
-            for (let p = dstOffset + 3; p < pixels.length; p += 4) { if (pixels[p] !== 0) { hasInk = true; break; } }
+            for (let p = dstOffset + 3; p < len; p += 4) { if (pixels[p] !== 0) { hasInk = true; break; } }
             if (!hasInk) return r;
             for (let row = 0; row < h; row++) {
               for (let col = 0; col < w; col++) {
@@ -1413,7 +1740,7 @@
                 const hh = prf(key, abs);
                 if ((hh & 7) !== 0) continue;
                 const p = dstOffset + (row * w + col) * 4;
-                if (p + 3 >= pixels.length) continue;
+                if (p + 3 >= len) continue;
                 for (let c = 0; c < 3; c++) {
                   const bits = hh >>> (8 + c * 3);
                   const mag = 1 + (bits & 1);
@@ -1464,18 +1791,20 @@
       const SL = win.GPUSupportedLimits;
       if (!SL || !SL.prototype) return;
       const P = SL.prototype;
-      for (const prop of Object.getOwnPropertyNames(P)) {
+      const names = objGetOwnPropertyNames(P);
+      for (let i = 0; i < names.length; i++) {
+        const prop = names[i];
         if (prop === 'constructor') continue;
         const cap = WEBGPU_DEFAULT_LIMITS[prop];
         if (cap === undefined) continue; // unknown/new limit: pass through (documented gap)
-        const isMin = prop.indexOf('min') === 0;
+        const isMin = strIndexOf(prop, 'min') === 0;
         const d = objGetOwnPropertyDescriptor(P, prop);
         if (!d || !d.get) continue;
         replaceGetter(P, prop, function (origGet) {
-          const real = origGet.call(this);
+          const real = apply(origGet, this, []);
           if (state.standingDown || typeof real !== 'number') return real;
           touch('webgpu');
-          return isMin ? Math.max(real, cap) : Math.min(real, cap);
+          return isMin ? mathMax(real, cap) : mathMin(real, cap);
         });
       }
     });
@@ -1485,66 +1814,77 @@
       if (!SF || !SF.prototype) return;
       const P = SF.prototype;
       const origValues = P.values;
+      const origForEach = methodOf(SF, 'forEach');   // captured BEFORE we patch it below
       const origSize = objGetOwnPropertyDescriptor(P, 'size');
       if (typeof origValues !== 'function' || !origSize || !origSize.get) return;
 
-      const views = new WeakMap();
+      const views = new RawWeakMap();
       function view(self) {
-        let v = views.get(self);
+        let v = wmGet(views, self);
         if (!v) {
           v = [];
           const allow = D().webgpuFeatures;
           // We can only ever remove. Nothing is invented, so `requestDevice()`
           // validation (which runs against the REAL adapter) can never be surprised.
-          for (const f of origValues.call(self)) if (allow.has(f)) v.push(f);
-          views.set(self, v);
+          // The native `forEach` walks the real set without going through the
+          // (page-hookable) iterator protocol; `values()` is the fallback.
+          const keep = (f) => { if (setHas(allow, f)) pushOwn(v, f); };
+          if (origForEach) apply(origForEach, self, [keep]);
+          else for (const f of apply(origValues, self, [])) keep(f);
+          wmSet(views, self, v);
         }
         return v;
       }
 
       replaceGetter(P, 'size', function (origGet) {
-        if (state.standingDown) return origGet.call(this);
+        if (state.standingDown) return apply(origGet, this, []);
         touch('webgpu');
         return view(this).length;
       });
       replaceMethod(P, 'has', (orig) => function has(f) {
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('webgpu');
-        return view(this).indexOf(String(f)) >= 0;
+        return listHas(view(this), RawString(f));
       });
-      for (const m of ['values', 'keys']) {
+      const iterNames = ['values', 'keys'];
+      for (let i = 0; i < iterNames.length; i++) {
+        const m = iterNames[i];
         if (!objGetOwnPropertyDescriptor(P, m)) continue;
         replaceMethod(P, m, (orig) => function () {
-          if (state.standingDown) return orig.apply(this, arguments);
+          if (state.standingDown) return apply(orig, this, arguments);
           touch('webgpu');
-          return view(this)[Symbol.iterator]();
+          return arrayValues(view(this));
         });
       }
       if (objGetOwnPropertyDescriptor(P, 'entries')) {
         replaceMethod(P, 'entries', (orig) => function entries() {
-          if (state.standingDown) return orig.apply(this, arguments);
+          if (state.standingDown) return apply(orig, this, arguments);
           touch('webgpu');
-          return view(this).map((f) => [f, f])[Symbol.iterator]();
+          const v = view(this);
+          const pairs = [];
+          for (let i = 0; i < v.length; i++) pushOwn(pairs, [v[i], v[i]]);
+          return arrayValues(pairs);
         });
       }
       if (objGetOwnPropertyDescriptor(P, 'forEach')) {
         replaceMethod(P, 'forEach', (orig) => function forEach(cb, thisArg) {
-          if (state.standingDown) return orig.apply(this, arguments);
+          if (state.standingDown) return apply(orig, this, arguments);
           touch('webgpu');
-          for (const f of view(this)) cb.call(thisArg, f, f, this);
+          const v = view(this);
+          for (let i = 0; i < v.length; i++) apply(cb, thisArg, [v[i], v[i], this]);
         });
       }
-      if (objGetOwnPropertyDescriptor(P, Symbol.iterator)) {
-        const d = objGetOwnPropertyDescriptor(P, Symbol.iterator);
+      if (objGetOwnPropertyDescriptor(P, symIterator)) {
+        const d = objGetOwnPropertyDescriptor(P, symIterator);
         const origIter = d.value;
         const impl = function () {
-          if (state.standingDown) return origIter.apply(this, arguments);
+          if (state.standingDown) return apply(origIter, this, arguments);
           touch('webgpu');
-          return view(this)[Symbol.iterator]();
+          return arrayValues(view(this));
         };
         markNative(impl, '[Symbol.iterator]', origIter);
-        RESTORES.push({ target: P, prop: Symbol.iterator, desc: d });
-        objDefineProperty(P, Symbol.iterator, {
+        pushOwn(RESTORES, { target: P, prop: symIterator, desc: d });
+        objDefineProperty(P, symIterator, {
           value: impl, writable: d.writable, enumerable: d.enumerable, configurable: d.configurable,
         });
       }
@@ -1558,17 +1898,19 @@
       const GP = ownerOf(gpu, 'requestAdapter');
       if (!GP) return;
       replaceMethod(GP, 'requestAdapter', (orig) => function requestAdapter() {
-        if (state.standingDown) return orig.apply(this, arguments);
+        if (state.standingDown) return apply(orig, this, arguments);
         touch('webgpu');
-        const p = orig.apply(this, arguments);
-        if (!p || typeof p.then !== 'function') return p;
-        return p.then((adapter) => {
+        const p = apply(orig, this, arguments);
+        if (!p || (typeof p !== 'object' && typeof p !== 'function')) return p;
+        const fixup = (adapter) => {
           try {
             if (adapter && !win.GPUAdapterInfo) {
               const info = adapter.info;
               if (info) {
                 const w = D().webgpu;
-                for (const k of ['vendor', 'architecture', 'device', 'description']) {
+                const keys = ['vendor', 'architecture', 'device', 'description'];
+                for (let i = 0; i < keys.length; i++) {
+                  const k = keys[i];
                   const val = k === 'device' || k === 'description' ? '' : w[k];
                   objDefineProperty(info, k, { value: val, enumerable: true, configurable: true });
                 }
@@ -1576,7 +1918,8 @@
             }
           } catch (err) { fail('webgpu.requestAdapter.info', err); }
           return adapter;
-        });
+        };
+        try { return promiseThen(p, fixup); } catch (_) { return p; }
       });
     });
 
@@ -1589,38 +1932,41 @@
     // In-place is also the right choice for correctness: pages legitimately write
     // through the returned array, which a defensive copy would silently break.
     // ────────────────────────────────────────────────────────────────────────
-    const noisedChannels = new WeakMap();
+    const noisedChannels = new RawWeakMap();
 
     function ensureChannelNoised(buffer, channel, arr) {
-      let seen = noisedChannels.get(buffer);
-      if (!seen) { seen = new Set(); noisedChannels.set(buffer, seen); }
-      if (seen.has(channel)) return;
-      seen.add(channel);
-      noiseFloat(arr, keyMix(D().audioKey, channel, buffer.length | 0));
+      let seen = wmGet(noisedChannels, buffer);
+      if (!seen) { seen = new RawSet(); wmSet(noisedChannels, buffer, seen); }
+      if (setHas(seen, channel)) return;
+      setAdd(seen, channel);
+      noiseFloat(arr, keyMix(D().audioKey, channel, abLength(buffer) | 0));
     }
 
     safe('AudioBuffer.getChannelData', () => {
       const AB = win.AudioBuffer;
       if (!AB || !AB.prototype) return;
+      // The NATIVE getChannelData, captured before the patch below replaces it.
+      // copyFromChannel needs the live backing array to noise it in place; going
+      // through the patched one would double-count the read.
+      const nativeGetChannelData = AB.prototype.getChannelData;
       replaceMethod(AB.prototype, 'getChannelData', (orig) => function getChannelData(channel) {
-        const arr = orig.apply(this, arguments);
+        const arr = apply(orig, this, arguments);
         if (state.standingDown) return arr;
         touch('audio');
         try { ensureChannelNoised(this, channel | 0, arr); } catch (err) { fail('AudioBuffer.getChannelData', err); }
         return arr;
       });
       if (AB.prototype.copyFromChannel) {
-        const origGet = AB.prototype.getChannelData; // already patched → guarded by the Set
         replaceMethod(AB.prototype, 'copyFromChannel', (orig) => function copyFromChannel(dest, channelNumber) {
           if (!state.standingDown) {
             touch('audio');
             try {
               state.internal++;
-              try { ensureChannelNoised(this, channelNumber | 0, origGet.call(this, channelNumber)); }
+              try { ensureChannelNoised(this, channelNumber | 0, apply(nativeGetChannelData, this, [channelNumber])); }
               finally { state.internal--; }
             } catch (err) { fail('AudioBuffer.copyFromChannel', err); }
           }
-          return orig.apply(this, arguments);
+          return apply(orig, this, arguments);
         });
       }
     });
@@ -1630,14 +1976,15 @@
       if (!AN || !AN.prototype) return;
 
       replaceMethod(AN.prototype, 'getFloatFrequencyData', (orig) => function getFloatFrequencyData(array) {
-        orig.apply(this, arguments);
+        apply(orig, this, arguments);
         if (state.standingDown) return;
         touch('audio');
         try {
           // dB values, typically -100..0. ±1e-4 dB is far below anything audible or
           // visible in a spectrum display, and is stable per bin.
-          const key = keyMix(D().audioKey, this.fftSize | 0, array.length | 0);
-          for (let i = 0; i < array.length; i++) {
+          const len = taLength(array);
+          const key = keyMix(D().audioKey, anFftSize(this) | 0, len | 0);
+          for (let i = 0; i < len; i++) {
             const hh = prf(key, i);
             if ((hh & 3) !== 0) continue;
             const mag = (1 + ((hh >>> 4) & 3)) * 1e-4;
@@ -1647,12 +1994,13 @@
       });
 
       replaceMethod(AN.prototype, 'getByteFrequencyData', (orig) => function getByteFrequencyData(array) {
-        orig.apply(this, arguments);
+        apply(orig, this, arguments);
         if (state.standingDown) return;
         touch('audio');
         try {
-          const key = keyMix(D().audioKey, this.fftSize | 0, array.length | 0);
-          for (let i = 0; i < array.length; i++) {
+          const len = taLength(array);
+          const key = keyMix(D().audioKey, anFftSize(this) | 0, len | 0);
+          for (let i = 0; i < len; i++) {
             const hh = prf(key, i);
             if ((hh & 7) !== 0) continue;
             const v = array[i];
@@ -1694,8 +2042,22 @@
     // agree with each other. `Element.getClientRects()`, `Range.getClientRects()`
     // and SVG text metrics are NOT, and remain both a bypass and a detector.
     // ────────────────────────────────────────────────────────────────────────
-    function isGeneric(n) { return GENERIC_FAMILIES.has(n) || GENERIC_FAMILIES.has(n.toLowerCase()); }
-    function cssFamily(n) { return isGeneric(n) ? n : '"' + n.replace(/"/g, '') + '"'; }
+    function isGeneric(n) { return setHas(GENERIC_FAMILIES, n) || setHas(GENERIC_FAMILIES, strToLowerCase(n)); }
+    function stripChar(s, ch) {
+      let out = '';
+      for (let i = 0; i < s.length; i++) if (s[i] !== ch) out += s[i];
+      return out;
+    }
+    function cssFamily(n) { return isGeneric(n) ? n : '"' + stripChar(n, '"') + '"'; }
+    /** `list.map(cssFamily).join(',')` for our own lists, without Array.prototype. */
+    function familiesCss(list, genericOnly) {
+      const parts = [];
+      for (let i = 0; i < list.length; i++) {
+        if (genericOnly && !isGeneric(list[i])) continue;
+        pushOwn(parts, cssFamily(list[i]));
+      }
+      return arrayJoin(parts, ',') || 'sans-serif';
+    }
 
     function parseFamilyList(css) {
       const out = [];
@@ -1704,24 +2066,36 @@
         const ch = css[i];
         if (q) { if (ch === q) q = null; else cur += ch; }
         else if (ch === '"' || ch === "'") q = ch;
-        else if (ch === ',') { if (cur.trim()) out.push(cur.trim()); cur = ''; }
+        else if (ch === ',') { const t = strTrim(cur); if (t) pushOwn(out, t); cur = ''; }
         else cur += ch;
       }
-      if (cur.trim()) out.push(cur.trim());
+      const t = strTrim(cur);
+      if (t) pushOwn(out, t);
       return out;
     }
 
     // Web fonts registered through @font-face or the FontFace API. Recomputed only
     // when the set size changes, so this is cheap on steady-state pages.
     let webFontCache = null, webFontCount = -1;
+    function unquote(s) {
+      const first = s[0], last = s[s.length - 1];
+      if (s.length >= 2 && (first === '"' || first === "'") && last === first) return strSlice(s, 1, -1);
+      if (first === '"' || first === "'") return strSlice(s, 1);
+      if (last === '"' || last === "'") return strSlice(s, 0, -1);
+      return s;
+    }
     function webFontFamilies() {
       try {
-        const fs = doc.fonts;
+        const fs = docFonts(doc);
         if (!fs) return null;
-        if (webFontCache && fs.size === webFontCount) return webFontCache;
-        const s = new Set();
-        fs.forEach((ff) => { if (ff && ff.family) s.add(String(ff.family).replace(/^["']|["']$/g, '')); });
-        webFontCache = s; webFontCount = fs.size;
+        const size = ffsSize(fs);
+        if (webFontCache && size === webFontCount) return webFontCache;
+        const s = new RawSet();
+        ffsForEach(fs, (ff) => {
+          const fam = ff && ffFamily(ff);
+          if (fam) setAdd(s, unquote(RawString(fam)));
+        });
+        webFontCache = s; webFontCount = size;
         return s;
       } catch (_) { return null; }
     }
@@ -1730,18 +2104,20 @@
       const wf = webFontFamilies();
       const kept = [];
       let dropped = false;
-      for (const f of families) {
-        if (isGeneric(f)) { kept.push(f); continue; }
-        if (wf && wf.has(f)) { kept.push(f); continue; }       // page's own web font — untouchable
-        if (!KNOWN_SYSTEM_FONTS.has(f)) { kept.push(f); continue; } // outside our universe — gap G3
-        if (D().fontSet.has(f)) { kept.push(f); continue; }    // the persona has it
-        dropped = true;                                        // known system font the persona lacks
+      for (let i = 0; i < families.length; i++) {
+        const f = families[i];
+        if (isGeneric(f)) { pushOwn(kept, f); continue; }
+        if (wf && setHas(wf, f)) { pushOwn(kept, f); continue; }       // page's own web font — untouchable
+        if (!setHas(KNOWN_SYSTEM_FONTS, f)) { pushOwn(kept, f); continue; } // outside our universe — gap G3
+        if (setHas(D().fontSet, f)) { pushOwn(kept, f); continue; }    // the persona has it
+        dropped = true;                                                // known system font the persona lacks
       }
       // Whichever family actually gets used is the first non-generic survivor.
       let claimed = null;
-      for (const f of kept) {
+      for (let i = 0; i < kept.length; i++) {
+        const f = kept[i];
         if (isGeneric(f)) continue;
-        if (D().fontSet.has(f) && !(wf && wf.has(f))) claimed = f;
+        if (setHas(D().fontSet, f) && !(wf && setHas(wf, f))) claimed = f;
         break;
       }
       return { kept, claimed, dropped };
@@ -1750,17 +2126,17 @@
     let measuring = false;
 
     function measureWithFamily(el, familyCss, origGet) {
-      const style = el.style;
-      const prev = style.getPropertyValue('font-family');
-      const prio = style.getPropertyPriority('font-family');
+      const style = elStyle(el);
+      const prev = cssGetPropertyValue(style, 'font-family');
+      const prio = cssGetPropertyPriority(style, 'font-family');
       measuring = true;
       state.internal++;
       try {
-        style.setProperty('font-family', familyCss, 'important');
-        return origGet.call(el);
+        cssSetProperty(style, 'font-family', familyCss, 'important');
+        return apply(origGet, el, []);
       } finally {
-        if (prev) style.setProperty('font-family', prev, prio);
-        else style.removeProperty('font-family');
+        if (prev) cssSetProperty(style, 'font-family', prev, prio);
+        else cssRemoveProperty(style, 'font-family');
         state.internal--;
         measuring = false;
       }
@@ -1769,12 +2145,12 @@
     /** Bounded, deterministic, and never large enough to wreck a layout. */
     function presenceDelta(family, prop, base, fontSize) {
       const h = keyStr(D().fontKey, family + '|' + prop + '|' + fontSize);
-      const cap = Math.max(1, Math.min(6, Math.round(Math.abs(base) * 0.03)));
+      const cap = mathMax(1, mathMin(6, mathRound(mathAbs(base) * 0.03)));
       const d = 1 + (h % cap);
       return ((h >>> 8) & 1) && base - d > 0 ? -d : d;
     }
 
-    const metricCache = new WeakMap();
+    const metricCache = new RawWeakMap();
 
     /**
      * @param prop      which presence-delta to use — 'offsetWidth' or 'offsetHeight'.
@@ -1786,47 +2162,48 @@
      *                   the other's numbers.
      */
     function fontMetric(el, prop, origGet, cacheTag) {
-      if (state.standingDown || measuring) return origGet.call(el);
+      const real = () => apply(origGet, el, []);
+      if (state.standingDown || measuring) return real();
       // Cheap structural gates first — these keep the shim off the hot path that
       // real layout code uses (containers, long text, detached nodes).
-      if (!el || el.nodeType !== 1 || el.childElementCount !== 0) return origGet.call(el);
-      const text = el.textContent;
-      if (!text || text.length === 0 || text.length > 128) return origGet.call(el);
-      if (!el.isConnected) return origGet.call(el);
+      if (!el || nodeType(el) !== 1 || elChildElementCount(el) !== 0) return real();
+      const text = nodeTextContent(el);
+      if (!text || text.length === 0 || text.length > 128) return real();
+      if (!nodeIsConnected(el)) return real();
 
-      const cs = win.getComputedStyle(el);
-      const famCss = cs && cs.fontFamily;
-      if (!famCss) return origGet.call(el);
+      const cs = apply(realmGetComputedStyle, win, [el]);
+      const famCss = cs && csFontFamily(cs);
+      if (!famCss) return real();
 
       const families = parseFamilyList(famCss);
-      if (families.length === 0) return origGet.call(el);
+      if (families.length === 0) return real();
       const plan = planFamilies(families);
-      if (!plan.dropped && !plan.claimed) return origGet.call(el); // nothing to decide
+      if (!plan.dropped && !plan.claimed) return real(); // nothing to decide
 
       touch('fonts');
 
-      const parentW = el.parentElement ? el.parentElement.clientWidth : -1;
-      const key = (cacheTag || prop) + '|' + famCss + '|' + cs.fontSize + '|' + cs.fontWeight + '|' +
-        cs.fontStyle + '|' + cs.letterSpacing + '|' + parentW + '|' + text;
-      let cache = metricCache.get(el);
-      if (cache && cache.has(key)) return cache.get(key);
+      const parent = nodeParentElement(el);
+      const parentW = parent ? elClientWidth(parent) : -1;
+      const fontSize = csFontSize(cs);
+      const key = (cacheTag || prop) + '|' + famCss + '|' + fontSize + '|' + csFontWeight(cs) + '|' +
+        csFontStyle(cs) + '|' + csLetterSpacing(cs) + '|' + parentW + '|' + text;
+      let cache = wmGet(metricCache, el);
+      if (cache && mapHas(cache, key)) return mapGet(cache, key);
 
-      const keptCss = plan.kept.map(cssFamily).join(',') || 'sans-serif';
-      const base = measureWithFamily(el, keptCss, origGet);
+      const base = measureWithFamily(el, familiesCss(plan.kept, false), origGet);
       let result = base;
 
       if (plan.claimed) {
-        const genericCss = plan.kept.filter(isGeneric).map(cssFamily).join(',') || 'sans-serif';
-        const fallback = measureWithFamily(el, genericCss, origGet);
+        const fallback = measureWithFamily(el, familiesCss(plan.kept, true), origGet);
         // base === fallback ⇒ the claimed font is not really installed here, so the
         // persona's claim needs synthesising. Otherwise the real metric already
         // says "present" and we return it verbatim.
-        if (base === fallback) result = base + presenceDelta(plan.claimed, prop, base, cs.fontSize);
+        if (base === fallback) result = base + presenceDelta(plan.claimed, prop, base, fontSize);
       }
 
-      if (!cache) { cache = new Map(); metricCache.set(el, cache); }
-      if (cache.size > 64) cache.clear();
-      cache.set(key, result);
+      if (!cache) { cache = new RawMap(); wmSet(metricCache, el, cache); }
+      if (mapSizeGet(cache) > 64) mapClear(cache);
+      mapSet(cache, key, result);
       return result;
     }
 
@@ -1864,18 +2241,19 @@
     safe('Element.getBoundingClientRect (font-metric agreement)', () => {
       const E = win.Element.prototype;
       replaceMethod(E, 'getBoundingClientRect', (orig) => function getBoundingClientRect() {
-        const r = orig.apply(this, arguments);
+        const r = apply(orig, this, arguments);
         if (state.standingDown || measuring) return r;
         try {
           // Scoped to HTMLElement to bound the blast radius; SVG text metrics are a
           // documented gap (G3) rather than something we half-cover here.
-          if (!(this instanceof win.HTMLElement)) return r;
-          const widthOf = function () { return orig.call(this).width; };
-          const heightOf = function () { return orig.call(this).height; };
+          if (!fnHasInstance(RealmHTMLElement, this)) return r;
+          const widthOf = function () { return rectWidth(apply(orig, this, [])); };
+          const heightOf = function () { return rectHeight(apply(orig, this, [])); };
           const adjW = fontMetric(this, 'offsetWidth', widthOf, 'rectWidth');
           const adjH = fontMetric(this, 'offsetHeight', heightOf, 'rectHeight');
-          if (adjW === r.width && adjH === r.height) return r;
-          return new win.DOMRect(r.x, r.y, adjW, adjH);
+          const rw = rectWidth(r), rh = rectHeight(r);
+          if (adjW === rw && adjH === rh) return r;
+          return new RealmDOMRect(rectX(r), rectY(r), adjW, adjH);
         } catch (err) { fail('Element.getBoundingClientRect', err); return r; }
       });
     });
@@ -1884,60 +2262,65 @@
     // re-running the native call with a rewritten font shorthand — no DOM involved.
     safe('CanvasRenderingContext2D.measureText', () => {
       const TM = win.TextMetrics;
-      const adjust = new WeakMap();
+      const adjust = new RawWeakMap();
+      let nativeTMWidth = null;     // the NATIVE TextMetrics.width getter, for our own reads below
       if (TM && TM.prototype) {
-        for (const p of ['width', 'actualBoundingBoxLeft', 'actualBoundingBoxRight']) {
+        const props = ['width', 'actualBoundingBoxLeft', 'actualBoundingBoxRight'];
+        for (let i = 0; i < props.length; i++) {
+          const p = props[i];
           if (!objGetOwnPropertyDescriptor(TM.prototype, p)) continue;
-          replaceGetter(TM.prototype, p, function (origGet) {
-            const real = origGet.call(this);
-            const a = adjust.get(this);
+          const origGetter = replaceGetter(TM.prototype, p, function (origGet) {
+            const real = apply(origGet, this, []);
+            const a = wmGet(adjust, this);
             return (!state.standingDown && a && typeof real === 'number') ? real * a : real;
           });
+          if (p === 'width') nativeTMWidth = origGetter;
         }
       }
+      const widthOfMetrics = (m) => (nativeTMWidth ? apply(nativeTMWidth, m, []) : m.width);
 
       const FONT_SHORTHAND =
         /^\s*(.*?)((?:\d*\.?\d+)(?:px|pt|pc|in|cm|mm|q|em|rem|ex|ch|vw|vh|vmin|vmax|%)(?:\s*\/\s*\S+)?)\s+(.+)$/i;
 
-      const patch = (proto) => replaceMethod(proto, 'measureText', (orig) => function measureText() {
-        if (state.standingDown) return orig.apply(this, arguments);
+      const patch = (proto, getFont, setFont) => replaceMethod(proto, 'measureText', (orig) => function measureText() {
+        if (state.standingDown) return apply(orig, this, arguments);
         let m;
         try {
-          const parsed = FONT_SHORTHAND.exec(this.font || '');
-          if (!parsed) return orig.apply(this, arguments);
+          const parsed = reExec(FONT_SHORTHAND, getFont(this) || '');
+          if (!parsed) return apply(orig, this, arguments);
           const plan = planFamilies(parseFamilyList(parsed[3]));
-          if (!plan.dropped && !plan.claimed) return orig.apply(this, arguments);
+          if (!plan.dropped && !plan.claimed) return apply(orig, this, arguments);
 
           touch('fonts');
           const prefix = parsed[1] + parsed[2] + ' ';
-          const saved = this.font;
+          const saved = getFont(this);
           state.internal++;
           try {
-            this.font = prefix + (plan.kept.map(cssFamily).join(',') || 'sans-serif');
-            m = orig.apply(this, arguments);
+            setFont(this, prefix + familiesCss(plan.kept, false));
+            m = apply(orig, this, arguments);
             if (plan.claimed) {
-              const w1 = m.width;
-              this.font = prefix + (plan.kept.filter(isGeneric).map(cssFamily).join(',') || 'sans-serif');
-              const w2 = orig.apply(this, arguments).width;
+              const w1 = widthOfMetrics(m);
+              setFont(this, prefix + familiesCss(plan.kept, true));
+              const w2 = widthOfMetrics(apply(orig, this, arguments));
               if (w1 === w2 && TM && TM.prototype) {
                 const h = keyStr(D().fontKey, plan.claimed + '|measureText|' + parsed[2]);
-                adjust.set(m, 1 + (((h % 25) + 5) / 1000) * ((h >>> 8) & 1 ? -1 : 1)); // ±0.5%..3%
+                wmSet(adjust, m, 1 + (((h % 25) + 5) / 1000) * ((h >>> 8) & 1 ? -1 : 1)); // ±0.5%..3%
               }
             }
           } finally {
-            this.font = saved;
+            setFont(this, saved);
             state.internal--;
           }
         } catch (err) {
           fail('CanvasRenderingContext2D.measureText', err);
-          return orig.apply(this, arguments);
+          return apply(orig, this, arguments);
         }
         return m;
       });
 
-      patch(Ctx2D.prototype);
+      patch(Ctx2D.prototype, ctxFont, setCtxFont);
       if (OffCtx2D && OffCtx2D.prototype && objGetOwnPropertyDescriptor(OffCtx2D.prototype, 'measureText')) {
-        patch(OffCtx2D.prototype);
+        patch(OffCtx2D.prototype, offCtxFont, setOffCtxFont);
       }
     });
 
@@ -1969,10 +2352,11 @@
     // ────────────────────────────────────────────────────────────────────────
     safe('iframe child realms', () => {
       const P = win.HTMLIFrameElement.prototype;
+      let nativeContentWindow = null;
       const hook = (prop, toWindow) => {
-        if (!objGetOwnPropertyDescriptor(P, prop)) return;
-        replaceGetter(P, prop, function (origGet) {
-          const v = origGet.call(this);
+        if (!objGetOwnPropertyDescriptor(P, prop)) return null;
+        return replaceGetter(P, prop, function (origGet) {
+          const v = apply(origGet, this, []);
           if (!state.standingDown) {
             try { const w = toWindow(v); if (w) installInto(w); }
             catch (_) { /* cross-origin: nothing to patch and nothing to leak */ }
@@ -1980,8 +2364,11 @@
           return v;
         });
       };
-      hook('contentWindow', (w) => w);
+      nativeContentWindow = hook('contentWindow', (w) => w);
       hook('contentDocument', (d) => (d ? d.defaultView : null));
+      // The observer below reaches the child realm through the NATIVE getter we
+      // just captured, never through `node.contentWindow` on the live prototype.
+      const childWindowOf = (f) => (nativeContentWindow ? apply(nativeContentWindow, f, []) : f.contentWindow);
 
       // `window[0]` / `window.frames[0]` reach the same realm WITHOUT going through
       // `contentWindow`, and those are live indexed properties on the WindowProxy
@@ -1994,14 +2381,20 @@
       // theoretical one. Closing it properly needs the browser to run our content
       // script in every child realm.
       try {
-        const obs = new win.MutationObserver((records) => {
+        const obs = new RealmMutationObserver((records) => {
           if (state.standingDown) return;
-          for (const rec of records) {
-            for (const node of rec.addedNodes) {
+          for (let r = 0; r < records.length; r++) {
+            const added = recordAddedNodes(records[r]);
+            const n = nodeListLength(added) | 0;
+            for (let i = 0; i < n; i++) {
+              const node = added[i];
               try {
-                if (node && node.tagName === 'IFRAME') installInto(node.contentWindow);
-                else if (node && node.querySelectorAll) {
-                  for (const f of node.querySelectorAll('iframe')) installInto(f.contentWindow);
+                if (!node || nodeType(node) !== 1) continue;
+                if (elTagName(node) === 'IFRAME') installInto(childWindowOf(node));
+                else {
+                  const frames = elQuerySelectorAll(node, 'iframe');
+                  const fn = nodeListLength(frames) | 0;
+                  for (let j = 0; j < fn; j++) installInto(childWindowOf(frames[j]));
                 }
               } catch (_) { /* cross-origin */ }
             }
@@ -2020,25 +2413,31 @@
   function cheapHash(str) {
     let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
     for (let i = 0; i < str.length; i++) {
-      const ch = str.charCodeAt(i);
-      h1 = Math.imul(h1 ^ ch, 2654435761);
-      h2 = Math.imul(h2 ^ ch, 1597334677);
+      const ch = strCharCodeAt(str, i);
+      h1 = mathImul(h1 ^ ch, 2654435761);
+      h2 = mathImul(h2 ^ ch, 1597334677);
     }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).padStart(14, '0');
+    h1 = mathImul(h1 ^ (h1 >>> 16), 2246822507) ^ mathImul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = mathImul(h2 ^ (h2 >>> 16), 2246822507) ^ mathImul(h1 ^ (h1 >>> 13), 3266489909);
+    let hex = numToString(4294967296 * (2097151 & h2) + (h1 >>> 0), 16);
+    while (hex.length < 14) hex = '0' + hex;
+    return hex;
   }
 
   /**
    * 50 consecutive canvas reads must produce ONE hash. If this ever reports more
    * than one, the noise has become per-read and the averaging attack works again.
+   *
+   * Dev-only. The canvas calls here go through the PATCHED page API on purpose —
+   * the self-test measures what a page sees.
    */
   function selfTest(iterations) {
     const n = iterations || 50;
     const out = { reads: n, toDataURL: null, getImageData: null, stable: false, unique: 0 };
     state.internal++;
     try {
-      const urls = new Set(), pixels = new Set();
+      const urls = new RawSet(), pixels = new RawSet();
+      let firstUrl = null, firstPixels = null;
       for (let i = 0; i < n; i++) {
         const c = document.createElement('canvas');
         c.width = 220; c.height = 44;
@@ -2049,13 +2448,17 @@
         ctx.fillRect(10, 4, 60, 18);
         ctx.fillStyle = '#069';
         ctx.fillText('Nullecho determinism ✨', 4, 20);
-        urls.add(cheapHash(c.toDataURL()));
-        pixels.add(cheapHash(Array.prototype.join.call(ctx.getImageData(0, 0, 220, 44).data, ',')));
+        const u = cheapHash(c.toDataURL());
+        const p = cheapHash(taJoin(ctx.getImageData(0, 0, 220, 44).data, ','));
+        if (firstUrl === null) { firstUrl = u; firstPixels = p; }
+        setAdd(urls, u);
+        setAdd(pixels, p);
       }
-      out.toDataURL = { unique: urls.size, hash: urls.values().next().value };
-      out.getImageData = { unique: pixels.size, hash: pixels.values().next().value };
-      out.unique = Math.max(urls.size, pixels.size);
-      out.stable = urls.size === 1 && pixels.size === 1;
+      const us = setSizeGet(urls), ps = setSizeGet(pixels);
+      out.toDataURL = { unique: us, hash: firstUrl };
+      out.getImageData = { unique: ps, hash: firstPixels };
+      out.unique = mathMax(us, ps);
+      out.stable = us === 1 && ps === 1;
     } finally { state.internal--; }
     return out;
   }
@@ -2074,24 +2477,54 @@
   function detailOf(ev) {
     if (!ev) return null;
     let raw;
-    try { raw = RAW.detailGet ? RAW.detailGet.call(ev) : ev.detail; }
+    try { raw = RAW.detailGet ? apply(RAW.detailGet, ev, []) : ev.detail; }
     catch (_) { return null; }
     return typeof raw === 'string' ? raw : null;
   }
 
+  /**
+   * Review finding A3. The loader's delivery carries the persona — noise keys and
+   * seed included — and a page listener on `window` (capture) registered after us
+   * could read it: not the nonce (spent), but the keys that let it compute our
+   * exact perturbation for any canvas size without drawing a probe.
+   *
+   * So: once a delivery AUTHENTICATES, we stop it dead through the captured
+   * `stopImmediatePropagation` — we are the first listener on the first node of
+   * the path, so nothing after us runs. Unauthenticated events are the page's own
+   * and are left alone (swallowing them would be a free "Nullecho present" probe).
+   *
+   * THE TRAP, and the ordering decision (DECISIONS.md D21): `gpc.js` consumes the
+   * SAME event, registers after us, and would now never hear its config. The
+   * loader still sends one event; we re-dispatch a STRIPPED copy for gpc.js —
+   * `{ ok, enabled, gpc, gpcNonce }`, no persona, no shim nonce — which gpc.js
+   * authenticates with its own nonce (D13) and swallows in turn. The relay is
+   * skipped when the loader had no gpc nonce (gpc.js is `exclude_matches`-ed off
+   * ~50 hosts), so on those pages nothing at all reaches a page listener.
+   * Delivery order is therefore: shim authenticates → shim swallows → shim relays
+   * → gpc authenticates → gpc swallows.
+   */
   function onPersonaEvent(ev) {
-    handleHandshake(detailOf(ev));
+    const accepted = handleHandshake(detailOf(ev));
+    if (!accepted) return;
+    try { if (RAW.stopImmediatePropagation) apply(RAW.stopImmediatePropagation, ev, []); } catch (_) {}
+    if (typeof accepted.gpcNonce === 'string') {
+      emit(EV_PERSONA, { ok: accepted.ok, enabled: accepted.enabled, gpc: accepted.gpc, gpcNonce: accepted.gpcNonce });
+    }
   }
 
   function status(obj) { emit(EV_STATUS, obj); }
 
   function validPersona(p) {
     return !!(p && typeof p.ua === 'string' && p.platform && p.gpu && p.screen &&
-      Array.isArray(p.fontList) && p.noise && typeof p.noise.canvas === 'number');
+      arrayIsArray(p.fontList) && p.noise && typeof p.noise.canvas === 'number');
   }
 
+  /**
+   * Returns the authenticated payload (so the caller can stop propagation and
+   * relay to gpc.js), or null when nothing was accepted.
+   */
   function handleHandshake(json) {
-    if (state.handshakeDone) return;               // exactly one, ever
+    if (state.handshakeDone) return null;          // exactly one, ever
 
     let payload = null;
     try { payload = json ? RAW.jsonParse(json) : null; } catch (_) { payload = null; }
@@ -2122,13 +2555,17 @@
           );
         } catch (_) { /* console is the page's */ }
       }
-      return;
+      return null;
     }
 
     state.handshakeDone = true;
     nonceBox.value = null;                         // used once; no replay value
     try { removeListeners(); } catch (_) {}
+    applyAuthenticated(payload);
+    return payload;
+  }
 
+  function applyAuthenticated(payload) {
     if (payload.ok !== true) {
       status({ upgraded: false, lockedToFallback: false, reason: (payload && payload.reason) || 'handshake failed' });
       return;
@@ -2162,7 +2599,7 @@
       return;
     }
 
-    if (!POOL_IDS.has(payload.persona.id)) {
+    if (!setHas(POOL_IDS, payload.persona.id)) {
       // Not fatal — the delivered persona is authoritative — but it means the
       // inlined mirror (gap G7) has drifted from src/personas.js.
       console.warn('[Nullecho] persona id "' + payload.persona.id + '" is not in the shim\'s inlined pool. ' +
@@ -2192,7 +2629,7 @@
     state.dev = true;
     try {
       objDefineProperty(globalThis, '__nullechoDev', {
-        value: Object.freeze({
+        value: objFreeze({
           version: '0.1.0',
           get personaId() { return state.persona && state.persona.id; },
           get persona() { return state.persona; },
@@ -2202,7 +2639,11 @@
           get forged() { return state.forged; },
           get reads() { return state.reads; },
           get perApi() { return { ...state.perApi }; },
-          get failures() { return state.failures.slice(); },
+          get failures() {
+            const out = [];
+            for (let i = 0; i < state.failures.length; i++) pushOwn(out, state.failures[i]);
+            return out;
+          },
           selfTest,
         }),
         writable: false, enumerable: false, configurable: true,
@@ -2231,16 +2672,18 @@
   const LISTEN_TARGETS = [];
 
   function addListeners() {
-    for (const t of [globalThis, document]) {
+    const targets = [globalThis, document];
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
       if (!t || !RAW.addEventListener) continue;
-      try { RAW.addEventListener.call(t, EV_PERSONA, onPersonaEvent, true); LISTEN_TARGETS.push(t); }
+      try { apply(RAW.addEventListener, t, [EV_PERSONA, onPersonaEvent, true]); pushOwn(LISTEN_TARGETS, t); }
       catch (_) { /* not an EventTarget in this realm */ }
     }
   }
 
   function removeListeners() {
-    for (const t of LISTEN_TARGETS) {
-      try { RAW.removeEventListener.call(t, EV_PERSONA, onPersonaEvent, true); } catch (_) {}
+    for (let i = 0; i < LISTEN_TARGETS.length; i++) {
+      try { apply(RAW.removeEventListener, LISTEN_TARGETS[i], [EV_PERSONA, onPersonaEvent, true]); } catch (_) {}
     }
     LISTEN_TARGETS.length = 0;
   }

@@ -31,14 +31,28 @@
  * ─── Signals ───────────────────────────────────────────────────────────────
  *
  *   COOKIE       high-entropy Cookie header sent to a third party
- *   SET_COOKIE   high-entropy Set-Cookie from a third party
- *   SUPERCOOKIE  localStorage / IndexedDB identifier  (reported by the shim)
- *   CANVAS       canvas or WebGL readback              (reported by the shim)
- *   ID_PARAM     identifier-bearing query parameter — link decoration
+ *   SET_COOKIE   high-entropy, cross-site-capable Set-Cookie from a third party
+ *                (`SameSite=None`, not `Partitioned` — anything else the browser
+ *                would not store or send cross-site, so it cannot track)
  *
- * The first two are observed here. The middle two arrive as messages from the
- * layer-2 fingerprint shim, which is the only code that can see them. The last
- * is derived from the URL.
+ * Both are things the THIRD PARTY did. That is the bar for a strike, and it is
+ * why three earlier signals are gone (2026-09-16, REVIEW-2026-09-16 A5 + C3;
+ * DECISIONS.md D20):
+ *
+ *   ID_PARAM     an identifier-bearing query parameter on the request URL. The
+ *                URL is chosen by the EMBEDDING PAGE, so three attacker pages
+ *                each loading `victim.example/x?gclid=…` earned any domain a
+ *                block rule. The network layer cannot tell a parameter the
+ *                third party originated from one the first party pasted in,
+ *                so the source is retired, not tightened.
+ *   CANVAS /     "reported by the shim" — but the shim's report carries no
+ *   SUPERCOOKIE  script attribution (it is `{api, count}`), so nothing ever
+ *                reached this layer; the path was dead code. Attributing an
+ *                unattributed read to some third party on the page would be
+ *                ID_PARAM's problem through a different door.
+ *
+ * Their bit values stay reserved so a state record written by an earlier build
+ * is read correctly; `ready()` scrubs them out, and they never count.
  *
  * ─── Outcomes ──────────────────────────────────────────────────────────────
  *
@@ -71,11 +85,21 @@ const IDENTIFIER_ENTROPY_BITS = 33;
 const SIGNAL = {
   COOKIE: 1,
   SET_COOKIE: 2,
-  SUPERCOOKIE: 4,
-  CANVAS: 8,
-  ID_PARAM: 16,
 };
 export { SIGNAL };
+
+/**
+ * Bits that used to be signals. Reserved — never reassign them — so a persisted
+ * bitmask from an earlier build cannot be misread as a live signal.
+ */
+export const RETIRED_SIGNAL_BITS = {
+  SUPERCOOKIE: 4, // 2026-09-16 — never reachable (C3)
+  CANVAS: 8,      // 2026-09-16 — never reachable (C3)
+  ID_PARAM: 16,   // 2026-09-16 — attacker-forgeable (A5)
+};
+
+/** The only bits that count toward the three strikes. */
+const PROMOTING_MASK = Object.values(SIGNAL).reduce((a, b) => a | b, 0);
 
 const SIGNAL_NAMES = Object.fromEntries(Object.entries(SIGNAL).map(([k, v]) => [v, k]));
 
@@ -230,34 +254,41 @@ function hasIdentifyingCookie(pairs) {
     !NON_IDENTIFYING_COOKIES.has(name.toLowerCase()) && isIdentifierValue(value));
 }
 
-// ── identifier-bearing query parameters ───────────────────────────────────
-//
-// Link decoration: the first party hands the third party an identifier in the
-// URL, so the third party can link the visit without a cookie at all.
-
-const ID_PARAMS = new Set([
-  'uid', 'uuid', 'guid', 'userid', 'user_id', 'visitorid', 'visitor_id', 'vid',
-  'cid', 'clientid', 'client_id', 'sid', 'sessionid', 'session_id',
-  'deviceid', 'device_id', 'aid', 'anonymousid', 'anonymous_id',
-  'fbclid', '_fbp', '_fbc', 'gclid', 'dclid', 'wbraid', 'gbraid', 'gbraid',
-  'msclkid', 'ttclid', 'twclid', 'li_fat_id', 'igshid', 'yclid', 'rdt_cid',
-  'epik', 'irclickid', 'sc_cid', 'wickedid', 'mc_eid', 'mkt_tok',
-  '_ga', '_gl', 'ajs_user_id', 'ajs_anonymous_id',
-  '__hstc', '__hssc', '_hsenc', 'hsa_cam', 'vero_id',
-  'oly_anon_id', 'oly_enc_id', 'ml_subscriber', 's_kwcid', '_openstat',
-]);
-
-function hasIdentifierParam(url) {
-  let search;
-  try {
-    search = new URL(url).searchParams;
-  } catch {
-    return false;
+/**
+ * Parse one Set-Cookie header into its name/value pair and lower-cased attribute
+ * map. `{ name, value, attrs }`; attribute values are lower-cased strings, or ''
+ * for flag attributes (`Secure`, `Partitioned`).
+ */
+export function parseSetCookie(header) {
+  const [first, ...rest] = String(header).split(';');
+  const i = first.indexOf('=');
+  const name = (i === -1 ? first : first.slice(0, i)).trim();
+  const value = (i === -1 ? '' : first.slice(i + 1)).trim();
+  const attrs = Object.create(null);
+  for (const part of rest) {
+    const j = part.indexOf('=');
+    const k = (j === -1 ? part : part.slice(0, j)).trim().toLowerCase();
+    if (k) attrs[k] = j === -1 ? '' : part.slice(j + 1).trim().toLowerCase();
   }
-  for (const [key, value] of search) {
-    if (ID_PARAMS.has(key.toLowerCase()) && isIdentifierValue(value)) return true;
-  }
-  return false;
+  return { name, value, attrs };
+}
+
+/**
+ * Could this cookie, set from a THIRD-PARTY response, ever be sent back
+ * cross-site? Chrome (80+) stores a cookie from a cross-site response only when
+ * it says `SameSite=None`, and a `Partitioned` (CHIPS) cookie is keyed to the
+ * top-level site and so cannot join two sites. Everything else — a PHP session
+ * cookie on an image, a load-balancer affinity cookie — is dropped by the
+ * browser before it could identify anyone, and counting it would (a) mark
+ * ordinary servers as trackers and (b) hand an attacker a strike source: embed
+ * any site with a session cookie on three pages and it is blocked.
+ *
+ * Firefox does not default to Lax, but its Total Cookie Protection partitions
+ * third-party cookies regardless, and every tracker that wants to work in
+ * Chrome already sets `SameSite=None`. Requiring it costs no coverage.
+ */
+export function isCrossSiteCapable(attrs) {
+  return attrs.samesite === 'none' && !('partitioned' in attrs);
 }
 
 // ── state ─────────────────────────────────────────────────────────────────
@@ -280,15 +311,39 @@ function emptyState() {
   return { version: 1, domains: Object.create(null) };
 }
 
+/**
+ * Rebuild in-memory state from what storage holds, dropping every retired signal
+ * bit on the way in. A record written before 2026-09-16 may carry ID_PARAM /
+ * CANVAS / SUPERCOOKIE observations; after the scrub only the bits that still
+ * count remain, and a site whose only evidence was retired is forgotten.
+ *
+ * Deliberately NOT undone: a record that is already `blocked` stays blocked even
+ * if its surviving evidence is now below the bar. A block written by the user
+ * (`setDomainStatus`) is indistinguishable in storage from one the learner
+ * wrote, and demoting the user's own decision would be worse than keeping a
+ * learner verdict that pre-dates the rule change. The options page lets the
+ * user allow it in one click; nothing had shipped when the rule changed.
+ */
+export function normaliseStored(saved) {
+  if (!saved || saved.version !== 1 || !saved.domains) return emptyState();
+  const domains = Object.create(null);
+  for (const [domain, rec] of Object.entries(saved.domains)) {
+    const sites = Object.create(null);
+    for (const [site, mask] of Object.entries(rec.sites ?? {})) {
+      const kept = (Number(mask) || 0) & PROMOTING_MASK;
+      if (kept) sites[site] = kept;
+    }
+    domains[domain] = { ...rec, sites };
+  }
+  return { version: 1, domains };
+}
+
 /** Load persisted state. Safe to call repeatedly; only hydrates once. */
 export function ready() {
   if (state) return Promise.resolve(state);
   if (!hydrating) {
     hydrating = chrome.storage.local.get(STORAGE_KEY).then((stored) => {
-      const saved = stored[STORAGE_KEY];
-      state = saved && saved.version === 1
-        ? { version: 1, domains: Object.assign(Object.create(null), saved.domains) }
-        : emptyState();
+      state = normaliseStored(stored[STORAGE_KEY]);
       return state;
     });
   }
@@ -328,15 +383,24 @@ function recordFor(domain) {
   return rec;
 }
 
-const strikeCount = (rec) => Object.values(rec.sites).filter((mask) => mask !== 0).length;
+/** Distinct first-party sites with at least one signal that still counts. */
+const strikeCount = (rec) => Object.values(rec.sites).filter((mask) => (mask & PROMOTING_MASK) !== 0).length;
 
 // ── the core: record one observation ──────────────────────────────────────
 
 /**
  * Record that `trackerHost` showed `signal` while embedded on `siteHost`.
  * Returns the new status if the domain was promoted, otherwise null.
+ *
+ * `signal` must be a live SIGNAL bit. A retired bit — or anything else — is
+ * dropped here rather than stored, so no caller can resurrect a strike source
+ * by passing its old number.
  */
 export async function recordSignal(trackerHost, siteHost, signal) {
+  // Positive integer, masked to live bits. (A negative number would AND to
+  // "every bit", which is why the sign is checked and not just the mask.)
+  signal = Number.isInteger(signal) && signal > 0 ? signal & PROMOTING_MASK : 0;
+  if (!signal) return null;
   const tracker = registrableDomain(trackerHost);
   const site = registrableDomain(siteHost);
   if (!tracker || !site) return null;
@@ -488,13 +552,14 @@ function isObservable(details) {
   return { tracker, site };
 }
 
-function onBeforeRequest(details) {
-  const ctx = isObservable(details);
-  if (!ctx) return;
-  if (hasIdentifierParam(details.url)) {
-    void recordSignal(ctx.tracker, ctx.site, SIGNAL.ID_PARAM);
-  }
-}
+/*
+ * There is no `onBeforeRequest` observer, on purpose. Everything that listener
+ * could see — the URL and its query string — is chosen by the embedding page,
+ * and a strike source the page controls is a way for a page to get any third
+ * party blocked (REVIEW-2026-09-16 A5). The two observers below read what the
+ * THIRD PARTY sent or is being sent: a cookie it set, or a cookie the browser
+ * holds for it.
+ */
 
 function onBeforeSendHeaders(details) {
   const ctx = isObservable(details);
@@ -512,37 +577,36 @@ function onHeadersReceived(details) {
   const setCookies = (details.responseHeaders ?? [])
     .filter((h) => h.name.toLowerCase() === 'set-cookie');
   if (!setCookies.length) return;
-  const pairs = setCookies.map((h) => {
-    const first = String(h.value).split(';')[0];
-    const i = first.indexOf('=');
-    return i === -1 ? [first.trim(), ''] : [first.slice(0, i).trim(), first.slice(i + 1).trim()];
-  });
-  if (hasIdentifyingCookie(pairs)) {
+  // Only a cookie the browser would actually keep across sites is evidence of
+  // anything; see `isCrossSiteCapable`.
+  const pairs = setCookies
+    .map((h) => parseSetCookie(h.value))
+    .filter((c) => isCrossSiteCapable(c.attrs))
+    .map((c) => [c.name, c.value]);
+  if (pairs.length && hasIdentifyingCookie(pairs)) {
     void recordSignal(ctx.tracker, ctx.site, SIGNAL.SET_COOKIE);
   }
 }
 
 /**
- * Signals only the page can see, forwarded by the layer-2 fingerprint shim.
+ * ⛔ CLOSED. Page-side reports are not a strike source.
  *
- * Expected message:
- *   { type: 'nullecho:signal', signal: 'canvas' | 'supercookie', scriptUrl }
+ * This used to wait for `{ type: 'nullecho:signal', signal, scriptUrl }` and
+ * count canvas reads and storage supercookies against `scriptUrl`'s domain.
+ * Nothing has ever sent that message: the shim reports `nullecho:fp-detected`
+ * as `{ api, count }`, with no script attribution, because recovering the
+ * calling script's URL from inside a patched getter is not something the shim
+ * does (REVIEW-2026-09-16 C3). Without attribution the only options are to
+ * drop the report or to blame a third party that happens to be on the page —
+ * and the second is exactly the A5 defect (a page choosing who gets blocked).
  *
- * `scriptUrl` is the script that performed the read — the shim recovers it
- * from the call stack. Without it a canvas read cannot be attributed to a
- * third party and is dropped rather than blamed on the page.
+ * If the shim ever attributes reads to a script origin it obtained from the
+ * browser rather than from the page, this is where that signal lands. Until
+ * then it accepts nothing; `background.js` no longer calls it, and it stays
+ * exported so the review's C3 reproduction (which calls it) keeps running.
  */
-export function handleContentReport(message, sender) {
-  if (message?.type !== 'nullecho:signal') return false;
-  const site = hostOf(sender?.origin || sender?.tab?.url || sender?.url || '');
-  const tracker = hostOf(message.scriptUrl || '');
-  if (!site || !tracker) return false;
-  const signal = message.signal === 'canvas' ? SIGNAL.CANVAS
-    : message.signal === 'supercookie' ? SIGNAL.SUPERCOOKIE
-      : null;
-  if (signal === null) return false;
-  void recordSignal(tracker, site, signal);
-  return true;
+export function handleContentReport() {
+  return false;
 }
 
 // ── public surface ────────────────────────────────────────────────────────
@@ -558,7 +622,7 @@ export function handleContentReport(message, sender) {
 export function install() {
   const filter = { urls: ['http://*/*', 'https://*/*'] };
 
-  chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, filter);
+  // No `onBeforeRequest`: see the note above `onBeforeSendHeaders`.
   chrome.webRequest.onBeforeSendHeaders.addListener(
     onBeforeSendHeaders, filter, ['requestHeaders', 'extraHeaders'],
   );

@@ -655,3 +655,285 @@ rather than in a comment someone has to remember to read.
 blocked, 3/3 controls loaded, `globalPrivacyControl` undefined — i.e. all nine URLs are live and
 reachable, so under a real install any "blocked" row is attributable to Nullecho and not to a dead
 URL. Verified readable in light and dark.
+
+## D19 — Request headers follow the persona at OS-family level, from static, generated DNR rules. 2026-09-16.
+
+**The defect (REVIEW-2026-09-16 B2).** The shim pins `navigator.userAgent` / `userAgentData` to
+the persona — Chrome/151, the persona's platform, architecture, platform version — while the
+browser kept sending its **real** `User-Agent` and `Sec-CH-UA-*` headers on every request. A
+server comparing the two (the standard spoof check the big fingerprinting vendors run) saw a
+contradiction on every page; it was already true for `Sec-CH-UA-Arch` on the Intel-Mac persona
+and `Sec-CH-UA-Platform-Version` on macOS 26 hosts, and after any Chrome update it would have
+been true for everyone. That is the D11 failure mode — identifying *and* flagged as evasive.
+
+**Decision.** Three static `declarativeNetRequest` `modifyHeaders` rulesets, one per host OS
+family (`rules/ua-win.json`, `ua-mac.json`, `ua-linux.json`), each rewriting `User-Agent` on
+every request and `Sec-CH-UA`, `-Mobile`, `-Platform`, `-Full-Version-List`, `-Full-Version`,
+`-Platform-Version`, `-Arch`, `-Bitness`, `-Model`, `-WoW64` on secure requests, to the
+family's persona values. All three ship `"enabled": false`; `background.js` enables exactly the
+host family's one (`applyUaRuleset()`) at every worker start. The files are **generated**
+(`rules/gen-ua.mjs`) from `src/personas.js` and the shim's GREASE constant, and `validate.mjs`
+fails if they drift from the generator — a hand-edited header is the defect itself.
+
+**The two options, evaluated against D2 ("detectable-but-consistent is acceptable;
+self-contradicting is not") and the timing race.**
+
+| | (1) per-origin session/dynamic rules, written when a site's persona is assigned | (2) one static ruleset per host family — chosen |
+|---|---|---|
+| First request to a site (`main_frame`) | **Loses.** The persona is derived in the worker *after* the frame's handshake; the navigation has already gone out with the real headers. Every first impression — the moment fingerprinting scripts fire — is a contradiction. | Right from the first byte. D12 already pins every persona this host can be shown, the pre-handshake fallback included, to one family; the family's `ua`/`uaData` are known before any request exists. |
+| Head-of-document requests during the handshake window | Real headers (rule not yet written). | Persona headers. |
+| Exactness | Exact persona per origin — *after* the race. | Family-level: exact for every field on every persona except one (below). |
+| Rule budget / lifetime | One `modifyHeaders` rule per visited site, in the scarce "unsafe" dynamic/session budget; session rules die with the browser and re-race at every startup; dynamic rules persist but have to be reconciled like the heuristics rules. | Six static rules; enablement persists across sessions and resets only on extension update, where `init()` re-enables it within the first worker start. |
+| Allowlisted sites (shim stands down, `navigator` real) | Needs explicit removal, or the header lies where the JS is honest. | Free: `allowAllRequests` at priority 100000 suppresses every lower-priority `modifyHeaders` rule, so the real headers go out exactly where the real navigator does. |
+
+(1) fails D2 on precisely the request that matters most, and no amount of engineering moves
+the persona derivation ahead of the navigation that triggers it. (2) is consistent everywhere
+the JS persona runs, at the cost of one field on one persona. Chosen: (2).
+
+**What remains contradictory afterward — precisely.**
+
+1. **`macos-chrome-intel-iris`**: JS `getHighEntropyValues().architecture === "x86"`, header
+   `Sec-CH-UA-Arch: "arm"` (the family's weight-majority: the other five macOS personas, 92% of
+   the family, say `arm`). Only visible to a server that reads the hint. The clean fix is one
+   deletion in `src/personas.js` — retire the persona and re-weight to 100; the family still
+   clears `MIN_PERSONAS_PER_FAMILY`. Not done here (that file is outside this change).
+   `rules/ua.test.js` pins the residual list to exactly this entry; the B2 guard in
+   `src/review-2026-09-16.test.js` boots the real shim for all 16 personas and asserts this is
+   the *only* mismatch across 176 persona×header pairs.
+2. **High-entropy hints are sent unsolicited.** DNR `set` adds a header that is absent, and
+   Chrome sends `Sec-CH-UA-Arch` / `-Bitness` / `-Model` / `-Platform-Version` /
+   `-Full-Version(-List)` / `-WoW64` only after a server asked via `Accept-CH`. Under these
+   rules they go out on every secure request. That is a behavioural tell — "this client
+   volunteers hints" — not a contradiction: the values agree with the JS. It was weighed
+   against `remove` (never send them, even when asked), which yields "a Chrome 151 that ignores
+   `Accept-CH`"; both are anomalies, but unsolicited hints are common in the wild (Permissions-
+   Policy delegation hands third parties hints they never requested) and `remove` gives the
+   vendor's comparison nothing consistent to see. `set` was chosen; if a real-browser capture
+   shows a vendor flagging it, `remove` is a one-word change per header in `gen-ua.mjs`.
+3. **Worker scope (A8).** No shim runs in Workers, so a worker's `navigator` is the real
+   machine (Chrome/152, real arch) while its `fetch()`es now carry the persona header. Before
+   this change workers *agreed* with the headers and the main thread did not; now the main
+   thread agrees and workers do not. Net fewer contradictions (the main thread is where the
+   checks run), but the worker gap is now also a header gap. The fix is A8's worker shim.
+4. **Contexts with no content script but real network requests** (Web Store and AMO are
+   excluded; `chrome://`-initiated fetches, `file://` without file access, the PDF viewer,
+   other extensions' requests are not): the persona header goes out with no JS to contradict
+   it. Harmless, listed for completeness.
+5. **Firefox.** The personas already claim Chrome on Firefox; the headers now claim Chrome and
+   carry Client Hints Firefox never sends. Consistent at the HTTP+JS layer; the engine (TLS
+   ClientHello, HTTP/2 SETTINGS, default `Accept`) still says Firefox. Pre-existing persona
+   design, not widened by this change.
+6. **The version itself.** The pool pins Chrome 151 and the host is 152 (or later); features
+   that shipped after 151 exist under a "151" UA. Pre-existing and growing with every Chrome
+   release; the headers now track the *persona*, so bumping `personas.js` and regenerating
+   keeps them consistent, but the pool has to be bumped. The reviewer's alternative — read the
+   real major from the unpatched UA at boot and substitute it into the persona — would make
+   the host the source of truth for the version and remove the need for a version in these
+   rules entirely (`User-Agent` and the brand lists would then need no rewriting, only the
+   platform hints). Recorded as the follow-up that supersedes the version half of this
+   decision; it needs `shim.js`/`personas.js` changes.
+7. **Install/update window.** Enablement resets on extension update; until `init()` runs on
+   the first worker start after install/update, real headers go out — identical to the state
+   before D19, for milliseconds.
+8. **Not rewritten:** `Accept-Language` (B1, a separate decision), `Sec-CH-UA-Form-Factors`
+   (real value `"Desktop"` already equals the persona's).
+
+**Verified, and what is not.** The rule bytes are proven against the real shim's `navigator`
+in Node (`bootRealm` per persona). The DNR semantics this rests on — `modifyHeaders` applies
+only above matching `allow` rules; enablement persists across sessions and resets on update —
+are from Chrome's documentation. **Not yet captured in a real browser:** the actual header
+bytes on the wire and that `set` adds absent hints the way MV3 UA-switcher extensions rely on.
+Until `harness/` captures a request in real Chrome, the review's "`Sec-CH-UA-*` headers"
+line stays in its *unconfirmed* section, and this decision's claim is "the rules are correct",
+not "the headers were observed". Add that capture to the breakage-testing gate.
+
+**Permissions.** `declarativeNetRequest` + `host_permissions: <all_urls>` already cover
+`modifyHeaders`; `declarativeNetRequestWithHostAccess` is not needed. Nothing changed on either
+manifest's permission list (`PERMISSIONS.md`).
+
+## D20 — A strike is something the third party did. URL-derived and page-reported strikes are retired. 2026-09-16.
+
+**The defect (REVIEW-2026-09-16 A5).** The heuristic layer's `ID_PARAM` strike was derived
+from the request URL alone. The embedding page writes the URL, so three attacker-controlled
+first parties (three free GitHub Pages sites qualify) each loading
+`victim.example/x.png?gclid=<random>` earned `victim.example` three strikes → a persistent
+dynamic `block` rule for that user, everywhere the domain appears as a third party. A page
+must never be able to get a third party blocked.
+
+**Decision.**
+
+1. **`ID_PARAM` is retired, not tightened.** Every way of keeping a URL-derived strike was
+   examined and each is still under the attacker's control: *require the value to be reflected
+   by the third party* (any canonicalising redirect — `http→https`, trailing slash — reflects
+   the whole query string in `Location`); *require a second signal class on the same tracker*
+   (the attacker forges two of three strikes, and any site with a session cookie supplies the
+   third — see 2); *discount free-hosting suffixes* (three `.xyz` domains cost three dollars);
+   *remember identifier values to match a cookie the tracker set against a later parameter* (a
+   log of identifiers, which `PERMISSIONS.md` promises the observer does not keep). The honest
+   conclusion: the network layer sees the initiator origin and the URL, never which script
+   built the URL, so it cannot distinguish a parameter the third party originated from one the
+   first party pasted in. Privacy Badger's equivalent (first-party cookie value appearing in a
+   third-party URL) has the same forgeability; Badger accepts it, this threat model does not.
+2. **`SET_COOKIE` counts only a cookie the browser would actually keep cross-site**:
+   `SameSite=None` and not `Partitioned`. Chrome (80+) drops any other cookie from a cross-site
+   response before it could identify anyone, so a PHP session cookie on an image was never
+   tracking — and counting it was a second strike source an attacker could drive by embedding
+   any such site on three pages. Trackers that work in Chrome already set `SameSite=None`;
+   Firefox partitions third-party cookies regardless. Coverage cost: none measurable.
+3. **`CANVAS` / `SUPERCOOKIE` are removed (REVIEW C3).** `handleContentReport()` waited for a
+   `{type:'nullecho:signal', signal, scriptUrl}` message that no file has ever sent; the shim
+   reports `nullecho:fp-detected` as `{api, count}` with no script attribution. Wiring it would
+   mean blaming an unattributed canvas read on whichever third party is on the page — A5 through
+   a different door. The function stays exported as a closed gate (`return false`) so the
+   review's C3 reproduction keeps running; `background.js` no longer calls it. The gap is real:
+   the learner cannot see fingerprinting, only cookies. If the shim ever attributes a read to a
+   script origin obtained from the browser rather than the page, that gate is where it lands.
+4. **Bit hygiene.** The retired bits (4, 8, 16) are reserved, never reassigned;
+   `recordSignal()` masks its input to live bits so no caller can resurrect a source by number;
+   `ready()` scrubs retired bits out of persisted state and forgets sites whose only evidence
+   was retired. A record already `blocked` is *not* demoted — a user-written block is
+   indistinguishable in storage from a learner-written one, and nothing had shipped.
+5. **Unchanged:** EFF's three-strike rule, the `NEVER_BLOCK` guard, the yellowlist, the
+   dynamic-rule budgets, reconciliation.
+
+**What the learner can still be pushed into, and why that is accepted.** A third party that
+deliberately sets `SameSite=None` identifying cookies in third-party contexts, embedded by an
+attacker on three pages, still earns three strikes. That *is* cross-site tracking behaviour by
+the EFF definition the layer implements — the attacker did not forge the evidence, the third
+party produced it — and it is the same exposure Privacy Badger carries. What the attacker can no
+longer do is manufacture evidence.
+
+**Cost.** Cookieless link-decoration trackers are no longer learned; the static lists cover
+the known ones (the `gclid`/`fbclid`/`msclkid` consumers are Google, Meta and Microsoft, all
+listed). The observer also dropped its `onBeforeRequest` listener entirely — one fewer
+per-request callback in the service worker.
+
+---
+
+## D21 — The shim never calls a prototype at run time; every builtin is captured at boot. 2026-09-16.
+
+**Decision:** `src/shim.js` and the page half of `src/gpc.js` capture *every* builtin they will ever
+invoke — constructors, statics, prototype methods and accessors — into local constants at
+`document_start`, and invoke them only through a boot-captured `Reflect.apply`. No `fn.call(…)`,
+no `fn.apply(…)`, no `Math.imul`, no `str.charCodeAt(i)`, no `new Set(list)`, no `arr.filter(…)`
+anywhere after the capture block. A lint in `review-2026-09-16.test.js` fails the suite on any
+bare builtin use after the `END CAPTURED BUILTINS` marker in either file.
+
+**What A2 was.** Section 0a captured four primitives — `JSON.parse`, `CustomEvent.prototype.detail`,
+`addEventListener`/`dispatchEvent`, `crypto.getRandomValues` — and its comment claimed that made
+"the ONLY way to beat the handshake winning the document_start race." The review (A2a–A2f, C2)
+showed that claim was false against a page script of a few lines running at any *later* moment:
+
+| Page hook, installed after the shim booted | What the shim did with it |
+|---|---|
+| `String.prototype.charCodeAt = () => 0` | `nonceMatches()` compared 32 zeros to 32 zeros → any 32-char nonce authenticated → a forged `{enabled:false}` was obeyed → `restoreAll()`, real machine — and the popup was told `allowlisted`. Same hook, same effect in `gpc.js` (`navigator.globalPrivacyControl` deleted by the site it is aimed at). |
+| `Function.prototype.call` / `.apply` hook | every `spoofGetter` did `origGet.call(this)` for the brand check, every `replaceMethod` wrapper did `orig.apply(this, arguments)` — the hook received the **native** getter/method as `this`: real `userAgent`, `hardwareConcurrency`, `deviceMemory`, `getParameter` (real GPU), `toDataURL` (un-noised canvas). |
+| `%TypedArray%.prototype.length` → 0 for one read | the ink scan in `noiseRGBA`/`readPixels` saw an empty buffer → returned the real pixels. |
+| `Math.imul = () => 0` | `prf`/`fin32`/`keyMix` collapsed → noise identical on every site, persona-independent. |
+| `WeakMap.prototype.get` hook | the patched `Function.prototype.toString` consulted `NATIVE_SRC` through it → the hook received the map → `has()` became an exact, enumerable oracle of every function the shim replaced (C2). |
+
+**Why "beating the handshake requires beating the race" was false.** The race argument is about
+*capture time*: whatever we capture before the page runs, the page cannot later swap. It says
+nothing about what we *fail* to capture. Every prototype method the shim resolved at call time —
+`.call`, `.charCodeAt`, `Math.imul`, `.length`, `.get`, `.filter`, `Set.prototype.has`, `new Set(...)`
+(which calls `add` through the prototype), `Promise.resolve`, `Object.freeze`, `Array.isArray`,
+`ArrayBuffer.isView`, the DOM accessors the noise path reads (`canvas.width`, `ImageData.data`,
+`ctx.canvas`, `getContext`, `createElement`) — was a lookup on an object the page owns, performed
+after the page owns it. Winning the race bought exactly the four captured primitives and nothing
+else. The handshake was authenticated by a comparison the page controlled.
+
+**The rule.** *The shim never calls a prototype at run time; every builtin is captured at boot.*
+Concretely:
+
+- One primitive routes everything: `const apply = Reflect.apply`. `uncurry(fn)` turns a prototype
+  method into a receiver-first function; the rest parameter builds a fresh array, so no iterator
+  protocol is involved. `apply(fn, thisArg, arguments)` reads only own properties of `arguments`.
+- Constructors and statics are held as locals (`RawSet`, `RawWeakMap`, `RawString`, `objFreeze`,
+  `mathImul`, `arrayIsArray`, `arrayBufferIsView`, …). A page can reassign `window.Set`; it cannot
+  reassign a `const` in our closure.
+- Sets are built with `setOf(list)` — `new RawSet()` then captured `setAdd` in a loop — never with
+  the constructor's iterable path. Deny lists and feature sets are built once at boot; `derive()`
+  (which runs at handshake time, after page scripts) only points at them.
+- Our own arrays are appended with `pushOwn` (`Object.defineProperty` at index `length`), never
+  `push`, because `[[Set]]` on an index consults the prototype chain and a page can define an
+  index setter on `Array.prototype`. Native arrays that carry real values (the WebGL extension
+  list) are walked by index and copied the same way — never `.filter`, whose species lookup hands
+  the real array to the page.
+- `%TypedArray%.prototype.length`/`byteLength` getters are captured and used for every buffer
+  length; "8-bit view" is decided from `byteLength === length`, not `BYTES_PER_ELEMENT` (a plain
+  data property on the page's prototype).
+- Per-realm DOM natives are captured at `installInto()` time — for the main window that is
+  `document_start`, for a child realm the first `contentWindow` read, before the page has touched
+  it — through `propReader`/`propWriter`/`methodCaller`, which fall back to a plain property read
+  only when the realm has no such accessor (test rigs; every real browser has them).
+- Regexes are tested with a captured `RegExp.prototype.exec` (`reTest`), never `.test`, which
+  looks `exec` up on the way. Runtime `.replace`/`.split` were rewritten as loops.
+- The brand-check delegation ("always invoke the original first", ARKENFOX-RESPONSE (f)) is kept —
+  it is right — but goes through `apply(origGet, this, [])`.
+
+**Exemptions, named so nobody widens them silently:** the generated persona mirror (G7) and
+`registrableDomain` + its suffix table. Both are boot-only, and `review-2026-09-16.test.js` (A4c,
+A4d) lifts the latter out of the file by regex and runs it in a bare context, so it must stay
+byte-identical. `personas.test.js` also pins the `for (const p of HOST_POOL)` loop in `personaFor`
+(boot-only) as the D12 constraint.
+
+**A3 rides on the same fix — and the delivery order it forced.** The loader's `nullecho:persona`
+event carried the whole persona (noise keys, seed) and nothing stopped it, so a page listener on
+`window` (capture) registered after us read it and could compute our exact perturbation for any
+canvas without drawing a probe. Now the shim, once *its* nonce authenticates a delivery, calls the
+captured `Event.prototype.stopImmediatePropagation` — we are the first listener on the first node
+of the path, so nothing after us runs. The trap the reviewer flagged: `gpc.js` consumes the same
+event and registers after us, so it would never hear its config. Decision: the loader still sends
+one event; the shim re-dispatches a stripped `{ ok, enabled, gpc, gpcNonce }` on the same channel,
+which `gpc.js` authenticates with its own nonce (D13) and stops in turn. The relay is skipped when
+the loader had no gpc nonce (gpc.js is `exclude_matches`-ed off ~50 hosts), so on those pages
+nothing at all reaches a page listener. Order: shim authenticates → shim swallows → shim relays →
+gpc authenticates → gpc swallows. A second event name was rejected because it would have changed
+the protocol and every consumer for no gain over the relay. An unauthenticated event is *not*
+swallowed — it is the page's own, and eating it would be a free "Nullecho present" probe.
+`shim-handshake.test.js`'s fake dispatcher now models immediate-stop and its "page window-capture
+listener" test asserts the page learns nothing, where it used to assert the leak and call it
+harmless. `seed` is still sent by the worker; with propagation stopped it no longer reaches the
+page, and dropping it from the payload is a `background.js` change for a later pass.
+
+**Found while auditing, fixed in passing:** `OffscreenCanvas.convertToBlob` noised through
+`CanvasRenderingContext2D.prototype.getImageData` on an *Offscreen* context — Illegal invocation
+in Chrome, caught, and the call fell open to the native, un-noised blob. It now uses the Offscreen
+interface's own captured methods. The wider pattern (noise failure → fall open to the native
+call) is unchanged and is a residual: every DOM accessor on the noise path is now captured, so a
+page can no longer *cause* that failure from a prototype, but a genuine exception still yields the
+real bytes rather than none.
+
+**Test-enforced invariant** (`review-2026-09-16.test.js`, all flipped from reproductions into
+guards; 256/256 at the time of writing):
+
+1. `A2a`/`A2b` — with `Function.prototype.call`/`apply` hooked, the shim routes **zero** functions
+   through them during spoofed reads and no native getter/method can be harvested.
+2. `A2c`/`A2d` — with `String.prototype.charCodeAt` hooked to 0, a forged 32-char nonce is rejected
+   in both scripts, and the genuine nonce is still accepted *while the hook is live*.
+3. `A2e`/`A2f` — with `%TypedArray%.prototype.length` or `Math.imul` hooked, the noised bytes are
+   byte-identical to the unhooked read, and two sites still differ.
+4. `A2-timing` — a dozen builtins hooked (hostile where possible) *before* the genuine handshake
+   lands and kept live through it: the upgrade authenticates, every spoofed value holds, canvas is
+   noised, `getHighEntropyValues` resolves, and the harvest of everything routed through the
+   observing hooks yields no native, no raw canvas and no `NATIVE_SRC` oracle. Unhooking changes
+   no byte.
+5. `A2-lint` — no bare builtin global, constructor or prototype-method call after the capture
+   block in `shim.js` or the page half of `gpc.js` (comments and strings stripped; positive and
+   negative controls were run against the regexes before trusting them).
+6. `A3` — a page listener on window-capture and document sees neither the delivery nor the relay;
+   `gpc.js` still receives `{gpc:false}`; with gpc.js absent nothing is relayed and an
+   unauthenticated event propagates normally.
+7. `C2` — a `WeakMap.prototype.get` hook is never invoked by the patched `toString`, which still
+   reports `[native code]` for a patched getter while the hook is live.
+
+Verified in the harness (`/harness/shim-test.html?salt=nullecho-shim-test-0003`, served fresh —
+`shim.js` 200, not cache): SHIM ON, 39/39, 0 patch failures, 50-read self-test stable, and a live
+`call`/`apply` hook during spoofed reads routes nothing. The Browser pane is Chromium-in-Electron,
+not a Chrome install; the JS semantics this decision rests on are the engine's, but a real-Chrome
+render of the harness is still owed before any ship claim (BASELINE rule).
+
+**What this does NOT change:** if the page owns the realm *before* the shim runs (the MAIN-world
+injection race, THREAT-MODEL.md), it can pre-hook what we capture. That was always outside the
+page's power to fix and is still measured by the loader (`nonce-exposed`). D21 makes the race the
+*only* way in, which is what section 0a claimed and did not deliver.

@@ -110,8 +110,24 @@
     // The Sec-GPC *header* is DNR's and was never reachable from the page, so this
     // was a half-defeat rather than a full one — but a site that reads the JS
     // property and ignores the header would have seen exactly what it wanted.
+    //
+    // DECISIONS.md D21 (review A2d): capturing `JSON.parse` and `detail` was not
+    // enough — `nonceMatches` compared through the LIVE `String.prototype.charCodeAt`,
+    // and `rawDetailGet.call(e)` went through the live `Function.prototype.call`.
+    // `String.prototype.charCodeAt = () => 0` made any 32-character string match
+    // and let the site delete its own do-not-sell signal. Every builtin this half
+    // touches after boot is now captured here and invoked through a captured
+    // `Reflect.apply`; nothing below calls a prototype at run time.
+    // ─── BEGIN CAPTURED BUILTINS ──────────────────────────────────────────
+    const rawApply = Reflect.apply;
     const rawParse = JSON.parse;
     const rawStringify = JSON.stringify;
+    const rawDefineProperty = Object.defineProperty;
+    const rawCharCodeAt = String.prototype.charCodeAt;
+    const rawNumToString = Number.prototype.toString;
+    const rawStrSlice = String.prototype.slice;
+    const RawUint8Array = Uint8Array;
+    const RawNavigator = typeof Navigator === 'undefined' ? null : Navigator;
     const RawCustomEvent = globalThis.CustomEvent;
     const rawDetailGet = (() => {
       try {
@@ -119,17 +135,28 @@
         return d && d.get;
       } catch { return null; }
     })();
+    // Resolved through the CustomEvent chain (Event.prototype in a browser) so a
+    // test rig whose fake event does not extend Event still yields one.
+    const rawStopImmediate = (() => {
+      try {
+        const f = RawCustomEvent && RawCustomEvent.prototype && RawCustomEvent.prototype.stopImmediatePropagation;
+        return typeof f === 'function' ? f : null;
+      } catch { return null; }
+    })();
     const rawAdd = globalThis.EventTarget && globalThis.EventTarget.prototype.addEventListener;
     const rawDispatch = globalThis.EventTarget && globalThis.EventTarget.prototype.dispatchEvent;
+    // ─── END CAPTURED BUILTINS ────────────────────────────────────────────
 
     let nonce = (() => {
       try {
         const c = globalThis.crypto;
         if (!c || typeof c.getRandomValues !== 'function') return null;
-        const bytes = new Uint8Array(NONCE_BYTES);
+        const bytes = new RawUint8Array(NONCE_BYTES);
         c.getRandomValues(bytes);
         let out = '';
-        for (let i = 0; i < bytes.length; i++) out += (bytes[i] + 0x100).toString(16).slice(1);
+        for (let i = 0; i < NONCE_BYTES; i++) {
+          out += rawApply(rawStrSlice, rawApply(rawNumToString, bytes[i] + 0x100, [16]), [1]);
+        }
         return out;
       } catch { return null; }
     })();
@@ -140,7 +167,9 @@
       if (typeof nonce !== 'string' || typeof candidate !== 'string') return false;
       if (candidate.length !== nonce.length) return false;
       let diff = 0;
-      for (let i = 0; i < nonce.length; i++) diff |= nonce.charCodeAt(i) ^ candidate.charCodeAt(i);
+      for (let i = 0; i < nonce.length; i++) {
+        diff |= rawApply(rawCharCodeAt, nonce, [i]) ^ rawApply(rawCharCodeAt, candidate, [i]);
+      }
       return diff === 0;
     }
 
@@ -148,7 +177,7 @@
     let ownedByUs = false;
 
     function setSignal(on) {
-      if (typeof Navigator === 'undefined' || typeof navigator === 'undefined') return;
+      if (!RawNavigator || typeof navigator === 'undefined') return;
       if (on) {
         if (ownedByUs) return;
         try {
@@ -156,7 +185,7 @@
           // first. Redefining would be a no-op at best and a detectable
           // double-shim at worst.
           if (navigator.globalPrivacyControl === true) return;
-          Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', {
+          rawDefineProperty(RawNavigator.prototype, 'globalPrivacyControl', {
             get() { return true; },
             // configurable: true matches the spec'd property, and is what lets
             // us take the signal back down on a site the user has excepted.
@@ -172,7 +201,7 @@
         }
       } else if (ownedByUs) {
         try {
-          delete Navigator.prototype.globalPrivacyControl;
+          delete RawNavigator.prototype.globalPrivacyControl;
           ownedByUs = false;
         } catch { /* someone locked it after us */ }
       }
@@ -188,21 +217,22 @@
      */
     setSignal(true);
 
+    /** Returns true only when the payload authenticated and was applied. */
     function applyConfig(raw) {
-      if (configApplied) return;                       // one-shot, like the shim
+      if (configApplied) return false;                 // one-shot, like the shim
       let cfg;
       try {
         cfg = typeof raw === 'string' ? rawParse(raw) : raw;
       } catch {
-        return;
+        return false;
       }
-      if (!cfg || typeof cfg !== 'object') return;
+      if (!cfg || typeof cfg !== 'object') return false;
       // AUTHENTICATE. Only the loader can echo the nonce published below, and a
       // mismatch is dropped WITHOUT consuming the one-shot — otherwise a page
       // could shout first and pin the signal to whatever the default happened to
       // be. Silently: unlike the shim, gpc.js has no reporting channel of its own,
       // and adding one to argue with a hostile page is not worth a global.
-      if (!nonceMatches(cfg.gpcNonce)) return;
+      if (!nonceMatches(cfg.gpcNonce)) return false;
       configApplied = true;
       nonce = null;                                    // used once; no replay value
       // `enabled === false` means the user allowlisted this site outright. The
@@ -211,6 +241,7 @@
       // halves telling the same story.
       const on = cfg.gpc !== false && cfg.enabled !== false;
       setSignal(on);
+      return true;
     }
 
     // Listen on `window` in the CAPTURE phase FIRST, then `document`.
@@ -227,13 +258,24 @@
     // `detail` is read through the descriptor captured above, never the live
     // property: a page that redefines `CustomEvent.prototype.detail` could
     // otherwise swap the payload after we have authenticated nothing yet.
+    //
+    // WHAT WE ACTUALLY RECEIVE (D21, review A3). `src/shim.js` registers on the
+    // same event before us and, once ITS nonce authenticates the loader's
+    // delivery, stops that event dead — so a page listener can never read the
+    // persona out of it — and re-dispatches a stripped `{ ok, enabled, gpc,
+    // gpcNonce }` on this same channel for us. We authenticate that copy with our
+    // own nonce and stop it in turn. When the shim is absent (it never is in the
+    // shipped manifest; it is in `gpc.test.js`) the loader's original event
+    // reaches us directly and the same code runs. Either way, an event we have
+    // accepted goes no further.
     const onPersona = (e) => {
       let raw;
-      try { raw = rawDetailGet ? rawDetailGet.call(e) : e.detail; } catch { return; }
-      applyConfig(raw);
+      try { raw = rawDetailGet ? rawApply(rawDetailGet, e, []) : e.detail; } catch { return; }
+      if (!applyConfig(raw)) return;
+      try { if (rawStopImmediate) rawApply(rawStopImmediate, e, []); } catch { /* not a real Event */ }
     };
     for (const target of [globalThis, document]) {
-      try { rawAdd.call(target, EVENT_PERSONA, onPersona, true); } catch { /* not an EventTarget */ }
+      try { rawApply(rawAdd, target, [EVENT_PERSONA, onPersona, true]); } catch { /* not an EventTarget */ }
     }
 
     // Announce, and publish the nonce. First thing observable from the page, and
@@ -243,9 +285,9 @@
     // The old `data-nullecho-boot` attribute channel is gone: it would have written
     // this nonce into the DOM for any later script to read. See src/protocol.js.
     try {
-      rawDispatch.call(document, new RawCustomEvent(EVENT_STATUS, {
+      rawApply(rawDispatch, document, [new RawCustomEvent(EVENT_STATUS, {
         detail: rawStringify({ phase: BOOT_PHASE, channel: CHANNEL, nonce }),
-      }));
+      })]);
     } catch { /* nothing to do; GPC stays at its default of ON */ }
   }
 

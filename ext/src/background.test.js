@@ -28,6 +28,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { MSG, ALLOW_RULE_ID_BASE, DYNAMIC_RULE_RANGES, CATEGORY_LABELS } from './protocol.js';
+import { hostFamily, FAMILIES } from './personas.js';
+import { UA_RULESETS as GENERATED_UA_RULESETS } from '../rules/gen-ua.mjs';
 
 const EXT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -48,6 +50,7 @@ const store = {
 };
 const onMessage = [];
 const onRuleMatched = [];
+const enabledRulesetCalls = [];
 let matchedRulesInfo = [];
 
 const noopEvent = () => ({ addListener() {} });
@@ -81,7 +84,7 @@ globalThis.chrome = {
     async getDynamicRules() { return []; },
     async updateDynamicRules() {},
     async getEnabledRulesets() { return ['ads', 'analytics', 'social', 'fingerprinting', 'gpc']; },
-    async updateEnabledRulesets() {},
+    async updateEnabledRulesets(arg) { enabledRulesetCalls.push(arg); },
     async updateStaticRules() {},
     async getMatchedRules() { return { rulesMatchedInfo: matchedRulesInfo }; },
     onRuleMatchedDebug: { addListener: (fn) => onRuleMatched.push(fn) },
@@ -93,7 +96,7 @@ globalThis.fetch = async (url) => {
   return { async json() { return JSON.parse(fs.readFileSync(file, 'utf8')); } };
 };
 
-await import('./background.js');
+const BG = await import('./background.js');
 
 // ── driving the stubs ──────────────────────────────────────────────────────
 
@@ -324,4 +327,60 @@ test('a page that never boots late reports no exposure', async () => {
   await send({ type: MSG.SHIM_STATUS, upgraded: true, lockedToFallback: false, reason: null }, { url: PAGE });
   const { stats } = await report('news.example');
   assert.ok(!stats.nonceExposedAt, 'a healthy page must not show the late-boot warning');
+});
+
+// ── the host family's User-Agent / Client-Hint ruleset (REVIEW-2026-09-16 B2, D19) ─
+//
+// The three `ua-*` rulesets ship disabled; the worker must enable exactly the
+// host family's one, or the request headers keep contradicting the JS persona.
+
+const uaCalls = () => enabledRulesetCalls.filter((c) =>
+  [...(c.enableRulesetIds ?? []), ...(c.disableRulesetIds ?? [])].some((id) => id.startsWith('ua-')));
+
+test('init enables the host family\'s ua-* ruleset and disables the other two', async () => {
+  await reset(); // awaits ready(), so init() has run
+  const want = BG.UA_RULESETS[hostFamily()];
+  assert.ok(want, `hostFamily() = ${hostFamily()} has no ruleset`);
+
+  const calls = uaCalls();
+  assert.ok(calls.length >= 1, 'init never touched the ua-* rulesets');
+  const last = calls[calls.length - 1];
+  assert.deepEqual(last.enableRulesetIds, [want]);
+  assert.deepEqual(
+    [...last.disableRulesetIds].sort(),
+    Object.values(BG.UA_RULESETS).filter((id) => id !== want).sort(),
+  );
+  // Never both enabled and disabled, and never a blocking ruleset in the same call.
+  for (const c of calls) {
+    for (const id of c.enableRulesetIds ?? []) assert.ok(!(c.disableRulesetIds ?? []).includes(id));
+    for (const id of [...(c.enableRulesetIds ?? []), ...(c.disableRulesetIds ?? [])]) {
+      assert.ok(id.startsWith('ua-'), `${id} toggled in the same call as a ua-* ruleset`);
+    }
+  }
+});
+
+test('applyUaRuleset() is idempotent — re-running after an extension update re-arms the same choice', async () => {
+  const before = uaCalls().length;
+  await BG.applyUaRuleset();
+  await BG.applyUaRuleset();
+  const calls = uaCalls();
+  assert.equal(calls.length, before + 2);
+  assert.deepEqual(calls[calls.length - 1], calls[calls.length - 2]);
+});
+
+test('background.js and rules/gen-ua.mjs agree on the ruleset ids, per family, with no family left out', () => {
+  assert.deepEqual(Object.keys(BG.UA_RULESETS).sort(), [...FAMILIES].sort());
+  for (const family of FAMILIES) {
+    assert.equal(BG.UA_RULESETS[family], GENERATED_UA_RULESETS[family].id, family);
+  }
+  // …and both manifests register those ids, pointing at the generated files, disabled.
+  for (const name of ['manifest.json', 'manifest.firefox.json']) {
+    const m = JSON.parse(fs.readFileSync(path.join(EXT, name), 'utf8'));
+    for (const family of FAMILIES) {
+      const entry = m.declarative_net_request.rule_resources.find((r) => r.id === BG.UA_RULESETS[family]);
+      assert.ok(entry, `${name}: ${BG.UA_RULESETS[family]} not registered`);
+      assert.equal(entry.path, `rules/${GENERATED_UA_RULESETS[family].file}`);
+      assert.equal(entry.enabled, false, `${name}: ${entry.id} must ship disabled`);
+    }
+  }
 });

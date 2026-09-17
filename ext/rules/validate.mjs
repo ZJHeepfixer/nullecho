@@ -17,8 +17,15 @@
  *   7.  no `block` rule opts into main_frame (that breaks direct navigation)
  *   8.  the ranges declared here match what manifest.json actually registers
  *   9.  the counter's view of these rules (src/protocol.js) matches reality —
- *       every non-`block` rule is declared non-blocking, and the reserved
- *       dynamic ranges agree with the ones below
+ *       every non-`block` rule inside a BLOCKING ruleset is declared
+ *       non-blocking, no non-blocking ruleset smuggles in a `block`, and the
+ *       reserved dynamic ranges agree with the ones below
+ *   10. the three `ua-*.json` header rulesets are byte-identical to what
+ *       `gen-ua.mjs` derives from src/personas.js + src/shim.js (they are build
+ *       artifacts — a hand edit is exactly the header/JS disagreement they
+ *       exist to close), and both manifests register them DISABLED (the
+ *       service worker enables the host family's one; three enabled at once
+ *       would race each other on the same headers)
  */
 
 import fs from 'node:fs';
@@ -30,6 +37,7 @@ import {
   DYNAMIC_RULE_RANGES,
   BLOCKING_RULESET_IDS,
 } from '../src/protocol.js';
+import { UA_RULESETS, buildUaRulesets, serialise as serialiseUa } from './gen-ua.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const EXT = path.resolve(HERE, '..');
@@ -41,7 +49,16 @@ export const RANGES = {
   'social.json': [3000, 3999],
   'fingerprinting.json': [4000, 4999],
   'gpc.json': [5000, 5099],
+  // Per-host-family User-Agent / Client-Hint rewrites. Generated: see gen-ua.mjs.
+  'ua-win.json': UA_RULESETS.win.range,
+  'ua-mac.json': UA_RULESETS.mac.range,
+  'ua-linux.json': UA_RULESETS.linux.range,
 };
+
+/** manifest `rule_resources[].id` per file, for the rulesets whose id the code toggles. */
+const RULESET_ID_OF_FILE = Object.fromEntries(
+  Object.values(UA_RULESETS).map(({ id, file }) => [file, id]),
+);
 
 /** Reserved for runtime rules; static rulesets must stay out of these. */
 export const DYNAMIC_RANGES = {
@@ -230,16 +247,28 @@ for (let i = 1; i < ordered.length; i++) {
 // `allow` exception or a header rule without telling that table turns it into an
 // over-count on a number the UI presents as literally true.
 {
+  // `classifyMatchedRule()` consults NON_BLOCKING_STATIC_RULE_IDS only for rulesets
+  // it treats as blocking; a match in any other ruleset is ignored outright. So the
+  // declaration has to be exact for blocking rulesets, and the non-blocking
+  // rulesets (gpc, ua-*) must never contain a `block` rule the counter would then
+  // silently under-count.
   const actualNonBlocking = new Set();
+  const allNonBlocking = new Set();
   for (const file of Object.keys(RANGES)) {
     const full = path.join(HERE, file);
     if (!fs.existsSync(full)) continue;
     let parsed;
     try { parsed = JSON.parse(fs.readFileSync(full, 'utf8')); } catch { continue; }
     if (!Array.isArray(parsed)) continue;
+    const rulesetId = RULESET_ID_OF_FILE[file] ?? file.replace(/\.json$/, '');
+    const blocking = BLOCKING_RULESET_IDS.includes(rulesetId);
     for (const rule of parsed) {
-      if (rule?.action?.type !== 'block' && Number.isInteger(rule?.id)) {
-        actualNonBlocking.add(rule.id);
+      if (!Number.isInteger(rule?.id)) continue;
+      if (rule?.action?.type !== 'block') {
+        allNonBlocking.add(rule.id);
+        if (blocking) actualNonBlocking.add(rule.id);
+      } else if (!blocking) {
+        errors.push(`${file}: rule ${rule.id} blocks, but ruleset "${rulesetId}" is not in src/protocol.js BLOCKING_RULESET_IDS — the popup would never count it`);
       }
     }
   }
@@ -249,7 +278,7 @@ for (let i = 1; i < ordered.length; i++) {
     }
   }
   for (const id of NON_BLOCKING_STATIC_RULE_IDS) {
-    if (!actualNonBlocking.has(id)) {
+    if (!allNonBlocking.has(id)) {
       errors.push(`src/protocol.js NON_BLOCKING_STATIC_RULE_IDS lists ${id}, but no such non-block static rule ships — the popup would under-count`);
     }
   }
@@ -281,6 +310,26 @@ for (let i = 1; i < ordered.length; i++) {
   }
 }
 
+// ── ua-*.json are generated; the shipped bytes must match the generator ──
+//
+// The header values are the persona pool's `ua`/`uaData` and the shim's GREASE
+// brand. If the pool or the shim moves and these files do not, every request
+// carries a header that disagrees with the JS persona — the exact finding
+// (REVIEW-2026-09-16 B2) the rulesets were added to close.
+{
+  let expected = null;
+  try { expected = buildUaRulesets(); } catch (e) { errors.push(`gen-ua.mjs failed: ${e.message}`); }
+  if (expected) {
+    for (const [file, rules] of Object.entries(expected)) {
+      const full = path.join(HERE, file);
+      if (!fs.existsSync(full)) continue; // already reported as missing above
+      if (fs.readFileSync(full, 'utf8') !== serialiseUa(rules)) {
+        errors.push(`${file} differs from what gen-ua.mjs derives from src/personas.js + src/shim.js — run \`node rules/gen-ua.mjs\`; never edit it by hand`);
+      }
+    }
+  }
+}
+
 // ── manifest agreement ───────────────────────────────────────────────────
 // Both manifests are checked. The Chrome and Firefox builds ship the same
 // rulesets and the same GPC exception list; a fix applied to one and not the
@@ -304,6 +353,24 @@ if (fs.existsSync(manifestPath)) {
     }
     const ids = declared.map((r) => r.id);
     if (new Set(ids).size !== ids.length) errors.push(`${manifestName} has duplicate ruleset ids`);
+
+    // ── the family header rulesets ship DISABLED ──────────────────────────
+    // background.js enables exactly the host family's ruleset at worker start.
+    // Enabled by default they would all match every request and fight over the
+    // same headers — which of the three UAs wins is unspecified.
+    for (const { id, file } of Object.values(UA_RULESETS)) {
+      const entry = declared.find((r) => r.id === id);
+      if (!entry) {
+        errors.push(`${manifestName} does not register ruleset "${id}" (rules/${file})`);
+        continue;
+      }
+      if (path.basename(entry.path) !== file) {
+        errors.push(`${manifestName}: ruleset "${id}" must point at rules/${file}, not ${entry.path}`);
+      }
+      if (entry.enabled !== false) {
+        errors.push(`${manifestName}: ruleset "${id}" must ship with "enabled": false — the service worker picks the host family's one`);
+      }
+    }
 
     // ── GPC's two exception lists must agree ──────────────────────────────
     // The header is suppressed by rule 5000's excludedRequestDomains; the JS

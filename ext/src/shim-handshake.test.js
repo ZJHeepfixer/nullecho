@@ -98,9 +98,13 @@ function bootShim() {
       this.type = type;
       this._detail = init ? init.detail : undefined;
       this._stopped = false;
+      this._stoppedImmediate = false;
     }
     stopPropagation() { this._stopped = true; }
-    stopImmediatePropagation() { this._stopped = true; }
+    // Modelled separately: the shim now stops the authenticated delivery dead
+    // (review A3 / D21), and "dead" means no later listener on the SAME node
+    // either — which `_stopped` alone did not capture.
+    stopImmediatePropagation() { this._stopped = true; this._stoppedImmediate = true; }
   }
   // A prototype accessor, like the real one — the shim reads `detail` through the
   // descriptor it captured at boot, and that only means anything if there is one.
@@ -120,6 +124,7 @@ function bootShim() {
       for (const l of listenersFor(node).slice()) {
         if (l.type !== ev.type) continue;
         if (node === win && !l.capture) continue;    // window only sees capture here
+        if (ev._stoppedImmediate) break;
         l.fn.call(node, ev);
       }
       if (ev._stopped) break;
@@ -335,11 +340,13 @@ test('a page window-capture listener cannot steal the handshake before the shim 
   // registration order and consumed the payload first.
   assert.equal(s.ua(), DELIVERED.ua, 'the page intercepted the handshake before the shim');
 
-  // The page did learn the nonce. That is expected and is not the hole: it is
-  // already spent.
-  assert.equal(stolen.nonce, s.boot.nonce);
-  s.send({ ok: true, enabled: false, nonce: stolen.nonce });
-  assert.notEqual(s.ua(), REAL_UA, 'a nonce stolen after use was still good for a stand-down');
+  // 2026-09-16 (review A3, DECISIONS.md D21): the page no longer learns
+  // ANYTHING — not the spent nonce, and not the persona's noise keys, which
+  // were the actual hole. The shim stops the authenticated delivery dead.
+  assert.equal(stolen, null, 'the page listener saw the delivery');
+  // The spent nonce is still worthless even to a page that somehow has it.
+  s.send({ ok: true, enabled: false, nonce: s.boot.nonce });
+  assert.notEqual(s.ua(), REAL_UA, 'a spent nonce was still good for a stand-down');
 });
 
 test('a page that repatches CustomEvent.prototype.detail cannot swap the payload', () => {
