@@ -1140,3 +1140,26 @@ upgrades to a persona, and requires `maxTouchPoints` to equal the host's real 10
 beside that live surface, and the `Navigator.prototype` descriptor to be the identical getter from
 before the shim ran. `harness/shim-test.html` now checks agreement with `ontouchstart` rather than
 a pinned 0.
+
+## D27 — C3 formally closed: the dead CANVAS/SUPERCOOKIE report path is now a regression guard. 2026-09-16.
+
+**Decision:** `review-2026-09-16.test.js`'s C3 reproduction — "`handleContentReport()` waits for a
+`nullecho:signal` message no file sends" — is flipped from a REPRO to `C3 GUARD`. The code fix was
+already made in `ea0400b` alongside A5 (D20 point 3: `handleContentReport()` is a closed gate that
+always returns `false`, `background.js` never calls it, and no file sends `nullecho:signal`), but
+that commit's own log only lists A2a-f/A3/C2/A5/B2 as flipped to guards — C3 was left as a REPRO
+even though the underlying defect was gone, so the file's own header rule ("a green run … is the
+review still being true") was violated for this one finding.
+
+**What the guard checks, beyond the old repro.** (1) no file — `heuristics.js`'s own explanatory
+comment excepted — references `nullecho:signal`; (2) `handleContentReport()` returns `false` for
+no arguments, for the real `nullecho:fp-detected` shape, and for a forged `nullecho:signal` message,
+so the gate is closed to every input shape, not just the one the finding quoted; (3) `H.SIGNAL`
+(the promoting bits) contains only `COOKIE`/`SET_COOKIE` — `CANVAS`/`SUPERCOOKIE` never re-enter as
+strike sources, they stay in `RETIRED_SIGNAL_BITS` per D20 point 4's bit-hygiene rule; (4)
+`ARCHITECTURE.md` contains neither `nullecho:signal` nor a `CANVAS / SUPERCOOKIE` description —
+true already, nothing to edit there.
+
+**Cost.** None — no behaviour changed, only the test's classification and the decisions log. This
+entry exists so the next reviewer does not have to re-derive, from a REPRO-labelled test, that a
+finding whose fix already shipped is actually closed.
