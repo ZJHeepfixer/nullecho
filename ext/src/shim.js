@@ -1436,12 +1436,22 @@
       // Every persona is a Chrome build; 'Google Inc.' is the crowd value.
       spoofGetter(N, 'vendor', 'navigator', () => 'Google Inc.');
     });
-    safe('navigator.maxTouchPoints', () => {
-      const N = ownerOf(win.navigator, 'maxTouchPoints');
-      // Consistency, not entropy: the pool is entirely desktop machines. A non-zero
-      // touch count next to a Win32/desktop persona is a free contradiction.
-      spoofGetter(N, 'maxTouchPoints', 'navigator', () => 0);
-    });
+    // ────────────────────────────────────────────────────────────────────────
+    // TOUCH — DELIBERATELY NOT SPOOFED  (reverted 2026-09-16, review B8, D26)
+    //
+    // `navigator.maxTouchPoints` was pinned to 0 "because the pool is entirely
+    // desktop machines". Touch-screen desktops are not a rare configuration, and
+    // on one of them everything AROUND the pin stayed true and said the opposite:
+    // `'ontouchstart' in window`, `typeof TouchEvent`, `navigator.msMaxTouchPoints`
+    // and `matchMedia('(any-pointer: coarse)')` — the last of which is a CSS media
+    // feature, i.e. below JS and unreachable from a content script, exactly like
+    // the DISPLAY LAYER below.
+    //
+    // Making that consistent would mean deleting `ontouchstart`, the `TouchEvent`
+    // / `Touch` / `TouchList` constructors and every `ontouch*` handler slot from
+    // the window — visible, breaking, and still leaving the media query. It is one
+    // bit and it is not a persona field. D11: leave it truthful.
+    // ────────────────────────────────────────────────────────────────────────
     // ────────────────────────────────────────────────────────────────────────
     // LOCALE — DELIBERATELY NOT SPOOFED  (reverted 2026-09-16, review B1, D25)
     //

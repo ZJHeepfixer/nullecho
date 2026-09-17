@@ -1208,11 +1208,24 @@ test('B7 REPRO: navigator.languages and userAgentData.brands return a fresh arra
   assert.equal(vm.runInContext('navigator.languages === navigator.languages && navigator.userAgentData.brands === navigator.userAgentData.brands', control), true);
 });
 
-test('B8 REPRO: maxTouchPoints is pinned to 0 while the touch-event surface stays real', () => {
-  const s = bootRealm({ extraGlobals: { ontouchstart: null, TouchEvent: class TouchEvent {} } });
-  assert.equal(s.ctx.navigator.maxTouchPoints, 0);
+// ✅ FIXED 2026-09-16 (DECISIONS.md D26). `maxTouchPoints` is no longer pinned to
+// 0. It is one bit, it is not a persona field, and the touch-event surface next
+// to it (`ontouchstart`, `TouchEvent`, `(any-pointer: coarse)`) is real and
+// unspoofable from a content script — so the pin only contradicted itself on
+// every touch-screen laptop. D11.
+test('B8 GUARD: maxTouchPoints is the host\'s real value and agrees with the touch-event surface', () => {
+  const Real = class TouchEvent {};
+  const s = bootRealm({ extraGlobals: { ontouchstart: null, TouchEvent: Real } });
+  const before = Object.getOwnPropertyDescriptor(s.ctx.Navigator.prototype, 'maxTouchPoints').get;
+  s.upgrade();
+  assert.equal(s.ctx.navigator.maxTouchPoints, s.h.REAL.maxTouchPoints,
+    'GUARD: the real touch count (10), not 0 — before and after the persona upgrade');
   assert.equal(s.page('"ontouchstart" in globalThis && typeof TouchEvent === "function"'), true,
-    'THE FINDING: a touch-screen laptop reports zero touch points next to a live touch-event surface');
+    'the touch-event surface is live in this realm, as on a touch-screen laptop');
+  assert.ok(s.ctx.navigator.maxTouchPoints > 0,
+    'GUARD: a live touch surface is no longer contradicted by a zero touch count');
+  assert.equal(Object.getOwnPropertyDescriptor(s.ctx.Navigator.prototype, 'maxTouchPoints').get, before,
+    'GUARD: the shim installs no getter on maxTouchPoints at all (D26)');
 });
 
 test('B9 REPRO: Object.prototype.dev = true makes the GENUINE handshake install window.__nullechoDev', () => {

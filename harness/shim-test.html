@@ -431,7 +431,11 @@ window.__evaluateBoot = () => {
     add('persona', 'hardwareConcurrency', navigator.hardwareConcurrency === P.cores, navigator.hardwareConcurrency);
     add('persona', 'deviceMemory', navigator.deviceMemory === P.memory, navigator.deviceMemory);
     add('persona', 'navigator.vendor', navigator.vendor === 'Google Inc.', navigator.vendor);
-    add('persona', 'maxTouchPoints = 0 (desktop pool)', navigator.maxTouchPoints === 0, navigator.maxTouchPoints);
+    // Expectation changed 2026-09-16 (DECISIONS.md D26, review B8): maxTouchPoints is
+    // left real, so the check is agreement with the touch-event surface next to it.
+    add('persona', 'maxTouchPoints agrees with the touch surface',
+      (navigator.maxTouchPoints > 0) === ('ontouchstart' in window),
+      navigator.maxTouchPoints + ' / ontouchstart ' + ('ontouchstart' in window));
     // Expectation changed 2026-09-16 (DECISIONS.md D25, review B1): the locale is no
     // longer spoofed, so the check is CONSISTENCY with Intl — which is what a page
     // actually tests — not a pinned en-US.

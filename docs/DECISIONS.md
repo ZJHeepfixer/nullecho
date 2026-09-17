@@ -1110,3 +1110,33 @@ Two expectations were updated rather than weakened: the `A2-timing GUARD`'s `lan
 pins the host's real list (its captured-`Object.freeze` coverage lives on in the `brands` assertion,
 which still runs while the page's `Object.freeze` throws), and `harness/shim-test.html` checks
 `language` against `Intl` instead of against `en-US`.
+
+## D26 — `maxTouchPoints` is left real; the touch surface is not spoofed. 2026-09-16.
+
+**Decision:** `src/shim.js` stops pinning `navigator.maxTouchPoints` to 0. It reports the host's
+real value, and the touch-event surface stays real as it always did.
+
+**Why.** The pin's stated reason was "the pool is entirely desktop machines". Touch-screen desktops
+and 2-in-1 laptops are not a rare configuration, and on one of them everything *around* the pin kept
+telling the truth:
+
+- `'ontouchstart' in window` → `true`
+- `typeof TouchEvent === 'function'`, plus `Touch` / `TouchList` and the `ontouch*` handler slots
+- `matchMedia('(any-pointer: coarse)')` → `true` — a **CSS media feature**, evaluated in the style
+  engine below JS, unreachable from a content script, exactly like the display layer of D11
+
+So the pin did not hide a touch screen; it announced that something was lying about one. Making it
+consistent would mean deleting `ontouchstart`, three constructors and every `ontouch*` slot from the
+window — visible to feature detection, breaking to real touch handling, and *still* contradicted by
+the media query, which we cannot touch at all.
+
+**What it costs.** One bit, on the machines that have a touch screen. `maxTouchPoints` is not a
+persona field — `personas.js` does not carry it, so, as with D25, nothing in the pool goes unused.
+The cross-site join is broken by the personas differing per origin; a bit that is identical for
+every origin on this host was never part of that.
+
+**Guards.** `B8 GUARD` boots the realm with a live touch surface (`ontouchstart`, `TouchEvent`),
+upgrades to a persona, and requires `maxTouchPoints` to equal the host's real 10, to be non-zero
+beside that live surface, and the `Navigator.prototype` descriptor to be the identical getter from
+before the shim ran. `harness/shim-test.html` now checks agreement with `ontouchstart` rather than
+a pinned 0.
