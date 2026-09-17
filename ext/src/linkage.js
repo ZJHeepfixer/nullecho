@@ -1,3 +1,4 @@
+import { registrableDomain } from './suffixes.js';
 /**
  * Site report + linkage engine
  * ────────────────────────────
@@ -147,19 +148,9 @@ export const CATEGORY_MEANING = {
   'heuristic-cookie': 'domains allowed through with their cookies removed',
 };
 
-/** Registrable-ish domain. Handles the common two-part public suffixes. */
+/** Registrable domain for owner lookup — the ONE shared table (src/suffixes.js, D23). */
 export function baseDomain(host) {
-  if (!host) return '';
-  const h = String(host).toLowerCase().replace(/^www\./, '');
-  const parts = h.split('.');
-  if (parts.length <= 2) return h;
-  const twoPartTlds = new Set([
-    'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'co.jp', 'ne.jp', 'or.jp',
-    'com.au', 'net.au', 'org.au', 'co.nz', 'com.br', 'com.mx', 'co.in',
-    'com.cn', 'co.za', 'com.tr', 'co.kr',
-  ]);
-  const lastTwo = parts.slice(-2).join('.');
-  return twoPartTlds.has(lastTwo) ? parts.slice(-3).join('.') : lastTwo;
+  return registrableDomain(String(host || '').replace(/^www\./i, ''));
 }
 
 /** Owner entity for a tracker domain, falling back to the domain itself. */

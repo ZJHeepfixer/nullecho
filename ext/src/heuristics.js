@@ -127,48 +127,10 @@ const MAX_COOKIE_RULES = 1000;
 
 // ── eTLD+1 ────────────────────────────────────────────────────────────────
 //
-// Chrome exposes no Public Suffix List to extensions, and shipping the real
-// one is ~230KB of data this layer does not need to be exact about. This is a
-// pragmatic subset covering the suffixes that actually appear in tracking:
-// the common two-label ccTLDs, plus the app-hosting suffixes where treating
-// the whole platform as one party would be badly wrong (every *.vercel.app is
-// a different publisher). Getting an entry wrong over- or under-merges two
-// domains; the three-site rule keeps the blast radius small either way.
-
-const MULTI_LABEL_SUFFIXES = new Set([
-  'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'me.uk', 'net.uk', 'sch.uk', 'ltd.uk', 'plc.uk',
-  'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au', 'id.au',
-  'co.nz', 'net.nz', 'org.nz', 'govt.nz', 'ac.nz',
-  'co.jp', 'ne.jp', 'or.jp', 'ac.jp', 'go.jp',
-  'com.br', 'net.br', 'org.br', 'gov.br',
-  'com.cn', 'net.cn', 'org.cn', 'gov.cn', 'edu.cn',
-  'co.in', 'net.in', 'org.in', 'gov.in', 'ac.in',
-  'com.mx', 'gob.mx', 'com.ar', 'com.co', 'com.pe', 'com.ve', 'com.ec', 'com.uy',
-  'com.tr', 'com.tw', 'com.hk', 'com.sg', 'com.my', 'com.ph', 'com.vn',
-  'com.sa', 'com.eg', 'com.pk', 'com.bd', 'com.ng',
-  'co.za', 'co.kr', 'co.il', 'co.id', 'co.th',
-  'com.pl', 'com.ua', 'com.ru', 'com.es', 'org.es', 'gob.es',
-  // Platform suffixes: each subdomain is a separate party.
-  'github.io', 'gitlab.io', 'pages.dev', 'workers.dev', 'r2.dev',
-  'vercel.app', 'netlify.app', 'herokuapp.com', 'firebaseapp.com', 'web.app',
-  'appspot.com', 'cloudfront.net', 'azurewebsites.net', 'azureedge.net',
-  's3.amazonaws.com', 'fly.dev', 'onrender.com', 'glitch.me', 'repl.co',
-  'surge.sh', 'blogspot.com', 'neocities.org', 'translate.goog',
-]);
-
-/** Registrable domain (eTLD+1) for a hostname. */
-export function registrableDomain(hostname) {
-  if (!hostname) return '';
-  const host = hostname.toLowerCase().replace(/\.$/, '');
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':')) return host; // IP literal
-  const parts = host.split('.');
-  if (parts.length <= 2) return host;
-  const lastTwo = parts.slice(-2).join('.');
-  const lastThree = parts.slice(-3).join('.');
-  if (MULTI_LABEL_SUFFIXES.has(lastThree)) return parts.slice(-4).join('.');
-  if (MULTI_LABEL_SUFFIXES.has(lastTwo)) return parts.slice(-3).join('.');
-  return lastTwo;
-}
+// The registrable-domain key comes from the ONE suffix table shared with the
+// shim (src/suffixes.js, D23). Re-exported so background.js keeps its import.
+import { registrableDomain } from './suffixes.js';
+export { registrableDomain };
 
 /** Hostname from a URL string, or '' if it is not a normal web URL. */
 function hostOf(url) {

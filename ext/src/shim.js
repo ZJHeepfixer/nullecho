@@ -720,29 +720,33 @@
   }
 
   /**
-   * Registrable-domain key. Mirrors `siteKeyFor()` in background.js so the
-   * fallback persona and the salted persona are keyed identically — otherwise the
-   * "upgrade" would be a *different machine*, not the same one re-salted.
-   * Same v0.1 approximation, same TODO(v0.2): use a real PSL.
+   * Registrable-domain key. A GENERATED mirror of src/suffixes.js (D23) — the
+   * same table and the same function the service worker uses — so the fallback
+   * persona and the salted persona are keyed identically; otherwise the "upgrade"
+   * would be a *different machine*, not the same one re-salted. It drifted to 41
+   * entries apart once (review A4d); the A4d guard now pins it value-for-value.
    *
    * ⚠ `registrableDomain` below is BOOT-ONLY and is kept byte-identical on
    * purpose: review-2026-09-16.test.js (A4c) lifts it out of this file by regex
    * and runs it in a bare context, so it must not reference the captured
    * builtins. The D21 lint exempts exactly this function.
    */
-  const MULTI_LABEL_SUFFIXES = new Set(('co.uk|org.uk|ac.uk|gov.uk|net.uk|me.uk|ltd.uk|plc.uk|com.au|net.au|' +
-    'org.au|edu.au|gov.au|id.au|co.nz|net.nz|org.nz|govt.nz|ac.nz|co.jp|ne.jp|or.jp|ac.jp|go.jp|ad.jp|com.br|' +
-    'net.br|org.br|gov.br|co.in|net.in|org.in|gen.in|firm.in|com.cn|net.cn|org.cn|gov.cn|edu.cn|co.za|org.za|' +
-    'net.za|gov.za|com.mx|com.ar|com.tr|com.sg|com.hk|com.tw|com.my|co.kr|or.kr|go.kr|github.io|gitlab.io|' +
-    'pages.dev|workers.dev|netlify.app|vercel.app|herokuapp.com|web.app|firebaseapp.com|glitch.me|onrender.com|' +
-    'surge.sh|neocities.org|blogspot.com|wordpress.com|tumblr.com|myshopify.com|s3.amazonaws.com|cloudfront.net|' +
-    'azurewebsites.net|appspot.com').split('|'));
+  // ─── BEGIN GENERATED SUFFIX MIRROR — do not hand-edit; node tools/gen-suffix-mirror.mjs ───
+  const MULTI_LABEL_SUFFIXES = new Set((
+    'ac.in|ac.jp|ac.nz|ac.uk|ad.jp|appspot.com|azureedge.net|azurewebsites.net|blogspot.com|' +
+    'cloudfront.net|co.id|co.il|co.in|co.jp|co.kr|co.nz|co.th|co.uk|co.za|com.ar|com.au|com.bd|com.br|' +
+    'com.cn|com.co|com.ec|com.eg|com.es|com.hk|com.mx|com.my|com.ng|com.pe|com.ph|com.pk|com.pl|com.ru|' +
+    'com.sa|com.sg|com.tr|com.tw|com.ua|com.uy|com.ve|com.vn|edu.au|edu.cn|firebaseapp.com|firm.in|' +
+    'fly.dev|gen.in|github.io|gitlab.io|glitch.me|go.jp|go.kr|gob.es|gob.mx|gov.au|gov.br|gov.cn|gov.in|' +
+    'gov.uk|gov.za|govt.nz|herokuapp.com|id.au|ltd.uk|me.uk|myshopify.com|ne.jp|neocities.org|net.au|' +
+    'net.br|net.cn|net.in|net.nz|net.uk|net.za|netlify.app|onrender.com|or.jp|or.kr|org.au|org.br|org.cn|' +
+    'org.es|org.in|org.nz|org.uk|org.za|pages.dev|plc.uk|r2.dev|repl.co|s3.amazonaws.com|sch.uk|surge.sh|' +
+    'translate.goog|tumblr.com|vercel.app|web.app|wordpress.com|workers.dev').split('|'));
 
   function registrableDomain(hostname) {
     if (!hostname) return '';
     const host = String(hostname).toLowerCase().replace(/\.$/, '');
-    const isIp = /^\[?[0-9a-f:.]+\]?$/i.test(host) && (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.indexOf(':') >= 0);
-    if (isIp || host === 'localhost' || host.indexOf('.') < 0) return host;
+    if (host.indexOf(':') >= 0 || /^\d+\.\d+\.\d+\.\d+$/.test(host) || host.indexOf('.') < 0) return host;
     const parts = host.split('.');
     if (parts.length <= 2) return host;
     const lastTwo = parts.slice(-2).join('.');
@@ -751,6 +755,7 @@
     if (MULTI_LABEL_SUFFIXES.has(lastTwo)) return lastThree;
     return lastTwo;
   }
+  // ─── END GENERATED SUFFIX MIRROR ─────────────────────────────────────────
 
   // ══════════════════════════════════════════════════════════════════════════
   // 2. Mutable state. Every patch reads through this, so a persona upgrade is a

@@ -846,50 +846,83 @@ function shimRegistrableDomain() {
   return vm.runInNewContext(`${table}\n${fn}\nregistrableDomain`, {});
 }
 
-test('A4a REPRO: the service worker keys every *.myshopify.com / *.wordpress.com tenant as ONE site', () => {
-  // background.js re-exports heuristics.registrableDomain and builds both the
-  // persona key and the allowlist key from it.
-  assert.equal(BG.siteKeyFor('https://acme-store.myshopify.com/checkout'), 'myshopify.com');
-  assert.equal(BG.siteKeyFor('https://other-store.myshopify.com/'), 'myshopify.com');
-  assert.equal(BG.siteKeyFor('https://alice.wordpress.com/'), 'wordpress.com');
-  assert.equal(BG.siteKeyFor('https://bob.wordpress.com/'), 'wordpress.com');
-  // …so two unrelated tenants get the same salted persona (no cross-site separation)…
+// ═══════════════════════════════════════════════════════════════════════════
+// A4 — eTLD+1 confusion in both layers; the two suffix tables disagreed
+//
+// ✅ FIXED 2026-09-16 (DECISIONS.md D23). One table, `src/suffixes.js`, is the
+// source of truth: the service worker imports it, and the shim carries a
+// GENERATED SUFFIX MIRROR of it (MV3 content scripts cannot import) that
+// `tools/gen-suffix-mirror.mjs` writes and A4d below pins value-for-value.
+// Platform suffixes (every *.myshopify.com store, every *.wordpress.com blog)
+// are separate sites in BOTH layers; the ccTLD second-level suffixes the shim
+// lacked are in both too.
+// ═══════════════════════════════════════════════════════════════════════════
+
+test('A4a GUARD: the service worker keys each *.myshopify.com / *.wordpress.com tenant as its OWN site', () => {
+  assert.equal(BG.siteKeyFor('https://acme-store.myshopify.com/checkout'), 'acme-store.myshopify.com');
+  assert.equal(BG.siteKeyFor('https://other-store.myshopify.com/'), 'other-store.myshopify.com');
+  assert.equal(BG.siteKeyFor('https://alice.wordpress.com/'), 'alice.wordpress.com');
+  assert.equal(BG.siteKeyFor('https://bob.wordpress.com/'), 'bob.wordpress.com');
+  assert.equal(BG.siteKeyFor('https://www.acme-store.myshopify.com/'), 'acme-store.myshopify.com', 'www is still folded into the tenant');
+  // …so two tenants draw their salted personas from two different keys.
   const salt = 'deadbeef'.repeat(4);
-  assert.equal(personaFor(salt, BG.siteKeyFor('https://acme-store.myshopify.com'), 'mac').id,
-    personaFor(salt, BG.siteKeyFor('https://other-store.myshopify.com'), 'mac').id);
+  const a = BG.siteKeyFor('https://acme-store.myshopify.com'), b = BG.siteKeyFor('https://other-store.myshopify.com');
+  assert.notEqual(a, b);
+  assert.notDeepEqual(personaFor(salt, a, 'mac').noise, personaFor(salt, b, 'mac').noise, 'GUARD: different keys, different noise keys — cross-site separation is back');
 });
 
-test('A4b REPRO: allowlisting one Shopify store writes a DNR allowAllRequests rule for the whole suffix', async () => {
+test('A4b GUARD: allowlisting one Shopify store writes a DNR rule for that store only; the next store stays protected', async () => {
   dynamicRuleCalls.length = 0;
   const res = await swMessage({ type: 'nullecho:set-site-enabled', url: 'https://acme-store.myshopify.com/', enabled: false }, { url: 'chrome-extension://review/popup/popup.html' });
-  assert.equal(res.site, 'myshopify.com', 'THE FINDING: the allowlist entry is the public suffix, not the store');
+  assert.equal(res.site, 'acme-store.myshopify.com', 'GUARD: the allowlist entry is the store, not the platform suffix');
   const rule = dynamicRuleCalls.flatMap((c) => c.addRules ?? []).find((r) => r.action?.type === 'allowAllRequests');
-  assert.deepEqual(rule.condition.requestDomains, ['myshopify.com'],
-    'DNR requestDomains matches every subdomain → blocking AND the shim stand down on every Shopify store');
-  // and the stand-down reaches every other tenant through the same key
+  assert.deepEqual(rule.condition.requestDomains, ['acme-store.myshopify.com'], 'GUARD: DNR matches that store and its subdomains only');
   const other = await swMessage({ type: 'nullecho:get-persona' }, { url: 'https://other-store.myshopify.com/' });
-  assert.equal(other.enabled, false, 'a store the user never touched is now unprotected');
+  assert.equal(other.enabled, true, 'GUARD: a store the user never touched is still protected');
   await swMessage({ type: 'nullecho:set-site-enabled', url: 'https://acme-store.myshopify.com/', enabled: true }, {});
 });
 
-test('A4c REPRO: the shim\'s own table lacks co.il / co.id / com.ua / com.pl / … so the fallback collapses whole ccTLDs', () => {
+test('A4c GUARD: the shim keys ccTLD second-level sites apart, exactly as the service worker does', () => {
   const rd = shimRegistrableDomain();
-  for (const [a, b] of [['ynet.co.il', 'walla.co.il'], ['detik.co.id', 'kompas.co.id'], ['pravda.com.ua', 'ukr.com.ua'], ['onet.com.pl', 'wp.com.pl']]) {
-    assert.equal(rd(a), rd(b), `${a} and ${b} share one fallback key`);
-    assert.equal(rd(a).split('.').length, 2, `the key is the bare public suffix ${rd(a)}`);
-    assert.notEqual(H.registrableDomain(a), H.registrableDomain(b), 'while the service worker keys them apart — the two layers disagree');
+  for (const [a, b] of [['ynet.co.il', 'walla.co.il'], ['detik.co.id', 'kompas.co.id'], ['pravda.com.ua', 'ukr.com.ua'], ['onet.com.pl', 'wp.com.pl'], ['a.myshopify.com', 'b.myshopify.com']]) {
+    assert.notEqual(rd(a), rd(b), `GUARD: ${a} and ${b} get different fallback keys`);
+    assert.equal(rd(a), H.registrableDomain(a), `GUARD: shim and service worker agree on ${a}`);
+    assert.equal(rd(b), H.registrableDomain(b), `GUARD: shim and service worker agree on ${b}`);
+    assert.equal(rd(a).split('.').length, 3, `the key is the registrable domain ${rd(a)}`);
   }
 });
 
-test('A4d REPRO: the two suffix tables disagree on 41 entries (no test pinned them together)', () => {
+test('A4d GUARD: the shim mirror and the service worker use ONE suffix table, pinned value-for-value to src/suffixes.js', async () => {
+  const S = await import('./suffixes.js').catch(() => null);
+  assert.ok(S && Array.isArray(S.MULTI_LABEL_SUFFIXES) && typeof S.registrableDomain === 'function', 'src/suffixes.js must export MULTI_LABEL_SUFFIXES (array) and registrableDomain');
+  const canon = S.MULTI_LABEL_SUFFIXES;
+  assert.equal(new Set(canon).size, canon.length, 'no duplicate suffixes');
+  assert.deepEqual([...canon].sort(), canon, 'the canonical table is sorted, so diffs are readable');
+
+  // The shim's table, lifted from its GENERATED SUFFIX MIRROR block and evaluated.
   const shimTable = /const MULTI_LABEL_SUFFIXES = new Set\(\(([\s\S]*?)\)\.split/.exec(SHIM_SRC)[1]
     .replace(/'|\+|\n|\s/g, '').split('|');
-  const heurTable = /const MULTI_LABEL_SUFFIXES = new Set\(\[([\s\S]*?)\]\)/.exec(src('heuristics.js'))[1]
-    .replace(/\/\/.*$/gm, '').split(',').map((x) => x.trim().replace(/'/g, '')).filter(Boolean);
-  const a = new Set(shimTable), b = new Set(heurTable);
-  const onlyShim = [...a].filter((x) => !b.has(x)), onlyHeur = [...b].filter((x) => !a.has(x));
-  assert.ok(onlyShim.length + onlyHeur.length > 0, 'the tables have converged — retire this test');
-  assert.equal(onlyShim.length + onlyHeur.length, 41, `drift: shim-only ${onlyShim.join(',')} | sw-only ${onlyHeur.join(',')}`);
+  const a = new Set(shimTable), b = new Set(canon);
+  const onlyShim = [...a].filter((x) => !b.has(x)), onlyCanon = [...b].filter((x) => !a.has(x));
+  assert.deepEqual({ onlyShim, onlyCanon }, { onlyShim: [], onlyCanon: [] }, 'GUARD: zero drift between the shim mirror and src/suffixes.js — run tools/gen-suffix-mirror.mjs');
+  assert.ok(SHIM_SRC.includes('BEGIN GENERATED SUFFIX MIRROR') && SHIM_SRC.includes('END GENERATED SUFFIX MIRROR'), 'the shim marks the mirror as generated');
+
+  // The service worker uses the same table and the same function, not a copy.
+  assert.equal(H.registrableDomain, S.registrableDomain, 'heuristics.js re-exports the shared function');
+  // …and so does the linkage graph's owner attribution (it had an 18-entry fourth copy).
+  const L = await import('./linkage.js');
+  for (const host of ['tracker.co.il', 'cdn.walla.co.il', 'www.pixel.com.ua', 'a.b.co.uk']) {
+    assert.equal(L.baseDomain(host), S.registrableDomain(host), `linkage.baseDomain vs shared: ${host}`);
+  }
+
+  // And the three implementations agree on a corpus built from the table itself.
+  const rd = shimRegistrableDomain();
+  const corpus = ['localhost', '127.0.0.1', '[::1]', 'example', 'example.com', 'www.example.com', 'a.b.c.example.com', 'Example.COM.', 'x.co.uk'];
+  for (const suf of canon) corpus.push(`site.${suf}`, `www.site.${suf}`, `deep.www.site.${suf}`, suf, `www.${suf}`);
+  for (const host of corpus) {
+    assert.equal(rd(host), S.registrableDomain(host), `shim vs shared: ${host}`);
+    assert.equal(H.registrableDomain(host), S.registrableDomain(host), `worker vs shared: ${host}`);
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

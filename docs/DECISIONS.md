@@ -1006,3 +1006,38 @@ consistency assertions. The A1a attack itself, run live against a `?shim=off` ca
 designed); subtracting the pattern learned from a 128-grey fill leaves **482** pixels wrong — it
 adds error instead of removing it; fills of 128 and 129 yield different patterns (750 vs 708
 non-zero deltas, disjoint). Before D22 the same subtraction was byte-exact.
+
+## D23 — One public-suffix table, generated into the shim, pinned by value. 2026-09-16.
+
+**Decision:** `src/suffixes.js` is the only multi-label suffix table and the only
+`registrableDomain()`. The service worker imports it (`heuristics.js` re-exports it, so
+`background.js siteKeyFor` is unchanged). `shim.js` — which MV3 forbids from importing — carries a
+GENERATED SUFFIX MIRROR block written by `tools/gen-suffix-mirror.mjs` from the module's array and
+the function's own source; `review-2026-09-16.test.js` A4d fails on any drift and runs the shim's
+copy, the worker's export and the module against a corpus built from the table itself. The table is
+the sorted union of the two old lists: 104 entries, all in the real PSL.
+
+**What A4 was.** Two hand-typed tables, 41 entries apart, with a comment on one saying it "mirrors"
+the other. The worker's lacked the platform suffixes, so `acme-store.myshopify.com` and
+`other-store.myshopify.com` were ONE site: one salted persona across every Shopify storefront (zero
+cross-site separation across ~5M of them), and allowlisting one store wrote a dynamic DNR
+`allowAllRequests` rule for `myshopify.com`, which DNR matches on every subdomain — blocking off and
+the shim standing down on every store the user never touched (A4a, A4b). The shim's lacked
+`co.il`, `co.id`, `co.th`, `com.ua`, `com.pl`, `com.ru`, `com.es`, … so `ynet.co.il` and
+`walla.co.il` got the same *fallback* persona — the persona every page that fingerprints before the
+handshake lands is locked to (A4c). Two layers keying one site two ways also means the "upgrade"
+from fallback to salted persona could be a different machine, not the same one re-salted.
+
+**Why generate rather than hand-copy.** The persona pool already had this exact failure (G7: "keep
+it in sync" drifted twice) and the fix that held was a generated mirror plus a value-level pin
+(`personas.test.js`). Same medicine: the generator is idempotent, the test compares evaluated values
+rather than text, and the corpus check catches a divergence in the *function*, not just the list.
+Shipping the real PSL (~60 KB gzipped for ICANN + private) was considered and deferred: the subset
+covers what appears in tracking, and a wrong entry over- or under-merges two domains, which the
+three-site rule already bounds.
+
+**Trap for the next editor.** The function in `suffixes.js` must stay plain JS — no captured
+builtins — because its source is copied verbatim into the shim's boot-only region that the D21 lint
+exempts by regex (`const MULTI_LABEL_SUFFIXES … function registrableDomain(hostname) {…}`). Rename
+either identifier and the lint stops exempting it; change the `new Set((…).split('|'))` shape and
+A4c/A4d stop finding it.
