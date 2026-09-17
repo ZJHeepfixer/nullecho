@@ -330,6 +330,22 @@ window.__evaluateBoot = () => {
 <details>
   <summary>Shim ⇄ loader protocol traffic (nullecho:status / nullecho:detect)</summary>
   <pre id="protocol">—</pre>
+  <div class="note">
+    <strong>Reading a short or empty log here.</strong> As of the one-time reply-token
+    authentication on this reverse channel (D30, docs/DECISIONS.md), a report the real
+    Nullecho extension's loader ACCEPTS is also swallowed — <code>stopImmediatePropagation()</code>
+    at <code>window</code> capture, before this page's own <code>document</code>-level listener
+    above ever runs — so a page listening for its own visibility, same as this one does, never
+    sees it. Normally that does not apply HERE: this harness loads <code>ext/src/shim.js</code>
+    itself and hands it a hand-rolled persona (no loader in this page at all), so nothing swallows
+    anything and the log fills as before. It DOES apply if you also have the real Nullecho
+    extension installed and enabled while you load this page — its loader is a separate content
+    script racing this page's own listener for the same events, and every report it accepts
+    (i.e. every report the shim actually made after the handshake) is one this page will not
+    log. A short or empty log in that situation is the swallow working as designed, not a broken
+    shim — the boot-event check above is unaffected either way, since boot events are never
+    swallowed (D30).
+  </div>
 </details>
 <details>
   <summary>Raw JSON</summary>
