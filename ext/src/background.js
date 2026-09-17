@@ -220,6 +220,42 @@ export function siteKeyFor(url) {
   return registrableDomain(u.hostname);
 }
 
+/**
+ * Schemes whose documents have no host of their own and INHERIT the creating
+ * document's origin. `sender.url` for such a frame is the literal `about:blank` /
+ * `about:srcdoc`, which `siteKeyFor` correctly refuses — but the frame is
+ * same-origin with its parent and must get the parent's persona, not none.
+ */
+const INHERITED_ORIGIN_SCHEMES = new Set(['about:', 'blob:', 'data:', 'filesystem:']);
+
+/**
+ * The persona key for whoever sent a message. Review B3 / DECISIONS.md D31.
+ *
+ * `sender.url` first, because it is the most specific thing the browser tells us.
+ * When it names an inherited-origin scheme, fall back to `sender.origin` — also the
+ * browser's own account, never anything out of the message body — so an
+ * `about:blank` or `srcdoc` child of `https://news.example` keys on `news.example`
+ * exactly as its parent does. Before this, `sender?.url || sender?.origin` never
+ * reached the origin at all for those frames (`'about:blank'` is truthy), so the
+ * worker answered `unsupported scheme` and the child was locked to a fallback
+ * persona while its same-origin parent ran the salted one — a pristine-child-realm
+ * detector, and a different machine inside the same document tree.
+ *
+ * A sandboxed iframe's `sender.origin` is the string `'null'`, which `siteKeyFor`
+ * refuses: an opaque origin genuinely has no site key, and that is the right answer.
+ */
+export function senderSiteKey(sender) {
+  const url = sender?.url || '';
+  const direct = siteKeyFor(url);
+  if (direct) return direct;
+  if (url) {
+    let protocol = '';
+    try { protocol = new URL(url).protocol; } catch { return ''; }
+    if (!INHERITED_ORIGIN_SCHEMES.has(protocol)) return '';
+  }
+  return siteKeyFor(sender?.origin || '');
+}
+
 // ── stats ───────────────────────────────────────────────────────────────────
 
 function blankSite() {
@@ -520,8 +556,7 @@ async function handleShell(msg, sender) {
  * script is running. We never read an origin out of the message body.
  */
 function onGetPersona(sender) {
-  const frameUrl = sender?.url || sender?.origin || '';
-  const site = siteKeyFor(frameUrl);
+  const site = senderSiteKey(sender);
   if (!site) return { ok: false, error: 'unsupported scheme' };
 
   const enabled = !allowlist.has(site);
@@ -547,7 +582,7 @@ function onGetPersona(sender) {
 }
 
 function onFpDetected(msg, sender) {
-  const site = siteKeyFor(sender?.url || sender?.origin || '');
+  const site = senderSiteKey(sender);
   if (!site) return { ok: false };
   const s = siteStats(site);
   const n = Number.isFinite(msg.count) ? msg.count : 1;
@@ -560,7 +595,7 @@ function onFpDetected(msg, sender) {
 }
 
 function onShimStatus(msg, sender) {
-  const site = siteKeyFor(sender?.url || sender?.origin || '');
+  const site = senderSiteKey(sender);
   if (!site) return { ok: false };
   const s = siteStats(site);
 

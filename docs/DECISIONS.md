@@ -1401,3 +1401,89 @@ in order, and `Object.prototype.token` / `Object.prototype.toJSON` inside the sh
 nothing. The rig in `review-2026-09-16.test.js` was changed to model the loader properly —
 `window`-capture registration before the MAIN-world scripts, and swallowing what carries a token —
 because the old document-only listener would have let the page win by construction.
+
+## D31 — A child realm inherits its parent's site key, its persona, and its own realm's Array. 2026-09-16.
+
+**Decision:** a same-origin `about:blank` / `srcdoc` / `blob:` / `data:` child is the same machine as
+the document that created it, at every stage:
+
+1. **The shim's fallback key.** When `location.hostname` is empty, the key is
+   `registrableDomain(hostOfOrigin(location.origin))` — the eTLD+1 of the origin the child
+   *inherited* — before falling back to the raw origin string.
+2. **The worker's answer.** `senderSiteKey(sender)` uses `sender.url` when it names an http(s)
+   document and falls back to `sender.origin` when the URL's scheme is one that has no host of its
+   own (`about:`, `blob:`, `data:`, `filesystem:`). `siteKeyFor` itself is unchanged.
+3. **Values handed into the realm.** `installInto()` now captures that realm's `Array`, `Object` and
+   `Object.freeze` alongside the DOM natives it already captured, and builds the arrays and
+   dictionaries it hands back with them.
+
+**What B3 was.** The shim keyed its fallback on `registrableDomain(location.hostname) ||
+location.origin`. In a blank child `hostname` is `''`, so the key became the origin **URL string**
+(`'https://www.news.example'`) rather than the eTLD+1 (`'news.example'`) — a different seed, hence
+for roughly 80% of sites a different persona. And the child could never correct it: `sender.url` for
+such a frame is the literal `'about:blank'`, `siteKeyFor` refused it, and because the old code read
+`sender?.url || sender?.origin` — and `'about:blank'` is truthy — the inherited origin was never
+consulted. So the worker answered `unsupported scheme` and the child stayed on the wrong fallback
+while its parent ran the salted persona. `iframe.contentWindow.navigator.hardwareConcurrency !==
+window.navigator.hardwareConcurrency` is a one-line pristine-child-realm detector, on the path the
+docs called *clean*.
+
+**Inheritance was already half-built, and that is why this is the right shape.** When the parent
+reaches a child through `contentWindow`, `installInto(childWindow)` patches it with getters that read
+the parent's `state.derived` through the shared closure — so that path always presented the parent's
+machine. The gap was the child's OWN copy of the shim (Chrome injects it into blank frames via
+`match_about_blank` / `match_origin_as_fallback`) and the worker's refusal to upgrade it. Fixing the
+key and the sender lookup makes both paths agree instead of adding a third.
+
+**The realm half — D27's named residual, closed here.** Everything the shim builds it builds in its
+own closure, which for a child frame is the *parent's* realm. So
+`frames[0].navigator.userAgentData.brands instanceof frames[0].Array` was `false` where Chrome says
+`true`: the same "this realm was patched from outside" tell as B3, one level down. `installInto` now
+holds `RealmArray` / `realmObjectCtor` / `realmFreeze` / `realmObjProto` per realm and builds
+`brands`, the `toJSON()` and `getHighEntropyValues()` dictionaries and their `fullVersionList` /
+`formFactors`, and the filtered WebGL extension list with them. Those objects are also **defined**
+rather than assigned (`put()`), so no setter on that realm's `Object.prototype` can intercept a
+field — the D29 lesson, applied to what we hand out rather than to what we read.
+
+**What it is keyed on, and why that is safe.** `sender.origin` is the browser's account of the
+frame's origin, not the content script's claim, so the salt-containment rule in `background.js` §2
+still holds: a renderer cannot ask "what persona does bank.example see?". A sandboxed iframe's
+origin is the string `'null'`, which `siteKeyFor` refuses — an opaque origin genuinely is not a site
+— and a scheme that does not inherit an origin (`chrome://`, `file:`) is refused as before, so
+nothing can borrow a site key it was not given.
+
+**Is inheriting right, rather than giving the child its own persona?** Yes, and not only for
+consistency: a parent document is same-origin with its blank child and can reach into that realm
+directly, before, during and after any of our code runs (docs/THREAT-MODEL.md says so). There is no
+boundary there to protect, so a *different* persona buys nothing and costs the contradiction.
+
+**Residuals.**
+
+1. **The `window[0]` micro-window is unchanged.** A script that appends an iframe and reads
+   `window[0]` in the same synchronous block still reaches the realm before the MutationObserver
+   callback runs. That is the honest limit already stated in `installInto`, not something this
+   decision changes — though the child's own shim, where Chrome injects one, now at least derives
+   the parent's key.
+2. **Not every array handed out is realm-local yet.** `brands`, the two dictionaries, their
+   `fullVersionList` / `formFactors`, and the WebGL extension list are. The WebGPU feature views
+   (built once per `GPUSupportedFeatures` object and cached in a WeakMap) and the font-path arrays
+   are still built in the shim's realm. Same class, smaller surface, and the WebGPU one needs a
+   per-realm cache before it can move.
+3. **Wrapper ordering is still untested.** When both the parent's `installInto` and the child's own
+   content script patch a blank frame, which wrapper ends up outermost depends on Chrome's injection
+   order. Both now present the same persona, which is the point — but the review's caveat about
+   ordering stands and the rig does not model it.
+4. **The rig's child realm is a second `vm` context**, not a browser frame: it shares nothing with
+   the parent but the `contentWindow` reference. That is enough to measure realm identity of the
+   values handed across, and not enough to say anything about injection timing. Noted in the test
+   file's fidelity header.
+
+**Guards.** `B3a GUARD` (a blank child, a srcdoc child, a child of an origin with a port, and one
+with a bracketed IPv6 authority all derive the parent's fallback machine; an opaque `'null'` origin
+still gets a coherent persona but no inheritance), `B3b GUARD` (the worker answers `about:blank`,
+`about:srcdoc`, `blob:` and `data:` senders with the parent's site key and the SAME salted persona
+id the parent gets; `'null'` and `chrome://` are still refused), and `B3c GUARD` (a child realm
+reached through `contentWindow` presents the parent's persona and its `brands`, entries, `toJSON()`
+dictionary and WebGL extension list are all the CHILD realm's objects, while the parent's stay the
+parent's). The `instanceof` half was confirmed to fail against a deliberately re-broken build before
+being kept.

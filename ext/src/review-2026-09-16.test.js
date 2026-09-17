@@ -21,6 +21,18 @@
  *   · Canvas / audio contexts are pixel/sample buffers with the exact method
  *     shapes the shim calls. The noise kernels under test are pure JS in shim.js,
  *     so what these tests measure IS what a browser would apply.
+ *   · `bootRealm({ child: true })` hangs a SECOND vm context off
+ *     `HTMLIFrameElement.prototype.contentWindow`, which is the accessor the shim
+ *     wraps to install into a child realm. It is a real second realm with its own
+ *     `Array`/`Object`, which is what the B3c guard measures — but it does NOT
+ *     model Chrome injecting its own content scripts into blank frames (that case
+ *     is `bootRealm({ hostname: '' })`, B3a), and it does not model which wrapper
+ *     ends up outermost when both paths happen.
+ *   · The loader stand-in in `bootRealm` listens on `window` in the capture phase
+ *     before the MAIN-world scripts run and swallows anything carrying a reply
+ *     token, because that is what `shim-loader.js` does since D30. Tests that
+ *     drive the REAL loader use `loaderRealm()` (C1) or
+ *     `handshake-integration.test.js`.
  *   · Nothing here proves anything about the document_start race, CSS, Workers,
  *     or HTTP headers. Those findings are in the "unconfirmed" section of the doc.
  *
@@ -213,6 +225,14 @@ const DOM_SETUP = `
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { get() { return 100; }, configurable: true });
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { get() { return 20; }, configurable: true });
   class HTMLIFrameElement extends HTMLElement {}
+  // A child realm, reachable exactly the way the shim reaches one: the NATIVE
+  // \`contentWindow\` accessor on HTMLIFrameElement.prototype, which the shim wraps
+  // so that the first read installs into that realm. \`bootRealm({ child: true })\`
+  // puts a second vm context (its own DOM_SETUP, its own Array/Object) here.
+  Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
+    get() { brand(this, HTMLIFrameElement); return globalThis.__childWindow || null; },
+    configurable: true, enumerable: true,
+  });
   class MutationObserver { observe() {} disconnect() {} }
   const getComputedStyle = () => ({ fontFamily: '', fontSize: '', fontWeight: '', fontStyle: '', letterSpacing: '' });
 
@@ -300,7 +320,12 @@ const DOM_SETUP = `
 
   // ── document ─────────────────────────────────────────────────────────────
   const document = new EventTarget();
-  document.createElement = (tag) => (String(tag).toLowerCase() === 'canvas' ? new HTMLCanvasElement() : new HTMLElement());
+  document.createElement = (tag) => {
+    const t = String(tag).toLowerCase();
+    if (t === 'canvas') return new HTMLCanvasElement();
+    if (t === 'iframe') return new HTMLIFrameElement();
+    return new HTMLElement();
+  };
   document.documentElement = new HTMLElement();
   document.readyState = 'loading';
   document.scripts = { length: 0 };
@@ -326,7 +351,7 @@ const DOM_SETUP = `
  * the loader's event and nothing relays a stripped payload — gpc.js reads the
  * loader's raw payload itself — D29's named residual.
  */
-function bootRealm({ hostname = 'example.test', origin = 'https://example.test', extraGlobals = {}, gpc = false, shim = true } = {}) {
+function bootRealm({ hostname = 'example.test', origin = 'https://example.test', extraGlobals = {}, gpc = false, shim = true, child = false } = {}) {
   const logs = [];
   const sandbox = {
     location: { hostname, origin },
@@ -339,6 +364,25 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
   vm.runInContext(DOM_SETUP, ctx, { filename: 'dom-setup.js' });
   const win = vm.runInContext('globalThis', ctx);
   const h = ctx.__h;
+
+  // A same-origin child realm: a SECOND vm context with its own DOM_SETUP, hung
+  // off `HTMLIFrameElement.prototype.contentWindow`. Fidelity note: it shares
+  // nothing with the parent but the reference — which is the point, because what
+  // is under test is whether values the parent's `installInto` hands into that
+  // realm belong to it. It does NOT model Chrome's own content-script injection
+  // into blank frames (that path is `bootRealm({ hostname: '' })`, B3a), and it
+  // does not model wrapper ordering between the two.
+  let childCtx = null, childWin = null;
+  if (child) {
+    childCtx = vm.createContext({
+      location: { hostname, origin },
+      crypto: { getRandomValues: (a) => webcrypto.getRandomValues(a) },
+      console: sandbox.console, setTimeout, clearTimeout, queueMicrotask,
+    });
+    vm.runInContext(DOM_SETUP, childCtx, { filename: 'dom-setup.child.js' });
+    childWin = vm.runInContext('globalThis', childCtx);
+    ctx.__childWindow = childWin;
+  }
 
   // A stand-in for the loader's reverse-channel listener, registered the way the
   // real one is (D30): `window` in the CAPTURE phase, BEFORE the MAIN-world
@@ -375,7 +419,7 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
   const page = (code) => vm.runInContext(code, ctx, { filename: 'page.js' });
 
   return {
-    ctx, win, h, logs, boot, gpcBoot, statuses, detects, send, page,
+    ctx, win, h, logs, boot, gpcBoot, statuses, detects, send, page, childCtx, childWin,
     /** The loader's delivery: shim nonce always; the gpc nonce whenever gpc.js booted, as shim-loader.js does. */
     upgrade: (persona = DELIVERED, over = {}) => send({
       ok: true, enabled: true, gpc: true, site: hostname, persona, nonce: boot.nonce,
@@ -1150,29 +1194,104 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
     'GUARD (D24): no persona disagrees with its family\'s header ruleset on any header. Anything here is B2 back — or a pool change that needs D19 revisited');
 });
 
-test('B3a REPRO: an about:blank / srcdoc child is keyed on location.origin (a URL string), not the parent\'s eTLD+1', () => {
+// ✅ FIXED 2026-09-16 (DECISIONS.md D31). A same-origin `about:blank` / `srcdoc`
+// child INHERITS its parent's site key and persona, at both stages: the shim's own
+// fallback now reads the eTLD+1 out of the origin the child inherited when
+// `location.hostname` is empty, and the worker falls back to `sender.origin` for
+// the schemes that have no host of their own, so the child can upgrade to the same
+// salted persona its parent is on.
+test('B3a GUARD: an about:blank / srcdoc child derives the SAME fallback persona as its parent', () => {
   const PEPPER = 'nullecho-fallback-v1';
-  const triple = (s) => `${s.ctx.navigator.hardwareConcurrency}/${s.ctx.navigator.deviceMemory}`;
-  // Find a site where the two keys land on different personas (≈80% of sites do).
+  const machine = (s) => `${s.ctx.navigator.hardwareConcurrency}/${s.ctx.navigator.deviceMemory}/${s.ctx.navigator.userAgent}`;
+  // A site where keying on the origin STRING would have landed somewhere else —
+  // i.e. one where the old bug was observable (≈80% of sites are).
   let site = null;
   for (const cand of ['news.example', 'shop.example', 'bank.example', 'video.example', 'mail.example', 'forum.example']) {
     if (personaFor(PEPPER, cand, 'mac').id !== personaFor(PEPPER, `https://www.${cand}`, 'mac').id) { site = cand; break; }
   }
   assert.ok(site, 'no candidate differed — statistically implausible, check personaFor');
-  const parent = bootRealm({ hostname: `www.${site}`, origin: `https://www.${site}` });
-  const child = bootRealm({ hostname: '', origin: `https://www.${site}` }); // about:blank inherits the origin, hostname is ''
   const expectParent = personaFor(PEPPER, site, 'mac');
-  const expectChild = personaFor(PEPPER, `https://www.${site}`, 'mac');
-  assert.equal(triple(parent), `${expectParent.cores}/${expectParent.memory}`, 'parent fallback = personaFor(pepper, eTLD+1)');
-  assert.equal(triple(child), `${expectChild.cores}/${expectChild.memory}`, 'child fallback = personaFor(pepper, origin URL string)');
-  assert.notEqual(triple(parent), triple(child), 'THE FINDING: same-origin parent and child present different machines');
+  const parent = bootRealm({ hostname: `www.${site}`, origin: `https://www.${site}` });
+  // about:blank and srcdoc: hostname is '', origin is the parent's, inherited.
+  const blank = bootRealm({ hostname: '', origin: `https://www.${site}` });
+  const srcdoc = bootRealm({ hostname: '', origin: `https://www.${site}` });
+  assert.equal(machine(parent), `${expectParent.cores}/${expectParent.memory}/${expectParent.ua}`,
+    'parent fallback = personaFor(pepper, eTLD+1)');
+  assert.equal(machine(blank), machine(parent), 'GUARD: the blank child presents its parent\'s machine');
+  assert.equal(machine(srcdoc), machine(parent), 'GUARD: so does a srcdoc child');
+
+  // A port and an IPv6 authority must not break the parse, and a genuinely opaque
+  // origin ("null", a sandboxed frame) still has no site key to inherit.
+  const ported = bootRealm({ hostname: '', origin: `https://www.${site}:8443` });
+  assert.equal(machine(ported), machine(parent), 'GUARD: a port in the inherited origin is not part of the key');
+  const v6 = bootRealm({ hostname: '', origin: 'https://[2606:4700::1111]:8443' });
+  assert.equal(v6.ctx.navigator.userAgent, bootRealm({ hostname: '[2606:4700::1111]', origin: 'https://[2606:4700::1111]' }).ctx.navigator.userAgent,
+    'GUARD: a bracketed IPv6 authority survives the parse intact');
+  const opaque = bootRealm({ hostname: '', origin: 'null' });
+  assert.match(opaque.ctx.navigator.userAgent, /Chrome\//, 'an opaque origin still gets SOME coherent persona, just not an inherited one');
 });
 
-test('B3b REPRO: the service worker refuses about:blank / about:srcdoc senders, so the child can never upgrade to the parent\'s persona', async () => {
+test('B3b GUARD: the service worker answers an about:blank / srcdoc sender with the PARENT origin\'s persona', async () => {
+  // `siteKeyFor` is unchanged and still refuses these URLs — they have no host.
+  // What changed is `senderSiteKey`, which knows that these schemes INHERIT an
+  // origin and that `sender.origin` is the browser's account of which one.
   assert.equal(BG.siteKeyFor('about:blank'), '');
   assert.equal(BG.siteKeyFor('about:srcdoc'), '');
-  const res = await swMessage({ type: 'nullecho:get-persona' }, { url: 'about:blank', origin: 'https://www.news.example' });
-  assert.deepEqual(res, { ok: false, error: 'unsupported scheme' }, 'sender.url wins over sender.origin, and about: is unsupported');
+
+  for (const url of ['about:blank', 'about:srcdoc', 'blob:https://www.news.example/abc', 'data:text/html,x']) {
+    const res = await swMessage({ type: 'nullecho:get-persona' }, { url, origin: 'https://www.news.example' });
+    assert.equal(res.ok, true, `GUARD: a ${url} child was refused a persona`);
+    assert.equal(res.site, 'news.example', 'and it is keyed on the parent\'s eTLD+1, not on the URL');
+  }
+
+  // The parent gets the same site key, so parent and child are the same machine.
+  const parent = await swMessage({ type: 'nullecho:get-persona' }, { url: 'https://www.news.example/index.html', origin: 'https://www.news.example' });
+  const child = await swMessage({ type: 'nullecho:get-persona' }, { url: 'about:blank', origin: 'https://www.news.example' });
+  assert.equal(child.persona.id, parent.persona.id, 'GUARD: same salted persona in the child realm as in the parent document');
+
+  // An OPAQUE origin is still refused: a sandboxed iframe reports origin 'null',
+  // which is not a site and must not be keyed as one.
+  const sandboxed = await swMessage({ type: 'nullecho:get-persona' }, { url: 'about:blank', origin: 'null' });
+  assert.deepEqual(sandboxed, { ok: false, error: 'unsupported scheme' }, 'an opaque origin has no site key, correctly');
+  // And a scheme that does NOT inherit an origin is refused as before.
+  const internal = await swMessage({ type: 'nullecho:get-persona' }, { url: 'chrome://settings', origin: 'https://www.news.example' });
+  assert.deepEqual(internal, { ok: false, error: 'unsupported scheme' }, 'chrome:// must not borrow a site key from sender.origin');
+});
+
+test('B3c GUARD: a child realm reached through contentWindow presents the parent\'s persona, in the CHILD realm\'s own Array', () => {
+  const s = bootRealm({ child: true });
+  s.upgrade();
+  // Reading `contentWindow` is what installs into that realm — the same read a
+  // tracker makes to get at a pristine one.
+  s.page('globalThis.__cw = document.createElement("iframe").contentWindow;');
+  const inChild = (code) => vm.runInContext(code, s.childCtx);
+
+  assert.equal(s.childCtx.navigator.userAgent, DELIVERED.ua, 'GUARD: the child realm presents the parent\'s persona');
+  assert.equal(s.childCtx.navigator.hardwareConcurrency, DELIVERED.cores);
+  assert.equal(s.childCtx.navigator.deviceMemory, DELIVERED.memory);
+  assert.equal(s.childCtx.navigator.platform, DELIVERED.platform);
+
+  // D27's named realm residual, closed by D31. Everything the shim builds lives in
+  // ITS closure — the parent's realm — so `frames[0].navigator.userAgentData.brands
+  // instanceof frames[0].Array` was false where Chrome says true: a one-line "this
+  // realm was patched from outside" detector, the same shape as B3 itself.
+  assert.equal(inChild('navigator.userAgentData.brands instanceof Array'), true,
+    'GUARD: brands is the CHILD realm\'s Array');
+  assert.equal(inChild('Object.getPrototypeOf(navigator.userAgentData.brands[0]) === Object.prototype'), true,
+    'GUARD: and its entries are the child realm\'s objects');
+  assert.equal(inChild('Object.isFrozen(navigator.userAgentData.brands)'), true, 'still frozen (D27)');
+  assert.equal(inChild('navigator.userAgentData.brands === navigator.userAgentData.brands'), false, 'still fresh per read (D27)');
+  assert.equal(inChild('navigator.userAgentData.brands[1].brand + "/" + navigator.userAgentData.brands[1].version'), 'Chromium/151',
+    'and it is the parent persona\'s brand list');
+  assert.equal(inChild('navigator.userAgentData.toJSON().brands instanceof Array'), true,
+    'GUARD: the toJSON() dictionary\'s array too');
+  assert.equal(inChild('Object.getPrototypeOf(navigator.userAgentData.toJSON()) === Object.prototype'), true,
+    'GUARD: and the dictionary object itself');
+  assert.equal(inChild('new WebGLRenderingContext(document.createElement("canvas")).getSupportedExtensions() instanceof Array'), true,
+    'GUARD: the filtered WebGL extension list too');
+
+  // The parent realm is unaffected: its arrays are still its own.
+  assert.equal(s.page('navigator.userAgentData.brands instanceof Array'), true, 'the parent still gets parent-realm arrays');
 });
 
 test('B4 GUARD: silence is not noised — a silent analyser returns all-zero bytes and all -Infinity floats', () => {

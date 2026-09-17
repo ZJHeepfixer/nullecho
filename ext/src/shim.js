@@ -1390,22 +1390,8 @@
   const INSTALLED = new RawWeakSet();
 
   /**
-   * A fresh plain copy of a brand list, for the paths that hand back an IDL
-   * DICTIONARY — `toJSON()` and `getHighEntropyValues()`. A dictionary's
-   * `sequence<NavigatorUABrandVersion>` member is converted anew on every call, so
-   * a fresh, unfrozen array is what Chrome produces there. Do NOT cache these: the
-   * attribute and the dictionary members are different objects in Chrome, and
-   * making them the same would be its own detector.
-   */
-  function copyBrands(list) {
-    const out = [];
-    for (let i = 0; i < list.length; i++) pushOwn(out, { brand: list[i].brand, version: list[i].version });
-    return out;
-  }
-
-  /**
    * `navigator.userAgentData.brands` — review B7, DECISIONS.md D27 as REWRITTEN
-   * against a measurement.
+   * against a measurement, and D31 for the realm.
    *
    * The review said Chrome caches this FrozenArray attribute and hands out the
    * same object on every read, and the first fix cached it on the derived persona.
@@ -1419,11 +1405,12 @@
    *                                                   //  cache this one)
    *
    * So: a fresh array per read, frozen, with ordinary entries. Caching it was the
-   * detector. `copyBrands` + the captured `objFreeze`, built with `pushOwn` (D21).
+   * detector. `toJSON()` and `getHighEntropyValues()` hand back an IDL DICTIONARY
+   * whose `sequence<NavigatorUABrandVersion>` member is converted anew per call —
+   * fresh and UNfrozen there, which the same measurement confirmed for
+   * `fullVersionList`. The builders (`realmBrands`, `realmFreeze`) live inside
+   * `installInto` because they have to belong to the realm being patched.
    */
-  function frozenBrands(list) {
-    return objFreeze(copyBrands(list));
-  }
 
   function installInto(win) {
     if (!win || wsHas(INSTALLED, win)) return;
@@ -1443,6 +1430,46 @@
     //    `HTMLCanvasElement.prototype.width` returning 0 made `noisedCopy()` bail
     //    and `toDataURL` fall open to the native, un-noised call.
     const RealmTypeError = win.TypeError;
+    // ── Per-realm Array / Object, for values we hand BACK to this realm.
+    //
+    // Review B3, and the realm residual D27 recorded: everything this file builds
+    // is built in the shim's own closure, which for the top window is the page's
+    // realm and for a child frame is its PARENT's. So `frames[0].navigator
+    // .userAgentData.brands instanceof frames[0].Array` was `false` where Chrome
+    // says `true` — a one-line "this child realm was patched from outside"
+    // detector, the same shape as B3 itself. Captured here, at the first touch of
+    // the realm, like the DOM natives below. (D31)
+    // (Held through locals, never spelled `win.Object.freeze` — the D21 lint reads
+    // this file as text and a bare `Object.` is exactly what it is there to catch.)
+    const RealmArray = typeof win.Array === 'function' ? win.Array : Array;
+    const realmObjectCtor = win.Object;
+    const realmFreeze = (realmObjectCtor && typeof realmObjectCtor.freeze === 'function')
+      ? realmObjectCtor.freeze : objFreeze;
+    const realmObjProto = (realmObjectCtor && realmObjectCtor.prototype) || null;
+    /** An object belonging to the realm being patched. */
+    const realmObject = () => (realmObjProto ? objCreate(realmObjProto) : {});
+    /** `obj[key] = value` by DEFINITION, so no setter on that realm's Object.prototype sees it. */
+    const put = (obj, key, value) => {
+      objDefineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
+      return obj;
+    };
+    /** `copyBrands`, into this realm's Array and Objects. */
+    const realmBrands = (list) => {
+      const out = new RealmArray();
+      for (let i = 0; i < list.length; i++) {
+        const e = realmObject();
+        put(e, 'brand', list[i].brand);
+        put(e, 'version', list[i].version);
+        pushOwn(out, e);
+      }
+      return out;
+    };
+    /** A copy of a native list into this realm's Array, keeping only what `keep` allows. */
+    const realmList = (values, length, keep) => {
+      const out = new RealmArray();
+      for (let i = 0; i < length; i++) if (!keep || keep(values[i])) pushOwn(out, values[i]);
+      return out;
+    };
     const RealmInt32Array = win.Int32Array;
     const RealmFloat32Array = win.Float32Array;
     const RealmPromise = win.Promise;
@@ -1590,8 +1617,10 @@
       if (!UAD || !UAD.prototype) return; // not a Chromium build
       const P = UAD.prototype;
 
-      // A fresh frozen array per read — measured, D27. See `frozenBrands`.
-      spoofGetter(P, 'brands', 'navigator', () => frozenBrands(D().brands));
+      // A fresh frozen array per read — measured, D27. Built with THIS realm's
+      // Array/Object/freeze (D31), so a child frame's `brands instanceof
+      // frames[0].Array` is true, as it is in Chrome.
+      spoofGetter(P, 'brands', 'navigator', () => realmFreeze(realmBrands(D().brands)));
       spoofGetter(P, 'mobile', 'navigator', () => false);
       spoofGetter(P, 'platform', 'navigator', () => D().uaData.platform || '');
 
@@ -1609,7 +1638,11 @@
         if (state.standingDown) return apply(orig, this, arguments);
         touch('navigator');
         const d = D();
-        return { brands: copyBrands(d.brands), mobile: false, platform: d.uaData.platform || '' };
+        const out = realmObject();
+        put(out, 'brands', realmBrands(d.brands));
+        put(out, 'mobile', false);
+        put(out, 'platform', d.uaData.platform || '');
+        return out;
       });
 
       replaceMethod(P, 'getHighEntropyValues', (orig) => function getHighEntropyValues(hints) {
@@ -1618,20 +1651,22 @@
         touch('navigator');
         const d = D();
         // Chrome always includes the low-entropy trio, then whatever was asked for.
-        const out = {
-          brands: copyBrands(d.brands),
-          mobile: false,
-          platform: d.uaData.platform || '',
-        };
+        // This realm's Array/Object throughout (D31), and every field DEFINED
+        // rather than assigned, so no setter on that realm's `Object.prototype`
+        // can intercept or swallow one.
+        const out = realmObject();
+        put(out, 'brands', realmBrands(d.brands));
+        put(out, 'mobile', false);
+        put(out, 'platform', d.uaData.platform || '');
         const want = setOf(arrayIsArray(hints) ? hints : []);
-        if (setHas(want, 'architecture')) out.architecture = d.uaData.architecture || '';
-        if (setHas(want, 'bitness')) out.bitness = d.uaData.bitness || '';
-        if (setHas(want, 'model')) out.model = d.uaData.model || '';
-        if (setHas(want, 'platformVersion')) out.platformVersion = d.uaData.platformVersion || '';
-        if (setHas(want, 'uaFullVersion')) out.uaFullVersion = d.uaFullVersion;
-        if (setHas(want, 'fullVersionList')) out.fullVersionList = copyBrands(d.fullVersionList);
-        if (setHas(want, 'wow64')) out.wow64 = !!d.uaData.wow64;
-        if (setHas(want, 'formFactors')) out.formFactors = ['Desktop'];
+        if (setHas(want, 'architecture')) put(out, 'architecture', d.uaData.architecture || '');
+        if (setHas(want, 'bitness')) put(out, 'bitness', d.uaData.bitness || '');
+        if (setHas(want, 'model')) put(out, 'model', d.uaData.model || '');
+        if (setHas(want, 'platformVersion')) put(out, 'platformVersion', d.uaData.platformVersion || '');
+        if (setHas(want, 'uaFullVersion')) put(out, 'uaFullVersion', d.uaFullVersion);
+        if (setHas(want, 'fullVersionList')) put(out, 'fullVersionList', realmBrands(d.fullVersionList));
+        if (setHas(want, 'wow64')) put(out, 'wow64', !!d.uaData.wow64);
+        if (setHas(want, 'formFactors')) put(out, 'formFactors', realmList(['Desktop'], 1, null));
         return apply(realmPromiseResolve, RealmPromise, [out]);
       });
     });
@@ -1896,12 +1931,9 @@
         // Index loop + own-property writes, never `real.filter(...)`: `filter`
         // resolved through `Array.prototype` and its species lookup, and either
         // hook received the REAL extension list as `this`.
-        const out = [];
-        for (let i = 0; i < real.length; i++) {
-          const e = real[i];
-          if (!setHas(deny, lower(e))) pushOwn(out, e);
-        }
-        return out;
+        // This realm's Array (D31): the filtered list is handed back to the realm
+        // that asked, so `extensions instanceof frames[0].Array` stays true there.
+        return realmList(real, real.length, (e) => !setHas(deny, lower(e)));
       });
 
       replaceMethod(P, 'getExtension', (orig) => function getExtension(name) {
@@ -2739,6 +2771,44 @@
   function status(obj) { report(EV_STATUS, obj); }
 
   /**
+   * The host of an origin string, without `new URL` (whose `hostname` getter is the
+   * page's, and whose parse we would then be calling a prototype for). Handles
+   * `https://host`, `https://host:8443`, and bracketed IPv6 authorities. Returns ''
+   * for `null`, `about:blank` and anything else without a `scheme://` prefix.
+   */
+  function hostOfOrigin(origin) {
+    const s = RawString(origin || '');
+    const i = strIndexOf(s, '://');
+    if (i < 0) return '';
+    let rest = strSlice(s, i + 3);
+    const slash = strIndexOf(rest, '/');
+    if (slash >= 0) rest = strSlice(rest, 0, slash);
+    if (strIndexOf(rest, '[') === 0) {                 // [::1]:8443 → [::1]
+      const close = strIndexOf(rest, ']');
+      return close >= 0 ? strSlice(rest, 0, close + 1) : rest;
+    }
+    const colon = strIndexOf(rest, ':');
+    return colon >= 0 ? strSlice(rest, 0, colon) : rest;
+  }
+
+  /**
+   * The site key the FALLBACK persona is derived from — review B3, D31.
+   *
+   * In an `about:blank` or `srcdoc` child, `location.hostname` is `''` and
+   * `location.origin` is the PARENT's origin, inherited. Keying on the raw origin
+   * string then produced `'https://www.news.example'` where the parent produced
+   * `'news.example'` — a different seed, so (for about 80% of sites) a different
+   * persona, inside a document tree the page can reach into either way. The child
+   * now derives the parent's eTLD+1 from the origin it inherited, so a same-origin
+   * child and its parent land on the same machine even before the upgrade.
+   */
+  function fallbackSiteKey() {
+    return registrableDomain(location.hostname)
+      || registrableDomain(hostOfOrigin(location.origin))
+      || location.origin || 'opaque';
+  }
+
+  /**
    * Accept the loader's one-time reply tokens (D30) and flush anything reported
    * before they arrived. A malformed list leaves `reportTokens` null, which means
    * the loader will believe nothing we say for the rest of this document — the
@@ -3001,7 +3071,7 @@
   //     Found 2026-08-21 while measuring D12.
   try {
     if (!state.persona && !state.standingDown) {
-      const siteKey = registrableDomain(location.hostname) || location.origin || 'opaque';
+      const siteKey = fallbackSiteKey();
       state.persona = personaFor(FALLBACK_PEPPER, siteKey);
       state.derived = derive(state.persona);
     }
