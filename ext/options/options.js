@@ -465,7 +465,7 @@ const POOL = [
   { id: 'win11-chrome-rtx3060', platform: 'Win32', weight: 22, cores: 12, memory: 8, screen: '1920×1080 @1x', gpu: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)' },
   { id: 'win11-chrome-amd-vega', platform: 'Win32', weight: 12, cores: 8, memory: 8, screen: '1366×768 @1x', gpu: 'ANGLE (AMD, AMD Radeon(TM) Vega 8 Graphics (0x000015D8) Direct3D11 vs_5_0 ps_5_0, D3D11)' },
   { id: 'macos-chrome-m1', platform: 'MacIntel', weight: 18, cores: 8, memory: 8, screen: '1440×900 @2x', gpu: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)' },
-  { id: 'macos-chrome-intel-iris', platform: 'MacIntel', weight: 10, cores: 8, memory: 8, screen: '1440×900 @2x', gpu: 'ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics 645, OpenGL 4.1)' },
+  { id: 'macos-chrome-m2-air', platform: 'MacIntel', weight: 10, cores: 8, memory: 16, screen: '1470×956 @2x', gpu: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)' },
   { id: 'linux-chrome-mesa', platform: 'Linux x86_64', weight: 8, cores: 8, memory: 8, screen: '1920×1080 @1x', gpu: 'ANGLE (Intel, Mesa Intel(R) UHD Graphics 620 (KBL GT2), OpenGL 4.6)' },
 ];
 
@@ -499,7 +499,7 @@ const DEMO = {
     { site: 'news.ycombinator.com', blocked: 0, fp: 0, lastSeen: Date.now() - 12 * min, enabled: true, persona: p('linux-chrome-mesa', 'Linux x86_64', 'ANGLE (Intel, Mesa Intel(R) UHD Graphics 620 (KBL GT2), OpenGL 4.6)'), trackers: T.hn },
     { site: 'reddit.com', blocked: 312, fp: 21, lastSeen: Date.now() - 41 * min, enabled: true, persona: p('win11-chrome-uhd620', 'Win32', 'ANGLE (Intel, Intel(R) UHD Graphics 620 (0x00003EA0) Direct3D11 vs_5_0 ps_5_0, D3D11)'), trackers: T.reddit },
     { site: 'nytimes.com', blocked: 508, fp: 17, lastSeen: Date.now() - 3 * 60 * min, enabled: true, persona: p('macos-chrome-m1', 'MacIntel', 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)'), trackers: T.nyt },
-    { site: 'my-bank.example', blocked: 0, fp: 0, lastSeen: Date.now() - 5 * 60 * min, enabled: false, persona: p('macos-chrome-intel-iris', 'MacIntel', 'ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics 645, OpenGL 4.1)'), trackers: T.bank },
+    { site: 'my-bank.example', blocked: 0, fp: 0, lastSeen: Date.now() - 5 * 60 * min, enabled: false, persona: p('macos-chrome-m2-air', 'MacIntel', 'ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)'), trackers: T.bank },
     { site: 'wikipedia.org', blocked: 0, fp: 1, lastSeen: Date.now() - 26 * 60 * min, enabled: true, persona: p('win11-chrome-amd-vega', 'Win32', 'ANGLE (AMD, AMD Radeon(TM) Vega 8 Graphics (0x000015D8) Direct3D11 vs_5_0 ps_5_0, D3D11)'), trackers: T.wikipedia },
     { site: 'stackoverflow.com', blocked: 417, fp: 15, lastSeen: Date.now() - 30 * 60 * min, enabled: true, persona: p('win11-chrome-rtx3060', 'Win32', 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)', 12), trackers: T.stackoverflow },
   ],

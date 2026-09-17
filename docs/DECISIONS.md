@@ -1041,3 +1041,29 @@ builtins — because its source is copied verbatim into the shim's boot-only reg
 exempts by regex (`const MULTI_LABEL_SUFFIXES … function registrableDomain(hostname) {…}`). Rename
 either identifier and the lint stops exempting it; change the `new Set((…).split('|'))` shape and
 A4c/A4d stop finding it.
+
+## D24 — The Intel-Mac persona is retired; the pool carries no header/JS contradiction. 2026-09-16.
+
+**Decision:** `macos-chrome-intel-iris` is removed from `src/personas.js` and the shim's mirror. The
+macOS family is five personas; its 8 points of weight went to the two 16 GB entries (`m2-air` 22→26,
+`m3-4k` 16→20) so the family's memory spread is unchanged (8 GB 40% · 16 GB 46% · 32 GB 14%), no
+persona exceeds 26% of its family, and the same-persona collision probability is 0.210 (cap 0.25).
+`rules/ua.test.js` and the B2 guard now pin the residual list to **empty**; `gen-ua.mjs` emits no
+residual and the generated `ua-*.json` bytes did not change (the weight-majority values were already
+`arm`/`14.6.0`).
+
+**Why retire rather than host-gate.** D19 rewrites request headers per OS *family* from a static
+ruleset, because the main-frame navigation fires before any content script exists and per-origin
+rules cannot cover it. So the macOS ruleset says `Sec-CH-UA-Arch: "arm"` on every Mac host — Apple
+silicon or Intel — and the one `x86` persona contradicted it on *every* host, not just the arm ones
+the review measured. The alternative was two macOS rulesets selected by host architecture, which
+would have required ≥4 `x86` macOS personas so an Intel-Mac user did not get one machine for every
+origin (the D12 failure mode) — four personas for a shrinking install base, to preserve one. An
+Intel-Mac host is now disguised as an Apple-silicon Mac; nothing below the JS layer that the shim
+leaves truthful (display geometry, colour gamut, dynamic range — D11/D12) names the CPU.
+
+**What the family constraint still holds.** ≥4 personas per family (5), weights sum to 100 per
+family, ≥3 memory buckets with none above 60%, collision below the cap; the validator checks all of
+it and `personas.test.js` pins the shim mirror to the pool value-for-value. The options page's
+sample data no longer names the retired persona, and ARKENFOX-RESPONSE.md carries a dated note
+where it counted 16.

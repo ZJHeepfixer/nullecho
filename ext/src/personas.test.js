@@ -803,7 +803,9 @@ test('rejects: weights not renormalised inside a family', () => {
 test('rejects: one persona swallowing its family', () => {
   const dominant = PERSONAS.map((p) => {
     if (familyOf(p) !== 'mac') return p;
-    return { ...p, weight: p.id === 'macos-chrome-m1' ? 60 : 8 };
+    // Five macOS personas since D24: 60 + 4 × 10 = 100, so only the share and
+    // collision rules can fire — not the per-family sum.
+    return { ...p, weight: p.id === 'macos-chrome-m1' ? 60 : 10 };
   });
   const errors = validateFamilies(dominant);
   assert.ok(errors.some((e) => /takes 60% of the "mac" family/.test(e)), errors.join('\n'));

@@ -493,7 +493,7 @@
       fonts: "macos-14",
     },
     {
-      id: "macos-chrome-m2-air", weight: 22, platform: "MacIntel", os: "macos-14",
+      id: "macos-chrome-m2-air", weight: 26, platform: "MacIntel", os: "macos-14",
       ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
@@ -519,7 +519,7 @@
       fonts: "macos-14",
     },
     {
-      id: "macos-chrome-m3-4k", weight: 16, platform: "MacIntel", os: "macos-14",
+      id: "macos-chrome-m3-4k", weight: 20, platform: "MacIntel", os: "macos-14",
       ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
@@ -542,19 +542,6 @@
       },
       cores: 10, memory: 32,
       screen: { width: 2560, height: 1440, availHeight: 1415, colorDepth: 24, dpr: 1 },
-      fonts: "macos-14",
-    },
-    {
-      id: "macos-chrome-intel-iris", weight: 8, platform: "MacIntel", os: "macos-14",
-      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
-      uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"x86","bitness":"64","model":"","wow64":false},
-      gpu: {
-        vendor: "Google Inc. (Intel)",
-        renderer: "ANGLE (Intel, ANGLE Metal Renderer: Intel(R) Iris(TM) Plus Graphics 645, Unspecified Version)",
-        unmaskedVendor: "Google Inc. (Intel)", maxTextureSize: 16384,
-      },
-      cores: 8, memory: 16,
-      screen: { width: 1440, height: 900, availHeight: 875, colorDepth: 24, dpr: 2 },
       fonts: "macos-14",
     },
     {

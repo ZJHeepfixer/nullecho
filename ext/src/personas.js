@@ -211,7 +211,7 @@ export function hostFamily() {
  * ── weights ───────────────────────────────────────────────────────────────
  * Weights are market-share estimates *within an OS family*, and each family
  * sums to 100. Renormalising per family is forced by the host-OS constraint:
- * once a Mac user can only ever draw from the six macOS entries, a weight
+ * once a Mac user can only ever draw from the five macOS entries, a weight
  * expressed as a share of the whole pool would no longer describe anything.
  *
  * These are estimates, not measurements — worth replacing with Steam-survey /
@@ -380,7 +380,7 @@ export const PERSONAS = [
     // MacBook Air 13" M2/M3. Native 2560×1664, default scaled mode is
     // "looks like 1470×956" — the panel every 13" Air since 2022 reports.
     id: 'macos-chrome-m2-air',
-    weight: 22,
+    weight: 26,
     platform: 'MacIntel',
     os: 'macos-14',
     ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
@@ -425,7 +425,7 @@ export const PERSONAS = [
     // 1920×1080 CSS px at dpr 2. Distinct machine from the mini above — same
     // logical size, different GPU, RAM and pixel ratio.
     id: 'macos-chrome-m3-4k',
-    weight: 16,
+    weight: 20,
     platform: 'MacIntel',
     os: 'macos-14',
     ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
@@ -466,32 +466,6 @@ export const PERSONAS = [
     },
     cores: 10, memory: 32,
     screen: { width: 2560, height: 1440, availHeight: 1415, colorDepth: 24, dpr: 1 },
-    fonts: 'macos-14',
-  },
-  {
-    id: 'macos-chrome-intel-iris',
-    weight: 8,
-    platform: 'MacIntel',
-    os: 'macos-14',
-    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
-    uaData: {
-      platform: 'macOS', platformVersion: '14.6.0',
-      architecture: 'x86', bitness: '64', model: '', wow64: false,
-    },
-    gpu: {
-      vendor: 'Google Inc. (Intel)',
-      // Chrome has defaulted to the ANGLE Metal backend on macOS since Chrome 100.
-      // The old "…, OpenGL 4.1" form paired with a Chrome/151 UA is a contradiction
-      // a fingerprinter gets for free.
-      renderer: 'ANGLE (Intel, ANGLE Metal Renderer: Intel(R) Iris(TM) Plus Graphics 645, Unspecified Version)',
-      unmaskedVendor: 'Google Inc. (Intel)',
-      maxTextureSize: 16384,
-    },
-    // The 2019 13" MacBook Pro shipped in 8 and 16 GB SKUs; 16 is chosen here to
-    // spread the macOS memory bucket rather than because 8 was wrong. Weighted
-    // lowest in the family: Intel Macs are a shrinking share of the install base.
-    cores: 8, memory: 16,
-    screen: { width: 1440, height: 900, availHeight: 875, colorDepth: 24, dpr: 2 },
     fonts: 'macos-14',
   },
 

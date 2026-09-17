@@ -25,10 +25,10 @@
  *
  * The "almost" is measured, not assumed: for every header this script tallies
  * the pool's values by persona weight, emits the majority, and reports every
- * persona that disagrees as a RESIDUAL. Today there is exactly one
- * (`macos-chrome-intel-iris` says `architecture: "x86"`, the macOS header says
- * `"arm"`); `rules/ua.test.js` pins that list so a pool change that adds a
- * second contradiction fails a test instead of shipping.
+ * persona that disagrees as a RESIDUAL. Today there are NONE: the one there was
+ * (`macos-chrome-intel-iris`, `architecture: "x86"` against the macOS header's
+ * `"arm"`) was retired 2026-09-16 (D24). `rules/ua.test.js` pins the empty list
+ * so a pool change that adds a contradiction fails a test instead of shipping.
  *
  * ── DNR facts this design leans on ─────────────────────────────────────────
  *

@@ -267,14 +267,16 @@ the exact defect the files exist to close. When the pool's Chrome version or
 `src/review-2026-09-16.test.js` (which boots the real shim per persona and
 compares its `navigator` to these bytes) will tell you if you forgot.
 
-**The residual, stated exactly.** The header is the family's weight-majority
-value; one persona disagrees on one header: `macos-chrome-intel-iris` reports
+**The residual, stated exactly: there is none.** The header is the family's
+weight-majority value, and since 2026-09-16 every persona agrees with its family
+on every header. There was one disagreement — `macos-chrome-intel-iris` said
 `architecture: "x86"` in JS while the macOS ruleset sends `Sec-CH-UA-Arch: "arm"`
-(the other five macOS personas, 92% of the family's weight, say `arm`). The
-generator prints it; `rules/ua.test.js` pins the residual list to exactly that
-entry. The clean fix is to retire that persona in `src/personas.js` (the family
-still clears `MIN_PERSONAS_PER_FAMILY`). The other residuals — hints sent
-without an `Accept-CH` request, worker scope, Firefox — are in DECISIONS.md D19.
+— and the clean fix this paragraph used to recommend was taken: the persona was
+retired (DECISIONS.md D24; the family still clears `MIN_PERSONAS_PER_FAMILY`).
+The generator prints residuals when they exist; `rules/ua.test.js` pins the list
+to empty, so a pool change that adds one fails a test. The structural residuals
+— hints sent without an `Accept-CH` request, worker scope, Firefox — are in
+DECISIONS.md D19.
 
 ---
 

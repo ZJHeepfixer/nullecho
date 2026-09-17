@@ -86,13 +86,13 @@ cd nullecho && python3 -m http.server 4886
 
 | | |
 |---|---|
-| Tests | 196 passing |
+| Tests | 256 passing |
 | Loads in Chrome 151 | ✅ verified |
 | reCAPTCHA / Google SSO | ✅ verified unbroken |
 | Shim breakage battery | ✅ 0 failures |
 | Full Tier A breakage suite | ⏳ incomplete |
 | **Linux personas** | 🚫 **GPU renderer strings unverified on real hardware — release blocker** |
-| **Adversarial review (2026-09-16)** | 🔴 **NOT shippable as-is** — a page can strip protection without winning the boot race (prototype hooks around the nonce), canvas/audio noise is invertible, HTTP UA/Client-Hints headers aren't rewritten. Findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). Fixes in progress. |
+| **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed the same day**, each reproduction flipped into a regression guard: A2/C2/A3 (prototype hooks around the nonce; D21), A5 (attacker-forgeable strikes; D20), B2 (UA / Client-Hints headers; D19, residual retired by D24), A1/B4/B5 (invertible canvas/audio noise → content-keyed; D22), A4 (two disagreeing suffix tables → one; D23). **Still open:** A8 workers, B1 `navigator.language` vs `Intl`, B3 same-origin child frames, B6 WebGPU architecture, B7/B8/B9, C1 unauthenticated reverse channel, C3 dead signal path. The review's own ship gate names B1 among them. |
 | Published to stores | ❌ not yet |
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)

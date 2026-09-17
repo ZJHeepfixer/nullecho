@@ -1028,7 +1028,7 @@ test('B1 REPRO: navigator.language is pinned to en-US while Intl / toLocaleStrin
 // REAL shim once per persona and compares what its navigator says to the bytes
 // the ruleset would put on the wire, field by field.
 
-test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the host family\'s values, which equal the JS persona\'s field by field (one documented residual)', async () => {
+test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the host family\'s values, which equal the JS persona\'s field by field (no residual since D24)', async () => {
   const s0 = bootRealm(); // host navigator says Chrome/152
   assert.match(s0.h.REAL.userAgent, /Chrome\/152/, 'the browser itself would send Chrome/152');
   assert.match(s0.ua(), /Chrome\/151\.0\.0\.0/, 'the JS persona still says 151 — the header follows it, not the other way round');
@@ -1091,9 +1091,8 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
     }
   }
   assert.equal(checked, PERSONAS.length * WANT.length, 'every persona × every header was compared');
-  assert.deepEqual(mismatches, [
-    { persona: 'macos-chrome-intel-iris', header: 'Sec-CH-UA-Arch', js: '"x86"', wire: '"arm"' },
-  ], 'THE RESIDUAL (D19): one persona, one header. Anything else here is B2 back — or a pool change that needs D19 revisited');
+  assert.deepEqual(mismatches, [],
+    'GUARD (D24): no persona disagrees with its family\'s header ruleset on any header. Anything here is B2 back — or a pool change that needs D19 revisited');
 });
 
 test('B3a REPRO: an about:blank / srcdoc child is keyed on location.origin (a URL string), not the parent\'s eTLD+1', () => {

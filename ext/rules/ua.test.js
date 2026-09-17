@@ -76,15 +76,9 @@ test('every persona in the pool is covered by exactly one family ruleset', () =>
   assert.equal(seen.size, PERSONAS.length);
 });
 
-test('the only header/JS disagreement in the whole pool is the Intel-Mac persona\'s architecture (D19)', () => {
+test('no persona in the pool disagrees with its family ruleset on any header (D19 residual retired by D24)', () => {
   const residuals = FAMILIES.flatMap((f) => familyHeaderPlan(f).residuals.map((r) => ({ family: f, ...r })));
-  assert.deepEqual(residuals, [{
-    family: 'mac',
-    persona: 'macos-chrome-intel-iris',
-    header: 'Sec-CH-UA-Arch',
-    persona_value: '"x86"',
-    header_value: '"arm"',
-  }], 'a pool change added or removed a residual — update DECISIONS.md D19 and this list together');
+  assert.deepEqual(residuals, [], 'a pool change added a residual — a persona whose JS value cannot be put on the wire. Fix the pool, or record a new decision');
 });
 
 test('the majority value wins by persona WEIGHT, so the residual is the rare persona, not the common one', () => {

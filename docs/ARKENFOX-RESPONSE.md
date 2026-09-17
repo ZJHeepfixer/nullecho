@@ -304,7 +304,7 @@ uniformity at the cost of breakage and of being visibly a Tor/RFP user).
    same-tick case is genuinely unreachable.
 5. ~~**Persona OS should probably match the real OS.**~~ **DONE 2026-08-21 — DECISIONS.md D12.**
    Selection is now constrained to the host's OS family, detected from the real `navigator` before
-   the shim patches it. The pool went from 8 personas (5 win / 2 mac / **1 linux**) to 16 (5/6/5),
+   the shim patches it. The pool went from 8 personas (5 win / 2 mac / **1 linux**) to 16 (5/6/5) — 15 (5/5/5) since 2026-09-16, when the Intel-Mac persona was retired (D24) —
    because the constraint makes each family somebody's *entire* pool — two would have been a coin
    flip for Mac users and one meant Linux users had no cross-site protection at all.
 
