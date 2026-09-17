@@ -2014,3 +2014,52 @@ test('R2-3 REPRO: past token exhaustion the shim\'s detect reports propagate to 
   assert.ok(s.statuses.some((d) => d.upgraded === true && typeof d.token === 'string'),
     'the tokened upgrade status still got through to the loader');
 });
+
+// ── R2-4 ───────────────────────────────────────────────────────────────────
+// `senderSiteKey` is the salt-containment boundary (background.js §2): whatever
+// it returns decides which origin's persona a renderer is handed. D31 widened it
+// so an inherited-origin child keys on its parent. This pins the WHOLE table,
+// including the two rows D31's prose got wrong, so the next widening has to argue
+// with a test instead of with a sentence.
+test('R2-4 GUARD: senderSiteKey cannot be talked into another site\'s key, and its inherited-origin table is exactly this', () => {
+  const k = (s) => BG.senderSiteKey(s);
+
+  // `sender.url` first, because it is the most specific thing the browser says.
+  assert.equal(k({ url: 'https://bank.example/a', origin: 'https://bank.example' }), 'bank.example');
+  assert.equal(k({ url: 'https://evil.example/a', origin: 'https://bank.example' }), 'evil.example',
+    'a real http(s) URL wins over the origin — a frame cannot be given a key its own URL contradicts');
+
+  // Inherited-origin schemes fall back to the browser's account of the origin.
+  assert.equal(k({ url: 'about:blank', origin: 'https://bank.example' }), 'bank.example');
+  assert.equal(k({ url: 'about:srcdoc', origin: 'https://bank.example' }), 'bank.example');
+  assert.equal(k({ url: 'blob:https://bank.example/uuid', origin: 'https://bank.example' }), 'bank.example');
+  assert.equal(k({ url: 'filesystem:https://bank.example/temporary/x', origin: 'https://bank.example' }), 'bank.example');
+  // …and it is the ORIGIN that decides, not the host spelled inside the URL. The
+  // two cannot disagree in Chrome (a blob's origin is its creator's), but if they
+  // ever did, the browser's account of the origin is the one to believe.
+  assert.equal(k({ url: 'blob:https://bank.example/uuid', origin: 'https://evil.example' }), 'evil.example');
+
+  // Refusals. Nothing here may borrow a site key.
+  for (const s of [
+    { url: 'data:text/html,x', origin: 'null' },        // opaque
+    { url: 'about:blank', origin: 'null' },             // sandboxed blank child
+    { url: 'javascript:1', origin: 'https://bank.example' },
+    { url: 'chrome://settings', origin: 'https://bank.example' },
+    { url: 'file:///etc/passwd', origin: 'file://' },
+    { url: 'about:blank', origin: 'file://' },
+    { url: '::::', origin: 'https://bank.example' },    // unparseable
+    { url: 'about:blank' }, {}, null, undefined,
+  ]) assert.equal(k(s), '', `must refuse ${JSON.stringify(s)}`);
+
+  // 🔴 The row D31 and background.js §2 both describe wrongly. "A sandboxed
+  // iframe's sender.origin is the string 'null', which siteKeyFor refuses" is only
+  // true when the URL is ALSO scheme-less. A frame sandboxed WITHOUT
+  // allow-same-origin but loading a real https document has an opaque origin and a
+  // perfectly ordinary `sender.url`, and `sender.url` is consulted first — so it
+  // gets that host's key. That is the right answer (it is bank.example's own
+  // document, and its shim-side `fallbackSiteKey()` keys on `location.hostname`
+  // and lands on the same value, so the fallback and the upgrade agree). The
+  // sentence claiming otherwise is what is wrong, and it is corrected in place.
+  assert.equal(k({ url: 'https://bank.example/a', origin: 'null' }), 'bank.example',
+    'a sandboxed frame with a real https URL keys on that URL, not on its opaque origin');
+});

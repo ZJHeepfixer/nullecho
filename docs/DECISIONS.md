@@ -1519,6 +1519,18 @@ origin is the string `'null'`, which `siteKeyFor` refuses — an opaque origin g
 — and a scheme that does not inherit an origin (`chrome://`, `file:`) is refused as before, so
 nothing can borrow a site key it was not given.
 
+⚠ **Corrected 2026-09-16 (review-2, R2-4).** That sandboxed-iframe sentence is only true when
+`sender.url` is *also* scheme-less. A frame sandboxed without `allow-same-origin` but loading a real
+`https://` document has an opaque origin **and** an ordinary `sender.url`, and the URL is consulted
+first — so it gets that host's key. Which is the right answer: it is that host's own document, and
+the shim's `fallbackSiteKey()` in that frame keys on `location.hostname` and lands on the same
+value, so the fallback and the upgrade agree there instead of contradicting each other. The `'null'`
+path is for frames with **no host of their own** — a sandboxed `about:blank`, a `data:` frame —
+which stay on the un-inherited fallback, as B3a already asserts. `R2-4 GUARD` now pins the whole
+table (19 sender shapes, including "a real http(s) URL beats a foreign `origin`" and "for an
+inherited-origin scheme the *origin* decides, not the host spelled inside the URL"), so the next
+widening of this boundary has to argue with a test rather than with a sentence.
+
 **Is inheriting right, rather than giving the child its own persona?** Yes, and not only for
 consistency: a parent document is same-origin with its blank child and can reach into that realm
 directly, before, during and after any of our code runs (docs/THREAT-MODEL.md says so). There is no

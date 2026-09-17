@@ -243,6 +243,15 @@ const INHERITED_ORIGIN_SCHEMES = new Set(['about:', 'blob:', 'data:', 'filesyste
  *
  * A sandboxed iframe's `sender.origin` is the string `'null'`, which `siteKeyFor`
  * refuses: an opaque origin genuinely has no site key, and that is the right answer.
+ *
+ * ⚠ Precisely (review R2-4, which pins the whole table): that refusal is reached
+ * only when `sender.url` is ALSO scheme-less. A frame sandboxed without
+ * `allow-same-origin` but loading a real `https://` document has an opaque origin
+ * and an ordinary `sender.url`, and the URL is consulted first — so it gets that
+ * host's key. That is correct: it is that host's own document, and the shim's
+ * `fallbackSiteKey()` in that frame keys on `location.hostname` and lands on the
+ * same value, so the fallback and the upgrade agree. The `'null'` path is for
+ * frames with no host of their own — a sandboxed `about:blank`, a `data:` frame.
  */
 export function senderSiteKey(sender) {
   const url = sender?.url || '';
