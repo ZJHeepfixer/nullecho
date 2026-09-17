@@ -1264,14 +1264,57 @@ test('B8 GUARD: maxTouchPoints is the host\'s real value and agrees with the tou
     'GUARD: the shim installs no getter on maxTouchPoints at all (D26)');
 });
 
-test('B9 REPRO: Object.prototype.dev = true makes the GENUINE handshake install window.__nullechoDev', () => {
+// ✅ FIXED 2026-09-16 (DECISIONS.md D28). Every field the handshake branches on is
+// read as an OWN property, through the captured `Object.prototype.hasOwnProperty`.
+// The genuine payload never carries `dev`, so `payload.dev` used to resolve up the
+// prototype chain into whatever the page had put on `Object.prototype` — and the
+// page got `window.__nullechoDev`: version, persona id, counters, and failure
+// stacks naming the extension's URL.
+test('B9 GUARD: Object.prototype.dev = true no longer installs the dev surface on the genuine handshake', () => {
   const s = bootRealm();
   s.page('Object.prototype.dev = true;');
   s.upgrade();
   s.page('delete Object.prototype.dev;');
-  assert.equal(s.page('typeof __nullechoDev'), 'object', 'THE FINDING: a production page grew the dev global');
-  assert.equal(s.page('__nullechoDev.persona.id'), DELIVERED.id);
-  assert.equal(s.page('__nullechoDev.version'), '0.1.0');
+  assert.equal(s.page('typeof __nullechoDev'), 'undefined', 'GUARD: no dev global on a production page');
+  assert.ok(s.statuses.some((d) => d.upgraded === true), 'and the genuine upgrade still landed');
+  assert.equal(s.ctx.navigator.hardwareConcurrency, DELIVERED.cores);
+});
+
+test('B9 GUARD: a page owning Object.prototype cannot steer any field the handshake branches on', () => {
+  const POLLUTE = `
+    Object.prototype.dev = true;
+    Object.prototype.enabled = false;      // would be "allowlisted" → restoreAll(), the real machine
+    Object.prototype.ok = false;
+    Object.prototype.persona = { ua: 'x', platform: 'Win32', gpu: {}, screen: {}, fontList: [], noise: { canvas: 0 } };
+    Object.prototype.nonce = 'z'.repeat(32);
+    Object.prototype.gpcNonce = 'z'.repeat(32);
+    Object.prototype.site = 'attacker.test';
+    Object.prototype.reason = 'attacker';
+  `;
+  const CLEAN = `for (const k of ['dev','enabled','ok','persona','nonce','gpcNonce','site','reason']) delete Object.prototype[k];`;
+  const s = bootRealm();
+  s.page(POLLUTE);
+  s.upgrade();
+  s.page(CLEAN);
+  assert.equal(s.page('typeof __nullechoDev'), 'undefined', 'GUARD: no dev surface');
+  assert.ok(s.statuses.some((d) => d.upgraded === true), 'GUARD: the genuine upgrade landed anyway');
+  assert.ok(!s.statuses.some((d) => d.reason === 'allowlisted'), 'GUARD: injected enabled=false did not stand the shim down');
+  assert.equal(s.ctx.navigator.userAgent, DELIVERED.ua, 'GUARD: the delivered persona is in place, not the injected one');
+  assert.equal(s.ctx.navigator.platform, DELIVERED.platform);
+});
+
+test('B9 GUARD: an injected prototype field cannot switch the GPC relay off on a genuine failure payload', () => {
+  // The loader's failure payload is `{ ok:false, reason, nonce, gpcNonce }` — it
+  // carries no `gpc` and no `enabled`, which is exactly when a prototype read
+  // resolves to the page's value. gpc.js computes `cfg.gpc !== false && cfg.enabled
+  // !== false`, so `Object.prototype.gpc = false` suppressed the user's GPC signal
+  // on every page where the service worker was unreachable.
+  const s = bootRealm({ gpc: true });
+  s.page('Object.prototype.gpc = false; Object.prototype.enabled = false;');
+  s.send({ ok: false, reason: 'no response from Nullecho service worker', nonce: s.boot.nonce, gpcNonce: s.gpcBoot.nonce });
+  s.page('delete Object.prototype.gpc; delete Object.prototype.enabled;');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, true,
+    'GUARD: the relay carries explicit values, so the page\'s prototype cannot turn GPC off');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

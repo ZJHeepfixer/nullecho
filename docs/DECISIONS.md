@@ -1206,3 +1206,51 @@ which reads, watches the upgrade get refused, and requires identity across it.
 **Guards.** Two `B7 GUARD`s: identity + frozenness + the persona's values + a page failing to
 truncate the shared array + `toJSON().brands !== brands`; and the read-gate case above. Built with
 `pushOwn` and the captured `objFreeze`, so the `A2-lint GUARD` (D21) still passes.
+
+## D28 — Every handshake field is read as an OWN property; nothing is inherited. 2026-09-16.
+
+**Decision:** `src/shim.js` reads every field of the persona payload through `ownField(obj, key)` —
+the captured `Object.prototype.hasOwnProperty`, then an ordinary read — and never as `payload.x`.
+That covers `nonce`, `ok`, `reason`, `dev`, `enabled`, `persona`, `persona.id`, the fields
+`validPersona()` checks, and the four the shim relays to `gpc.js`. The relay also substitutes an
+explicit `null` for any field the loader omitted.
+
+**What B9 was.** `if (payload.dev === true) installDevSurface()`. `background.js` never sends `dev`,
+so that read consulted `Object.prototype` on **every genuine handshake**. A page that ran
+`Object.prototype.dev = true` before the worker answered was handed `window.__nullechoDev` by the
+authenticated delivery itself: version string, persona id, `upgraded` / `standingDown` /
+`forged` / `reads` counters, the per-API tallies, and `failures` — whose stack traces name the
+extension's URL, i.e. the extension ID. A certain detector *and* an internals leak, reached without
+touching the nonce.
+
+**The nonce was never the wrong defence; it just answers a different question.** Authentication
+proves the message came from the loader. It says nothing about the fields the loader left **out** —
+and an absent own property is exactly when `[[Get]]` walks to an object the page owns. So the audit
+was every field, not just `dev`:
+
+| Field | Omitted by the genuine loader when… | Was it reachable? |
+|---|---|---|
+| `dev` | always — nothing ever sends it | **yes, on every handshake** — the finding |
+| `enabled`, `gpc`, `site`, `persona` | the service worker is unreachable (`{ok:false, reason, …}`) | **yes**, via the gpc relay |
+| `reason` | the call succeeded | only on a path that does not read it |
+| `nonce`, `gpcNonce`, `ok` | never | no — an own property shadows the chain |
+
+**The second hole was one step later, in the relay.** `emit()` goes through `JSON.stringify`, which
+**drops** an `undefined` member — so relaying `{gpc: undefined}` produced `{}` and `gpc.js` read the
+missing key off its *own* polluted prototype. Its rule is `cfg.gpc !== false && cfg.enabled !== false`,
+so `Object.prototype.gpc = false` suppressed the user's Global Privacy Control signal on every page
+where the worker was unreachable — a privacy regression a page could trigger, not merely a detector.
+Relaying explicit `null` keeps the default ON and cannot be shadowed.
+
+**Residual, stated rather than hidden.** `derive()` still reads the accepted persona's optional
+sub-fields plainly (`cores`, `memory`, `seed`, `uaData`, `noise.audio`/`webgl`, `gpu.*`, `screen.*`).
+Reaching those needs a payload that carries the boot nonce *and* a truncated persona — the worker
+builds personas from `personas.js`, so it never produces one, and `validPersona()` now requires
+`ua`, `platform`, `gpu`, `screen`, `fontList`, `noise` and `noise.canvas` to be **own** before any of
+it runs. It is defence in depth that is not yet built, not a live path.
+
+**Guards.** Three `B9 GUARD`s: the dev surface stays absent while the genuine upgrade still lands; a
+page owning eight `Object.prototype` fields at once (`dev`, `enabled`, `ok`, `persona`, `nonce`,
+`gpcNonce`, `site`, `reason`) cannot stand the shim down, swap the persona or install anything; and
+`Object.prototype.gpc = false` cannot switch GPC off on a genuine failure payload. `objHasOwn` is
+captured in the boot block, so the `A2-lint GUARD` (D21) still passes.

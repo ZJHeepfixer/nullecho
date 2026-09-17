@@ -237,6 +237,9 @@
   const wsHas = uncurry(WeakSet.prototype.has);
   const wsAdd = uncurry(WeakSet.prototype.add);
   const promiseThen = uncurry(Promise.prototype.then);
+  // Review B9: every handshake field is read as an OWN property through this, so a
+  // page that owns `Object.prototype` cannot supply a field the loader omitted.
+  const objHasOwn = uncurry(Object.prototype.hasOwnProperty);
   // `%TypedArray%.prototype.length` / `byteLength` — the review's A2e hook. The
   // getters are generic over every typed array, in any realm.
   const TypedArrayProto = objGetPrototypeOf(Uint8Array.prototype);
@@ -277,6 +280,19 @@
 
   /** `String(x)`, then `toLowerCase`, both captured. */
   const lower = (x) => strToLowerCase(RawString(x));
+
+  /**
+   * Review B9. Read a field the way the handshake must read every field: OWN
+   * property or nothing. `payload.dev` walked the prototype chain, so a page that
+   * ran `Object.prototype.dev = true` before the worker answered was handed the
+   * dev surface by the GENUINE, nonce-authenticated delivery — the loader never
+   * sends `dev`, and an absent own property is precisely when the chain is
+   * consulted. The same hole sat under every field the loader omits on some path.
+   *
+   * `objHasOwn` first, then an ordinary read: once the own property is known to
+   * exist, `[[Get]]` stops there and the chain is never consulted.
+   */
+  const ownField = (obj, key) => (obj !== null && typeof obj === 'object' && objHasOwn(obj, key) ? obj[key] : undefined);
 
   /** One byte per element? Decided from captured getters; a DataView (no `length`) is simply "no". */
   function isByteView(view) {
@@ -2642,16 +2658,37 @@
     const accepted = handleHandshake(detailOf(ev));
     if (!accepted) return;
     try { if (RAW.stopImmediatePropagation) apply(RAW.stopImmediatePropagation, ev, []); } catch (_) {}
-    if (typeof accepted.gpcNonce === 'string') {
-      emit(EV_PERSONA, { ok: accepted.ok, enabled: accepted.enabled, gpc: accepted.gpc, gpcNonce: accepted.gpcNonce });
+    // Own-property reads, and `null` where the loader sent nothing — review B9,
+    // D28. Both halves matter. The failure payload (`{ok:false, reason, nonce,
+    // gpcNonce}`) carries neither `gpc` nor `enabled`, so reading them through the
+    // prototype handed the page the values; and relaying `undefined` is the same
+    // hole one step later, because `JSON.stringify` DROPS an undefined member and
+    // gpc.js would then read the missing key off its own polluted prototype. Its
+    // rule is `cfg.gpc !== false && cfg.enabled !== false`, so
+    // `Object.prototype.gpc = false` silently suppressed the user's GPC signal on
+    // every page where the service worker was unreachable. Explicit `null` keeps
+    // that default ON and cannot be overridden.
+    const gpcNonce = ownField(accepted, 'gpcNonce');
+    if (typeof gpcNonce === 'string') {
+      const orNull = (key) => { const v = ownField(accepted, key); return v === undefined ? null : v; };
+      emit(EV_PERSONA, { ok: orNull('ok'), enabled: orNull('enabled'), gpc: orNull('gpc'), gpcNonce });
     }
   }
 
   function status(obj) { emit(EV_STATUS, obj); }
 
+  /**
+   * Own-property reads throughout (review B9, D28): a genuine payload whose
+   * persona was truncated must FAIL here rather than be completed from whatever
+   * the page left on `Object.prototype`. Every field `derive()` then consumes is
+   * either checked here or has a literal default in `derive()` itself.
+   */
   function validPersona(p) {
-    return !!(p && typeof p.ua === 'string' && p.platform && p.gpu && p.screen &&
-      arrayIsArray(p.fontList) && p.noise && typeof p.noise.canvas === 'number');
+    if (!p || typeof p !== 'object') return false;
+    const noise = ownField(p, 'noise');
+    return !!(typeof ownField(p, 'ua') === 'string' && ownField(p, 'platform') &&
+      ownField(p, 'gpu') && ownField(p, 'screen') && arrayIsArray(ownField(p, 'fontList')) &&
+      noise && typeof ownField(noise, 'canvas') === 'number');
   }
 
   /**
@@ -2672,7 +2709,8 @@
     // A failed check does NOT consume the one-shot. If it did, a page could shout
     // one junk message at document_start and permanently deny the salted-persona
     // upgrade, turning an authentication check into a downgrade attack.
-    if (!payload || typeof payload !== 'object' || !nonceMatches(payload.nonce)) {
+    // `ownField` throughout, never `payload.x` — review B9, D28.
+    if (!payload || typeof payload !== 'object' || !nonceMatches(ownField(payload, 'nonce'))) {
       state.forged++;
       if (!state.forgeryReported) {
         state.forgeryReported = true;
@@ -2701,12 +2739,20 @@
   }
 
   function applyAuthenticated(payload) {
-    if (payload.ok !== true) {
-      status({ upgraded: false, lockedToFallback: false, reason: (payload && payload.reason) || 'handshake failed' });
+    // EVERY branch below reads an OWN property (review B9, D28). Authentication
+    // proves the message came from the loader; it says nothing about the fields
+    // the loader left OUT, and an absent own property is exactly when `[[Get]]`
+    // asks `Object.prototype` — which the page owns.
+    if (ownField(payload, 'ok') !== true) {
+      status({ upgraded: false, lockedToFallback: false, reason: ownField(payload, 'reason') || 'handshake failed' });
       return;
     }
 
-    if (payload.dev === true) installDevSurface();
+    // `dev` is the one the review caught: `background.js` NEVER sends it, so the
+    // prototype was consulted on every single genuine handshake, and a page that
+    // had written `Object.prototype.dev = true` got `window.__nullechoDev` —
+    // persona id, counters, and failure stacks naming the extension's URL.
+    if (ownField(payload, 'dev') === true) installDevSurface();
 
     // Allowlisted site → put the originals back and get out of the way.
     //
@@ -2721,23 +2767,27 @@
     // `{ok:true, enabled:false}` and being obeyed — is gone: this line is now
     // unreachable without the boot nonce, which no page script can have seen. See
     // the AUTHENTICATE FIRST gate above and the contract in src/protocol.js.
-    if (payload.enabled === false) {
+    // ✅ And since D28 it cannot be reached by `Object.prototype.enabled = false`
+    // either — the read is own-only, so a payload that omits `enabled` omits it.
+    if (ownField(payload, 'enabled') === false) {
       state.standingDown = true;
       restoreAll();
       status({ upgraded: false, lockedToFallback: false, reason: 'allowlisted' });
       return;
     }
 
-    if (!validPersona(payload.persona)) {
+    const persona = ownField(payload, 'persona');
+    if (!validPersona(persona)) {
       fail('persona handshake', new Error('malformed persona payload; staying on the fallback'));
       status({ upgraded: false, lockedToFallback: true, reason: 'malformed-persona' });
       return;
     }
 
-    if (!setHas(POOL_IDS, payload.persona.id)) {
+    const personaId = ownField(persona, 'id');
+    if (!setHas(POOL_IDS, personaId)) {
       // Not fatal — the delivered persona is authoritative — but it means the
       // inlined mirror (gap G7) has drifted from src/personas.js.
-      console.warn('[Nullecho] persona id "' + payload.persona.id + '" is not in the shim\'s inlined pool. ' +
+      console.warn('[Nullecho] persona id "' + personaId + '" is not in the shim\'s inlined pool. ' +
         'src/shim.js and src/personas.js have drifted — regenerate the mirror.');
     }
 
@@ -2748,8 +2798,8 @@
       return;
     }
 
-    state.persona = payload.persona;
-    state.derived = derive(payload.persona);
+    state.persona = persona;
+    state.derived = derive(persona);
     state.upgraded = true;
     status({ upgraded: true, lockedToFallback: false, reason: null });
   }
