@@ -1384,9 +1384,22 @@ to say things out loud; the loader simply does not believe them yet.
    per genuine report. It can never invent a report the shim did not make, or make more of them.
    This is not closable on a transport the page owns: suppression and one-for-one substitution are
    what "the page owns the transport" means.
-2. **Exhaustion.** After 32 reports the shim goes quiet rather than sending anything unauthenticated.
-   The detect schedule (1, 10, 50, then every 250 per API) puts that far beyond any real page.
-3. **`src/protocol.js` still documents the reverse channel as `{ upgraded, lockedToFallback, reason }`
+2. **Exhaustion, and the reserve it forced.** After 32 reports the shim goes quiet rather than
+   sending anything unauthenticated. Attacking this afterwards turned up the part that mattered: a
+   page controls how many DETECT reports the shim makes (`touch()` fires at read 1, 10, 50 and then
+   every 250 per API), so a few thousand `getImageData` calls would have spent the list and the shim
+   could no longer have reported a later stand-down or a locked fallback — the half of this channel
+   that has to be right. The last **four** tokens are now reserved for statuses. What a page can
+   still cost itself is the read COUNTER, and only after the popup has already been shown several
+   thousand reads on that page, which is the alarm anyway. Guarded (`C1 GUARD`, confirmed to fail
+   against a build with the reserve removed).
+3. **The standalone harness's protocol log goes quiet for tokened reports** if the real extension is
+   also active on that page: `harness/shim-test.html` listens on `document`, and the loader now
+   swallows accepted reports at `window` capture before they get there. The harness is normally run
+   without the extension (it loads `ext/src/shim.js` itself, so there is no loader and nothing
+   swallows), and its boot-event check is unaffected — but anyone running it *with* Nullecho
+   installed will see a short log and should not read that as a broken shim.
+4. **`src/protocol.js` still documents the reverse channel as `{ upgraded, lockedToFallback, reason }`
    with no token, and its `CONTENT_SCRIPT_LITERALS` registry does not know about `reportTokens`.
    That file belongs to another lane in this session and was deliberately not touched; it is a docs
    drift of exactly the kind review finding C3 was about, and it should be the next edit there.
@@ -1477,6 +1490,17 @@ boundary there to protect, so a *different* persona buys nothing and costs the c
    the parent but the `contentWindow` reference. That is enough to measure realm identity of the
    values handed across, and not enough to say anything about injection timing. Noted in the test
    file's fidelity header.
+5. **A parent page can pre-own its own child realm's constructors.** `installInto` captures
+   `win.Array` / `win.Object.freeze` at the first `contentWindow` read, which for the top window is
+   `document_start` — but a *child* realm is same-origin with the page, so the page can reach into
+   it and replace those first. Then `new RealmArray()` is the page's constructor and `realmFreeze`
+   may be a no-op. This is the D21 race, one realm over, and it is not closable from inside the
+   page: a realm the page owned before we touched it was never ours. It costs the page only its own
+   detector, and the persona values themselves still come from `state.derived`. Stated, not guarded.
+6. **Attacked and held, so it is written down rather than re-derived:** a poisoned
+   `Object.prototype.token` setter or `Object.prototype.toJSON` in the CHILD realm harvests nothing
+   either — `report()` defines rather than assigns and `emit()` serialises a null-prototype copy, and
+   both are realm-independent. Guarded (`C1 GUARD`, parent and child poisoned at once).
 
 **Guards.** `B3a GUARD` (a blank child, a srcdoc child, a child of an origin with a port, and one
 with a bracketed IPv6 authority all derive the parent's fallback machine; an opaque `'null'` origin

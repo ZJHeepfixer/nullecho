@@ -835,10 +835,24 @@
    */
   const REPORT_BACKLOG_MAX = 8;
   const REPORT_BACKLOG = [];
+  /**
+   * Tokens held back for STATUS reports only.
+   *
+   * Found by attacking this design: the token list is finite, and a page controls
+   * how many DETECT reports the shim makes — `touch()` fires one at read 1, 10, 50
+   * and then every 250 per API, so a few thousand `getImageData` calls would spend
+   * the lot and the shim would go quiet. It could not then have told the loader
+   * about a later stand-down or a locked fallback, which is the half of this
+   * channel that has to be right. So the last few tokens are reserved for statuses;
+   * a page can cost itself the read COUNTER (after the popup has already shown it
+   * thousands of reads, which is the alarm anyway) and not the health report.
+   */
+  const STATUS_RESERVE = 4;
 
   function report(name, obj) {
     const tokens = state.reportTokens;
-    if (tokens && state.reportIndex < tokens.length) {
+    const left = tokens ? tokens.length - state.reportIndex : 0;
+    if (left > 0 && (name === EV_STATUS || left > STATUS_RESERVE)) {
       objDefineProperty(obj, 'token', {
         value: tokens[state.reportIndex++], writable: true, enumerable: true, configurable: true,
       });

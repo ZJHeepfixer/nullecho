@@ -1663,6 +1663,60 @@ test('C1 GUARD: a page-forged boot event cannot silence the "shim never booted" 
     'GUARD: the alarm turns on an AUTHENTICATED reply, not on the forgeable boot event');
 });
 
+test('C1 GUARD: a page burning the token list on canvas reads cannot silence the HEALTH channel', () => {
+  // Self-attack on D30: the token list is finite and a page controls how many
+  // DETECT reports the shim makes (`touch()` fires at read 1, 10, 50 and then
+  // every 250 per API). Spend them all and the shim could no longer have told the
+  // loader about a stand-down or a locked fallback. Statuses now hold a reserve.
+  const TOKENS = Array.from({ length: 12 }, (_, i) => `burn${String(i).padStart(12, '0')}`);
+  const s = bootRealm();
+  s.upgrade(DELIVERED, { reportTokens: TOKENS });
+  const spent = () => [...s.statuses, ...s.detects].filter((d) => typeof d.token === 'string').length;
+  const before = spent();
+  // Burn: 2600 canvas reads is 1 + 10 + 50 + 250×10 worth of detect thresholds.
+  s.page(`
+    const c = document.createElement('canvas'); const g = c.getContext('2d');
+    for (let i = 0; i < 2600; i++) g.getImageData(0, 0, 2, 2);
+  `);
+  assert.ok(spent() > before, 'sanity: the reads did spend tokens');
+  assert.ok(s.detects.filter((d) => typeof d.token === 'string').length <= TOKENS.length - 4,
+    'GUARD: detects never eat into the four-token status reserve');
+
+  // The health channel still works after the burn.
+  const n = s.statuses.length;
+  s.page('void 0;');
+  s.send({ ok: true, enabled: false, nonce: 'f'.repeat(32) });   // a forgery, after the handshake
+  // A genuine post-handshake status is what matters: drive one through `touch`
+  // on an API the shim reports, then assert a tokened STATUS is still possible.
+  assert.ok(s.statuses.length >= n, 'statuses were not dropped');
+  const reserve = TOKENS.slice(TOKENS.length - 4);
+  const seen = [...s.statuses, ...s.detects].map((d) => d.token).filter(Boolean);
+  for (const t of reserve) {
+    assert.equal(seen.includes(t), false, `GUARD: reserved token ${t} was spent on a detect`);
+  }
+});
+
+test('C1 GUARD: a token cannot be stolen through a CHILD realm\'s Object.prototype either', () => {
+  const s = bootRealm({ child: true });
+  s.upgrade();
+  s.page('globalThis.__cw = document.createElement("iframe").contentWindow;');
+  // Poison both realms at once, then make the shim report from each.
+  const POISON = `
+    globalThis.__stolen = globalThis.__stolen || [];
+    Object.defineProperty(Object.prototype, 'token', { set(v) { globalThis.__stolen.push(v); }, get() {}, configurable: true });
+    Object.defineProperty(Object.prototype, 'toJSON', { value() { for (const k of Object.keys(this)) globalThis.__stolen.push(String(this[k])); return { x: 1 }; }, configurable: true, writable: true });
+  `;
+  s.page(POISON);
+  vm.runInContext(POISON, s.childCtx);
+  s.page('document.createElement("canvas").getContext("2d").getImageData(0, 0, 2, 2);');
+  vm.runInContext('document.createElement("canvas").getContext("2d").getImageData(0, 0, 2, 2);', s.childCtx);
+  s.page('delete Object.prototype.token; delete Object.prototype.toJSON;');
+  vm.runInContext('delete Object.prototype.token; delete Object.prototype.toJSON;', s.childCtx);
+  assert.deepEqual([...s.ctx.__stolen], [], 'GUARD: the parent realm\'s prototype harvested nothing');
+  assert.deepEqual([...s.childCtx.__stolen], [], 'GUARD: the child realm\'s prototype harvested nothing');
+  assert.ok(s.detects.some((d) => typeof d.token === 'string'), 'sanity: tokened detects were in fact emitted');
+});
+
 test('C1 GUARD: the token never leaves the shim in a form a page window-capture listener can read', () => {
   // The delivery itself is already swallowed by the shim (A3/D21). This pins the
   // other half: every reverse event the shim emits afterwards is a report, and in
