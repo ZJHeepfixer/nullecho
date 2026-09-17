@@ -105,10 +105,9 @@
  *      scheme rests on and what it cannot cover, is in `src/protocol.js` under
  *      "THE NONCE HANDSHAKE".
  *
- *      What survives: the payload is still *visible* to the page once delivered
- *      (the page can have a listener by then). That was always true and is not the
- *      hole — the payload is this origin's own persona, which the page can read off
- *      `navigator` anyway. Visibility is not authority.
+ *      ✅ And since 2026-09-16 (review A3, D21) the payload is not visible either:
+ *      the shim stops the authenticated delivery dead, so a page listener sees
+ *      neither the persona's noise keys nor the reply tokens D30 now carries in it.
  *
  *  R3b. RESIDUAL: the nonce is only unobservable if the MAIN-world script wins the
  *      `document_start` race. If it does not (the Chrome MAIN-world injection bug,
@@ -120,9 +119,17 @@
  *      had, instead of assuming the guarantee held. Note the same race already
  *      decides whether the shim protected anything at all on that page.
  *
+ *      Since 2026-09-16 (review C1, D30) the measurement is taken at boot but only
+ *      REPORTED once a reverse message authenticates. A boot event carries no
+ *      token — it is what the tokens are minted in reply to — so raising the
+ *      warning straight from it let any page script raise it too.
+ *
  *  R4. If the MAIN-world content script fails to inject at all, the page is
- *      unprotected. We detect that (the shim owes us a boot status) and report it
- *      rather than letting the popup imply protection that is not there.
+ *      unprotected. We detect that and report it rather than letting the popup
+ *      imply protection that is not there. What counts as "the shim is here" is an
+ *      AUTHENTICATED reverse message, not a boot event: a boot event is forgeable,
+ *      so basing the alarm on it let a page silence the loudest thing the popup can
+ *      say (review C1, D30).
  *
  *  R5. ORDERING DEPENDENCY, now checked. The nonce reaches us only if these
  *      listeners are installed before `shim.js` dispatches its boot event — i.e.
@@ -151,11 +158,13 @@
   const HANDSHAKE_TIMEOUT_MS = 1500;
   const BOOT_CHECK_MS = 3000;
   const RETRIES = 2;
+  /** One-time reply tokens minted for the shim. See "THE REVERSE CHANNEL" below. */
+  const REPLY_TOKENS = 32;
+  const REPLY_TOKEN_BYTES = 8;
 
   const runtime = (globalThis.chrome ?? globalThis.browser)?.runtime;
   if (!runtime?.id) return; // not running as an extension content script
 
-  let shimBooted = false;
   let delivered = false;
   let loud = true; // overwritten by the service worker's settings
 
@@ -171,11 +180,85 @@
   let pending = null;
 
   /**
-   * True once a boot event has arrived at a moment when a page script could
-   * already have run — i.e. the MAIN-world script lost the document_start race and
-   * its nonce may have been observed (residual risk R3b).
+   * ════════════════════════════════════════════════════════════════════════
+   * THE REVERSE CHANNEL (MAIN → here), and why a single shared token is not
+   * enough — review C1, DECISIONS.md D30.
+   * ════════════════════════════════════════════════════════════════════════
+   *
+   * `nullecho:status` and `nullecho:detect` used to carry no authentication at
+   * all, so three lines of page script raised the sticky `nonce-exposed`
+   * warning, overwrote a real `lockedToFallback` with a healthy status, and
+   * added a million to the popup's fingerprinting counter.
+   *
+   * The obvious fix — mint one token, deliver it inside the authenticated
+   * persona payload, require it on every later report — does not hold up. The
+   * reports are DOM events on `document`, which the page can listen for. The
+   * first tokened report (the upgrade status) hands the token to any page
+   * listener, and from then on the page can mint as many "reports" as it likes.
+   *
+   * So: **one-time tokens, used strictly in order.** We mint 32 of them, deliver
+   * the list inside the same authenticated payload the nonce protects, and
+   * accept a message only if it carries the token at the head of the queue —
+   * which is then spent. A token a page has seen is a token we have already
+   * consumed, so harvest-and-replay buys nothing.
+   *
+   * And we listen on `window` in the CAPTURE phase, registered here at
+   * document_start. That is the same ordering argument D13 makes for the
+   * forward channel, run in reverse: `window` is the first node in the
+   * propagation path of an event dispatched on `document`, same-phase listeners
+   * fire in registration order, and this file is the first content script at
+   * `document_start` — so we see each report before any page listener does, and
+   * we `stopImmediatePropagation()` the ones we accept, which means a page
+   * never sees a live token at all.
+   *
+   * ⚠ That last property rests on Blink keeping ONE registration-ordered
+   * listener list per target across isolated worlds. Asserted from the engine's
+   * shape, not measured in a real browser here (the same BASELINE caveat D21
+   * carries). If it is wrong, the one-time tokens still hold: the worst a
+   * watching page could then do is substitute content for a report the shim
+   * really sent, in lockstep, one for one — never invent one.
+   *
+   * A message we do NOT accept is left to propagate, exactly as D21 leaves an
+   * unauthenticated persona event alone: swallowing it would be a free
+   * "Nullecho is here" probe.
    */
+  const replyTokens = mintTokens();
+  /** Tokens not yet spent, in order. `queue[0]` is the only one we will accept next. */
+  const queue = replyTokens.slice();
+
+  /** True once a reverse message has authenticated. The health check turns on this, not on a boot event. */
+  let authedSeen = false;
+  /** A boot event arrived at all. UNAUTHENTICATED — a page can forge one. Used for nothing but the CSPRNG note. */
+  let bootAnnounced = false;
+  /**
+   * The boot event arrived at a moment when a page script could already have run
+   * — the MAIN-world script lost the document_start race and its nonce may have
+   * been observed (residual risk R3b). Measured when the boot event lands, but
+   * only REPORTED once an authenticated reverse message proves our shim is the
+   * thing that booted. Otherwise a page could raise this warning by forging a
+   * boot event, which is half of review finding C1.
+   */
+  let bootLate = false;
   let nonceExposed = false;
+  let healthReported = false;
+  let bootCheckElapsed = false;
+  let bootstrapFinished = false;
+
+  function mintTokens() {
+    const out = [];
+    try {
+      const c = globalThis.crypto;
+      if (!c || typeof c.getRandomValues !== 'function') return out;
+      for (let i = 0; i < REPLY_TOKENS; i++) {
+        const bytes = new Uint8Array(REPLY_TOKEN_BYTES);
+        c.getRandomValues(bytes);
+        let s = '';
+        for (let b = 0; b < bytes.length; b++) s += (bytes[b] + 0x100).toString(16).slice(1);
+        out.push(s);
+      }
+    } catch { /* no CSPRNG: `queue` stays empty and nothing will ever authenticate */ }
+    return out;
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // 1. Reverse channel FIRST.
@@ -188,9 +271,20 @@
   //    nonce arrives in that same boot event, it now gates the persona upgrade too,
   //    so `protocol.test.js` asserts the manifest ordering in both builds rather
   //    than leaving it to this comment (R5).
+  //
+  //    `window` in the CAPTURE phase first, `document` second — see THE REVERSE
+  //    CHANNEL above. Registered through `EventTarget.prototype` so a realm whose
+  //    global is not itself an EventTarget (test rigs) still gets the window
+  //    registration rather than silently falling back to document-only.
   // ─────────────────────────────────────────────────────────────────────────
-  document.addEventListener(EV_DETECT, onDetect, true);
-  document.addEventListener(EV_STATUS, onStatus, true);
+  for (const target of [globalThis, document]) {
+    for (const [type, fn] of [[EV_DETECT, onDetect], [EV_STATUS, onStatus]]) {
+      try {
+        const add = globalThis.EventTarget?.prototype?.addEventListener ?? target.addEventListener;
+        add.call(target, type, fn, true);
+      } catch { /* not an EventTarget in this realm */ }
+    }
+  }
 
   function parseDetail(ev) {
     // `detail` is a JSON string on purpose. Structured cloning of plain objects
@@ -201,9 +295,53 @@
     } catch { return null; }
   }
 
+  /**
+   * Spend the one-time token a reverse message must carry, or refuse the message.
+   *
+   * OWN property, never `d.token`: `parseDetail` may hand back the page's own
+   * object (the non-string `detail` path), and an absent own property is exactly
+   * when `[[Get]]` consults something the page controls — the D29 lesson, applied
+   * to this channel.
+   *
+   * Accepting SWALLOWS the event, so the spent token never reaches a page
+   * listener. Refusing leaves it alone: eating a page's own event would be a free
+   * "Nullecho is here" probe (D21's rule for the forward channel).
+   */
+  function spendToken(d, ev) {
+    if (!queue.length) return false;
+    let token;
+    try { token = Object.prototype.hasOwnProperty.call(d, 'token') ? d.token : undefined; }
+    catch { return false; }
+    if (typeof token !== 'string' || token !== queue[0]) return false;
+    queue.shift();
+    try { ev.stopImmediatePropagation(); } catch { /* not a real Event */ }
+    onAuthenticated();
+    return true;
+  }
+
+  /**
+   * The first reverse message that authenticates is also the first proof that the
+   * thing which published a boot nonce is OUR shim. Only then is it honest to
+   * report the R3b race measurement — a page that forges a boot event can raise no
+   * warning, because it can never get here.
+   */
+  function onAuthenticated() {
+    authedSeen = true;
+    if (nonceExposed || !bootLate) return;
+    nonceExposed = true;
+    send({ type: MSG_SHIM_STATUS, upgraded: false, lockedToFallback: false, reason: 'nonce-exposed' });
+    if (loud) {
+      console.warn(
+        '[Nullecho] The page-world script booted after page script had already ' +
+        'run, so its handshake nonce may have been observed. Nullecho most likely ' +
+        'also lost the fingerprint race on this page — the same race governs both.'
+      );
+    }
+  }
+
   function onDetect(ev) {
     const d = parseDetail(ev);
-    if (!d) return;
+    if (!d || !spendToken(d, ev)) return;
     send({ type: MSG_FP_DETECTED, api: d.api, count: d.count });
   }
 
@@ -235,15 +373,26 @@
     try { return globalThis.top === globalThis.self; } catch { return false; }
   }
 
+  /**
+   * A boot event is the one reverse message that CANNOT carry a token — it is what
+   * we mint the tokens in reply to. So it is treated as UNAUTHENTICATED and is
+   * allowed to change exactly two things: the fact that something announced itself,
+   * and the per-channel nonce (first announcement wins, and a forged second one is
+   * ignored). It reports NOTHING to the service worker: no health, no counts, and
+   * not the `nonce-exposed` warning, which used to be raised straight from here and
+   * was therefore forgeable by three lines of page script (review C1).
+   */
   function onBoot(d) {
     const channel = d.channel === CH_GPC ? CH_GPC : CH_SHIM;
-    if (channel === CH_SHIM) shimBooted = true;
+    if (channel === CH_SHIM) bootAnnounced = true;
     if (nonces[channel] === null && typeof d.nonce === 'string' && d.nonce.length >= 16) {
       nonces[channel] = d.nonce;
     }
 
     // R3b: verify the ordering guarantee the nonce rests on, per page, instead of
-    // assuming it. Report a miss; do not pretend it did not happen.
+    // assuming it. MEASURED here, at the moment the boot event lands — it is a
+    // statement about this instant — and REPORTED later, by `onAuthenticated()`,
+    // once a token proves our shim is what booted.
     //
     // TOP FRAME ONLY, on purpose. `about:blank` and `srcdoc` subframes report
     // `readyState: 'complete'` at the moment a content script reaches them, so this
@@ -254,22 +403,7 @@
     // structural property of subframes rather than a per-page anomaly, so it lives
     // in docs/THREAT-MODEL.md; the popup only hears about the top-level document,
     // where a late boot is genuinely news.
-    if (!nonceExposed && isTopFrame() && pageScriptCouldHaveRun()) {
-      nonceExposed = true;
-      send({
-        type: MSG_SHIM_STATUS,
-        upgraded: false,
-        lockedToFallback: false,
-        reason: 'nonce-exposed',
-      });
-      if (loud) {
-        console.warn(
-          '[Nullecho] The page-world script booted after page script had already ' +
-          'run, so its handshake nonce may have been observed. Nullecho most likely ' +
-          'also lost the fingerprint race on this page — the same race governs both.'
-        );
-      }
-    }
+    if (isTopFrame() && pageScriptCouldHaveRun()) bootLate = true;
 
     maybeDeliver();
   }
@@ -278,6 +412,7 @@
     const d = parseDetail(ev);
     if (!d) return;
     if (d.phase === BOOT_PHASE) { onBoot(d); return; }
+    if (!spendToken(d, ev)) return;
     send({
       type: MSG_SHIM_STATUS,
       upgraded: d.upgraded,
@@ -345,7 +480,16 @@
   function maybeDeliver() {
     if (delivered || !pending || !nonces[CH_SHIM]) return;
     delivered = true;
-    const payload = { ...pending, nonce: nonces[CH_SHIM], gpcNonce: nonces[CH_GPC] };
+    // `reportTokens` rides inside the payload the nonce already authenticates, so
+    // only the shim that proved it minted that nonce ever learns them — and D21/A3
+    // stop this event dead at the shim, so no page listener sees the delivery at
+    // all. Review C1, D30.
+    const payload = {
+      ...pending,
+      nonce: nonces[CH_SHIM],
+      gpcNonce: nonces[CH_GPC],
+      reportTokens: replyTokens,
+    };
     pending = null;
     try {
       document.dispatchEvent(new CustomEvent(EV_PERSONA, { detail: JSON.stringify(payload) }));
@@ -402,51 +546,55 @@
 
   // ─────────────────────────────────────────────────────────────────────────
   // 3. Did the MAIN-world shim actually inject? (residual risk R4)
-  //    `shim.js` owes us a `nullecho:status` event with { phase: 'boot' } as its
-  //    first act. Absence means the MAIN-world content script never ran, and the
-  //    user is unprotected on this page while the UI would otherwise imply
-  //    otherwise. Report it.
+  //
+  //    This used to turn on a boot event having arrived. A boot event is
+  //    unauthenticated, so a page could SILENCE this alarm — the loudest thing
+  //    the popup can say — by dispatching three lines of forged JSON (review C1).
+  //    It now turns on an authenticated reverse message, which only our shim can
+  //    produce: `applyAuthenticated()` emits exactly one status on every branch,
+  //    so a genuine shim that received any delivery has answered by now.
+  //
+  //    One alarm, not two. The old `no-boot-nonce` report ("booted, but published
+  //    no nonce, so it is on the un-rotated fallback") was quieter than
+  //    `shim-never-booted` and could only be distinguished from it using the
+  //    forgeable boot event — i.e. a page could downgrade "you are NOT patched"
+  //    to "you are patched but not rotated". The genuine case it described (a
+  //    realm with no CSPRNG) now gets the loud alarm plus a console line; a
+  //    quieter claim derived from unauthenticated evidence is not worth the hole.
+  //
+  //    The check waits for BOTH the timer and the end of `bootstrap()`: a slow
+  //    service worker can take longer than BOOT_CHECK_MS once retries are counted,
+  //    and reporting "never booted" while we have not yet sent the persona would
+  //    be a false alarm.
   // ─────────────────────────────────────────────────────────────────────────
-  setTimeout(() => {
-    if (!shimBooted) {
-      send({
-        type: MSG_SHIM_STATUS,
-        upgraded: false,
-        lockedToFallback: false,
-        reason: 'shim-never-booted',
-      });
-      if (loud) {
+  function checkHealth() {
+    if (healthReported || !bootCheckElapsed || !bootstrapFinished || authedSeen) return;
+    healthReported = true;
+    send({
+      type: MSG_SHIM_STATUS,
+      upgraded: false,
+      lockedToFallback: false,
+      reason: 'shim-never-booted',
+    });
+    if (loud) {
+      console.error(
+        '[Nullecho] The page-world shim did not answer on this document. ' +
+        'Fingerprinting APIs are NOT patched here. If you see this on a normal ' +
+        'page, please report it — a silent miss is the failure mode this project ' +
+        'most wants to avoid.'
+      );
+      if (bootAnnounced && !nonces[CH_SHIM]) {
         console.error(
-          '[Nullecho] The page-world shim did not start on this document. ' +
-          'Fingerprinting APIs are NOT patched here. If you see this on a normal ' +
-          'page, please report it — a silent miss is the failure mode this project ' +
-          'most wants to avoid.'
-        );
-      }
-      return;
-    }
-
-    // The shim booted but we never got a nonce out of it, so we never sent it a
-    // persona and never will. Fail-safe (the page keeps the fallback persona,
-    // fully patched) but not silent — the popup must not claim a rotation that
-    // did not happen. R5: the usual cause would be a content-script reordering
-    // that puts this file after shim.js.
-    if (!delivered && !nonces[CH_SHIM]) {
-      send({
-        type: MSG_SHIM_STATUS,
-        upgraded: false,
-        lockedToFallback: true,
-        reason: 'no-boot-nonce',
-      });
-      if (loud) {
-        console.error(
-          '[Nullecho] The page-world shim booted but never published a handshake ' +
-          'nonce, so its persona could not be authenticated and was not sent. This ' +
-          'page is on the un-rotated fallback persona.'
+          '[Nullecho] Something announced itself on the shim channel but published ' +
+          'no handshake nonce, so no persona could be authenticated or sent. In a ' +
+          'genuine install that means this realm has no crypto.getRandomValues.'
         );
       }
     }
-  }, BOOT_CHECK_MS);
+  }
 
-  bootstrap();
+  setTimeout(() => { bootCheckElapsed = true; checkHealth(); }, BOOT_CHECK_MS);
+
+  bootstrap().then(() => { bootstrapFinished = true; checkHealth(); },
+    () => { bootstrapFinished = true; checkHealth(); });
 })();

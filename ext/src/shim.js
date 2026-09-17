@@ -776,6 +776,9 @@
     /** Persona payloads rejected for a bad/absent nonce. Non-zero = a page tried. */
     forged: 0,
     forgeryReported: false,
+    /** One-time tokens for the MAIN→ISOLATED reverse channel, from the authenticated payload (D30). */
+    reportTokens: null,
+    reportIndex: 0,
     dev: false,
     failures: [],
     internal: 0,       // >0 while the shim measures for itself; suppresses counting
@@ -784,12 +787,75 @@
   /** APIs worth telling the service worker about. UA reads would drown the signal. */
   const REPORTABLE = setOf(['canvas', 'webgl', 'webgpu', 'audio', 'fonts']);
 
+  /**
+   * Dispatch one MAIN→ISOLATED message.
+   *
+   * The payload is copied into a NULL-PROTOTYPE object before it is serialised.
+   * `JSON.stringify` looks `toJSON` up the prototype chain, so a page that set
+   * `Object.prototype.toJSON` would otherwise be handed every message we send —
+   * including the boot nonce and (since D30) the reply tokens — as `this`, before
+   * anything reaches the loader. Same class of bug as D29, one layer lower down.
+   */
   function emit(name, obj) {
     try {
+      const safe = objCreate(null);
+      const keys = objGetOwnPropertyNames(obj);
+      for (let i = 0; i < keys.length; i++) {
+        objDefineProperty(safe, keys[i], { value: obj[keys[i]], enumerable: true, writable: true, configurable: true });
+      }
       // Pristine ctor + dispatcher (section 0a): a page that replaced either one
       // could otherwise swallow our reports, and the boot report carries the nonce.
-      apply(RAW.dispatchEvent, document, [new RAW.CustomEvent(name, { detail: RAW.jsonStringify(obj) })]);
+      apply(RAW.dispatchEvent, document, [new RAW.CustomEvent(name, { detail: RAW.jsonStringify(safe) })]);
     } catch (_) { /* a page that broke CustomEvent is not our problem to solve */ }
+  }
+
+  /**
+   * A REPORT: a status or detect message the loader is meant to believe.
+   *
+   * Review C1 — this channel used to carry nothing an impostor could not produce,
+   * so a page forged `nonce-exposed`, a healthy status over a real
+   * `lockedToFallback`, and a million fingerprinting reads. Since D30 the loader
+   * mints a list of ONE-TIME tokens and delivers it inside the persona payload the
+   * boot nonce already authenticates; each report spends the next one.
+   *
+   * One-time, not one shared token, because these are DOM events on `document`:
+   * a page can listen for them, so a single token would be public the moment the
+   * first report went out and the page could then mint reports of its own. A token
+   * a page can observe is a token the loader has already spent.
+   *
+   * `objDefineProperty`, not `obj.token = …`: a plain assignment for a property
+   * the object does not own walks the prototype chain and would hand the token to
+   * a setter the page installed on `Object.prototype`.
+   *
+   * Before the handshake there are no tokens. Those reports still go out — the
+   * loader drops them, but this file's contract with the page and the harness is
+   * to say things out loud — and are queued, bounded, to be re-sent with a token
+   * once one exists, so a forgery attempt that happened before the genuine
+   * delivery is not lost.
+   */
+  const REPORT_BACKLOG_MAX = 8;
+  const REPORT_BACKLOG = [];
+
+  function report(name, obj) {
+    const tokens = state.reportTokens;
+    if (tokens && state.reportIndex < tokens.length) {
+      objDefineProperty(obj, 'token', {
+        value: tokens[state.reportIndex++], writable: true, enumerable: true, configurable: true,
+      });
+      emit(name, obj);
+      return;
+    }
+    if (!state.handshakeDone && REPORT_BACKLOG.length < REPORT_BACKLOG_MAX) {
+      pushOwn(REPORT_BACKLOG, { name, obj });
+    }
+    emit(name, obj);
+  }
+
+  /** Re-send anything reported before the tokens arrived, now that they have. */
+  function flushReportBacklog() {
+    const backlog = REPORT_BACKLOG;
+    for (let i = 0; i < backlog.length; i++) report(backlog[i].name, backlog[i].obj);
+    backlog.length = 0;
   }
 
   function fail(label, err) {
@@ -819,7 +885,7 @@
     // Bounded reporting: first read, then a coarsening schedule. 40 canvas reads in
     // one page is not a UI rendering; it is a repeated-sampling attack. We keep
     // returning the same value regardless — this only makes it visible to the user.
-    if (n === 1 || n === 10 || n === 50 || n % 250 === 0) emit(EV_DETECT, { api, count: n });
+    if (n === 1 || n === 10 || n === 50 || n % 250 === 0) report(EV_DETECT, { api, count: n });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -2669,7 +2735,26 @@
     }
   }
 
-  function status(obj) { emit(EV_STATUS, obj); }
+  /** An authenticated report (D30). The BOOT event is not one — it uses `emit` directly. */
+  function status(obj) { report(EV_STATUS, obj); }
+
+  /**
+   * Accept the loader's one-time reply tokens (D30) and flush anything reported
+   * before they arrived. A malformed list leaves `reportTokens` null, which means
+   * the loader will believe nothing we say for the rest of this document — the
+   * safe direction: silence, never an unauthenticated claim.
+   */
+  function takeReportTokens(list) {
+    if (!arrayIsArray(list)) return;
+    const out = [];
+    for (let i = 0; i < list.length; i++) {
+      if (typeof list[i] === 'string' && list[i].length >= 8) pushOwn(out, list[i]);
+    }
+    if (!out.length) return;
+    state.reportTokens = out;
+    state.reportIndex = 0;
+    flushReportBacklog();
+  }
 
   /**
    * Own-property reads throughout (review B9, D29): a genuine payload whose
@@ -2733,6 +2818,13 @@
   }
 
   function applyAuthenticated(payload) {
+    // FIRST, before any status goes out: take the one-time reply tokens the loader
+    // minted for this document (review C1, D30). They ride inside the payload the
+    // boot nonce authenticates and the shim swallows (D21/A3), so no page listener
+    // ever sees them; every report from here on spends one. Own-property read and
+    // copied element by element with `pushOwn`, like every other payload field.
+    takeReportTokens(ownField(payload, 'reportTokens'));
+
     // EVERY branch below reads an OWN property (review B9, D29). Authentication
     // proves the message came from the loader; it says nothing about the fields
     // the loader left OUT, and an absent own property is exactly when `[[Get]]`
@@ -2874,7 +2966,12 @@
   //     real reply from a page's impersonation of one. This dispatch is the first
   //     thing about Nullecho that is observable from the page — and at
   //     document_start there is nothing on the page yet to observe it.
-  status({ phase: BOOT_PHASE, channel: CHANNEL, nonce: nonceBox.value });
+  //
+  //     `emit`, not `status`: this is the one reverse message that cannot carry a
+  //     reply token, because it is what the loader mints the tokens in reply to.
+  //     The loader treats it as unauthenticated and lets it change nothing but the
+  //     nonce it publishes (D30).
+  emit(EV_STATUS, { phase: BOOT_PHASE, channel: CHANNEL, nonce: nonceBox.value });
 
   if (!nonceBox.value) {
     // No CSPRNG: we cannot authenticate anything, so we will accept nothing. Say

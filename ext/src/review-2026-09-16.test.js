@@ -340,16 +340,28 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
   const win = vm.runInContext('globalThis', ctx);
   const h = ctx.__h;
 
+  // A stand-in for the loader's reverse-channel listener, registered the way the
+  // real one is (D30): `window` in the CAPTURE phase, BEFORE the MAIN-world
+  // scripts run, and swallowing anything that carries a reply token so a page
+  // listener downstream never sees a live one.
   const statuses = [];
+  const detects = [];
   let boot = null, gpcBoot = null;
-  ctx.document.addEventListener('nullecho:status', (ev) => {
-    const d = JSON.parse(ev.detail);
-    if (d.phase === 'boot') {
+  const onReverse = (ev) => {
+    let d = null;
+    try { d = JSON.parse(ev.detail); } catch (_) { return; }
+    if (ev.type === 'nullecho:detect') { detects.push(d); }
+    else if (d.phase === 'boot') {
       if (d.channel === 'shim' && !boot) boot = d;
       else if (d.channel === 'gpc' && !gpcBoot) gpcBoot = d;
-    }
-    else statuses.push(d);
-  }, true);
+      return;                                   // boot events are never swallowed
+    } else { statuses.push(d); }
+    if (typeof d.token === 'string') { try { ev.stopImmediatePropagation(); } catch (_) {} }
+  };
+  for (const type of ['nullecho:status', 'nullecho:detect']) {
+    ctx.EventTarget.prototype.addEventListener.call(win, type, onReverse, true);
+    ctx.document.addEventListener(type, onReverse, true);
+  }
 
   if (shim) vm.runInContext(SHIM_SRC, ctx, { filename: 'shim.js' });
   if (gpc) vm.runInContext(GPC_SRC, ctx, { filename: 'gpc.js' });
@@ -363,16 +375,19 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
   const page = (code) => vm.runInContext(code, ctx, { filename: 'page.js' });
 
   return {
-    ctx, win, h, logs, boot, gpcBoot, statuses, send, page,
+    ctx, win, h, logs, boot, gpcBoot, statuses, detects, send, page,
     /** The loader's delivery: shim nonce always; the gpc nonce whenever gpc.js booted, as shim-loader.js does. */
     upgrade: (persona = DELIVERED, over = {}) => send({
       ok: true, enabled: true, gpc: true, site: hostname, persona, nonce: boot.nonce,
-      gpcNonce: gpcBoot ? gpcBoot.nonce : null, ...over,
+      gpcNonce: gpcBoot ? gpcBoot.nonce : null, reportTokens: RIG_TOKENS, ...over,
     }),
     ua: () => ctx.navigator.userAgent,
     canvas: (w, h2) => { const c = page('document.createElement("canvas")'); c.width = w; c.height = h2; return c; },
   };
 }
+
+/** One-time reply tokens the rig's stand-in loader delivers (D30). Distinct, and long enough to be accepted. */
+const RIG_TOKENS = Array.from({ length: 32 }, (_, i) => `rigtoken${String(i).padStart(8, '0')}`);
 
 const DELIVERED = {
   id: 'macos-chrome-m1-pro', platform: 'MacIntel',
@@ -1407,29 +1422,152 @@ test('B9 GUARD: with the shim never booted, Object.prototype.gpc/enabled cannot 
 // C — integrity of what the popup is told
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('C1 REPRO: the MAIN→ISOLATED reverse channel is unauthenticated — a page forges nonce-exposed, a healthy status, and FP counts', async () => {
+// ✅ FIXED 2026-09-16 (DECISIONS.md D30). The reverse channel carried no
+// authentication at all, so a page forged `nonce-exposed`, a healthy status over a
+// real `lockedToFallback`, and a million fingerprinting reads. The loader now mints
+// a list of ONE-TIME reply tokens, delivers it inside the persona payload the boot
+// nonce already authenticates (and D21/A3 swallow), and accepts a report only if it
+// carries the token at the head of the queue — which is then spent. Boot events
+// cannot carry one, so they are treated as unauthenticated and may set nothing but
+// the nonce.
+//
+// Rig: the real `shim-loader.js` with a scripted page in place of the shim. Its
+// `deliverTo` captures the persona event the loader dispatches, which is where the
+// tokens live — so "with the real tokens" below means the loader's own.
+function loaderRealm({ pageScriptRan = true } = {}) {
   const toWorker = [];
+  const delivered = [];
   const listeners = [];
   const document = {
     addEventListener: (type, fn) => listeners.push({ type, fn }),
-    readyState: 'interactive', scripts: { length: 3 },
+    dispatchEvent: (ev) => { if (ev.type === 'nullecho:persona') delivered.push(JSON.parse(ev.detail)); return true; },
+    readyState: pageScriptRan ? 'interactive' : 'loading',
+    scripts: { length: pageScriptRan ? 3 : 0 },
   };
-  class Ev { constructor(type, init) { this.type = type; this.detail = init.detail; } }
-  const dispatch = (type, obj) => { for (const l of listeners) if (l.type === type) l.fn(new Ev(type, { detail: JSON.stringify(obj) })); };
+  class Ev {
+    constructor(type, init) { this.type = type; this.detail = init.detail; this.stopped = false; }
+    stopImmediatePropagation() { this.stopped = true; }
+  }
+  /** Dispatch as a page (or as the shim) would, and report back what a page listener would have seen. */
+  const dispatch = (type, obj) => {
+    const ev = new Ev(type, { detail: JSON.stringify(obj) });
+    for (const l of listeners) { if (l.type === type && !ev.stopped) l.fn(ev); }
+    return ev;
+  };
   const iso = vm.createContext({
-    document, setTimeout, clearTimeout, console: { warn() {}, error() {} },
+    document, setTimeout, clearTimeout, queueMicrotask, CustomEvent: Ev,
+    crypto: { getRandomValues: (a) => webcrypto.getRandomValues(a) },
+    console: { warn() {}, error() {} },
     chrome: { runtime: { id: 'x', lastError: undefined, sendMessage(m, cb) { toWorker.push(m); if (cb) setTimeout(() => cb({ ok: true, enabled: true, gpc: true, site: 'x', persona: DELIVERED }), 1); } } },
   });
   iso.self = iso.top = vm.runInContext('globalThis', iso);
   vm.runInContext(LOADER_SRC, iso);
-  // A page script — no nonce, no shim involvement — dispatches on the page's own document:
-  dispatch('nullecho:status', { phase: 'boot', channel: 'gpc' });                       // → false "nonce-exposed"
-  dispatch('nullecho:status', { upgraded: true, lockedToFallback: false, reason: null }); // → overwrites lastShimStatus
-  dispatch('nullecho:detect', { api: 'canvas', count: 1e6 });                             // → +1,000,000 "fingerprinting reads"
-  const reasons = toWorker.filter((m) => m.type === 'nullecho:shim-status').map((m) => m.reason ?? (m.upgraded ? 'upgraded' : 'ok'));
-  assert.ok(reasons.includes('nonce-exposed'), 'THE FINDING: a page-forged boot event raised the sticky nonce-exposed warning');
-  assert.ok(reasons.includes('upgraded'), 'a page-forged status was forwarded verbatim');
-  assert.ok(toWorker.some((m) => m.type === 'nullecho:fp-detected' && m.count === 1e6), 'a page-forged detect count was forwarded verbatim');
+  const reasons = () => toWorker.filter((m) => m.type === 'nullecho:shim-status').map((m) => m.reason ?? (m.upgraded ? 'upgraded' : 'ok'));
+  const settle = () => new Promise((r) => setTimeout(r, 30));
+  return { toWorker, delivered, dispatch, reasons, settle };
+}
+
+test('C1 GUARD: a page cannot forge nonce-exposed, a healthy status, or a fingerprint count on the reverse channel', async () => {
+  const r = loaderRealm();
+  // A page script — no nonce, no shim involvement — dispatches on the page's own document.
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'gpc' });
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'p'.repeat(32) });
+  r.dispatch('nullecho:status', { upgraded: true, lockedToFallback: false, reason: null });
+  r.dispatch('nullecho:detect', { api: 'canvas', count: 1e6 });
+  r.dispatch('nullecho:status', { upgraded: true, token: 'g'.repeat(16) });   // a guessed token
+  assert.deepEqual(r.reasons(), [], 'GUARD (a)+(b): not one forged status reached the service worker');
+  assert.deepEqual(r.toWorker.filter((m) => m.type === 'nullecho:fp-detected'), [],
+    'GUARD (c): not one forged fingerprint count reached the service worker');
+
+  // …and the tokens the loader hands the shim DO work, so the guard above is
+  // authentication and not a channel that has simply been switched off.
+  await r.settle();
+  const payload = r.delivered[0];
+  assert.ok(Array.isArray(payload.reportTokens) && payload.reportTokens.length >= 8,
+    'the loader delivers a list of one-time reply tokens inside the authenticated payload');
+  r.dispatch('nullecho:status', { upgraded: true, lockedToFallback: false, reason: null, token: payload.reportTokens[0] });
+  r.dispatch('nullecho:detect', { api: 'canvas', count: 3, token: payload.reportTokens[1] });
+  // `nonce-exposed` shows up HERE and not above, which is the whole point: this
+  // realm was built with page script already run, so the boot was late — but the
+  // warning waits for a token to prove that what booted was our shim, instead of
+  // firing on the forgeable boot event the way it used to.
+  assert.deepEqual(r.reasons(), ['nonce-exposed', 'upgraded'], 'a tokened status is forwarded');
+  assert.ok(r.toWorker.some((m) => m.type === 'nullecho:fp-detected' && m.count === 3), 'a tokened detect is forwarded');
+});
+
+test('C1 GUARD: a token is one-time — replaying a captured report, or reusing its token for a new claim, buys nothing', async () => {
+  const r = loaderRealm({ pageScriptRan: false });
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'p'.repeat(32) });
+  await r.settle();
+  const tokens = r.delivered[0].reportTokens;
+
+  // The genuine first report. A page watching the channel now holds tokens[0].
+  const real = { upgraded: false, lockedToFallback: true, reason: 'api-read-before-handshake', token: tokens[0] };
+  r.dispatch('nullecho:status', real);
+  assert.deepEqual(r.reasons(), ['api-read-before-handshake']);
+
+  // Replay it verbatim, and reuse its token for a nicer claim, and skip ahead to a
+  // token the page has NOT seen used (it does not have one, so try the next index).
+  r.dispatch('nullecho:status', real);
+  r.dispatch('nullecho:status', { upgraded: true, lockedToFallback: false, reason: null, token: tokens[0] });
+  r.dispatch('nullecho:detect', { api: 'canvas', count: 1e6, token: tokens[0] });
+  assert.deepEqual(r.reasons(), ['api-read-before-handshake'],
+    'GUARD: a spent token authenticates nothing — harvest-and-replay is closed');
+  assert.deepEqual(r.toWorker.filter((m) => m.type === 'nullecho:fp-detected'), []);
+
+  // Out-of-order is refused too: only the head of the queue is ever accepted.
+  r.dispatch('nullecho:status', { upgraded: true, token: tokens[5] });
+  assert.deepEqual(r.reasons(), ['api-read-before-handshake'], 'GUARD: tokens are spent strictly in order');
+  r.dispatch('nullecho:status', { upgraded: true, token: tokens[1] });
+  assert.deepEqual(r.reasons(), ['api-read-before-handshake', 'upgraded'], 'and the head of the queue still works');
+});
+
+test('C1 GUARD: an accepted report is swallowed, so a page listener never sees a live token', async () => {
+  const r = loaderRealm({ pageScriptRan: false });
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'p'.repeat(32) });
+  await r.settle();
+  const tokens = r.delivered[0].reportTokens;
+  const accepted = r.dispatch('nullecho:status', { upgraded: true, token: tokens[0] });
+  assert.equal(accepted.stopped, true,
+    'GUARD (d): the loader stops an accepted report dead, so nothing downstream of it sees the token');
+  // A message we do NOT accept is left alone — eating a page's own event would be
+  // a free "Nullecho is here" probe (the D21 rule for the forward channel).
+  const refused = r.dispatch('nullecho:status', { upgraded: true, token: 'nope' });
+  assert.equal(refused.stopped, false, 'GUARD: an unauthenticated event propagates normally');
+});
+
+test('C1 GUARD: a page-forged boot event cannot silence the "shim never booted" alarm', async () => {
+  const r = loaderRealm({ pageScriptRan: false });
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'p'.repeat(32) });
+  await new Promise((res) => setTimeout(res, 3200));   // past BOOT_CHECK_MS
+  assert.ok(r.reasons().includes('shim-never-booted'),
+    'GUARD: the alarm turns on an AUTHENTICATED reply, not on the forgeable boot event');
+});
+
+test('C1 GUARD: the token never leaves the shim in a form a page window-capture listener can read', () => {
+  // The delivery itself is already swallowed by the shim (A3/D21). This pins the
+  // other half: every reverse event the shim emits afterwards is a report, and in
+  // the real stack the loader's window-capture listener consumes and stops it. Here
+  // the rig's listener stands in for the loader and does the same, so what a page
+  // listener registered afterwards can harvest is the measure.
+  const TOKENS = ['aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb', 'cccccccccccccccc', 'dddddddddddddddd'];
+  const s = bootRealm();
+  s.page(`
+    globalThis.__harvest = [];
+    const add = globalThis.EventTarget.prototype.addEventListener;
+    for (const t of ['nullecho:persona', 'nullecho:status', 'nullecho:detect']) {
+      add.call(globalThis, t, (ev) => { globalThis.__harvest.push(String(ev.detail)); }, true);
+      document.addEventListener(t, (ev) => { globalThis.__harvest.push(String(ev.detail)); }, true);
+    }
+  `);
+  s.upgrade(DELIVERED, { reportTokens: TOKENS });
+  s.page('const c = document.createElement("canvas"); c.getContext("2d").getImageData(0, 0, 4, 4);');
+  const harvest = s.page('__harvest.join("\\n")');
+  for (const t of TOKENS) {
+    assert.equal(harvest.includes(t), false, `GUARD: a page listener harvested the live token ${t}`);
+  }
+  assert.ok(s.statuses.some((d) => d.upgraded === true && d.token === TOKENS[0]),
+    'sanity: the loader-side listener DID receive the tokened status, so the harvest is a real miss');
 });
 
 test('C2 GUARD: hooking WeakMap.prototype.get never sees NATIVE_SRC; toString masking still works under the hook (fixed with A2, D21)', () => {

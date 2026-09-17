@@ -198,9 +198,17 @@ function bootShim() {
 }
 
 /** The full, authenticated payload the loader would send. */
+/**
+ * One-time reply tokens, as `shim-loader.js` mints them (review C1, DECISIONS.md
+ * D30). They ride inside the payload the boot nonce authenticates, and the shim
+ * spends one per reverse report — so the rig's `realPayload` has to carry them or
+ * it would be modelling a loader that no longer exists.
+ */
+const RIG_TOKENS = Array.from({ length: 32 }, (_, i) => `rigtoken${String(i).padStart(8, '0')}`);
+
 const realPayload = (boot, over = {}) => ({
   ok: true, enabled: true, gpc: true, site: 'example.test',
-  persona: DELIVERED, nonce: boot.nonce, ...over,
+  persona: DELIVERED, nonce: boot.nonce, reportTokens: RIG_TOKENS, ...over,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -406,4 +414,55 @@ test('a forgery is reported once, not on every attempt', () => {
   for (let i = 0; i < 5; i++) s.send({ ok: true, enabled: false });
   const reports = s.statuses().filter((d) => d.reason === 'forged-handshake-rejected');
   assert.equal(reports.length, 1, 'forgery reporting must be bounded — a page controls the rate');
+});
+
+test('every report after the handshake spends a fresh one-time reply token (D30)', () => {
+  const s = bootShim();
+
+  // Before the handshake there are no tokens yet: the report still goes out (this
+  // file's contract with the page and the harness is to say things out loud), the
+  // real loader drops it, and the shim keeps it to re-send.
+  s.send({ ok: true, enabled: false });
+  const early = s.statuses().filter((d) => d.reason === 'forged-handshake-rejected');
+  assert.equal(early.length, 1);
+  assert.equal(early[0].token, undefined, 'a pre-handshake report cannot carry a token — there are none');
+
+  s.send(realPayload(s.boot));
+
+  const tokened = s.statuses().filter((d) => typeof d.token === 'string');
+  assert.ok(tokened.some((d) => d.reason === 'forged-handshake-rejected'),
+    'the forgery attempt was re-sent with a token, so the service worker still hears about it');
+  assert.ok(tokened.some((d) => d.upgraded === true), 'and the upgrade status carries one');
+  const used = tokened.map((d) => d.token);
+  assert.deepEqual(used, [...new Set(used)], 'no token is ever spent twice');
+  assert.deepEqual(used, RIG_TOKENS.slice(0, used.length), 'and they are spent strictly in order');
+});
+
+test('a page cannot make the shim leak a reply token through Object.prototype (D30)', () => {
+  // Two chain reads one layer below the handshake fields D29 covered, and both
+  // have to be poisoned INSIDE the shim's realm to mean anything:
+  //   · `obj.token = t` for a property the object does not own walks the chain, so
+  //     a setter on Object.prototype would receive the token.
+  //   · `JSON.stringify` looks `toJSON` up the chain, so Object.prototype.toJSON
+  //     would be handed every message the shim emits — boot nonce included.
+  const s = bootShim();
+  vm.runInContext(`
+    globalThis.__stolen = [];
+    Object.defineProperty(Object.prototype, 'token', {
+      set(v) { globalThis.__stolen.push(v); }, get() { return undefined; }, configurable: true,
+    });
+    Object.defineProperty(Object.prototype, 'toJSON', {
+      value() { for (const k of Object.keys(this)) globalThis.__stolen.push(String(this[k])); return { hijacked: 1 }; },
+      configurable: true, writable: true,
+    });
+  `, s.ctx);
+  try {
+    s.send(realPayload(s.boot));
+  } finally {
+    vm.runInContext(`delete Object.prototype.token; delete Object.prototype.toJSON;`, s.ctx);
+  }
+  // Cross-realm array: compare contents, never the object (its prototype differs).
+  assert.deepEqual([...s.ctx.__stolen], [], 'a prototype setter or toJSON hook harvested a reply token');
+  assert.ok(s.statuses().some((d) => typeof d.token === 'string' && d.upgraded === true),
+    'and the genuine tokened status still went out');
 });

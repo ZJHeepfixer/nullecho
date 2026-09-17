@@ -1292,3 +1292,112 @@ page owning eight `Object.prototype` fields at once (`dev`, `enabled`, `ok`, `pe
 `gpcNonce`, `site`, `reason`) cannot stand the shim down, swap the persona or install anything; and
 `Object.prototype.gpc = false` cannot switch GPC off on a genuine failure payload. `objHasOwn` is
 captured in the boot block, so the `A2-lint GUARD` (D21) still passes.
+
+## D30 — The reverse channel is authenticated by ONE-TIME tokens, and an accepted report is swallowed. 2026-09-16.
+
+**Decision:** `shim-loader.js` mints a list of 32 one-time 64-bit tokens at `document_start` and
+delivers it as `reportTokens` inside the persona payload the boot nonce already authenticates and
+the shim already swallows (D13, D21/A3). Every `nullecho:status` and `nullecho:detect` the shim
+sends afterwards spends the next token in order. The loader accepts a report only if it carries the
+token at the head of its queue — read as an OWN property — and then `stopImmediatePropagation()`s
+it, so nothing downstream sees a live token. The loader also moved its listeners to **`window` in
+the capture phase**, registered before the MAIN-world scripts run.
+
+**What C1 was.** `nullecho:status` and `nullecho:detect` carried no authentication at all. Three
+lines of page script, needing no nonce and no race:
+
+```js
+dispatchEvent(new CustomEvent('nullecho:status', { detail: '{"phase":"boot","channel":"gpc"}' }));  // sticky "nonce-exposed"
+dispatchEvent(new CustomEvent('nullecho:status', { detail: '{"upgraded":true}' }));                 // hides a real lockedToFallback
+dispatchEvent(new CustomEvent('nullecho:detect', { detail: '{"api":"canvas","count":1e6}' }));      // +1,000,000 reads
+```
+
+Integrity of what the user is told, not of what the page can read — but a privacy tool whose own
+status display is writable by the site it is watching has nothing to show.
+
+**Why the review's own fix does not work, and this is the interesting part.** The review said: mint
+a second nonce, deliver it in the persona payload, require it on every later report. A single shared
+token fails against a page that is *watching*, and watching is free: the reports are DOM events on
+`document`, so the page can listen for them. The first tokened report — the upgrade status, which
+goes out within milliseconds — hands the token to any page listener, and from then on the page can
+mint as many reports as it likes. That closes the attack against a page that does not bother and
+leaves it wide open against one that does.
+
+So the token is not one secret but **32 one-time ones**. A token a page has observed is a token the
+loader has already spent. Harvest-and-replay buys nothing, reusing a spent token for a nicer claim
+buys nothing, and skipping ahead is refused because only the head of the queue is ever accepted.
+
+**And the ordering argument, run in reverse.** D13 established that `window` capture, registered at
+`document_start`, is ahead of any page listener: `window` is the first node in the propagation path
+of an event dispatched on `document`, same-phase listeners fire in registration order, and this
+loader is the first content script at `document_start`. That argument works for the reverse channel
+too, so the loader now listens there — and swallows what it accepts, which means a page never sees a
+live token at all, only the absence of an event.
+
+⚠️ **The swallow property rests on Blink keeping one registration-ordered listener list per target
+across isolated worlds.** Asserted from the engine's shape, not measured in a real browser here
+(D21's BASELINE caveat). If it is wrong, the one-time tokens still hold on their own; what degrades
+is that a watching page could substitute content for a report the shim really sent, in lockstep, one
+for one — see the residual below.
+
+**Boot events are unauthenticated by necessity, so they now change almost nothing.** A boot event is
+what the tokens are minted in reply to, so it cannot carry one. It is allowed to set exactly two
+things: that something announced itself on a channel, and that channel's nonce (first announcement
+wins). Two reports moved off it:
+
+- **`nonce-exposed`** is still *measured* when the boot event lands — it is a statement about that
+  instant, from the ISOLATED world — but only *reported* once a token proves the thing that booted
+  is our shim. A page forging a boot event can raise no warning.
+- **`shim-never-booted`** now turns on an authenticated reverse message rather than on the boot
+  event. `applyAuthenticated()` emits exactly one status on every branch, so a genuine shim that
+  received any delivery has answered by the time the check runs. Basing it on the boot event let a
+  page *silence* the loudest thing the popup can say. The check also waits for `bootstrap()` to
+  finish as well as the timer, because a slow service worker plus retries can outlast
+  `BOOT_CHECK_MS` and "never booted" would then be a false alarm.
+
+**One alarm, not two: `no-boot-nonce` is retired.** It said "booted, but published no nonce, so it
+is on the un-rotated fallback" — quieter than `shim-never-booted`, and distinguishable from it only
+by the forgeable boot event, i.e. a page could downgrade *"you are NOT patched"* to *"you are
+patched but not rotated"*. The genuine case it described (a realm with no `crypto.getRandomValues`)
+now gets the loud alarm plus a console line naming the cause. A quieter claim derived from
+unauthenticated evidence is not worth the hole. Nothing consumed the string; `popup.js` only ever
+branched on `shim-never-booted`.
+
+**Two chain reads found while wiring this, both one layer below D29.** Attaching the token with
+`obj.token = t` would have walked the prototype chain for a property the object does not own — a
+setter on `Object.prototype.token` would have been handed every token. And `JSON.stringify` looks
+`toJSON` up the chain, so `Object.prototype.toJSON` would have received every message the shim
+emits, *including the boot nonce*, as `this`. `report()` now uses `objDefineProperty`, and `emit()`
+serialises a null-prototype copy of the payload. Guarded in `shim-handshake.test.js`.
+
+**Pre-handshake reports.** Before the delivery there are no tokens, so those reports (a forgery
+attempt, a failed fallback derivation) go out untokened — the loader drops them — and are kept in a
+bounded backlog of 8, re-sent with tokens the moment the delivery lands. They are still emitted
+untokened as well, because this file's contract with the page and with `harness/shim-test.html` is
+to say things out loud; the loader simply does not believe them yet.
+
+**Residuals, stated rather than hidden.**
+
+1. **Lockstep substitution.** A page whose listener runs before the loader's — which requires the
+   cross-world ordering claim above to be wrong, or the page to have won the `document_start` race —
+   could read a token in flight and synchronously dispatch its own event carrying it, one forgery
+   per genuine report. It can never invent a report the shim did not make, or make more of them.
+   This is not closable on a transport the page owns: suppression and one-for-one substitution are
+   what "the page owns the transport" means.
+2. **Exhaustion.** After 32 reports the shim goes quiet rather than sending anything unauthenticated.
+   The detect schedule (1, 10, 50, then every 250 per API) puts that far beyond any real page.
+3. **`src/protocol.js` still documents the reverse channel as `{ upgraded, lockedToFallback, reason }`
+   with no token, and its `CONTENT_SCRIPT_LITERALS` registry does not know about `reportTokens`.
+   That file belongs to another lane in this session and was deliberately not touched; it is a docs
+   drift of exactly the kind review finding C3 was about, and it should be the next edit there.
+
+**Guards.** Five `C1 GUARD`s in `review-2026-09-16.test.js`, driving the real `shim-loader.js`: a
+page forges nothing (no status, no count) and the loader's own tokens still work; a spent token
+authenticates nothing, in replay, in reuse, or out of order; an accepted report is swallowed and a
+refused one is not; a forged boot event cannot silence `shim-never-booted`; and, in the shim's own
+realm, a page listener on `window` capture and on `document` for all three event names harvests no
+live token. Two more in `shim-handshake.test.js`: every post-handshake report spends a fresh token
+in order, and `Object.prototype.token` / `Object.prototype.toJSON` inside the shim's realm harvest
+nothing. The rig in `review-2026-09-16.test.js` was changed to model the loader properly —
+`window`-capture registration before the MAIN-world scripts, and swallowing what carries a token —
+because the old document-only listener would have let the page win by construction.
