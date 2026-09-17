@@ -202,6 +202,7 @@
   const objGetOwnPropertyNames = Object.getOwnPropertyNames;
   const objFreeze = Object.freeze;
   const objCreate = Object.create;
+  const objSetPrototypeOf = Object.setPrototypeOf;
   const arrayIsArray = Array.isArray;
   const arrayBufferIsView = ArrayBuffer.isView;
   const mathImul = Math.imul;
@@ -340,6 +341,17 @@
    * there is no fallback.
    */
   const nonceBox = { value: mintNonce() };
+  /**
+   * Whether this realm could mint a nonce at all — decided HERE, at mint, and
+   * never again read off `nonceBox`: the box is consumed (`= null`) by the one
+   * genuine handshake, and `emit()` dispatches synchronously, so a loader that
+   * replies inside the boot dispatch has already consumed it by the time any
+   * line after `emit()` runs. A boot-time read of the box after `emit()` reported
+   * "no CSPRNG" for a clean, authenticated handshake on every synchronous-reply
+   * harness page (docs/PERFORMANCE-2026-09-17.md; the line is gone, D33). Any
+   * "did we have a CSPRNG" question is answered by this constant.
+   */
+  const HAS_CSPRNG = nonceBox.value !== null;
 
   function mintNonce() {
     if (!RAW.getRandomValues) return null;
@@ -627,12 +639,9 @@
     },
   ];
   // ─── END GENERATED MIRROR ─────────────────────────────────────────────────
-
-  const POOL_IDS = (() => {
-    const s = new RawSet();
-    for (let i = 0; i < PERSONAS.length; i++) setAdd(s, PERSONAS[i].id);
-    return s;
-  })();
+  // (A run-time "delivered id is not in the mirror" check used to live here and
+  // print to the page console; the mirror is pinned by `personas.test.js`
+  // instead, and this file writes to no console the page can reach — D33.)
 
   /**
    * HOST OS FAMILY — DECISIONS.md D12. Mirrors `familyFromPlatformString()` and
@@ -781,6 +790,11 @@
     reportIndex: 0,
     dev: false,
     failures: [],
+    /** How many of `failures` have ridden out on a status (D33), and how many statuses failures alone have triggered. */
+    failuresReported: 0,
+    failureStatuses: 0,
+    /** The last health this file reported, restated when a run-time failure needs a status of its own (D33). */
+    lastStatus: null,
     internal: 0,       // >0 while the shim measures for itself; suppresses counting
   };
 
@@ -872,14 +886,50 @@
     backlog.length = 0;
   }
 
+  /**
+   * A status carrying nothing but run-time failures is sent at most this many
+   * times per page. A page can make a noise path fail as often as it likes (a
+   * scratch canvas that cannot get a context, say); it must not be able to make
+   * this file spend the whole D30 token list — and the status reserve — on saying so.
+   */
+  const FAILURE_STATUS_MAX = 2;
+
+  /**
+   * Record that THE SHIM'S OWN code threw — a patch group that could not install,
+   * or a noise path that broke at run time. That API is then unprotected on this
+   * page, and a silently-unpatched API is the worst outcome this file has, so the
+   * failure is reported: it rides the next status the shim sends as a `failures`
+   * list of labels (install-time failures ride the upgrade status for free), or,
+   * after the handshake, gets a status of its own restating the current health.
+   * `shim-loader.js` prints it from the ISOLATED world and the service worker
+   * records it (D33).
+   *
+   * NOT to the page's console, which is the one place this file used to write it.
+   * A page-installed `console.error` hook read the product name straight back —
+   * a nominative detector in three lines — and, worse, the message was usually
+   * false: five wrappers ran shim work before delegating, so a wrong-receiver
+   * call (`toDataURL.call({})`, CreepJS's probe) threw the ORIGINAL's `Illegal
+   * invocation` into the wrapper's catch and was logged as "UNPROTECTED" about a
+   * patch that was working (docs/CLAIM-VERIFICATION-2026-09-17.md §3d).
+   *
+   * THE RULE, therefore: the original speaks first. A wrapper delegates — or reads
+   * a captured native accessor on the receiver — before, and outside, any `try`
+   * whose catch reaches here, so the original's verdict on the receiver and the
+   * arguments (`Illegal invocation`, "1 argument required", a tainted-canvas
+   * SecurityError) reaches the caller exactly as it would unpatched, unlogged and
+   * uncounted. Anything that still throws inside the try is ours.
+   *
+   * Labels only, never `err.stack`: this file is a MAIN-world content script, so a
+   * stack names `chrome-extension://<id>/…`, and a status is a DOM event a page
+   * can see before the handshake or past token exhaustion (D30 residual 5). The
+   * stack stays on the dev surface, which production never installs.
+   */
   function fail(label, err) {
     pushOwn(state.failures, { label, error: RawString((err && err.stack) || err) });
-    try {
-      console.error(
-        '[Nullecho] shim could NOT patch "' + label + '". That API is UNPROTECTED on this page. ' +
-        'A silently-unpatched API is the worst outcome — please report this.', err
-      );
-    } catch (_) { /* console itself is patched or gone */ }
+    const last = state.lastStatus;
+    if (!state.handshakeDone || !last || state.failureStatuses >= FAILURE_STATUS_MAX) return;
+    state.failureStatuses++;
+    status({ upgraded: last.upgraded, lockedToFallback: last.lockedToFallback, reason: last.reason });
   }
 
   /** Run one patch group. A throw here must never stop the other groups. */
@@ -1854,6 +1904,11 @@
     safe('canvas.toDataURL', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toDataURL', (orig) => function toDataURL() {
         if (state.standingDown) return apply(orig, this, arguments);
+        // The native brand check FIRST, outside the try: a wrong receiver throws
+        // `Illegal invocation` here, to the caller, as unpatched — it is not a
+        // read, and it is not a patch failure (§3d). Delegating first would encode
+        // the whole canvas twice, so the captured `width` getter stands in for it.
+        canvasWidth(this);
         touch('canvas');
         let tmp = null;
         try { tmp = noisedCopy(this); }
@@ -1865,6 +1920,7 @@
     safe('canvas.toBlob', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toBlob', (orig) => function toBlob() {
         if (state.standingDown) return apply(orig, this, arguments);
+        canvasWidth(this);                              // brand check first — see toDataURL
         touch('canvas');
         let tmp = null;
         try { tmp = noisedCopy(this); }
@@ -1878,10 +1934,12 @@
       if (!OC || !OC.prototype || !OC.prototype.convertToBlob) return;
       replaceMethod(OC.prototype, 'convertToBlob', (orig) => function convertToBlob() {
         if (state.standingDown) return apply(orig, this, arguments);
+        // Captured getters on the receiver, outside the try: the brand check
+        // throws to the caller, not into `fail()` (§3d).
+        const w = offWidth(this) | 0, h = offHeight(this) | 0;
         touch('canvas');
         let tmp = null;
         try {
-          const w = offWidth(this) | 0, h = offHeight(this) | 0;
           if (w && h && origOffGetImageData && origOffPutImageData && origOffDrawImage) {
             tmp = new OC(w, h);
             const tctx = offGetContext(tmp, '2d');
@@ -2268,14 +2326,20 @@
       });
       if (AB.prototype.copyFromChannel) {
         replaceMethod(AB.prototype, 'copyFromChannel', (orig) => function copyFromChannel(dest, channelNumber) {
-          if (!state.standingDown) {
-            touch('audio');
-            try {
-              state.internal++;
-              try { ensureChannelNoised(this, channelNumber | 0, apply(nativeGetChannelData, this, [channelNumber])); }
-              finally { state.internal--; }
-            } catch (err) { fail('AudioBuffer.copyFromChannel', err); }
-          }
+          // Delegate FIRST: the native brand check and argument checks — a wrong
+          // receiver, a `dest` that is not a Float32Array, a channel out of range —
+          // throw here, to the caller, exactly as unpatched (§3d). This copy holds
+          // the REAL samples and is overwritten below; no page code runs between.
+          apply(orig, this, arguments);
+          if (state.standingDown) return;
+          touch('audio');
+          try {
+            state.internal++;
+            try { ensureChannelNoised(this, channelNumber | 0, apply(nativeGetChannelData, this, [channelNumber])); }
+            finally { state.internal--; }
+          } catch (err) { fail('AudioBuffer.copyFromChannel', err); }
+          // The channel is noised in place (once per channel); copy again so `dest`
+          // carries the noised samples. A memcpy — the native call is the cheap part.
           return apply(orig, this, arguments);
         });
       }
@@ -2601,13 +2665,20 @@
         /^\s*(.*?)((?:\d*\.?\d+)(?:px|pt|pc|in|cm|mm|q|em|rem|ex|ch|vw|vh|vmin|vmax|%)(?:\s*\/\s*\S+)?)\s+(.+)$/i;
 
       const patch = (proto, getFont, setFont) => replaceMethod(proto, 'measureText', (orig) => function measureText() {
-        if (state.standingDown) return apply(orig, this, arguments);
-        let m;
+        // Delegate FIRST. The native brand check and argument check — a wrong
+        // receiver, `measureText()` with nothing to measure — throw here, to the
+        // caller, exactly as unpatched; before this they threw inside the try
+        // below and were logged as a patch failure (§3d). This measurement is
+        // also the answer for every font that needs no work, so the common path
+        // costs the same one native call it always did.
+        const m0 = apply(orig, this, arguments);
+        if (state.standingDown) return m0;
+        let m = m0;
         try {
           const parsed = reExec(FONT_SHORTHAND, getFont(this) || '');
-          if (!parsed) return apply(orig, this, arguments);
+          if (!parsed) return m0;
           const plan = planFamilies(parseFamilyList(parsed[3]));
-          if (!plan.dropped && !plan.claimed) return apply(orig, this, arguments);
+          if (!plan.dropped && !plan.claimed) return m0;
 
           touch('fonts');
           const prefix = parsed[1] + parsed[2] + ' ';
@@ -2631,7 +2702,7 @@
           }
         } catch (err) {
           fail('CanvasRenderingContext2D.measureText', err);
-          return apply(orig, this, arguments);
+          return m0;
         }
         return m;
       });
@@ -2843,7 +2914,28 @@
   }
 
   /** An authenticated report (D30). The BOOT event is not one — it uses `emit` directly. */
-  function status(obj) { report(EV_STATUS, obj); }
+  /**
+   * A health report. Any failures not yet reported ride along as `failures`, a
+   * list of labels (D33) — defined as an OWN property, never assigned, so a setter
+   * a page put on `Object.prototype.failures` is not handed the list (D29/D30).
+   */
+  function status(obj) {
+    state.lastStatus = { upgraded: obj.upgraded, lockedToFallback: obj.lockedToFallback, reason: obj.reason };
+    const all = state.failures;
+    if (all.length > state.failuresReported) {
+      const labels = [];
+      for (let i = state.failuresReported; i < all.length; i++) pushOwn(labels, all[i].label);
+      state.failuresReported = all.length;
+      // Null prototype: `emit()` copies only the TOP-LEVEL object onto a null
+      // prototype, and `JSON.stringify` looks `toJSON` up the chain of every
+      // nested object too — a page's `Object.prototype.toJSON` would be handed
+      // this list. Still an array (`Array.isArray` is about the exotic object,
+      // not the chain), so it serialises as one.
+      objSetPrototypeOf(labels, null);
+      objDefineProperty(obj, 'failures', { value: labels, writable: true, enumerable: true, configurable: true });
+    }
+    report(EV_STATUS, obj);
+  }
 
   /**
    * The host of an origin string, without `new URL` (whose `hostname` getter is the
@@ -2938,19 +3030,16 @@
       state.forged++;
       if (!state.forgeryReported) {
         state.forgeryReported = true;
+        // The console line for this ("something is impersonating the extension, or
+        // Nullecho lost the document_start race — protection stays ON") is printed
+        // by shim-loader.js on receiving this reason, from the ISOLATED world. This
+        // file never writes to the page's console: a page could provoke exactly
+        // this message with one forged event and read the product name back (D33).
         status({
           upgraded: false,
           lockedToFallback: false,
-          reason: nonceBox.value ? 'forged-handshake-rejected' : 'no-csprng-handshake-refused',
+          reason: HAS_CSPRNG ? 'forged-handshake-rejected' : 'no-csprng-handshake-refused',
         });
-        try {
-          console.warn(
-            '[Nullecho] Ignored a persona handshake that did not carry this page\'s ' +
-            'boot nonce. Either something on this page is impersonating the ' +
-            'extension, or Nullecho lost the document_start race here. Protection ' +
-            'stays ON either way.'
-          );
-        } catch (_) { /* console is the page's */ }
       }
       return null;
     }
@@ -3014,13 +3103,11 @@
       return;
     }
 
-    const personaId = ownField(persona, 'id');
-    if (!setHas(POOL_IDS, personaId)) {
-      // Not fatal — the delivered persona is authoritative — but it means the
-      // inlined mirror (gap G7) has drifted from src/personas.js.
-      console.warn('[Nullecho] persona id "' + personaId + '" is not in the shim\'s inlined pool. ' +
-        'src/shim.js and src/personas.js have drifted — regenerate the mirror.');
-    }
+    // A delivered id outside the inlined pool would mean the mirror (gap G7) has
+    // drifted from src/personas.js. Not fatal — the delivered persona is
+    // authoritative — and no longer a run-time console line (D33): the mirror is
+    // pinned by `personas.test.js` ("src/shim.js inlined pool is an exact mirror"),
+    // which is where a drift belongs.
 
     // THE GATE. Swapping personas after a read would mix fields from two machines,
     // which DECISIONS.md D2 identifies as worse than no defense at all.
@@ -3118,17 +3205,10 @@
   //     nonce it publishes (D30).
   emit(EV_STATUS, { phase: BOOT_PHASE, channel: CHANNEL, nonce: nonceBox.value });
 
-  if (!nonceBox.value) {
-    // No CSPRNG: we cannot authenticate anything, so we will accept nothing. Say
-    // so rather than silently never upgrading.
-    try {
-      console.error(
-        '[Nullecho] No crypto.getRandomValues in this realm, so the persona ' +
-        'handshake cannot be authenticated. Staying on the fallback persona for ' +
-        'this page and refusing every handshake, including a genuine one.'
-      );
-    } catch (_) { /* console is the page's */ }
-  }
+  // No CSPRNG → `nonce: null` above: we cannot authenticate anything, so we will
+  // accept nothing and stay on the fallback persona. That is said out loud by
+  // shim-loader.js (`shim-never-booted`, plus its "published no handshake nonce"
+  // line), from the ISOLATED world — not here (D33).
 
   // (c) Stage 1: fallback persona, derived synchronously, patched immediately.
   //     Keyed on the registrable domain so the stage-2 upgrade is the SAME site

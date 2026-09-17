@@ -263,6 +263,11 @@ Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get.call({})
 Every spoofed accessor now delegates to the original first, purely for the brand check. Found by
 attacking our own work; it would have identified the shim on any site that bothered.
 
+The method wrappers had the mirror-image bug, found by CreepJS on 2026-09-17: five of them ran shim
+work *before* the original, so the brand check's `Illegal invocation` landed in the wrapper's own
+catch and was logged to the page console as a patch failure — naming the product. Since D33 every
+wrapper lets the original speak first, and the shim writes to no console the page can reach.
+
 ---
 
 ## What I would change about our claims

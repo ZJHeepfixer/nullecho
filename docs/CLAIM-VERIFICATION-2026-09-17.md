@@ -310,6 +310,18 @@ handler needs to treat a `TypeError: Illegal invocation` raised by the delegated
 the expected brand-check path, not as a patch failure, and it should not be writing
 product-identifying text to a page-reachable console at all.
 
+> **CLOSED 2026-09-17 (DECISIONS.md D33).** Root cause was five wrappers doing shim work *before* the
+> original spoke (`toDataURL`, `toBlob`, `convertToBlob`, `copyFromChannel`, `measureText`); each now
+> delegates or brand-checks first, outside the `try`, so the original's own error reaches the caller
+> unlogged — including a second false alarm the test found, `measureText()` with no argument. And
+> `shim.js` no longer calls `console` at all: a genuine failure rides the D30 status as a `failures`
+> list of labels, printed by `shim-loader.js` from the ISOLATED world and recorded per site. Real
+> Chrome 151, fresh `?cb=`: `consoleNameLeak` reads `0 message(s); names "Nullecho": false ·
+> measureText still functional: true` in both the control and the shimmed run; twelve illegal probes
+> with a hook on every console method captured nothing; a full CreepJS run left 0 lines matching
+> `Nullecho` in the tab console (positive control captured) and 0 `failed call/new/apply interface`
+> lies. Regression tests: `ext/src/claim-verification-2026-09-17.test.js`.
+
 ---
 
 ## 4. Cost
@@ -392,6 +404,7 @@ scope), WASM-compiled fingerprinting, and the TLS/IP layer.
    - **The console message that names the product** (§3d). A false alarm that hands a page the
      string "Nullecho". Fix the handler to recognise a delegated `Illegal invocation` as the
      brand check, and stop writing identifying text to a page-reachable console.
+     **Closed 2026-09-17 (D33)** — 0 messages in both runs; the shim no longer touches the page console.
    - **The plain-function shape leak** (§3b). Root of 3a and 3b, three lines of
      `Object.getOwnPropertyNames` to detect, and it costs a bot classification.
      **Closed 2026-09-17 (D32)** — 453 → 199 lie records; the bot classification did *not* move

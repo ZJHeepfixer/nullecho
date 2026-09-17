@@ -440,18 +440,58 @@
     maybeDeliver();
   }
 
+  /**
+   * The `failures` list an authenticated status may carry (D33): labels of the
+   * shim's patch groups that could not install, or broke at run time. Own
+   * property, strings only, bounded — it is believed only because the token was.
+   */
+  function patchFailures(d) {
+    let list;
+    try { list = Object.prototype.hasOwnProperty.call(d, 'failures') ? d.failures : null; }
+    catch { return []; }
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (let i = 0; i < list.length && out.length < 8; i++) {
+      if (typeof list[i] === 'string' && list[i]) out.push(list[i].slice(0, 80));
+    }
+    return out;
+  }
+
   function onStatus(ev) {
     const d = parseDetail(ev);
     if (!d) return;
     if (d.phase === BOOT_PHASE) { onBoot(d); return; }
     if (!spendToken(d, ev)) return;
-    send({
+    const failures = patchFailures(d);
+    const message = {
       type: MSG_SHIM_STATUS,
       upgraded: d.upgraded,
       lockedToFallback: d.lockedToFallback,
       reason: d.reason,
-    });
-    if (loud && d.lockedToFallback) {
+    };
+    if (failures.length) message.failures = failures;
+    send(message);
+    if (!loud) return;
+    // Everything below is printed HERE, from the ISOLATED world, and nowhere
+    // else: the page cannot hook this realm's console. The shim used to print
+    // its own versions of the first two into the page's console, where a page-
+    // installed hook read the product name straight back (D33, §3d).
+    if (failures.length) {
+      console.error(
+        '[Nullecho] The page shim could NOT patch: ' + failures.join(', ') + '. ' +
+        (failures.length === 1 ? 'That API is' : 'Those APIs are') + ' UNPROTECTED on this page. ' +
+        'A silently-unpatched API is the worst outcome — please report this.'
+      );
+    }
+    if (d.reason === 'forged-handshake-rejected') {
+      console.warn(
+        '[Nullecho] The page shim ignored a persona handshake that did not carry ' +
+        'this page\'s boot nonce. Either something on this page is impersonating ' +
+        'the extension, or Nullecho lost the document_start race here. Protection ' +
+        'stays ON either way.'
+      );
+    }
+    if (d.lockedToFallback) {
       console.warn(
         '[Nullecho] This page read a fingerprinting API before the salted persona ' +
         'arrived, so it is seeing the un-rotated fallback persona. Cross-site ' +

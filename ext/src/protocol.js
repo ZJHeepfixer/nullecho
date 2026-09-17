@@ -20,7 +20,7 @@ export const MSG = {
   // from shim-loader.js (content script, ISOLATED world)
   GET_PERSONA: 'nullecho:get-persona',   // → { ok, persona, enabled, gpc, site }
   FP_DETECTED: 'nullecho:fp-detected',   // { api, count }
-  SHIM_STATUS: 'nullecho:shim-status',   // { upgraded, lockedToFallback, reason }
+  SHIM_STATUS: 'nullecho:shim-status',   // { upgraded, lockedToFallback, reason, failures? }  failures: labels of patch groups the shim could not install (D33)
 
   // from popup / options (extension pages)
   GET_SITE_REPORT: 'nullecho:get-site-report',   // { site } → SiteReport
@@ -57,8 +57,12 @@ export const EVENTS = {
    *     UNAUTHENTICATED by necessity (it is what the reply tokens are minted in
    *     response to): allowed to change only "something announced itself" and
    *     that channel's nonce, and reports nothing to the service worker.
-   *   { upgraded, lockedToFallback, reason, token } — every status after the
-   *     boot event. Authenticated and swallowed exactly like DETECT above (D30).
+   *   { upgraded, lockedToFallback, reason, token, failures? } — every status
+   *     after the boot event. Authenticated and swallowed exactly like DETECT
+   *     above (D30). `failures`, when present, lists the labels of patch groups
+   *     the shim could not install or that broke at run time; the loader prints
+   *     them from the ISOLATED world and the service worker records them. The
+   *     shim never writes to the page's console (D33).
    */
   STATUS: 'nullecho:status',
 };

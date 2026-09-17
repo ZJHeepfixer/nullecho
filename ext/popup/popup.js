@@ -450,6 +450,13 @@ function renderAlerts(s, enabled) {
     ]);
   }
 
+  if (enabled && Array.isArray(s.stats?.patchFailures) && s.stats.patchFailures.length) {
+    add([
+      b('Some device APIs could not be patched on this page.'),
+      txt(' The device shim reported: ' + s.stats.patchFailures.join(', ') + '. Those APIs are not protected here. Please report this — a silently unpatched API is the failure Nullecho most wants to hear about.'),
+    ]);
+  }
+
   // Measured, not inferred: shim-loader.js checks from the extension's own world
   // — which the page cannot reach into — whether page script had already run when
   // the device shim started. If it had, the shim started too late to be sure it

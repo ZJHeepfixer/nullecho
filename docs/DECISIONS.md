@@ -1639,3 +1639,89 @@ plain function fails the probe); a sweep of every function the shim changed in t
 site that bypasses the helpers cannot regress it silently; and keep-guards for the delegated brand check
 (ARKENFOX (f)), descriptor flags, and toString / `name` / `length`. Both D21 lints pass on the new
 syntax (rest parameters build an own-indexed array; nothing touches the iterator protocol).
+
+## D33 — The shim never writes to the page's console; a brand-check throw is the original's answer, not a patch failure. 2026-09-17.
+
+**Decision:** two rules, one mechanism.
+
+1. **The original speaks first.** Every method wrapper in `shim.js` either delegates to the native
+   original before doing anything else, or reads a captured native accessor on the receiver, *outside*
+   any `try` whose catch reaches `fail()`. The original's verdict on the receiver and the arguments —
+   `TypeError: Illegal invocation`, "1 argument required", a tainted-canvas `SecurityError` — therefore
+   reaches the caller exactly as it would unpatched: unlogged, uncounted by `touch()`, not a failure.
+   Anything that still throws inside the try is the shim's own.
+2. **`shim.js` calls `console` nowhere.** A genuine failure — a patch group that could not install, a
+   noise path that broke at run time — is recorded on the dev surface (with its stack) and reported
+   through the D30 reverse channel as a `failures` list of LABELS on the next authenticated status:
+   install-time failures ride the upgrade status for free; after the handshake a failure gets a status
+   of its own restating the current health, at most twice per page (`FAILURE_STATUS_MAX`) so a page
+   cannot spend the token list on making the shim talk. `shim-loader.js` prints the list from the
+   ISOLATED world, where a page cannot hook the console, and forwards it; `background.js` keeps it in
+   a sticky, de-duplicated `patchFailures` per site and the popup shows it. The forged-handshake line
+   moved the same way (printed by the loader on `forged-handshake-rejected`); the no-CSPRNG line was
+   already covered by the loader's `shim-never-booted` text; the persona-mirror drift line is a build
+   defect pinned by `personas.test.js` and needs no run-time voice.
+
+**What §3d was.** CreepJS calls every patched method with an illegal receiver (`fn.call({})`, `new fn()`).
+Five wrappers — `toDataURL`, `toBlob`, `convertToBlob`, `copyFromChannel`, `measureText` — ran shim work
+before delegating, so the ORIGINAL's `Illegal invocation` landed in the wrapper's own catch and was logged
+to the PAGE console as `[Nullecho] shim could NOT patch "…". That API is UNPROTECTED on this page…`.
+The message was false (the API was patched and working, and `touch()` had even counted a read that never
+happened), and a page-installed `console.error` hook read the product name straight back — a nominative
+detector in three lines, a worse category than any farbling tell. Writing the test found a second false
+alarm the write-up had not named: `measureText()` with no argument, on a font the persona claims, hit
+the same catch with the native "1 argument required" error.
+
+**Why not classify the error.** Matching `err.message === 'Illegal invocation'` in the catch would have
+silenced the exact historical bug this file records at `convertToBlob` — the on-screen originals applied
+to an Offscreen context threw `Illegal invocation` from INSIDE the shim and fell open to the un-noised
+native call. That was a genuine failure wearing the brand check's message. Structure, not string-matching:
+if the original has already accepted the receiver and the arguments, a later throw is ours.
+
+**Why the reverse channel and not a quieter page console.** Any text the shim writes to a console the
+page can reach is readable by the page, whatever it says; the only console a page cannot hook is the
+isolated world's, and D30 already provides an authenticated path there. Labels only, never `err.stack`:
+`shim.js` is a MAIN-world content-script file, so a stack names `chrome-extension://<id>/…`, and a
+status is a DOM event a page can see before the handshake or past token exhaustion (D30 residual 5).
+The labels array is given a null prototype before it is attached: `emit()` null-prototypes only the
+top-level object, and `JSON.stringify` looks `toJSON` up the chain of every nested object too — the D30
+guard in `shim-handshake.test.js` caught the list being handed to a page's `Object.prototype.toJSON`
+on the first green run.
+
+**Measured, real Chrome 151 on macOS (`Chrome/151.0.0.0`, `typeof process === 'undefined'`),
+`harness/claim-verification.html`, a fresh `?cb=` per run, positive control on the console reader:**
+
+| | control (`shim=off`) | shim on, before (`f7ee7b3`) | shim on, after |
+|---|---|---|---|
+| page `console.error` hook, one illegal `measureText` call | 0 messages | 1 per call, names "Nullecho": **true** | **0, false** |
+| 12 probes (6 methods × `call({})` / `new`), hook on all six console methods | — | — | **0 captured**; native errors verbatim; `__nullechoDev.failures` `[]`; reads +4 = the four legitimate reads only |
+| full CreepJS run, tab console lines matching `Nullecho` | — | 35 (§3d) | **0** (reader's positive control captured); `failed call/new/apply interface` lies **0**; `errorData` mentions of `Illegal invocation` **0** |
+
+`measureText still functional: true` on every run; `copyFromChannel` (now delegate-then-copy-again) agrees
+sample-for-sample with `getChannelData` and is still noised; an out-of-range channel throws the native
+`IndexSizeError`. `lieCount` stayed at D32's 199 — the console leak was never a CreepJS lie, which is
+what made it worse.
+
+**A second false alarm in the same area, folded in (docs/PERFORMANCE-2026-09-17.md).** The boot sequence
+read `nonceBox.value` *after* `emit()`ing the boot event to decide whether to print "no CSPRNG". `emit()`
+dispatches synchronously and the genuine handshake consumes the box (`= null`), so a loader that replied
+inside the boot dispatch — every standalone harness page — got "no CSPRNG / protection degraded" printed
+about a clean, authenticated upgrade. Production was masked only by the real loader's async round trip.
+The console line is gone with rule 2, and the condition is fixed at its source: `HAS_CSPRNG` is decided
+once at mint and is the only thing ever asked "did this realm have a CSPRNG" (the forged-handshake reason
+used to ask the box too). Guarded by a synchronous-reply repro and a no-CSPRNG realm test.
+
+**Residuals.** (1) The loader-side print and the service-worker record are exercised against the real
+`shim-loader.js` / `background.js` in `node:vm` only; the extension has still never been loaded unpacked
+in a real browser (the standing ship gate). (2) `requestAdapter` still calls `touch()` before delegating —
+an illegal call there counts a read it did not make; nothing is logged, so it was left alone. (3) A status
+emitted untokened (pre-handshake, or past exhaustion) may now carry failure labels a page listener can
+read; the event name already named the product on that path, and labels are API names, not identity.
+
+**Guards:** `ext/src/claim-verification-2026-09-17.test.js` — the rig's canvas, context, offscreen and
+audio members are PROTOTYPE accessors that brand-check like WebIDL (an own-property rig lets the captured
+getter fall back to a read that cannot throw, and would pass against the defect); the twelve illegal probes
+and the zero-argument `measureText`; nothing the page can provoke reaches the page console; a source lint
+that `shim.js` contains no `console.`; a genuine install failure and a genuine run-time failure both reach
+the loader stand-in tokened, capped, labels only; and the real loader prints from its own world, forwards,
+and ignores an unauthenticated failure list; `background.test.js` — the sticky, de-duplicated, capped `patchFailures` record; a synchronous-reply boot and a no-CSPRNG realm. 297/297 (277 + 8 from D32 + 12).

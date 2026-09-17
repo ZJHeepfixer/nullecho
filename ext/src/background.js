@@ -286,6 +286,13 @@ function blankSite() {
     personaId: null,
     lastShimStatus: null,
     /**
+     * Patch groups the page shim reported it could NOT install (or that broke at
+     * run time) on this site — labels such as `canvas.toDataURL`. Sticky and
+     * de-duplicated, like `nonceExposedAt`: the healthy-looking status arrives in
+     * the same message and a last-writer slot would lose it (D33).
+     */
+    patchFailures: [],
+    /**
      * When a MAIN-world script last booted after page script had already run, as
      * measured by `shim-loader.js` from the ISOLATED world. Sticky, because the
      * shim's own (healthy-looking) status arrives right afterwards and would
@@ -631,6 +638,14 @@ function onShimStatus(msg, sender) {
     reason: msg.reason ? String(msg.reason).slice(0, 120) : null,
     at: Date.now(),
   };
+  if (Array.isArray(msg.failures)) {
+    const have = Array.isArray(s.patchFailures) ? s.patchFailures : [];
+    for (const f of msg.failures) {
+      if (typeof f !== 'string' || !f || have.includes(f) || have.length >= 8) continue;
+      have.push(f.slice(0, 80));
+    }
+    s.patchFailures = have;
+  }
   scheduleFlush();
   return { ok: true };
 }
@@ -683,6 +698,7 @@ async function onGetSiteReport(msg) {
       fpByApi: s.fpByApi,
       byCategory: s.byCategory,
       lastShimStatus: s.lastShimStatus,
+      patchFailures: Array.isArray(s.patchFailures) ? s.patchFailures : [],
       nonceExposedAt: s.nonceExposedAt ?? 0,
       trackers,
       // Requests allowed through with their cookies removed. Reported separately

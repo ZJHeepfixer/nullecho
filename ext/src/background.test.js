@@ -384,3 +384,25 @@ test('background.js and rules/gen-ua.mjs agree on the ruleset ids, per family, w
     }
   }
 });
+
+test('D33: patch failures the loader forwards are recorded per site — sticky, de-duplicated, capped — and reported', async () => {
+  // The shim's genuine failures arrive on the SAME message as its healthy status
+  // (they ride the upgrade status), so a last-writer slot would lose them the way
+  // it would have lost `nonce-exposed`. They get their own sticky list.
+  await reset();
+  const sender = { url: PAGE };
+  await send({ type: MSG.SHIM_STATUS, upgraded: true, lockedToFallback: false, reason: null, failures: ['canvas.toDataURL', 'AudioBuffer.getChannelData'] }, sender);
+  await send({ type: MSG.SHIM_STATUS, upgraded: true, lockedToFallback: false, reason: null }, sender);
+  await send({ type: MSG.SHIM_STATUS, upgraded: true, lockedToFallback: false, reason: null, failures: ['canvas.toDataURL', 42, '', 'x'.repeat(500)] }, sender);
+
+  const { stats } = await report('news.example');
+  assert.deepEqual(stats.patchFailures, ['canvas.toDataURL', 'AudioBuffer.getChannelData', 'x'.repeat(80)],
+    'labels are kept once each, non-strings dropped, long ones clipped, and a later healthy status does not erase them');
+  assert.equal(stats.lastShimStatus.upgraded, true, 'the health slot is unaffected');
+
+  await send({ type: MSG.SHIM_STATUS, upgraded: true, lockedToFallback: false, reason: null, failures: Array.from({ length: 20 }, (_, i) => 'api.' + i) }, sender);
+  assert.equal((await report('news.example')).stats.patchFailures.length, 8, 'the list is capped');
+
+  const clean = await report('other.example');
+  assert.deepEqual(clean.stats.patchFailures, [], 'a site that reported nothing shows an empty list, not undefined');
+});
