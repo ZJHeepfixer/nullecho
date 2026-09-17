@@ -921,6 +921,26 @@ guards; 256/256 at the time of writing):
 5. `A2-lint` — no bare builtin global, constructor or prototype-method call after the capture
    block in `shim.js` or the page half of `gpc.js` (comments and strings stripped; positive and
    negative controls were run against the regexes before trusting them).
+   🔴 **Amended 2026-09-16 (review-2, R2-2): the list was finite and `for…of` was not on it.**
+   `for…of` *is* a prototype call — it reads `Symbol.iterator` off the iterated object, which for
+   an array literal is this realm's `Array.prototype`. Four of them survived the lint, and three
+   sat inside `installInto()`'s `safe('webgpu.adapterInfo')`. `installInto` is `document_start`
+   for the top window but the **first `contentWindow` read** for a child realm — so two lines of
+   page script (`Array.prototype[Symbol.iterator] = () => ({ next: () => ({ done: true }) })`,
+   then read `iframe.contentWindow`) made those loops iterate nothing and left that child's
+   `GPUAdapterInfo` **unpatched**: the real GPU `vendor` and `architecture` while the parent
+   answered with the persona's. A pristine child realm, reached on purpose — B3/D31's own failure
+   mode, through this lint's blind spot. The fourth was the `values()` fallback in
+   `safe('webgpu.features')`, which could only ever make the view smaller, and is now an
+   iterator-free intersection against the allow list via the captured native `has`. Fixed by index
+   loops; the boot-only one in `gpc.js` was converted too, leaving exactly **one** permitted
+   `for…of` — `for (const p of HOST_POOL)` in `personaFor`, which is boot-only and which
+   `personas.test.js` pins verbatim as the D12 constraint. The widened lint (`R2-2 GUARD`) also
+   covers `Symbol.iterator`, `.startsWith(` / `.includes(` / `.at(` / `.find(` / `.sort(` /
+   `.fill(` / `.subarray(` / `.next(` / `.catch(` and the bare coercions `Number(` / `String(` /
+   `parseInt(` / `Boolean(` / `Date` / `Function` / `Proxy` / `Intl` / `BigInt`, and carries its
+   own positive and negative controls. The exemption is a one-entry `Set` of the iterated
+   expression, not a commented-out rule: an exemption nobody can audit is how this one survived.
 6. `A3` — a page listener on window-capture and document sees neither the delivery nor the relay;
    `gpc.js` still receives `{gpc:false}`; with gpc.js absent nothing is relayed and an
    unauthenticated event propagates normally.
@@ -1520,7 +1540,17 @@ boundary there to protect, so a *different* persona buys nothing and costs the c
    may be a no-op. This is the D21 race, one realm over, and it is not closable from inside the
    page: a realm the page owned before we touched it was never ours. It costs the page only its own
    detector, and the persona values themselves still come from `state.derived`. Stated, not guarded.
-6. **Attacked and held, so it is written down rather than re-derived:** a poisoned
+6. 🔴 **CLOSED 2026-09-16 (review-2, R2-2), and it was not a residual — it was a hole.** Residual 5
+   above says a page can pre-own its child realm's *constructors*. It could do worse than that
+   without touching the child at all: `installInto()` ran three `for (const k of [...])` loops in
+   its WebGPU adapter-info patch, and those read `Symbol.iterator` off the **shim's own** realm —
+   the page's realm — at the moment of the `contentWindow` read, long after the page owns it.
+   Replace the array iterator, read `iframe.contentWindow`, put it back: that child's
+   `GPUAdapterInfo.vendor` / `.architecture` stay unpatched forever and report the real GPU while
+   the parent reports the persona. Fixed with index loops; see D21's amendment for the lint hole
+   that let it through. `R2-2 GUARD`, with an unhooked control realm so a green guard cannot be
+   the rig failing to reach the leak.
+7. **Attacked and held, so it is written down rather than re-derived:** a poisoned
    `Object.prototype.token` setter or `Object.prototype.toJSON` in the CHILD realm harvests nothing
    either — `report()` defines rather than assigns and `emit()` serialises a null-prototype copy, and
    both are realm-independent. Guarded (`C1 GUARD`, parent and child poisoned at once).

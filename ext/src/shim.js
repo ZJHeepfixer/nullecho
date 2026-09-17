@@ -1258,6 +1258,8 @@
       gpu,
       webgpu: webgpuIdentity(gpu),
       webgpuFeatures: reTest(RE_APPLE, gpu.renderer || '') ? WEBGPU_FEATURES_APPLE_SET : WEBGPU_FEATURES_CORE_SET,
+      /** The same allow-list as an ARRAY, for the iterator-free features fallback (R2-2). */
+      webgpuFeatureList: reTest(RE_APPLE, gpu.renderer || '') ? WEBGPU_FEATURES_APPLE : WEBGPU_FEATURES_CORE,
       glExtensionDeny: glExtensionDenyFor(persona),
       fontList,
       fontSet: setOf(fontList),
@@ -2019,14 +2021,27 @@
         const w = D().webgpu;
         return k in w ? w[k] : '';
       };
-      for (const k of ['vendor', 'architecture']) {
+      // INDEX loops, never `for…of` — review R2-2. `for…of` reads `Symbol.iterator`
+      // off the array, i.e. off this realm's `Array.prototype`, which is a prototype
+      // call at run time (D21). `installInto` is document_start for the top window
+      // but the first `contentWindow` read for a CHILD realm, so a page that had
+      // replaced the array iterator by then made these three loops iterate NOTHING
+      // and that child's GPUAdapterInfo was never patched — the real GPU vendor and
+      // architecture, one `iframe.contentWindow` away. D21's lint had no `for…of`.
+      const ID_KEYS = ['vendor', 'architecture'];
+      for (let i = 0; i < ID_KEYS.length; i++) {
+        const k = ID_KEYS[i];
         if (objGetOwnPropertyDescriptor(P, k)) spoofGetter(P, k, 'webgpu', pick(k));
       }
       // Empty on stock Chrome without the developer-features flag — that IS the crowd value.
-      for (const k of ['device', 'description']) {
+      const BLANK_KEYS = ['device', 'description'];
+      for (let i = 0; i < BLANK_KEYS.length; i++) {
+        const k = BLANK_KEYS[i];
         if (objGetOwnPropertyDescriptor(P, k)) spoofGetter(P, k, 'webgpu', () => '');
       }
-      for (const k of ['subgroupMinSize', 'subgroupMaxSize']) {
+      const SUBGROUP_KEYS = ['subgroupMinSize', 'subgroupMaxSize'];
+      for (let i = 0; i < SUBGROUP_KEYS.length; i++) {
+        const k = SUBGROUP_KEYS[i];
         if (objGetOwnPropertyDescriptor(P, k)) spoofGetter(P, k, 'webgpu', pick(k));
       }
     });
@@ -2059,6 +2074,7 @@
       const P = SF.prototype;
       const origValues = P.values;
       const origForEach = methodOf(SF, 'forEach');   // captured BEFORE we patch it below
+      const origHas = methodOf(SF, 'has');           // ditto — the iterator-free fallback
       const origSize = objGetOwnPropertyDescriptor(P, 'size');
       if (typeof origValues !== 'function' || !origSize || !origSize.get) return;
 
@@ -2071,10 +2087,24 @@
           // We can only ever remove. Nothing is invented, so `requestDevice()`
           // validation (which runs against the REAL adapter) can never be surprised.
           // The native `forEach` walks the real set without going through the
-          // (page-hookable) iterator protocol; `values()` is the fallback.
+          // (page-hookable) iterator protocol.
           const keep = (f) => { if (setHas(allow, f)) pushOwn(v, f); };
           if (origForEach) apply(origForEach, self, [keep]);
-          else for (const f of apply(origValues, self, [])) keep(f);
+          else if (origHas) {
+            // Fallback when this build has no `forEach`. The old one was
+            // `for (const f of apply(origValues, self, []))`, which read
+            // `Symbol.iterator` off a page-reachable prototype at run time — the
+            // R2-2 hole, in the one place it could not leak (the filter still runs,
+            // so a hostile iterator can only make the view SMALLER). Same
+            // intersection, computed the other way round: ask the real set about
+            // each allowed name. Deterministic, and no iterator protocol at all.
+            const names = D().webgpuFeatureList;
+            for (let i = 0; i < names.length; i++) {
+              let real = false;
+              try { real = !!apply(origHas, self, [names[i]]); } catch (_) { real = false; }
+              if (real) keep(names[i]);
+            }
+          }
           wmSet(views, self, v);
         }
         return v;

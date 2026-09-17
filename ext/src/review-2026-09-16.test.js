@@ -1860,3 +1860,117 @@ test('R2-1 GUARD: a genuinely late boot still raises nonce-exposed — the fix i
     'the real alarm still fires on a real late boot');
   assert.equal(r.warnings().length, 1, 'and the user still gets the console line');
 });
+
+// ── R2-2 ───────────────────────────────────────────────────────────────────
+// D21's rule is "the shim never calls a prototype at run time"; its `A2-lint`
+// enforces that with a finite list of method names and bare globals. `for…of`
+// was not on the list, and `for…of` is a prototype call: it reads
+// `Symbol.iterator` off the iterated object, which for an array literal is the
+// shim realm's `Array.prototype` — an object the page owns.
+//
+// Three of those loops sit INSIDE `installInto()`, which for the top window runs
+// at document_start (safe) but for a CHILD realm runs at the first
+// `contentWindow` read — i.e. whenever the page asks for it, long after the page
+// owns its own prototypes. So:
+//
+//     Array.prototype[Symbol.iterator] = function () { return { next: () => ({ done: true }) }; };
+//     const w = document.createElement('iframe').contentWindow;   // installInto(w)
+//
+// …made `safe('webgpu.adapterInfo')` iterate nothing, and that child realm's
+// `GPUAdapterInfo` was never patched: `vendor` and `architecture` answered with
+// the REAL GPU while the parent answered with the persona's. A pristine child
+// realm reached on purpose — B3/D31's own failure mode, through D21's lint hole.
+const DELIVERED_NVIDIA = {
+  ...DELIVERED,
+  id: 'win11-chrome-rtx3060', platform: 'Win32',
+  ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
+  uaData: { platform: 'Windows', platformVersion: '15.0.0', architecture: 'x86', bitness: '64', model: '', wow64: false },
+  gpu: {
+    vendor: 'Google Inc. (NVIDIA)',
+    renderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)',
+    unmaskedVendor: 'Google Inc. (NVIDIA)', maxTextureSize: 16384,
+  },
+};
+/** The rig's REAL GPU is an Apple M2 Max, so `webgpuIdentity` puts the two a mile apart. */
+const WEBGPU_REAL = 'apple/metal-3';
+const WEBGPU_PERSONA = 'nvidia/ampere';
+const READ_WEBGPU = '(() => { const ai = Object.create(GPUAdapterInfo.prototype); return ai.vendor + "/" + ai.architecture; })()';
+/** Replace the realm's array iterator, do `body`, put it back. */
+const WITH_DEAD_ITERATOR = (body) => `
+  const __orig = Array.prototype[Symbol.iterator];
+  Array.prototype[Symbol.iterator] = function () {
+    return { next() { return { done: true, value: undefined }; }, [Symbol.iterator]() { return this; } };
+  };
+  try { ${body} } finally { Array.prototype[Symbol.iterator] = __orig; }
+`;
+
+test('R2-2 GUARD: killing Array.prototype[Symbol.iterator] does not leave a child realm\'s WebGPU identity unpatched', () => {
+  // Control first, so a green guard cannot be the rig failing to reach the leak.
+  const ctrl = bootRealm({ child: true });
+  ctrl.upgrade(DELIVERED_NVIDIA);
+  ctrl.page('globalThis.__cw = document.createElement("iframe").contentWindow;');
+  assert.equal(vm.runInContext(READ_WEBGPU, ctrl.childCtx), WEBGPU_PERSONA,
+    'sanity: an ordinary child realm reports the persona\'s WebGPU identity');
+  assert.equal(ctrl.page(READ_WEBGPU), WEBGPU_PERSONA, 'and so does the parent');
+
+  const s = bootRealm({ child: true });
+  s.upgrade(DELIVERED_NVIDIA);
+  s.page(WITH_DEAD_ITERATOR('globalThis.__cw = document.createElement("iframe").contentWindow;'));
+  assert.equal(vm.runInContext(READ_WEBGPU, s.childCtx), WEBGPU_PERSONA,
+    'GUARD: the child realm still reports the persona, not the real GPU');
+  assert.notEqual(vm.runInContext(READ_WEBGPU, s.childCtx), WEBGPU_REAL,
+    'GUARD: specifically, the REAL GPU vendor/architecture did not leak through the unpatched child');
+  // The hook is gone by now; the patch must have been installed, not deferred.
+  assert.equal(vm.runInContext(READ_WEBGPU, s.childCtx), WEBGPU_PERSONA, 'and it stays patched after the hook is removed');
+});
+
+test('R2-2 GUARD: the D21 lint covers for…of and the iterator protocol, not just a list of method names', () => {
+  // The lint is only as good as its regex list, and `A2-lint` had no `for…of`,
+  // no `Symbol.iterator`, and none of `.startsWith(` / `.includes(` / `.at(` /
+  // `.find(` / `.sort(` / `.fill(` / `.subarray(` / `Number(` / `parseInt(`.
+  // This is the same lint, widened, over the same two post-capture regions.
+  const stripped = (src) => src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:\\])\/\/.*$/gm, '$1')
+    .replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, '""');
+  // Every one of these is a prototype lookup on an object the page can own.
+  const MORE_METHODS = /\.(startsWith|endsWith|includes|substring|substr|at|find|findIndex|flat|flatMap|sort|fill|subarray|repeat|charAt|codePointAt|splice|shift|unshift|pop|reverse|copyWithin|toFixed|valueOf|lastIndexOf|matchAll|match|search|normalize|localeCompare|next|catch|finally|toJSON|hasOwnProperty|toLocaleString)\s*\(/g;
+  // Bare coercions and constructors resolve through the page's globals.
+  const MORE_GLOBALS = /(?<![.\w$])(Number|String|parseInt|parseFloat|isNaN|isFinite|Boolean|Date|Function|Proxy|Intl|BigInt)\s*[(.]/g;
+  // `for…of` reads Symbol.iterator off the iterated object — a prototype call by
+  // any other name, and the one that let R2-2 through.
+  const FOROF = /for\s*(?:await\s*)?\(\s*(?:const|let|var)\s+[^)]*?\s+of\s+([^)]*)\)/g;
+  const SYMBOL_ITER = /\[\s*Symbol\.iterator\s*\]/g;
+  /**
+   * The ONE permitted `for…of`, named in full so the set cannot widen silently.
+   * `personaFor` is boot-only — it runs at document_start before any page script
+   * exists to have replaced the array iterator — and personas.test.js pins this
+   * exact line as the D12 host-family constraint, so it may not be rewritten.
+   */
+  const FOROF_EXEMPT = new Set(['HOST_POOL']);
+
+  const check = (label, body) => {
+    const hits = [];
+    for (const re of [MORE_METHODS, MORE_GLOBALS, SYMBOL_ITER]) {
+      for (const m of body.matchAll(re)) hits.push(`${label}: "${m[0].trim()}" near line ${body.slice(0, m.index).split('\n').length}`);
+    }
+    for (const m of body.matchAll(FOROF)) {
+      if (FOROF_EXEMPT.has(m[1].trim())) continue;
+      hits.push(`${label}: "${m[0].trim()}" near line ${body.slice(0, m.index).split('\n').length}`);
+    }
+    assert.deepEqual(hits, [], `bare builtin / iterator use after the capture block:\n${hits.join('\n')}`);
+  };
+
+  let shim = SHIM_SRC.slice(SHIM_SRC.indexOf('END CAPTURED BUILTINS'));
+  shim = shim.replace(/BEGIN GENERATED MIRROR[\s\S]*?END GENERATED MIRROR/, '');
+  shim = shim.replace(/const MULTI_LABEL_SUFFIXES[\s\S]*?function registrableDomain\(hostname\) \{[\s\S]*?\n  \}/, '');
+  check('shim.js', stripped(shim));
+
+  const start = GPC_SRC.indexOf('END CAPTURED BUILTINS');
+  const end = GPC_SRC.indexOf('// ══ extension half');
+  check('gpc.js (page half)', stripped(GPC_SRC.slice(start, end)));
+
+  // Negative control: the widened regexes DO fire on the shapes they exist for.
+  assert.throws(() => check('probe', 'for (const x of list) { x.startsWith("a"); }'));
+  assert.throws(() => check('probe', 'const n = Number(x);'));
+});

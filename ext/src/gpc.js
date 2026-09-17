@@ -295,8 +295,14 @@
       if (!applyConfig(raw)) return;
       try { if (rawStopImmediate) rawApply(rawStopImmediate, e, []); } catch { /* not a real Event */ }
     };
-    for (const target of [globalThis, document]) {
-      try { rawApply(rawAdd, target, [EVENT_PERSONA, onPersona, true]); } catch { /* not an EventTarget */ }
+    // Index loop, not `for…of`: `for…of` reads `Symbol.iterator` off this realm's
+    // `Array.prototype`, which is a run-time prototype call (D21). Boot-only here,
+    // so it was never reachable — but review R2-2 found the same shape inside
+    // `installInto()` in shim.js, where it very much was, and a lint with an
+    // exemption nobody can audit is how that one survived.
+    const TARGETS = [globalThis, document];
+    for (let i = 0; i < TARGETS.length; i++) {
+      try { rawApply(rawAdd, TARGETS[i], [EVENT_PERSONA, onPersona, true]); } catch { /* not an EventTarget */ }
     }
 
     // Announce, and publish the nonce. First thing observable from the page, and
