@@ -237,8 +237,23 @@
    * only REPORTED once an authenticated reverse message proves our shim is the
    * thing that booted. Otherwise a page could raise this warning by forging a
    * boot event, which is half of review finding C1.
+   *
+   * ⚠ Measured from the FIRST boot event on a channel only — see `bootSeen`.
+   * Re-measuring on every boot event left the warning forgeable after all
+   * (review R2-1): the token gate stops a page's *report* being believed, but a
+   * page that dispatches a second boot event is not reporting anything, it is
+   * steering a measurement we take on its behalf, and the genuine shim's next
+   * tokened report then flushes it through as a sticky `nonce-exposed`.
    */
   let bootLate = false;
+  /**
+   * Which channels have already announced themselves. The FIRST boot event on a
+   * channel is the only one allowed to publish that channel's nonce or to move the
+   * R3b measurement; every later one is inert. A page cannot be the first — that
+   * would mean it won the document_start race, which is the condition the R3b
+   * warning exists to report.
+   */
+  const bootSeen = { [CH_SHIM]: false, [CH_GPC]: false };
   let nonceExposed = false;
   let healthReported = false;
   let bootCheckElapsed = false;
@@ -385,6 +400,17 @@
   function onBoot(d) {
     const channel = d.channel === CH_GPC ? CH_GPC : CH_SHIM;
     if (channel === CH_SHIM) bootAnnounced = true;
+
+    // ONE announcement per channel, ever. Not "the first one that happens to carry
+    // a nonce" — a second boot event must be inert whatever it carries, or a page
+    // can forge one and steer what we measure from it (review R2-1). A genuine shim
+    // that booted without a CSPRNG publishes no nonce and gets no second chance:
+    // nothing is ever delivered to it and `shim-never-booted` says so, which is the
+    // right answer and the one D30 already chose for that case.
+    const firstOnChannel = !bootSeen[channel];
+    bootSeen[channel] = true;
+    if (!firstOnChannel) { maybeDeliver(); return; }
+
     if (nonces[channel] === null && typeof d.nonce === 'string' && d.nonce.length >= 16) {
       nonces[channel] = d.nonce;
     }
@@ -403,7 +429,13 @@
     // structural property of subframes rather than a per-page anomaly, so it lives
     // in docs/THREAT-MODEL.md; the popup only hears about the top-level document,
     // where a late boot is genuinely news.
-    if (isTopFrame() && pageScriptCouldHaveRun()) bootLate = true;
+    //
+    // SHIM CHANNEL ONLY. `gpc.js` is `exclude_matches`-ed off ~50 hosts, so on
+    // those pages its channel never announces and a page's forged gpc boot event
+    // WOULD be the first one — `firstOnChannel` cannot protect a channel that has
+    // no genuine announcement to be first. The measurement is about the shim's
+    // nonce anyway, so it is taken from the shim's announcement and no other.
+    if (channel === CH_SHIM && isTopFrame() && pageScriptCouldHaveRun()) bootLate = true;
 
     maybeDeliver();
   }

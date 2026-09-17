@@ -1348,6 +1348,29 @@ wins). Two reports moved off it:
 - **`nonce-exposed`** is still *measured* when the boot event lands — it is a statement about that
   instant, from the ISOLATED world — but only *reported* once a token proves the thing that booted
   is our shim. A page forging a boot event can raise no warning.
+
+  🔴 **That last sentence was false when it was written. Amended 2026-09-16 (review-2, R2-1).**
+  The measurement was re-taken on *every* boot event, and a boot event carries no token by
+  construction — so a page script dispatching a second `{phase:'boot', channel:'shim'}` at any
+  moment after the genuine one set `bootLate = true` (page script has obviously run by then), and
+  the shim's next genuine tokened report — the upgrade status, milliseconds later — flushed it
+  through `onAuthenticated()` as a sticky `nonce-exposed`, plus the "Nullecho most likely lost the
+  fingerprint race on this page" console warning. The token gate was working: the page never got a
+  *report* believed. It did not have to. It steered a measurement the loader takes on the page's
+  behalf, and `nonceExposedAt` is sticky in the service worker's per-site stats, so the popup goes
+  on telling the user Nullecho lost a race it won. Same class as C1 itself — the watched site
+  writing the watcher's display — reached from the one message D30 deliberately left
+  unauthenticated. **Fix:** `bootSeen[channel]` — the FIRST boot event on a channel is the only one
+  that may publish that channel's nonce or move the R3b measurement; every later one is inert
+  whatever it carries. And the measurement is taken from the **shim channel only**, because
+  `gpc.js` is `exclude_matches`-ed off ~50 hosts where its channel never announces at all, so a
+  forged gpc boot event there would be genuinely first and `bootSeen` could not protect it. A page
+  cannot be first on the shim channel without winning the `document_start` race — which is the
+  condition this warning exists to report. Nothing genuine is lost: a shim that booted with no
+  CSPRNG publishes no nonce, gets no second chance, is never delivered to, and `shim-never-booted`
+  says so — which is the answer D30 had already chosen for that case. Guards `R2-1 GUARD` ×2 in
+  `review-2026-09-16.test.js` (the second is the negative control: a *genuinely* late boot still
+  raises the alarm and still prints the console line, so the fix is not the alarm switched off).
 - **`shim-never-booted`** now turns on an authenticated reverse message rather than on the boot
   event. `applyAuthenticated()` emits exactly one status on every branch, so a genuine shim that
   received any delivery has answered by the time the check runs. Basing it on the boot event let a

@@ -1557,11 +1557,17 @@ function loaderRealm({ pageScriptRan = true } = {}) {
   const toWorker = [];
   const delivered = [];
   const listeners = [];
+  const isoWarnings = [];
+  // MUTABLE, because `pageScriptCouldHaveRun()` is re-read on every boot event and
+  // the interesting case (R2-1) is a document that was a TRUE document_start when
+  // the genuine shim booted and is not one any more when a page forges a second
+  // boot event. `pageScriptRan` sets the starting value; `pageScriptRuns()` flips it.
+  const docState = { readyState: pageScriptRan ? 'interactive' : 'loading', scripts: pageScriptRan ? 3 : 0 };
   const document = {
     addEventListener: (type, fn) => listeners.push({ type, fn }),
     dispatchEvent: (ev) => { if (ev.type === 'nullecho:persona') delivered.push(JSON.parse(ev.detail)); return true; },
-    readyState: pageScriptRan ? 'interactive' : 'loading',
-    scripts: { length: pageScriptRan ? 3 : 0 },
+    get readyState() { return docState.readyState; },
+    get scripts() { return { length: docState.scripts }; },
   };
   class Ev {
     constructor(type, init) { this.type = type; this.detail = init.detail; this.stopped = false; }
@@ -1576,14 +1582,17 @@ function loaderRealm({ pageScriptRan = true } = {}) {
   const iso = vm.createContext({
     document, setTimeout, clearTimeout, queueMicrotask, CustomEvent: Ev,
     crypto: { getRandomValues: (a) => webcrypto.getRandomValues(a) },
-    console: { warn() {}, error() {} },
+    console: { warn: (...a) => isoWarnings.push(String(a[0])), error() {} },
     chrome: { runtime: { id: 'x', lastError: undefined, sendMessage(m, cb) { toWorker.push(m); if (cb) setTimeout(() => cb({ ok: true, enabled: true, gpc: true, site: 'x', persona: DELIVERED }), 1); } } },
   });
   iso.self = iso.top = vm.runInContext('globalThis', iso);
   vm.runInContext(LOADER_SRC, iso);
   const reasons = () => toWorker.filter((m) => m.type === 'nullecho:shim-status').map((m) => m.reason ?? (m.upgraded ? 'upgraded' : 'ok'));
   const settle = () => new Promise((r) => setTimeout(r, 30));
-  return { toWorker, delivered, dispatch, reasons, settle };
+  /** The moment page script starts running, as the ISOLATED world sees it. */
+  const pageScriptRuns = () => { docState.readyState = 'interactive'; docState.scripts = 3; };
+  const warnings = () => isoWarnings.slice();
+  return { toWorker, delivered, dispatch, reasons, settle, pageScriptRuns, warnings };
 }
 
 test('C1 GUARD: a page cannot forge nonce-exposed, a healthy status, or a fingerprint count on the reverse channel', async () => {
@@ -1787,4 +1796,67 @@ test('C3 GUARD: the CANVAS / SUPERCOOKIE page-report strike path is gone, not me
   const arch = fs.readFileSync(path.resolve(EXT, '..', 'docs', 'ARCHITECTURE.md'), 'utf8');
   assert.ok(!arch.includes('nullecho:signal'), 'REGRESSION: ARCHITECTURE.md still describes the retired nullecho:signal path');
   assert.ok(!/CANVAS\s*\/\s*SUPERCOOKIE/i.test(arch), 'REGRESSION: ARCHITECTURE.md still describes a CANVAS/SUPERCOOKIE strike path');
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ═ REVIEW-2 (2026-09-16 late) ═
+//
+// A second, adversarial pass over the SAME DAY's fixes — D25–D31 — on the
+// standing lesson that a green suite is not evidence. Same convention as above:
+// `R2-<n> GUARD:` asserts a defect is CLOSED, `R2-<n> REPRO:` asserts one is
+// still PRESENT and is recorded as an open residual in docs/DECISIONS.md.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── R2-1 ───────────────────────────────────────────────────────────────────
+// D30 claims, in as many words: "A page forging a boot event can raise no
+// warning." It could. The loader re-measured `bootLate` on EVERY boot event,
+// and a boot event is the one reverse message that carries no token — so a page
+// script dispatching a second `{phase:'boot', channel:'shim'}` at any time after
+// the genuine one set `bootLate = true` (page script has obviously run by then),
+// and the next GENUINE tokened report — the upgrade status, milliseconds later —
+// flushed it through `onAuthenticated()` as a sticky `nonce-exposed`.
+//
+// The token gate was doing its job: the page never got a report accepted. What it
+// did was steer a measurement the loader took on the page's behalf. That is the
+// same class as C1 — the site being watched writing the watcher's display — and
+// `nonceExposedAt` is sticky in the service worker's per-site stats, so the popup
+// keeps telling the user Nullecho lost the race on a page where it did not.
+test('R2-1 GUARD: a page-forged SECOND boot event cannot raise the sticky nonce-exposed warning', async () => {
+  const r = loaderRealm({ pageScriptRan: false });     // a TRUE document_start
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'g'.repeat(32) });
+  await r.settle();
+  const tokens = r.delivered[0].reportTokens;
+
+  // Page script now runs, and forges a boot event of its own. No nonce is needed:
+  // `onBoot` never required one to take the measurement.
+  r.pageScriptRuns();
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'p'.repeat(32) });
+  // …and again on the gpc channel, which on a gpc-excluded host has never booted,
+  // so a forged event there is the FIRST one that channel ever sees.
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'gpc', nonce: 'q'.repeat(32) });
+
+  // The shim's genuine upgrade status follows, carrying a real token.
+  r.dispatch('nullecho:status', { upgraded: true, lockedToFallback: false, reason: null, token: tokens[0] });
+
+  assert.deepEqual(r.reasons(), ['upgraded'],
+    'GUARD: a forged boot event raises no nonce-exposed — the measurement is taken only from the announcement that published the shim nonce');
+  assert.deepEqual(r.warnings(), [],
+    'GUARD: and the page cannot make the loader print the "lost the race" warning either');
+  // The forged nonce is not adopted as the shim's either, so the delivery that
+  // already went out stays the only one and nothing is re-signed with a page value.
+  assert.equal(r.delivered.length, 1, 'no second delivery');
+  assert.equal(r.delivered[0].nonce, 'g'.repeat(32), 'the delivery carries the GENUINE boot nonce');
+});
+
+test('R2-1 GUARD: a genuinely late boot still raises nonce-exposed — the fix is not the alarm being switched off', async () => {
+  // Negative control for the guard above. Here page script HAS run by the time the
+  // genuine shim announces itself, which is exactly what R3b is for.
+  const r = loaderRealm({ pageScriptRan: true });
+  r.dispatch('nullecho:status', { phase: 'boot', channel: 'shim', nonce: 'g'.repeat(32) });
+  await r.settle();
+  const tokens = r.delivered[0].reportTokens;
+  r.dispatch('nullecho:status', { upgraded: true, lockedToFallback: false, reason: null, token: tokens[0] });
+  assert.deepEqual(r.reasons(), ['nonce-exposed', 'upgraded'],
+    'the real alarm still fires on a real late boot');
+  assert.equal(r.warnings().length, 1, 'and the user still gets the console line');
 });
