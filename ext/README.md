@@ -58,7 +58,7 @@ per-domain attribution even when packed).
 Run from `ext/`:
 
 ```bash
-npm test         # node --test — 260/260 passing as of 2026-09-16
+npm test         # node --test — must be all-green; the count moves with every guard added
 npm run validate  # node rules/validate.mjs — 182 static rules, 182 unique ids, 0 errors
 ```
 
