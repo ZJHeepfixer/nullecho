@@ -1204,8 +1204,20 @@ one for the life of the document — stronger than Chrome-parity, and pinned by 
 which reads, watches the upgrade get refused, and requires identity across it.
 
 **Guards.** Two `B7 GUARD`s: identity + frozenness + the persona's values + a page failing to
-truncate the shared array + `toJSON().brands !== brands`; and the read-gate case above. Built with
-`pushOwn` and the captured `objFreeze`, so the `A2-lint GUARD` (D21) still passes.
+truncate the shared array + entries staying unfrozen and writable + the Illegal-invocation brand
+check surviving + `toJSON().brands !== brands`; and the read-gate case above. Built with `pushOwn`
+and the captured `objFreeze`, so the `A2-lint GUARD` (D21) still passes.
+
+**Known residual — the array's REALM, in child frames.** The cached array is created in the shim's
+own realm, which for the top window is the page's realm, so nothing is observable there. When the
+parent's `installInto(childWindow)` is the outermost wrapper on an iframe, that frame's
+`navigator.userAgentData.brands` is a *parent-realm* array, and
+`frames[0].navigator.userAgentData.brands instanceof frames[0].Array` is `false` where Chrome says
+`true`. This predates the caching — `copyBrands` built its array in the same closure — and it is the
+same shape as open finding **B3** (a child realm presenting a different machine than its parent),
+so it belongs with that fix, not this one: the cure is to build the array in the realm being patched,
+which needs a per-realm capture of `Array`/`freeze` that `installInto` does not carry yet. Not
+guarded, because the test rig has no child realm to hang it on; noted here so B3's fix picks it up.
 
 ## D29 — Every handshake field is read as an OWN property; nothing is inherited. 2026-09-16.
 
@@ -1244,6 +1256,14 @@ missing key off its *own* polluted prototype. Its rule is `cfg.gpc !== false && 
 so `Object.prototype.gpc = false` suppressed the user's Global Privacy Control signal on every page
 where the worker was unreachable — a privacy regression a page could trigger, not merely a detector.
 Relaying explicit `null` keeps the default ON and cannot be shadowed.
+
+**Known residual — `gpc.js` still reads its config through the prototype.** `gpc.js` does
+`cfg.gpcNonce`, `cfg.gpc` and `cfg.enabled`. On the normal path that is now safe, because the shim
+swallows the loader's event and relays explicit values for all three. But if the shim never boots
+(an exception in `installInto`, or `shim.js` failing to load at all), `gpc.js` reads the loader's
+raw payload directly — and a failure payload omits `gpc` and `enabled`, so the page's prototype is
+consulted again. One `ownField`-equivalent in `gpc.js` closes it; it was left out of this change
+because this lane owned `shim.js` only. Flagged for the gpc lane.
 
 **Residual, stated rather than hidden.** `derive()` still reads the accepted persona's optional
 sub-fields plainly (`cores`, `memory`, `seed`, `uaData`, `noise.audio`/`webgl`, `gpu.*`, `screen.*`).

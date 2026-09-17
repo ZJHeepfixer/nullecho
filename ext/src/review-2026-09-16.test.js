@@ -1218,6 +1218,20 @@ test('B7 GUARD: navigator.languages and userAgentData.brands return the SAME fro
   assert.equal(s.page('(() => { const b = navigator.userAgentData.brands; try { b.length = 0; } catch (_) {} return b.length; })()'), 3,
     'GUARD: frozen means frozen — a page cannot truncate the shared array');
 
+  // The ENTRIES are deliberately NOT frozen. WebIDL's "create a frozen array"
+  // freezes the array alone, and now that the array is cached, a frozen entry
+  // would make an assignment that STICKS in Chrome silently no-op here — trading
+  // the identity detector for a mutation one. (D27; reasoned from the WebIDL
+  // algorithm, not measured in Chrome.)
+  assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands[0])'), false,
+    'GUARD: entries stay ordinary objects, as a FrozenArray\'s elements are');
+  assert.equal(s.page('(() => { navigator.userAgentData.brands[0].brand = "zz"; return navigator.userAgentData.brands[0].brand; })()'), 'zz',
+    'GUARD: a write to an entry sticks, exactly as it does against Chrome\'s cached array');
+
+  // The native brand check must still fire on the replaced getter.
+  assert.throws(() => s.page('Object.getOwnPropertyDescriptor(NavigatorUAData.prototype, "brands").get.call({})'),
+    /Illegal invocation/, 'GUARD: caching did not cost the Illegal-invocation check');
+
   // `toJSON()` and `getHighEntropyValues()` return IDL DICTIONARIES, not the
   // attribute: each conversion builds a new plain array, so per-read is correct
   // there and deliberately left alone.
