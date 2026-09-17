@@ -145,7 +145,17 @@
     })();
     const rawAdd = globalThis.EventTarget && globalThis.EventTarget.prototype.addEventListener;
     const rawDispatch = globalThis.EventTarget && globalThis.EventTarget.prototype.dispatchEvent;
+    // D29, residual now closed: every config field is read as an OWN property
+    // through this, so a field the loader OMITTED cannot be supplied by the page's
+    // `Object.prototype`.
+    const rawHasOwn = Object.prototype.hasOwnProperty;
     // ─── END CAPTURED BUILTINS ────────────────────────────────────────────
+
+    /**
+     * Own-property read. An absent field reads as `undefined`, never as whatever
+     * the page left on `Object.prototype` — see `applyConfig`.
+     */
+    const ownField = (obj, key) => (rawApply(rawHasOwn, obj, [key]) ? obj[key] : undefined);
 
     let nonce = (() => {
       try {
@@ -232,14 +242,25 @@
       // could shout first and pin the signal to whatever the default happened to
       // be. Silently: unlike the shim, gpc.js has no reporting channel of its own,
       // and adding one to argue with a hostile page is not worth a global.
-      if (!nonceMatches(cfg.gpcNonce)) return false;
+      if (!nonceMatches(ownField(cfg, 'gpcNonce'))) return false;
       configApplied = true;
       nonce = null;                                    // used once; no replay value
       // `enabled === false` means the user allowlisted this site outright. The
       // per-site allowlist emits a DNR `allow` rule, which suppresses the
       // Sec-GPC header too — so dropping the JS property here keeps the two
       // halves telling the same story.
-      const on = cfg.gpc !== false && cfg.enabled !== false;
+      //
+      // OWN properties, never `cfg.gpc` (D29). Authentication proves the loader
+      // sent this message; it says nothing about the fields the loader left OUT,
+      // and an absent own property is exactly when [[Get]] consults an object the
+      // page owns. On the normal path `src/shim.js` swallows the loader's event
+      // and relays explicit values for all three fields (D29), so nothing was
+      // reachable there — but when the shim never boots, the loader's RAW payload
+      // arrives here, and its failure shape (`{ok:false, reason, nonce, gpcNonce}`)
+      // carries neither `gpc` nor `enabled`. `Object.prototype.gpc = false` then
+      // suppressed the user's do-not-sell signal: a privacy regression the page
+      // could trigger, on the one path where the extension is already degraded.
+      const on = ownField(cfg, 'gpc') !== false && ownField(cfg, 'enabled') !== false;
       setSignal(on);
       return true;
     }

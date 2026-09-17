@@ -1264,13 +1264,21 @@ so `Object.prototype.gpc = false` suppressed the user's Global Privacy Control s
 where the worker was unreachable — a privacy regression a page could trigger, not merely a detector.
 Relaying explicit `null` keeps the default ON and cannot be shadowed.
 
-**Known residual — `gpc.js` still reads its config through the prototype.** `gpc.js` does
-`cfg.gpcNonce`, `cfg.gpc` and `cfg.enabled`. On the normal path that is now safe, because the shim
-swallows the loader's event and relays explicit values for all three. But if the shim never boots
-(an exception in `installInto`, or `shim.js` failing to load at all), `gpc.js` reads the loader's
-raw payload directly — and a failure payload omits `gpc` and `enabled`, so the page's prototype is
-consulted again. One `ownField`-equivalent in `gpc.js` closes it; it was left out of this change
-because this lane owned `shim.js` only. Flagged for the gpc lane.
+**~~Known residual~~ — ✅ CLOSED the same day: `gpc.js` reads its config as own properties too.**
+`gpc.js` did `cfg.gpcNonce`, `cfg.gpc` and `cfg.enabled`. On the normal path that was already safe,
+because the shim swallows the loader's event and relays explicit values for all three. But if the
+shim never boots — an exception in `installInto`, or `shim.js` failing to load at all — `gpc.js`
+reads the loader's raw payload directly, and a failure payload omits `gpc` and `enabled`, so the
+page's prototype was consulted again: `Object.prototype.gpc = false` suppressed the user's
+do-not-sell signal on exactly the pages where the extension was already degraded. `gpc.js` now
+captures `Object.prototype.hasOwnProperty` in its own boot block and reads all three fields through
+an `ownField` of its own. Guarded by a fourth `B9 GUARD`, which boots a realm with **gpc.js and no
+shim** (a `shim: false` option added to the rig's `bootRealm` for this), pollutes `Object.prototype`
+and sends the loader's raw failure payload — plus a positive control, a genuine `{gpc:false}` in the
+same shape, so the guard is own-property discipline and not a dead branch. `gpcNonce` is read the
+same way for consistency; a prototype-supplied nonce could never have matched a 128-bit value the
+page has not seen, so that one is discipline rather than a hole, and it is not asserted — a test
+that cannot fail is not a guard.
 
 **Residual, stated rather than hidden.** `derive()` still reads the accepted persona's optional
 sub-fields plainly (`cores`, `memory`, `seed`, `uaData`, `noise.audio`/`webgl`, `gpu.*`, `screen.*`).

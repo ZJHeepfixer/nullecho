@@ -320,8 +320,13 @@ const DOM_SETUP = `
  * first, as the manifest order guarantees). Returns page-side and loader-side
  * handles. Nothing shimmed is read before `upgrade()` — the read gate would
  * otherwise lock the fallback in.
+ *
+ * `shim: false` models the one production path where `gpc.js` is on its own:
+ * `shim.js` failed to load or threw before it could listen, so nothing swallows
+ * the loader's event and nothing relays a stripped payload — gpc.js reads the
+ * loader's raw payload itself — D29's named residual.
  */
-function bootRealm({ hostname = 'example.test', origin = 'https://example.test', extraGlobals = {}, gpc = false } = {}) {
+function bootRealm({ hostname = 'example.test', origin = 'https://example.test', extraGlobals = {}, gpc = false, shim = true } = {}) {
   const logs = [];
   const sandbox = {
     location: { hostname, origin },
@@ -346,7 +351,7 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
     else statuses.push(d);
   }, true);
 
-  vm.runInContext(SHIM_SRC, ctx, { filename: 'shim.js' });
+  if (shim) vm.runInContext(SHIM_SRC, ctx, { filename: 'shim.js' });
   if (gpc) vm.runInContext(GPC_SRC, ctx, { filename: 'gpc.js' });
 
   /** Dispatch a persona event exactly as the loader (or a forging page) would. */
@@ -1367,6 +1372,35 @@ test('B9 GUARD: an injected prototype field cannot switch the GPC relay off on a
   s.page('delete Object.prototype.gpc; delete Object.prototype.enabled;');
   assert.equal(s.ctx.navigator.globalPrivacyControl, true,
     'GUARD: the relay carries explicit values, so the page\'s prototype cannot turn GPC off');
+});
+
+// D29 left one residual open and named it: `gpc.js` read `cfg.gpcNonce`, `cfg.gpc`
+// and `cfg.enabled` through the prototype chain. On the normal path the shim
+// swallows the loader's event and relays explicit values, so nothing was
+// reachable — but when the shim never boots (it failed to load, or threw before
+// it listened), gpc.js gets the loader's RAW payload, and a failure payload omits
+// `gpc` and `enabled`. That is exactly when [[Get]] asks the page's
+// `Object.prototype`. Now closed in gpc.js itself (D29, residual struck).
+test('B9 GUARD: with the shim never booted, Object.prototype.gpc/enabled cannot switch the user\'s GPC signal off', () => {
+  const s = bootRealm({ gpc: true, shim: false });
+  assert.equal(s.boot, null, 'sanity: no shim in this realm, so nothing swallows or relays the loader\'s event');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, true, 'sanity: gpc.js put the signal up at document_start');
+  s.page('Object.prototype.gpc = false; Object.prototype.enabled = false;');
+  s.send({ ok: false, reason: 'no response from Nullecho service worker', nonce: null, gpcNonce: s.gpcBoot.nonce });
+  s.page('delete Object.prototype.gpc; delete Object.prototype.enabled;');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, true,
+    'GUARD: an absent field stays absent — gpc.js reads its config as OWN properties too');
+
+  // Positive control, in the same shape: the loader really can take the signal
+  // down, so the guard above is own-property discipline and not a dead branch.
+  const t = bootRealm({ gpc: true, shim: false });
+  t.send({ ok: true, enabled: true, gpc: false, site: 'x.test', gpcNonce: t.gpcBoot.nonce });
+  assert.equal(t.ctx.navigator.globalPrivacyControl, undefined, 'control: a genuine {gpc:false} still takes the signal down');
+
+  // `gpcNonce` is read as an own property too, for the same reason — though a
+  // prototype-supplied nonce could never have MATCHED (it is compared against a
+  // 128-bit value the page has not seen), so that read is discipline, not a hole.
+  // Stated rather than asserted: a test that cannot fail is not a guard.
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
