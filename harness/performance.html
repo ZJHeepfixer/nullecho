@@ -1,0 +1,1549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nullecho — performance &amp; resource cost</title>
+<!--
+  WHAT THIS IS
+  ────────────
+  The measurement harness for "what does Nullecho cost a user". Runs the REAL
+  ext/src/shim.js through the REAL nonce handshake (same protocol as
+  harness/shim-test.html and harness/breakage-battery.html) and benchmarks six
+  areas, then does the same with the shim absent.
+
+      ?shim=on|off      default on. `off` loads no shim at all.
+      ?salt=…-0003      macOS persona  (53 fonts) — HOST-MATCHED on a Mac, the
+                        only family the real extension can hand this host (D12).
+            …-0005      Linux persona (180 fonts) — cross-OS here; the font-cost
+                        question is specifically about this pool.
+            …-0001      Windows persona (57 fonts).
+      ?only=canvas,fonts,steady,memory,dnr    run a subset.
+      ?q=1              quiet: skip the heaviest cells (1920×1080 toDataURL etc.)
+
+  ⚠ SERVE FROM THE PROJECT ROOT — this page loads `/ext/src/shim.js`.
+        launch.json config `nullecho-root` → http://127.0.0.1:4886/harness/performance.html
+
+  MEASUREMENT HYGIENE — the three lessons this project paid for
+  ─────────────────────────────────────────────────────────────
+  1. REAL CHROME. The in-app Browser pane is Electron/Chromium. This page reads
+     the UA and labels every result with the engine it actually ran on; a run in
+     the pane is marked NOT AUTHORITATIVE and the ratio table says so.
+  2. A QUIET BROWSER. The stale "canvas is 7–12× slower" figure in
+     docs/ARKENFOX-RESPONSE.md follow-up #6 was taken while two agents drove one
+     browser. A ratio from a contended machine is noise, and there is no way to
+     tell from the ratio itself — so this page benchmarks a CONTROL workload that
+     the shim cannot touch (pure arithmetic, no DOM, no patched API) in every
+     run. If control(on)/control(off) is not ≈1.00, the two runs did not see the
+     same machine and every ratio below is void. That is the positive control the
+     7–12× reading never had.
+  3. CACHE-BUST. `shim.js` is loaded with a `?cb=` unique to the page load. A
+     cached shim against a fresh harness has produced a confident wrong reading
+     here before.
+
+  WHAT THIS CANNOT MEASURE — and does not pretend to
+  ──────────────────────────────────────────────────
+  No DNR, no service worker, no content-script injection timing. Those need a
+  real unpacked install. Area 6 says exactly which numbers are missing and why.
+-->
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--warn:#d29922;--bad:#f85149;--accent:#58a6ff;
+        --mono:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#ffffff;--panel:#f6f8fa;--line:#d0d7de;--text:#1f2328;--dim:#59636e;
+          --ok:#1a7f37;--warn:#9a6700;--bad:#cf222e;--accent:#0969da;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--bg);color:var(--text);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+  h1{font-size:20px;margin:0 0 4px}
+  h2{font-size:15px;margin:26px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:14px}
+  code,.mono{font-family:var(--mono)}
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+  th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+  td.num{text-align:right;font-family:var(--mono);font-size:12px;white-space:nowrap}
+  td.name{font-family:var(--mono);font-size:12px}
+  .box{margin:14px 0;padding:13px 15px;border-radius:8px;background:var(--panel);
+       border:1px solid var(--line)}
+  .box.bad{border-color:var(--bad)} .box.ok{border-color:var(--ok)} .box.warn{border-color:var(--warn)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .pill.ok{background:rgba(63,185,80,.15);color:var(--ok)}
+  .pill.warn{background:rgba(210,153,34,.15);color:var(--warn)}
+  .pill.bad{background:rgba(248,81,73,.15);color:var(--bad)}
+  .note{font-size:12px;color:var(--dim);margin-top:8px;padding-left:10px;
+        border-left:2px solid var(--line)}
+  #stage{position:absolute;left:-9999px;top:-9999px;width:1200px}
+  button{font:inherit;padding:6px 14px;border-radius:6px;border:1px solid var(--line);
+         background:var(--panel);color:var(--text);cursor:pointer}
+  textarea{width:100%;height:150px;background:var(--panel);color:var(--text);
+           border:1px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:11px;padding:8px}
+</style>
+
+<!-- Personas first: a blocking classic script executes before the inline block
+     below, which needs __PERF_PERSONAS synchronously. Generated from the real
+     ext/src/personas.js by harness/gen-perf-personas.mjs — never typed by hand. -->
+<script src="perf-personas.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STAGE 0 — before the shim. Handshake wiring + boot clocks.
+// ═══════════════════════════════════════════════════════════════════════════
+(() => {
+  const params = new URLSearchParams(location.search);
+  window.__perfMode = params.get('shim') === 'off' ? 'off' : 'on';
+  window.__perfSalt = params.get('salt') || 'nullecho-shim-test-0003';
+  window.__perfOnly = (params.get('only') || '').split(',').filter(Boolean);
+  window.__perfQuiet = params.get('q') === '1';
+
+  // Boot clocks, all on the performance.now() origin so they compare across reloads.
+  window.__boot = {
+    mode: window.__perfMode,
+    beforeShimWrite: null,   // just before document.write of the shim tag
+    bootEvent: null,         // shim's own {phase:'boot'} — captures done, patching next
+    personaSent: null,       // we answer the nonce
+    afterShimScript: null,   // parser has finished executing shim.js
+    upgraded: null,          // stage-2 persona live
+    resource: null,          // network fetch of shim.js, from Resource Timing
+  };
+
+  window.__protocolLog = [];
+  document.addEventListener('nullecho:status', (ev) => {
+    window.__protocolLog.push({ detail: ev.detail, t: performance.now() });
+  }, true);
+
+  // ── PRISTINE NATIVES, captured before shim.js is written into the document.
+  //
+  // This is what makes the measurement survive a browser we do not have to
+  // ourselves. Two page loads (shim on, shim off) can only be compared if the
+  // machine was equally busy during both, and on a shared browser it is not —
+  // that is exactly how the stale "canvas is 7–12× slower" figure was produced.
+  //
+  // With the real natives in hand we can run the patched call and the native
+  // call ALTERNATELY, milliseconds apart, inside one page load. Whatever else
+  // the machine is doing hits both sides equally and divides out of the ratio.
+  // On a shim=off page the same harness runs native-against-native, which must
+  // come back at 1.00 — the instrument's own calibration.
+  const d = (o, k) => { try { return Object.getOwnPropertyDescriptor(o, k); } catch (_) { return null; } };
+  window.__NATIVE = {
+    getImageData: window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype.getImageData,
+    measureText: window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype.measureText,
+    toDataURL: HTMLCanvasElement.prototype.toDataURL,
+    toBlob: HTMLCanvasElement.prototype.toBlob,
+    readPixels1: window.WebGLRenderingContext && WebGLRenderingContext.prototype.readPixels,
+    readPixels2: window.WebGL2RenderingContext && WebGL2RenderingContext.prototype.readPixels,
+    getChannelData: window.AudioBuffer && AudioBuffer.prototype.getChannelData,
+    getBoundingClientRect: Element.prototype.getBoundingClientRect,
+    offsetWidth: (d(HTMLElement.prototype, 'offsetWidth') || {}).get,
+    offsetHeight: (d(HTMLElement.prototype, 'offsetHeight') || {}).get,
+    // navigator accessors: ordinary pages read these constantly (feature
+    // detection, analytics, polyfills) without fingerprinting anything, and the
+    // shim replaces every one of them with a JS getter. This is the honest
+    // steady-state question for area 4.
+    navUserAgent: (d(Navigator.prototype, 'userAgent') || {}).get,
+    navPlatform: (d(Navigator.prototype, 'platform') || {}).get,
+    navCores: (d(Navigator.prototype, 'hardwareConcurrency') || {}).get,
+    navLanguage: (d(Navigator.prototype, 'language') || {}).get,
+    // NOT patched by the shim — an in-page null control that runs on the SAME
+    // page as the patched cells, so it catches a biased instrument even on a
+    // shim=on run where the shim=off null calibration is not available.
+    clientWidth: (d(Element.prototype, 'clientWidth') || {}).get,
+  };
+
+  if (window.__perfMode === 'off') return;
+
+  const persona = (window.__PERF_PERSONAS || {})[window.__perfSalt];
+  if (!persona) {
+    window.__bootError = 'no persona for salt ' + window.__perfSalt +
+      ' — run `node harness/gen-perf-personas.mjs`';
+    return;
+  }
+  window.__perfPersona = persona;
+
+  // Real shim-loader.js delivery, nonce handshake included: wait for the shim's
+  // { phase:'boot', channel:'shim', nonce }, echo the nonce back with the persona.
+  // `dev:true` asks for the self-test surface; background.js never sets it, so a
+  // production page gets no global at all.
+  window.__handshakeNonce = null;
+  document.addEventListener('nullecho:status', (ev) => {
+    let d = null;
+    try { d = JSON.parse(ev.detail); } catch { return; }
+    if (!d || d.phase !== 'boot' || d.channel !== 'shim') return;
+    if (window.__handshakeNonce) return;
+    window.__boot.bootEvent = performance.now();
+    window.__handshakeNonce = d.nonce || null;
+    document.dispatchEvent(new CustomEvent('nullecho:persona', {
+      detail: JSON.stringify({
+        ok: true, enabled: true, gpc: false, site: 'localhost', dev: true,
+        persona, nonce: d.nonce,
+      }),
+    }));
+    window.__boot.personaSent = performance.now();
+    window.__boot.upgraded = performance.now();   // handshake is synchronous here
+  }, true);
+
+  // CACHE-BUST. Unique per page load; a cached shim.js has produced a confident
+  // wrong reading on this project before.
+  const url = '/ext/src/shim.js?cb=' + Date.now() + '.' + Math.random().toString(36).slice(2);
+  window.__shimUrl = url;
+  window.__boot.beforeShimWrite = performance.now();
+  // The marker script is written in the SAME call so the parser runs it directly
+  // after the blocking external script, with nothing in between.
+  document.write(
+    '<scr' + 'ipt src="' + url + '"></scr' + 'ipt>' +
+    '<scr' + 'ipt>window.__boot.afterShimScript = performance.now();</scr' + 'ipt>'
+  );
+})();
+</script>
+</head>
+<body>
+<h1>Nullecho — performance &amp; resource cost</h1>
+<div class="sub" id="sub">Booting…</div>
+<div id="env" class="box"></div>
+<div id="out"></div>
+<div id="stage"></div>
+<h2>Raw JSON</h2>
+<p class="sub">Everything below is also on <code>window.__perf</code>.</p>
+<textarea id="json" readonly></textarea>
+
+<script>
+(async () => {
+// ═══════════════════════════════════════════════════════════════════════════
+// Harness plumbing
+// ═══════════════════════════════════════════════════════════════════════════
+const $ = (id) => document.getElementById(id);
+const stage = $('stage');
+const MODE = window.__perfMode;
+const QUIET = window.__perfQuiet;
+const ONLY = window.__perfOnly;
+const want = (s) => ONLY.length === 0 || ONLY.indexOf(s) !== -1;
+
+const perf = window.__perf = {
+  done: false,
+  meta: {},
+  boot: window.__boot,
+  control: null,
+  suites: {},
+  errors: [],
+};
+
+/**
+ * Yield to the task queue WITHOUT setTimeout.
+ *
+ * Chrome throttles timers in a background tab to roughly one per second (and
+ * harder after five minutes). A benchmark that yields between batches with
+ * `setTimeout(0)` therefore takes minutes instead of seconds the moment the tab
+ * loses focus — which it will, because a measurement run is exactly when nobody
+ * is looking at it. MessageChannel tasks are not throttled that way, so they are
+ * what the hot path uses. `sleep` still uses a timer because it genuinely wants
+ * wall-clock time to pass (and wants the main thread IDLE, e.g. for GC), and it
+ * is called about a dozen times, not thousands.
+ */
+const _yieldChan = new MessageChannel();
+const _yieldQueue = [];
+_yieldChan.port1.onmessage = () => { const f = _yieldQueue.shift(); if (f) f(); };
+const yield_ = () => new Promise((r) => { _yieldQueue.push(r); _yieldChan.port2.postMessage(0); });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function stats(samples) {
+  const s = samples.slice().filter((x) => typeof x === 'number' && isFinite(x)).sort((a, b) => a - b);
+  if (!s.length) return { n: 0, min: 0, median: 0, p95: 0, max: 0, mean: 0, sd: 0, rsd: 0, empty: true };
+  const q = (p) => s[Math.min(s.length - 1, Math.max(0, Math.round((s.length - 1) * p)))];
+  const mean = s.reduce((a, b) => a + b, 0) / s.length;
+  const sd = Math.sqrt(s.reduce((a, b) => a + (b - mean) * (b - mean), 0) / Math.max(1, s.length - 1));
+  return {
+    n: s.length, min: +s[0].toFixed(5), median: +q(0.5).toFixed(5),
+    p95: +q(0.95).toFixed(5), max: +s[s.length - 1].toFixed(5),
+    mean: +mean.toFixed(5), sd: +sd.toFixed(5),
+    rsd: +(mean ? (sd / mean) * 100 : 0).toFixed(1),
+  };
+}
+
+/**
+ * One benchmark cell.
+ *
+ * Batches `fn` into repetitions until a batch is long enough to clear
+ * performance.now()'s clamp (Chrome quantises a non-cross-origin-isolated clock
+ * to ~5–100 µs), then collects samples until either `minSamples` and the time
+ * budget are both satisfied. The reported number is per-operation.
+ *
+ * `setup` runs untimed before every batch — used where the operation is only
+ * expensive the FIRST time it touches an object (AudioBuffer channel noising is
+ * memoised per buffer, so re-reading the same buffer measures a WeakMap hit).
+ */
+async function bench(fn, opts) {
+  opts = opts || {};
+  const minSamples = opts.minSamples || 21;
+  const maxSamples = opts.maxSamples || 160;
+  const budget = opts.budgetMs || 1200;
+  const fixedReps = opts.reps || 0;
+  const setup = opts.setup || null;
+
+  try {
+    for (let i = 0; i < (opts.warmup == null ? 3 : opts.warmup); i++) { if (setup) setup(); fn(); }
+  } catch (e) { return { error: String(e && e.message || e) }; }
+
+  let reps = fixedReps || 1;
+  if (!fixedReps) {
+    for (let guard = 0; guard < 14; guard++) {
+      if (setup) setup();
+      const t0 = performance.now();
+      for (let i = 0; i < reps; i++) fn();
+      const dt = performance.now() - t0;
+      if (dt >= 1.5 || reps >= (opts.maxReps || 1024)) break;
+      reps = Math.max(2, Math.ceil(reps * Math.max(2, 2 / Math.max(dt, 0.05))));
+      if (reps > (opts.maxReps || 1024)) { reps = opts.maxReps || 1024; break; }
+    }
+  }
+
+  const samples = [];
+  const start = performance.now();
+  try {
+    while (samples.length < maxSamples) {
+      if (setup) setup();
+      const t0 = performance.now();
+      for (let i = 0; i < reps; i++) fn();
+      const t1 = performance.now();
+      samples.push((t1 - t0) / reps);
+      const spent = performance.now() - start;
+      if (samples.length >= minSamples && spent >= budget) break;
+      if (spent > budget * 4) break;
+      if ((samples.length & 7) === 0) await yield_();
+    }
+  } catch (e) { return { error: String(e && e.message || e) }; }
+  const out = stats(samples);
+  out.reps = reps;
+  return out;
+}
+
+/** Async variant for callback/promise APIs (toBlob, decodeAudioData). */
+async function benchAsync(fn, opts) {
+  opts = opts || {};
+  const minSamples = opts.minSamples || 15;
+  const budget = opts.budgetMs || 1500;
+  try { for (let i = 0; i < 2; i++) await fn(); }
+  catch (e) { return { error: String(e && e.message || e) }; }
+  const samples = [];
+  const start = performance.now();
+  try {
+    while (samples.length < (opts.maxSamples || 60)) {
+      const t0 = performance.now();
+      await fn();
+      samples.push(performance.now() - t0);
+      const spent = performance.now() - start;
+      if (samples.length >= minSamples && spent >= budget) break;
+      if (spent > budget * 4) break;
+    }
+  } catch (e) { return { error: String(e && e.message || e) }; }
+  const out = stats(samples);
+  out.reps = 1;
+  return out;
+}
+
+/**
+ * PAIRED, INTERLEAVED A/B — the instrument this project actually needed.
+ *
+ * `a` calls the PATCHED API, `b` calls the pristine native captured in stage 0
+ * before shim.js was written into the document. They are run alternately in
+ * ABBA order, milliseconds apart, inside one page load. Anything the machine is
+ * doing to us — another tab, another agent, a thermal step, a GC — lands on
+ * both sides of each quartet and divides out of the ratio.
+ *
+ * Two page loads cannot do this. The stale 7–12× canvas figure is what two page
+ * loads on a contended browser produce, and nothing in the number itself says
+ * so. Here the per-round ratios carry their own error bars: if the machine were
+ * moving underneath us the ratio spread would blow up, and it is reported.
+ *
+ * On a shim=off page both sides are the same native function, so the ratio must
+ * come back at 1.00 ± noise. That null run is the instrument's calibration and
+ * it is printed, not assumed.
+ */
+async function paired(a, b, opts) {
+  opts = opts || {};
+  const budget = opts.budgetMs || 1800;
+  const maxRounds = opts.maxRounds || 40;
+  const minRounds = opts.minRounds || 8;
+
+  try { for (let i = 0; i < 3; i++) { a(); b(); } }
+  catch (e) { return { error: String(e && e.message || e) }; }
+
+  // Calibrate reps on the FASTER side (native) so both sides use the same count
+  // and each batch clears the clock clamp.
+  const TARGET = Math.max(2, clockRes * 25);
+  let reps = opts.reps || 1;
+  if (!opts.reps) {
+    for (let g = 0; g < 16; g++) {
+      const t0 = performance.now();
+      for (let i = 0; i < reps; i++) b();
+      const dt = performance.now() - t0;
+      if (dt >= TARGET || reps >= (opts.maxReps || 2048)) break;
+      reps = Math.min(opts.maxReps || 2048,
+                      Math.max(2, Math.ceil(reps * Math.max(2, (TARGET * 1.4) / Math.max(dt, clockRes)))));
+    }
+  }
+
+  const batch = (fn) => {
+    const t0 = performance.now();
+    for (let i = 0; i < reps; i++) fn();
+    return (performance.now() - t0) / reps;
+  };
+
+  const A = [], B = [], ratios = [];
+  const start = performance.now();
+  try {
+    for (let r = 0; r < maxRounds; r++) {
+      // ABBA: cancels any linear drift across the quartet.
+      const a1 = batch(a), b1 = batch(b), b2 = batch(b), a2 = batch(a);
+      const am = (a1 + a2) / 2, bm = (b1 + b2) / 2;
+      A.push(a1, a2); B.push(b1, b2);
+      if (bm > 0) ratios.push(am / bm);
+      if ((r & 3) === 3) await yield_();
+      if (r + 1 >= minRounds && performance.now() - start >= budget) break;
+      if (performance.now() - start > budget * 4) break;
+    }
+  } catch (e) { return { error: String(e && e.message || e) }; }
+
+  const sa = stats(A), sb = stats(B), sr = stats(ratios);
+  // A native call too cheap to clear the clock clamp reads as 0.0 ms, and a
+  // ratio against 0 is not a measurement — it is a division by the timer. Report
+  // the added cost (which is still real) and refuse the ratio.
+  // The timed quantity is a BATCH of `reps` calls, so it is the batch that has to
+  // clear the clamp — not the per-operation median, which is the batch divided by
+  // reps and can legitimately sit far below one clock tick.
+  const belowClock = (sb.median * reps) <= clockRes * 1.5 || sr.empty;
+  const outp = {
+    patched: sa, native: sb, reps, rounds: ratios.length,
+    nativeBelowClock: belowClock,
+    addedMedianMs: +(sa.median - sb.median).toFixed(5),
+  };
+  if (belowClock) {
+    outp.ratioMedian = null; outp.ratioP95 = null;
+    outp.ratioMin = null; outp.ratioMax = null; outp.ratioRsd = null;
+    outp.note = 'native side below clock resolution (' + clockRes.toFixed(4) +
+                ' ms); ratio undefined, added-cost column is the real number';
+  } else {
+    outp.ratioMedian = +sr.median.toFixed(3); outp.ratioP95 = +sr.p95.toFixed(3);
+    outp.ratioMin = +sr.min.toFixed(3); outp.ratioMax = +sr.max.toFixed(3);
+    outp.ratioRsd = sr.rsd;
+  }
+  return outp;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Environment + the load-bearing gates
+// ═══════════════════════════════════════════════════════════════════════════
+const dev = window.__nullechoDev;
+const ua = navigator.userAgent;
+const isElectron = /Electron/i.test(ua);
+const chromeVer = (ua.match(/Chrome\/(\d+)/) || [])[1] || null;
+const realChrome = !!chromeVer && !isElectron;
+
+// Clock resolution, measured not assumed — it sets the floor under every cell.
+let clockRes = Infinity;
+for (let i = 0; i < 40000; i++) {
+  const a = performance.now(), b = performance.now();
+  if (b > a && b - a < clockRes) clockRes = b - a;
+}
+
+perf.meta = {
+  when: new Date().toISOString(),
+  mode: MODE,
+  salt: MODE === 'on' ? window.__perfSalt : null,
+  personaId: MODE === 'on' ? (window.__perfPersona && window.__perfPersona.id) : null,
+  personaFonts: MODE === 'on' && window.__perfPersona
+    ? (window.__perfPersona.fontList || []).length : null,
+  shimApplied: !!(dev && dev.upgraded),
+  shimUrl: window.__shimUrl || null,
+  bootError: window.__bootError || null,
+  ua, chromeVer, isElectron, realChrome,
+  engine: isElectron ? 'Electron/Chromium (NOT AUTHORITATIVE)'
+                     : (chromeVer ? 'Chrome ' + chromeVer : 'unknown'),
+  hardwareConcurrency: navigator.hardwareConcurrency,
+  deviceMemory: navigator.deviceMemory,
+  clockResolutionMs: +clockRes.toFixed(6),
+  hasPerformanceMemory: !!performance.memory,
+  quiet: QUIET,
+  // A HIDDEN tab is a different machine for measurement purposes: Chrome does
+  // not paint it, pauses requestAnimationFrame, and throttles timers and
+  // async callbacks to roughly one per second. Synchronous main-thread work —
+  // which is every paired cell — is NOT throttled, and the null calibration
+  // proves that. Anything callback-driven is not measurable here and is
+  // labelled rather than reported.
+  visibility: document.visibilityState,
+  hasFocus: document.hasFocus(),
+};
+
+// The gate the whole run hangs on: with shim=on the shim must actually be
+// applied. A harness that measures an unshielded page and reports a shim number
+// is worse than no harness — that is how a 404'd /ext/ path once produced a
+// clean-looking pass.
+const gateOk = MODE === 'off' ? !window.__nullechoDev : !!(dev && dev.upgraded);
+perf.meta.gateOk = gateOk;
+
+$('env').className = 'box ' + (gateOk && realChrome ? 'ok' : (gateOk ? 'warn' : 'bad'));
+$('env').innerHTML =
+  '<b>' + (MODE === 'on' ? 'SHIM ON' : 'SHIM OFF') + '</b> · ' +
+  (MODE === 'on'
+    ? (gateOk ? 'persona <code>' + dev.personaId + '</code> applied, ' +
+                perf.meta.personaFonts + ' font families'
+              : '<b style="color:var(--bad)">SHIM DID NOT APPLY — every number below is about an unshielded page</b>')
+    : (gateOk ? 'no shim present (control run)'
+              : '<b style="color:var(--bad)">a shim IS present on a shim=off run</b>')) +
+  '<br>engine: <code>' + perf.meta.engine + '</code>' +
+  (realChrome ? '' : ' — <b style="color:var(--warn)">NOT real Chrome; label any number from this run as such</b>') +
+  '<br>clock resolution: <code>' + perf.meta.clockResolutionMs.toFixed(4) + ' ms</code>' +
+  ' · cores <code>' + navigator.hardwareConcurrency + '</code>' +
+  ' · performance.memory: <code>' + (performance.memory ? 'yes' : 'no') + '</code>' +
+  '<br>tab visibility: <code>' + document.visibilityState + '</code>' +
+  (document.visibilityState === 'hidden'
+    ? ' — <b style="color:var(--warn)">HIDDEN: no paint, no rAF, callbacks and timers throttled. '
+      + 'Synchronous benchmarks (every paired cell) are unaffected and the null calibration proves it; '
+      + 'paint timing and callback latency are NOT measurable from here.</b>'
+    : '');
+
+const out = $('out');
+function section(title, note) {
+  const h = document.createElement('h2'); h.textContent = title; out.appendChild(h);
+  if (note) { const p = document.createElement('div'); p.className = 'note';
+              p.innerHTML = note; out.appendChild(p); }
+  const t = document.createElement('table');
+  t.innerHTML = '<thead><tr><th>measurement</th><th style="text-align:right">median ms</th>' +
+                '<th style="text-align:right">p95 ms</th><th style="text-align:right">rsd %</th>' +
+                '<th style="text-align:right">n × reps</th></tr></thead><tbody></tbody>';
+  out.appendChild(t);
+  return t.querySelector('tbody');
+}
+function row(tbody, name, r) {
+  const tr = document.createElement('tr');
+  if (!r || r.error) {
+    tr.innerHTML = '<td class="name"></td><td colspan="4" style="color:var(--bad)"></td>';
+    tr.children[0].textContent = name;
+    tr.children[1].textContent = r ? r.error : 'not run';
+  } else {
+    tr.innerHTML = '<td class="name"></td><td class="num"></td><td class="num"></td>' +
+                   '<td class="num"></td><td class="num"></td>';
+    tr.children[0].textContent = name;
+    tr.children[1].textContent = r.median.toFixed(r.median < 1 ? 4 : 3);
+    tr.children[2].textContent = r.p95.toFixed(r.p95 < 1 ? 4 : 3);
+    tr.children[3].textContent = r.rsd.toFixed(0);
+    tr.children[4].textContent = r.n + ' × ' + r.reps;
+  }
+  tbody.appendChild(tr);
+  return r;
+}
+function status(s) { $('sub').innerHTML = s; }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTROL — the positive control follow-up #6 never had.
+//
+// Pure arithmetic and pure string work. No DOM, no patched API, nothing the
+// shim can reach. If this differs between the shim-on and shim-off runs, the
+// two runs did not see the same machine, and every ratio is void. This is the
+// ONLY defence against the contended-browser failure that produced the stale
+// 7–12× canvas figure.
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  status('control workload (machine-quietness check)…');
+  const tb = section('0. Control — machine quietness',
+    'Untouchable by the shim. <b>control(on)/control(off) must be ≈1.00</b> or the ratios in ' +
+    'every other section are noise, not measurements. This is the check the stale ' +
+    '“canvas is 7–12× slower” figure lacked.');
+  perf.control = {};
+  let sink = 0;
+  perf.control.math = row(tb, 'math: 20k sin/sqrt/imul', await bench(() => {
+    let a = 0;
+    for (let i = 1; i < 20000; i++) a += Math.sqrt(i) * Math.sin(i) + Math.imul(i, 2654435761);
+    sink += a;
+  }, { budgetMs: 1500, minSamples: 31 }));
+  perf.control.string = row(tb, 'string: 4k char hash', await bench(() => {
+    const s = 'nullecho-control-workload-';
+    let h = 0;
+    for (let i = 0; i < 4000; i++) h = (Math.imul(h ^ s.charCodeAt(i % s.length), 16777619)) >>> 0;
+    sink += h;
+  }, { budgetMs: 1200 }));
+  perf.control.alloc = row(tb, 'alloc: 50k-element typed array fill', await bench(() => {
+    const a = new Float64Array(50000);
+    for (let i = 0; i < a.length; i += 7) a[i] = i * 0.5;
+    sink += a[0];
+  }, { budgetMs: 1200 }));
+  perf.control.sink = sink;
+  await yield_();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAIRED A/B — THE AUTHORITATIVE COMPARISON.
+//
+// Patched API vs pristine native, alternating ABBA inside this one page load.
+// Immune to a browser we do not have to ourselves, which is the condition that
+// produced the stale 7–12× canvas figure. On a shim=off page both sides are the
+// same native function and the ratios must come back at 1.00 — printed below as
+// the instrument's own calibration, not assumed.
+// ═══════════════════════════════════════════════════════════════════════════
+if (want('paired')) {
+  status('paired A/B — patched vs pristine native…');
+  const NAT = window.__NATIVE;
+  const P = perf.suites.paired = { nullRun: MODE === 'off', cells: {} };
+
+  const h = document.createElement('h2');
+  h.textContent = MODE === 'on'
+    ? '1. PAIRED A/B — patched vs pristine native (authoritative)'
+    : '1. PAIRED A/B — NULL CALIBRATION (native vs native, must be 1.00)';
+  out.appendChild(h);
+  const n = document.createElement('div'); n.className = 'note';
+  n.innerHTML = MODE === 'on'
+    ? 'Both sides run milliseconds apart in ABBA order inside this page load, so ' +
+      'contention from anything else on this machine lands on both and divides out. ' +
+      '<code>ratio spread</code> is the honest error bar: a wide spread means the ' +
+      'machine moved and the median should be read loosely.'
+    : 'Same harness, but the “patched” side is also the native function. Every ' +
+      'ratio here <b>must</b> be ≈1.00. Anything else means the instrument itself ' +
+      'is biased and no ratio on a shim=on run can be trusted.';
+  out.appendChild(n);
+  const t = document.createElement('table');
+  t.innerHTML = '<thead><tr><th>operation</th>' +
+    '<th style="text-align:right">patched med</th><th style="text-align:right">native med</th>' +
+    '<th style="text-align:right">added ms</th><th style="text-align:right">RATIO</th>' +
+    '<th style="text-align:right">ratio spread (min–p95)</th>' +
+    '<th style="text-align:right">rounds×reps</th></tr></thead><tbody></tbody>';
+  out.appendChild(t);
+  const ptb = t.querySelector('tbody');
+
+  function prow(name, r) {
+    P.cells[name] = r;
+    const tr = document.createElement('tr');
+    if (!r || r.error) {
+      tr.innerHTML = '<td class="name"></td><td colspan="6" style="color:var(--bad)"></td>';
+      tr.children[0].textContent = name;
+      tr.children[1].textContent = r ? r.error : 'not run';
+    } else {
+      const noRatio = r.ratioMedian == null;
+      const bad = noRatio ? false
+        : (MODE === 'off' ? (r.ratioMedian < 0.9 || r.ratioMedian > 1.1) : (r.ratioMedian > 3));
+      const warn = !noRatio && MODE === 'on' && r.ratioMedian > 1.3 && r.ratioMedian <= 3;
+      const f = (v) => v.toFixed(v < 1 ? 4 : 3);
+      tr.innerHTML = '<td class="name"></td><td class="num"></td><td class="num"></td>' +
+        '<td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>';
+      tr.children[0].textContent = name;
+      tr.children[1].textContent = f(r.patched.median);
+      tr.children[2].textContent = f(r.native.median);
+      tr.children[3].textContent = f(r.addedMedianMs);
+      tr.children[4].innerHTML = noRatio
+        ? '<span class="pill warn">n/a</span>'
+        : '<span class="pill ' + (bad ? 'bad' : warn ? 'warn' : 'ok') + '">' +
+          r.ratioMedian.toFixed(2) + '×</span>';
+      tr.children[5].textContent = noRatio
+        ? 'native < clock res'
+        : r.ratioMin.toFixed(2) + '–' + r.ratioP95.toFixed(2);
+      tr.children[6].textContent = r.rounds + '×' + r.reps;
+    }
+    ptb.appendChild(tr);
+    return r;
+  }
+
+  const pstage = document.createElement('div');
+  pstage.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1200px';
+  document.body.appendChild(pstage);
+
+  function paint(w, h2) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h2; pstage.appendChild(c);
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, w, h2);
+    g.addColorStop(0, '#2196f3'); g.addColorStop(1, '#f6a821');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h2);
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    ctx.font = Math.max(8, Math.round(h2 / 6)) + 'px sans-serif';
+    ctx.fillText('Nullecho ' + w + '×' + h2, 4, Math.round(h2 / 2));
+    for (let i = 0; i < 24; i++) {
+      ctx.fillStyle = 'hsl(' + (i * 15) + ',70%,50%)';
+      ctx.fillRect((i * w / 24) | 0, (h2 * 0.7) | 0, Math.max(1, (w / 30) | 0), Math.max(1, (h2 / 5) | 0));
+    }
+    return { c, ctx };
+  }
+
+  // ── canvas 2D ────────────────────────────────────────────────────────────
+  for (const [w, hh, label] of [[32, 32, 'icon 32×32'], [300, 200, 'typical 300×200'], [1920, 1080, 'large 1920×1080']]) {
+    const { c, ctx } = paint(w, hh);
+    const heavy = w * hh >= 1920 * 1080;
+    prow('getImageData full — ' + label, await paired(
+      () => { ctx.getImageData(0, 0, w, hh); },
+      () => { NAT.getImageData.call(ctx, 0, 0, w, hh); },
+      { budgetMs: heavy ? 2600 : 1600, maxReps: heavy ? 1 : 2048, minRounds: heavy ? 6 : 8 }));
+    await yield_();
+
+    if (w > 64) {
+      const pw = Math.min(50, w), ph = Math.min(50, hh);
+      // NB: rep cap sized by the READ, not the canvas. The native cost of a
+      // 50×50 read is tiny whatever the canvas is; capping at 1 rep because the
+      // CANVAS is large put the native side under the clock and produced 0.00.
+      prow('getImageData 50×50 sub-rect of ' + label, await paired(
+        () => { ctx.getImageData(0, 0, pw, ph); },
+        () => { NAT.getImageData.call(ctx, 0, 0, pw, ph); },
+        { budgetMs: heavy ? 3000 : 1600, maxReps: 256, minRounds: 8 }));
+      await yield_();
+    }
+
+    prow('toDataURL — ' + label, await paired(
+      () => { c.toDataURL(); },
+      () => { NAT.toDataURL.call(c); },
+      { budgetMs: heavy ? 2800 : 1800, maxReps: heavy ? 1 : 128, minRounds: heavy ? 6 : 8 }));
+    await yield_();
+  }
+
+  // ── WebGL readPixels ─────────────────────────────────────────────────────
+  {
+    const glc = document.createElement('canvas'); glc.width = 1024; glc.height = 1024;
+    pstage.appendChild(glc);
+    const gl = glc.getContext('webgl2') || glc.getContext('webgl');
+    if (gl) {
+      const nat = (gl instanceof WebGL2RenderingContext) ? NAT.readPixels2 : NAT.readPixels1;
+      gl.clearColor(0.2, 0.55, 0.85, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      for (const [rw, rh, label] of [[32, 32, '32×32'], [300, 200, '300×200'], [1024, 1024, '1024×1024']]) {
+        const bufA = new Uint8Array(rw * rh * 4), bufB = new Uint8Array(rw * rh * 4);
+        prow('WebGL readPixels — ' + label, await paired(
+          () => { gl.readPixels(0, 0, rw, rh, gl.RGBA, gl.UNSIGNED_BYTE, bufA); },
+          () => { nat.call(gl, 0, 0, rw, rh, gl.RGBA, gl.UNSIGNED_BYTE, bufB); },
+          { budgetMs: 1800, maxReps: rw * rh > 400000 ? 2 : 512 }));
+        await yield_();
+      }
+    } else { prow('WebGL readPixels', { error: 'no WebGL context' }); }
+  }
+
+  // ── audio: first read of a fresh 1 s buffer (the fingerprinting shape) ────
+  {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC && NAT.getChannelData) {
+      const ac = new AC(); const LEN = 44100; const POOL = 220;
+      const src = new Float32Array(LEN);
+      for (let j = 0; j < LEN; j++) src[j] = Math.sin(j * 0.01) * 0.5;
+      const mk = (k) => { const arr = []; for (let i = 0; i < k; i++) { const b = ac.createBuffer(1, LEN, 44100); b.copyToChannel(src, 0); arr.push(b); } return arr; };
+      const pa = mk(POOL), pb = mk(POOL);
+      let ia = 0, ib = 0;
+      prow('AudioBuffer.getChannelData — FIRST read, fresh 1 s buffer', await paired(
+        () => { if (ia < pa.length) pa[ia++].getChannelData(0); },
+        () => { if (ib < pb.length) NAT.getChannelData.call(pb[ib++], 0); },
+        { reps: 1, maxRounds: 50, minRounds: 20, budgetMs: 3000 }));
+      await yield_();
+      const wa = mk(1)[0], wb = mk(1)[0];
+      wa.getChannelData(0); NAT.getChannelData.call(wb, 0);
+      prow('AudioBuffer.getChannelData — repeat read (memoised)', await paired(
+        () => { wa.getChannelData(0); },
+        () => { NAT.getChannelData.call(wb, 0); },
+        { budgetMs: 1200 }));
+      try { ac.close(); } catch (_) {}
+      await yield_();
+    }
+  }
+
+  // ── fonts: the probe loop AND the layout path ────────────────────────────
+  {
+    const FAM = ['Segoe UI','Calibri','Cambria','Consolas','Tahoma','Verdana','Georgia','Bahnschrift',
+      'Candara','Corbel','Ebrima','Gadugi','Impact','Ink Free','Helvetica Neue','Avenir','Avenir Next',
+      'Baskerville','Chalkboard','Cochin','Didot','Futura','Geneva','Gill Sans','Herculanum','Hoefler Text',
+      'Menlo','Monaco','Optima','Papyrus','Skia','Zapfino','American Typewriter','DejaVu Sans','DejaVu Serif',
+      'Liberation Sans','Liberation Serif','Ubuntu','Ubuntu Mono','Nimbus Roman','Nimbus Sans','FreeSans',
+      'FreeSerif','Garuda','Kinnari','Loma','Norasi','Purisa','Sawasdee','Waree','Padauk','Rachana','Arial',
+      'Courier New','Times New Roman','Trebuchet MS','Comic Sans MS','Palatino Linotype','Lucida Console','MS Gothic'];
+    P.probeFamilies = FAM.length;
+
+    const sp = document.createElement('span');
+    sp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;font-size:72px;white-space:nowrap';
+    sp.textContent = 'mmmmmmmmmmlli';
+    document.body.appendChild(sp);
+    let k = 0;
+    prow('font probe — offsetWidth, per family', await paired(
+      () => { sp.style.fontFamily = '"' + FAM[k++ % FAM.length] + '",monospace'; void sp.offsetWidth; },
+      () => { sp.style.fontFamily = '"' + FAM[k++ % FAM.length] + '",monospace'; void NAT.offsetWidth.call(sp); },
+      { budgetMs: 2000 }));
+    await yield_();
+    prow('font probe — getBoundingClientRect, per family', await paired(
+      () => { sp.style.fontFamily = '"' + FAM[k++ % FAM.length] + '",monospace'; void sp.getBoundingClientRect().width; },
+      () => { sp.style.fontFamily = '"' + FAM[k++ % FAM.length] + '",monospace'; void NAT.getBoundingClientRect.call(sp).width; },
+      { budgetMs: 2000 }));
+    await yield_();
+    document.body.removeChild(sp);
+
+    const mc = document.createElement('canvas'); mc.width = 10; mc.height = 10;
+    const mx = mc.getContext('2d');
+    let k2 = 0;
+    prow('font probe — measureText, per family', await paired(
+      () => { mx.font = '72px "' + FAM[k2++ % FAM.length] + '",monospace'; void mx.measureText('mmmmmmmmmmlli').width; },
+      () => { mx.font = '72px "' + FAM[k2++ % FAM.length] + '",monospace'; void NAT.measureText.call(mx, 'mmmmmmmmmmlli').width; },
+      { budgetMs: 1800 }));
+    await yield_();
+
+    // THE LAYOUT PATH — 300 leaf rows with a real-world font stack. This is the
+    // one that hits every page, not just fingerprinting ones.
+    const N_LEAF = 300;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:900px;' +
+      'font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+    const leaves = [];
+    for (let i = 0; i < N_LEAF; i++) {
+      const dv = document.createElement('div');
+      dv.textContent = 'Row ' + i + ' — Checkout $' + (i * 7 % 900) + '.99';
+      wrap.appendChild(dv); leaves.push(dv);
+    }
+    document.body.appendChild(wrap);
+    let li = 0;
+    prow('LAYOUT — offsetWidth on a leaf (short text, real font stack)', await paired(
+      () => { void leaves[li++ % N_LEAF].offsetWidth; },
+      () => { void NAT.offsetWidth.call(leaves[li++ % N_LEAF]); },
+      { budgetMs: 2200 }));
+    await yield_();
+    prow('LAYOUT — getBoundingClientRect on a leaf', await paired(
+      () => { void leaves[li++ % N_LEAF].getBoundingClientRect().width; },
+      () => { void NAT.getBoundingClientRect.call(leaves[li++ % N_LEAF]).width; },
+      { budgetMs: 2200 }));
+    await yield_();
+    prow('LAYOUT — sweep all ' + N_LEAF + ' leaves (getBoundingClientRect)', await paired(
+      () => { for (let i = 0; i < N_LEAF; i++) leaves[i].getBoundingClientRect(); },
+      () => { for (let i = 0; i < N_LEAF; i++) NAT.getBoundingClientRect.call(leaves[i]); },
+      { budgetMs: 2600, maxReps: 4, minRounds: 6 }));
+    await yield_();
+
+    const conts = [];
+    const cw = document.createElement('div');
+    cw.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:900px';
+    for (let i = 0; i < 100; i++) {
+      const c2 = document.createElement('div');
+      const inner = document.createElement('span'); inner.textContent = 'cell ' + i;
+      c2.appendChild(inner); cw.appendChild(c2); conts.push(c2);
+    }
+    document.body.appendChild(cw);
+    let ci = 0;
+    prow('LAYOUT — getBoundingClientRect on a CONTAINER (gated out)', await paired(
+      () => { void conts[ci++ % 100].getBoundingClientRect().width; },
+      () => { void NAT.getBoundingClientRect.call(conts[ci++ % 100]).width; },
+      { budgetMs: 1800 }));
+    await yield_();
+    prow('LAYOUT — offsetWidth on a CONTAINER (gated out)', await paired(
+      () => { void conts[ci++ % 100].offsetWidth; },
+      () => { void NAT.offsetWidth.call(conts[ci++ % 100]); },
+      { budgetMs: 1800 }));
+    await yield_();
+
+    // measureText inside a chart render loop — a very common real workload.
+    const cc = document.createElement('canvas'); cc.width = 600; cc.height = 300;
+    const cx = cc.getContext('2d');
+    cx.font = '13px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+    let mi = 0;
+    prow('measureText in a chart render loop', await paired(
+      () => { cx.measureText('Label ' + (mi++ & 63) + ' — 1,234.56'); },
+      () => { NAT.measureText.call(cx, 'Label ' + (mi++ & 63) + ' — 1,234.56'); },
+      { budgetMs: 1600 }));
+    await yield_();
+
+    // ── AREA 4, measured rather than argued: patched navigator accessors, and
+    //    an UNPATCHED accessor beside them as an in-page null control. The
+    //    control runs on this same page, so it catches instrument bias on a
+    //    shim=on run where the shim=off calibration is not in hand.
+    prow('navigator.userAgent read (patched accessor)', await paired(
+      () => { void navigator.userAgent; },
+      () => { void NAT.navUserAgent.call(navigator); }, { budgetMs: 1500 }));
+    await yield_();
+    prow('navigator.hardwareConcurrency read (patched accessor)', await paired(
+      () => { void navigator.hardwareConcurrency; },
+      () => { void NAT.navCores.call(navigator); }, { budgetMs: 1500 }));
+    await yield_();
+    prow('navigator.platform read (patched accessor)', await paired(
+      () => { void navigator.platform; },
+      () => { void NAT.navPlatform.call(navigator); }, { budgetMs: 1500 }));
+    await yield_();
+    prow('NULL CONTROL — Element.clientWidth (never patched)', await paired(
+      () => { void conts[ci++ % 100].clientWidth; },
+      () => { void NAT.clientWidth.call(conts[ci++ % 100]); }, { budgetMs: 1500 }));
+    await yield_();
+
+    document.body.removeChild(wrap);
+    document.body.removeChild(cw);
+  }
+
+  pstage.remove();
+
+  // Null-run verdict, printed rather than assumed.
+  const rs = Object.values(P.cells).filter((r) => r && !r.error && r.ratioMedian != null).map((r) => r.ratioMedian);
+  P.ratioSummary = rs.length ? stats(rs) : null;
+  if (MODE === 'off' && P.ratioSummary) {
+    const worst = Math.max(...rs.map((v) => Math.abs(v - 1)));
+    const bx = document.createElement('div');
+    bx.className = 'box ' + (worst <= 0.1 ? 'ok' : 'bad');
+    bx.innerHTML = '<b>NULL CALIBRATION: worst deviation from 1.00 is ' +
+      (worst * 100).toFixed(1) + '%.</b> ' +
+      (worst <= 0.1
+        ? 'The paired instrument is unbiased; ratios from a shim=on run are trustworthy.'
+        : 'The instrument is biased on this machine — do NOT trust ratios from a shim=on run until this is understood.');
+    out.appendChild(bx);
+    P.nullWorstDeviation = +worst.toFixed(4);
+  }
+  await yield_();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AREA 3a — shim boot cost (from this page load).
+// perf-page.html repeats this across N reloads for a distribution.
+// ═══════════════════════════════════════════════════════════════════════════
+{
+  const b = window.__boot;
+  const res = performance.getEntriesByType('resource')
+    .filter((e) => window.__shimUrl && e.name.indexOf(window.__shimUrl) !== -1)[0];
+  if (res) b.resource = {
+    duration: +res.duration.toFixed(3),
+    transferSize: res.transferSize,
+    encodedBodySize: res.encodedBodySize,
+    decodedBodySize: res.decodedBodySize,
+    responseEnd: +res.responseEnd.toFixed(3),
+  };
+  b.derived = {
+    // Parse + execute + capture builtins + installInto(globalThis), minus the
+    // network fetch. This is the cost a real user pays at document_start.
+    scriptEvalMs: (b.afterShimScript != null && b.resource)
+      ? +(b.afterShimScript - b.resource.responseEnd).toFixed(3) : null,
+    writeToBootEventMs: (b.bootEvent != null && b.beforeShimWrite != null)
+      ? +(b.bootEvent - b.beforeShimWrite).toFixed(3) : null,
+    bootEventToDoneMs: (b.afterShimScript != null && b.bootEvent != null)
+      ? +(b.afterShimScript - b.bootEvent).toFixed(3) : null,
+    totalWriteToDoneMs: (b.afterShimScript != null && b.beforeShimWrite != null)
+      ? +(b.afterShimScript - b.beforeShimWrite).toFixed(3) : null,
+  };
+  const tb = section('3a. Shim boot (this page load)',
+    '<code>scriptEval</code> = parse + execute + D21 builtin capture + ' +
+    '<code>installInto(window)</code>, with the network fetch subtracted. ' +
+    'Single sample — <code>perf-page.html</code> repeats it across reloads.');
+  const mk = (v) => v == null ? { error: 'n/a' } : { median: v, p95: v, rsd: 0, n: 1, reps: 1 };
+  row(tb, 'shim.js network fetch', b.resource ? mk(b.resource.duration) : { error: 'no resource entry' });
+  row(tb, 'shim.js eval (parse+capture+patch)', mk(b.derived.scriptEvalMs));
+  row(tb, 'document.write → boot event', mk(b.derived.writeToBootEventMs));
+  row(tb, 'boot event → script done (patching)', mk(b.derived.bootEventToDoneMs));
+  row(tb, 'TOTAL blocking cost at document_start', mk(b.derived.totalWriteToDoneMs));
+  if (b.resource) {
+    const d = document.createElement('div'); d.className = 'note';
+    d.innerHTML = 'shim.js wire size: <code>' + (b.resource.transferSize / 1024).toFixed(1) +
+      ' KB</code> transferred, <code>' + (b.resource.decodedBodySize / 1024).toFixed(1) +
+      ' KB</code> decoded. (Served uncompressed by python http.server; a real ' +
+      'extension loads it from local disk with no network at all, so the fetch ' +
+      'column is an artefact of the harness, not a user cost.)';
+    out.appendChild(d);
+  }
+  await yield_();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AREA 1 — canvas / WebGL / audio read cost.  Settles follow-up #6.
+// ═══════════════════════════════════════════════════════════════════════════
+if (want('canvas')) {
+  status('area 1 — canvas / WebGL / audio read cost…');
+  const tb = section('1b. Absolute per-operation cost in THIS mode (single-sided)',
+    'The shim scans the WHOLE canvas once per read (ink gate + FNV-1a content ' +
+    'digest, D22) and then perturbs ~1 pixel in 8. Cost is therefore ' +
+    'O(canvas area), not O(read area) — the partial-read rows show that ' +
+    'directly. <code>toDataURL</code>/<code>toBlob</code> additionally build a ' +
+    'noised copy: extra canvas + drawImage + getImageData + putImageData.');
+  const S = perf.suites.canvas = {};
+
+  const SIZES = [[32, 32, 'icon 32×32'], [300, 200, 'typical 300×200'], [1920, 1080, 'large 1920×1080']];
+
+  function paint(w, h) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h; stage.appendChild(c);
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#2196f3'); g.addColorStop(1, '#f6a821');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    ctx.font = Math.max(8, Math.round(h / 6)) + 'px sans-serif';
+    ctx.fillText('Nullecho ' + w + '×' + h, 4, Math.round(h / 2));
+    for (let i = 0; i < 24; i++) {
+      ctx.fillStyle = 'hsl(' + (i * 15) + ',70%,50%)';
+      ctx.fillRect((i * w / 24) | 0, (h * 0.7) | 0, Math.max(1, (w / 30) | 0), Math.max(1, (h / 5) | 0));
+    }
+    return { c, ctx };
+  }
+
+  for (const [w, h, label] of SIZES) {
+    const { c, ctx } = paint(w, h);
+    const heavy = w * h >= 1920 * 1080;
+
+    S['getImageData full ' + label] = row(tb, 'getImageData full — ' + label,
+      await bench(() => { ctx.getImageData(0, 0, w, h); },
+        { budgetMs: heavy ? 2200 : 1200, minSamples: heavy ? 15 : 21, maxReps: heavy ? 2 : 1024 }));
+    await yield_();
+
+    if (w > 64) {
+      const pw = Math.min(50, w), ph = Math.min(50, h);
+      S['getImageData 50x50 of ' + label] = row(tb, 'getImageData 50×50 sub-rect of ' + label,
+        await bench(() => { ctx.getImageData(0, 0, pw, ph); },
+          { budgetMs: heavy ? 2200 : 1200, minSamples: 15, maxReps: heavy ? 2 : 1024 }));
+      await yield_();
+    }
+
+    S['toDataURL ' + label] = row(tb, 'toDataURL — ' + label,
+      await bench(() => { c.toDataURL(); },
+        { budgetMs: heavy ? 2500 : 1400, minSamples: heavy ? 11 : 21, maxReps: heavy ? 1 : 512 }));
+    await yield_();
+
+    // toBlob is deliberately NOT benchmarked.
+    //
+    // Its result arrives on a callback, and a hidden tab throttles callbacks to
+    // about one per second — which swamps a few ms of signal and reads as a
+    // 1000 ms "cost" that is entirely Chrome's scheduler. Reporting that would
+    // be the same class of error as the 7–12× figure.
+    //
+    // It also is not needed: in ext/src/shim.js, `toBlob` and `toDataURL` take
+    // the IDENTICAL path — both call `noisedCopy(this)` and then hand the noised
+    // copy to the original. The shim-added cost of toBlob is therefore the
+    // measured shim-added cost of toDataURL; only the native encoder after it
+    // differs, and that part is not ours.
+    S['toBlob ' + label] = { skipped: 'shares noisedCopy() with toDataURL; callback timing invalid in a hidden tab' };
+  }
+
+  // ── WebGL readPixels. The kernel scans only the read rect here, so cost is
+  //    O(read area) — the opposite of the 2D path, and worth showing side by side.
+  const glc = document.createElement('canvas');
+  glc.width = 1024; glc.height = 1024; stage.appendChild(glc);
+  const gl = glc.getContext('webgl2') || glc.getContext('webgl');
+  if (gl) {
+    gl.clearColor(0.2, 0.55, 0.85, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    for (const [rw, rh, label] of [[32, 32, '32×32'], [300, 200, '300×200'], [1024, 1024, '1024×1024']]) {
+      const buf = new Uint8Array(rw * rh * 4);
+      S['readPixels ' + label] = row(tb, 'WebGL readPixels — ' + label,
+        await bench(() => { gl.readPixels(0, 0, rw, rh, gl.RGBA, gl.UNSIGNED_BYTE, buf); },
+          { budgetMs: 1400, minSamples: 15, maxReps: rw * rh > 400000 ? 2 : 1024 }));
+      await yield_();
+    }
+  } else { S.readPixels = { error: 'no WebGL context' }; }
+
+  // ── Audio. Noising is memoised per (buffer, channel), so the FIRST read of a
+  //    fresh buffer is the fingerprinting cost and a re-read is the playback cost.
+  //    They differ by orders of magnitude and quoting one for the other would be
+  //    dishonest in either direction.
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (AC) {
+    const ac = new AC();
+    const LEN = 44100;                       // 1 s at 44.1 kHz — the usual probe size
+    const pool = [];
+    const POOL = 24;
+    const mkBuf = () => {
+      const b = ac.createBuffer(1, LEN, 44100);
+      const d = b.getChannelData(0);         // note: this itself is a first read
+      for (let i = 0; i < LEN; i++) d[i] = Math.sin(i * 0.01) * 0.5;
+      return b;
+    };
+    // Fresh-buffer read: pre-build a pool untimed, then time one read of each.
+    let poolIdx = 0;
+    S['audio getChannelData first read (1s, 44.1kHz)'] = row(tb,
+      'AudioBuffer.getChannelData — FIRST read of a fresh 1 s buffer',
+      await bench(
+        () => { pool[poolIdx++].getChannelData(0); },
+        {
+          reps: POOL, warmup: 0, minSamples: 11, budgetMs: 2500,
+          setup: () => {
+            pool.length = 0; poolIdx = 0;
+            // Build buffers WITHOUT going through the patched getChannelData for
+            // the fill, or the pool would arrive already noised and the timed read
+            // would measure a WeakMap hit.
+            for (let i = 0; i < POOL; i++) {
+              const b = ac.createBuffer(1, LEN, 44100);
+              const d = new Float32Array(LEN);
+              for (let j = 0; j < LEN; j++) d[j] = Math.sin(j * 0.01) * 0.5;
+              b.copyToChannel(d, 0);
+              pool.push(b);
+            }
+          },
+        }));
+    await yield_();
+    const warm = mkBuf();
+    warm.getChannelData(0);
+    S['audio getChannelData repeat read'] = row(tb,
+      'AudioBuffer.getChannelData — repeat read (already noised)',
+      await bench(() => { warm.getChannelData(0); }, { budgetMs: 1000 }));
+    await yield_();
+    try { ac.close(); } catch (_) {}
+  } else { S.audio = { error: 'no AudioContext' }; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AREA 2 — font enumeration AND the layout path.
+//
+// The layout half matters more than the enumeration half: a font-probe loop
+// runs on fingerprinting pages, but offsetWidth / getBoundingClientRect run on
+// every page there is.
+// ═══════════════════════════════════════════════════════════════════════════
+if (want('fonts')) {
+  status('area 2 — font probes and layout path…');
+  const tb = section('2b. Absolute font / layout cost in THIS mode (single-sided)',
+    'The shim patches <code>offsetWidth</code>, <code>offsetHeight</code>, ' +
+    '<code>getBoundingClientRect</code> and <code>measureText</code>. The gate ' +
+    'order is: leaf element → 1–128 chars of text → connected → ' +
+    '<code>getComputedStyle</code> → family plan. Anything failing an early gate ' +
+    'is nearly free; anything reaching the plan can cost two extra forced layouts ' +
+    '(<code>measureWithFamily</code> sets <code>font-family</code> ' +
+    '<code>!important</code> and re-reads). <b>The container rows are the ones ' +
+    'that decide whether ordinary pages pay.</b>');
+  const S = perf.suites.fonts = {};
+
+  const PROBE_FAMILIES = [
+    'Segoe UI', 'Calibri', 'Cambria', 'Consolas', 'Tahoma', 'Verdana', 'Georgia',
+    'Bahnschrift', 'Candara', 'Corbel', 'Ebrima', 'Gadugi', 'Impact', 'Ink Free',
+    'Helvetica Neue', 'Avenir', 'Avenir Next', 'Baskerville', 'Chalkboard', 'Cochin',
+    'Didot', 'Futura', 'Geneva', 'Gill Sans', 'Herculanum', 'Hoefler Text', 'Menlo',
+    'Monaco', 'Optima', 'Papyrus', 'Skia', 'Zapfino', 'American Typewriter',
+    'DejaVu Sans', 'DejaVu Serif', 'Liberation Sans', 'Liberation Serif', 'Ubuntu',
+    'Ubuntu Mono', 'Nimbus Roman', 'Nimbus Sans', 'FreeSans', 'FreeSerif', 'Garuda',
+    'Kinnari', 'Loma', 'Norasi', 'Purisa', 'Sawasdee', 'Waree', 'Padauk', 'Rachana',
+    'Arial', 'Courier New', 'Times New Roman', 'Trebuchet MS', 'Comic Sans MS',
+    'Palatino Linotype', 'Lucida Console', 'MS Gothic',
+  ];
+  S.probeFamilies = PROBE_FAMILIES.length;
+
+  // ── (a) the classic offsetWidth font-probe loop, exactly as a fingerprinter
+  //        writes it: one span per family against a monospace baseline.
+  const probeSpan = document.createElement('span');
+  probeSpan.style.cssText = 'position:absolute;left:-9999px;top:-9999px;font-size:72px;white-space:nowrap';
+  probeSpan.textContent = 'mmmmmmmmmmlli';
+  document.body.appendChild(probeSpan);
+  let fi = 0;
+  S.probeOffsetWidth = row(tb, 'font probe — offsetWidth, per family',
+    await bench(() => {
+      const f = PROBE_FAMILIES[fi++ % PROBE_FAMILIES.length];
+      probeSpan.style.fontFamily = '"' + f + '",monospace';
+      void probeSpan.offsetWidth;
+    }, { budgetMs: 1800, minSamples: 25 }));
+  await yield_();
+
+  S.probeBoundingRect = row(tb, 'font probe — getBoundingClientRect, per family',
+    await bench(() => {
+      const f = PROBE_FAMILIES[fi++ % PROBE_FAMILIES.length];
+      probeSpan.style.fontFamily = '"' + f + '",monospace';
+      void probeSpan.getBoundingClientRect().width;
+    }, { budgetMs: 1800, minSamples: 25 }));
+  await yield_();
+
+  const mc = document.createElement('canvas'); mc.width = 10; mc.height = 10;
+  const mctx = mc.getContext('2d');
+  S.probeMeasureText = row(tb, 'font probe — measureText, per family',
+    await bench(() => {
+      const f = PROBE_FAMILIES[fi++ % PROBE_FAMILIES.length];
+      mctx.font = '72px "' + f + '",monospace';
+      void mctx.measureText('mmmmmmmmmmlli').width;
+    }, { budgetMs: 1500, minSamples: 25 }));
+  await yield_();
+
+  // Whole-sweep wall time: what a page's font-enumeration step actually costs.
+  S.fullSweep = row(tb, 'FULL sweep of ' + PROBE_FAMILIES.length + ' families (offsetWidth)',
+    await bench(() => {
+      for (let i = 0; i < PROBE_FAMILIES.length; i++) {
+        probeSpan.style.fontFamily = '"' + PROBE_FAMILIES[i] + '",monospace';
+        void probeSpan.offsetWidth;
+      }
+    }, { budgetMs: 1800, minSamples: 15, maxReps: 8 }));
+  document.body.removeChild(probeSpan);
+  await yield_();
+
+  // ── (b) realistic LAYOUT workload. A list of leaf nodes with short text and a
+  //        real-world font stack, read the way a virtual list or a measuring
+  //        layout reads them. This is the path that hits every page.
+  const N_LEAF = 300;
+  const listWrap = document.createElement('div');
+  listWrap.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:900px;' +
+    'font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+  const leaves = [];
+  for (let i = 0; i < N_LEAF; i++) {
+    const d = document.createElement('div');
+    d.textContent = 'Row ' + i + ' — Checkout $' + (i * 7 % 900) + '.99';
+    listWrap.appendChild(d);
+    leaves.push(d);
+  }
+  document.body.appendChild(listWrap);
+
+  let li = 0;
+  S.layoutOffsetWidthLeaf = row(tb, 'layout — offsetWidth on a LEAF (short text, real font stack)',
+    await bench(() => { void leaves[li++ % N_LEAF].offsetWidth; }, { budgetMs: 1800, minSamples: 25 }));
+  await yield_();
+  S.layoutRectLeaf = row(tb, 'layout — getBoundingClientRect on a LEAF',
+    await bench(() => { void leaves[li++ % N_LEAF].getBoundingClientRect().width; },
+      { budgetMs: 1800, minSamples: 25 }));
+  await yield_();
+  S.layoutSweep300 = row(tb, 'layout — sweep all ' + N_LEAF + ' leaves (getBoundingClientRect)',
+    await bench(() => {
+      for (let i = 0; i < N_LEAF; i++) leaves[i].getBoundingClientRect();
+    }, { budgetMs: 2000, minSamples: 15, maxReps: 16 }));
+  await yield_();
+
+  // Same element, repeatedly: exercises the per-element metricCache.
+  S.layoutRepeatSameLeaf = row(tb, 'layout — same leaf 1× (cache hit after first)',
+    await bench(() => { void leaves[0].offsetWidth; }, { budgetMs: 1000 }));
+  await yield_();
+
+  // ── (c) the gated-out paths. Containers (have children), long text (>128
+  //        chars) and detached nodes bail before getComputedStyle. If THESE are
+  //        cheap, ordinary layout code is mostly safe.
+  const containers = [];
+  const contWrap = document.createElement('div');
+  contWrap.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:900px';
+  for (let i = 0; i < 100; i++) {
+    const c = document.createElement('div');
+    const inner = document.createElement('span'); inner.textContent = 'cell ' + i;
+    c.appendChild(inner); contWrap.appendChild(c); containers.push(c);
+  }
+  document.body.appendChild(contWrap);
+  let ci = 0;
+  S.layoutContainer = row(tb, 'layout — getBoundingClientRect on a CONTAINER (gated out)',
+    await bench(() => { void containers[ci++ % 100].getBoundingClientRect().width; },
+      { budgetMs: 1500, minSamples: 21 }));
+  await yield_();
+  S.layoutContainerOffsetWidth = row(tb, 'layout — offsetWidth on a CONTAINER (gated out)',
+    await bench(() => { void containers[ci++ % 100].offsetWidth; }, { budgetMs: 1500, minSamples: 21 }));
+  await yield_();
+
+  const longEl = document.createElement('div');
+  longEl.textContent = 'x'.repeat(400);
+  contWrap.appendChild(longEl);
+  S.layoutLongText = row(tb, 'layout — offsetWidth on a leaf with >128 chars (gated out)',
+    await bench(() => { void longEl.offsetWidth; }, { budgetMs: 1200 }));
+  await yield_();
+
+  // ── (d) measureText inside a render loop — charts and canvas UIs do this a lot.
+  const cc = document.createElement('canvas'); cc.width = 600; cc.height = 300;
+  const cctx = cc.getContext('2d');
+  cctx.font = '13px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  let mi = 0;
+  S.measureTextRenderLoop = row(tb, 'measureText in a chart render loop (real font stack)',
+    await bench(() => { cctx.measureText('Label ' + (mi++ & 63) + ' — 1,234.56'); },
+      { budgetMs: 1500, minSamples: 25 }));
+  await yield_();
+
+  document.body.removeChild(listWrap);
+  document.body.removeChild(contWrap);
+  if (window.__nullechoDev) S.perApiAfterFonts = { ...window.__nullechoDev.perApi };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AREA 4 — steady state on an ordinary page that never fingerprints.
+// The number most users actually experience.
+// ═══════════════════════════════════════════════════════════════════════════
+if (want('steady')) {
+  status('area 4 — steady-state ordinary-page workload…');
+  const tb = section('4. Steady state — an ordinary page that never fingerprints',
+    'Nothing here is a fingerprinting move. It is the work an ordinary page does: ' +
+    'build DOM, toggle classes, query, read a few navigator properties, parse ' +
+    'JSON, sort, draw to a canvas <b>without ever reading it back</b>. If the ' +
+    'shim is free here, it is free for the common case.');
+  const S = perf.suites.steady = {};
+
+  const host = document.createElement('div');
+  host.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:800px';
+  document.body.appendChild(host);
+
+  S.domBuild = row(tb, 'DOM — build 500 nodes + attributes + text', await bench(() => {
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 500; i++) {
+      const d = document.createElement('div');
+      d.className = 'item i' + (i & 7);
+      d.setAttribute('data-id', String(i));
+      d.textContent = 'item ' + i;
+      frag.appendChild(d);
+    }
+    host.textContent = '';
+    host.appendChild(frag);
+  }, { budgetMs: 1500, minSamples: 15 }));
+  await yield_();
+
+  S.querySelectorAll = row(tb, 'DOM — querySelectorAll(".item") over 500 nodes',
+    await bench(() => { host.querySelectorAll('.item'); }, { budgetMs: 1200 }));
+  await yield_();
+
+  S.classToggle = row(tb, 'DOM — classList toggle across 500 nodes', await bench(() => {
+    const kids = host.children;
+    for (let i = 0; i < kids.length; i++) kids[i].classList.toggle('on');
+  }, { budgetMs: 1200, minSamples: 15 }));
+  await yield_();
+
+  S.getComputedStyle = row(tb, 'DOM — getComputedStyle + one property read',
+    await bench(() => { void getComputedStyle(host.firstChild).fontSize; }, { budgetMs: 1200 }));
+  await yield_();
+
+  // navigator properties ARE patched accessors. Pages read them constantly
+  // (feature detection, analytics, polyfills) without fingerprinting anything.
+  S.navigatorReads = row(tb, 'navigator — 6 patched properties read once each',
+    await bench(() => {
+      void navigator.userAgent; void navigator.platform; void navigator.hardwareConcurrency;
+      void navigator.deviceMemory; void navigator.language; void navigator.vendor;
+    }, { budgetMs: 1200 }));
+  await yield_();
+
+  S.eventDispatch = row(tb, 'events — dispatch + handle 100 CustomEvents', await bench(() => {
+    let n = 0;
+    const h = () => { n++; };
+    host.addEventListener('perf-ping', h);
+    for (let i = 0; i < 100; i++) host.dispatchEvent(new CustomEvent('perf-ping'));
+    host.removeEventListener('perf-ping', h);
+  }, { budgetMs: 1200, minSamples: 15 }));
+  await yield_();
+
+  const JSON_SRC = JSON.stringify({ rows: Array.from({ length: 200 }, (_, i) => ({ id: i, name: 'row ' + i, v: i * 1.5 })) });
+  S.jsonRoundtrip = row(tb, 'JSON — parse + stringify a 200-row payload',
+    await bench(() => { JSON.stringify(JSON.parse(JSON_SRC)); }, { budgetMs: 1200 }));
+  await yield_();
+
+  // A canvas that is DRAWN but never READ — the overwhelmingly common canvas use.
+  const dc = document.createElement('canvas'); dc.width = 400; dc.height = 200;
+  const dctx = dc.getContext('2d');
+  S.canvasDrawNoRead = row(tb, 'canvas — 200 draw ops, never read back', await bench(() => {
+    dctx.clearRect(0, 0, 400, 200);
+    for (let i = 0; i < 200; i++) {
+      dctx.fillStyle = 'hsl(' + (i * 3) + ',60%,50%)';
+      dctx.fillRect(i * 2 % 400, (i * 7) % 180, 6, 14);
+    }
+  }, { budgetMs: 1500, minSamples: 15 }));
+  await yield_();
+
+  S.canvasGetContext = row(tb, 'canvas — createElement + getContext(\'2d\')', await bench(() => {
+    const c = document.createElement('canvas'); c.width = 60; c.height = 30; c.getContext('2d');
+  }, { budgetMs: 1200 }));
+  await yield_();
+
+  document.body.removeChild(host);
+  if (window.__nullechoDev) S.perApiAfterSteady = { ...window.__nullechoDev.perApi };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AREA 5 — memory: retained heap, and whether installInto() leaks per realm.
+// ═══════════════════════════════════════════════════════════════════════════
+if (want('memory')) {
+  status('area 5 — memory…');
+  const tb2 = document.createElement('div');
+  const S = perf.suites.memory = {};
+  const h2 = document.createElement('h2'); h2.textContent = '5. Memory'; out.appendChild(h2);
+  const n2 = document.createElement('div'); n2.className = 'note';
+  n2.innerHTML = '<b>performance.memory is coarse and Chrome-only.</b> Chrome quantises ' +
+    'it and there is no way to force a GC from a page without ' +
+    '<code>--js-flags=--expose-gc</code>, so a single reading is not evidence. ' +
+    'Each figure below is the median of repeated samples taken across forced ' +
+    'allocation churn and idle periods, and differences smaller than a few hundred ' +
+    'KB should be read as zero. The iframe test is the load-bearing one: D21 ' +
+    'captures a large builtin set per realm and <code>installInto()</code> runs ' +
+    'again for every iframe.';
+  out.appendChild(n2); out.appendChild(tb2);
+
+  const mem = () => performance.memory
+    ? { used: performance.memory.usedJSHeapSize, total: performance.memory.totalJSHeapSize,
+        limit: performance.memory.jsHeapSizeLimit }
+    : null;
+  async function settledUsed(samples, gapMs) {
+    if (!performance.memory) return null;
+    const v = [];
+    for (let i = 0; i < (samples || 9); i++) { await sleep(gapMs || 120); v.push(performance.memory.usedJSHeapSize); }
+    v.sort((a, b) => a - b);
+    return v[Math.floor(v.length / 2)];
+  }
+
+  S.supported = !!performance.memory;
+  if (!performance.memory) {
+    const d = document.createElement('div'); d.className = 'box warn';
+    d.textContent = 'performance.memory not available in this browser — memory numbers skipped.';
+    out.appendChild(d);
+  } else {
+    S.snapshot = mem();
+    S.baselineUsed = await settledUsed(5, 120);
+
+    // ── 20 same-origin iframes. installInto() runs in each via the shim's
+    //    MutationObserver. Measure: after creation, and after removal + settle.
+    const N_FRAMES = 20;
+    const frames = [];
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:absolute;left:-9999px;top:-9999px';
+    document.body.appendChild(holder);
+    const t0 = performance.now();
+    for (let i = 0; i < N_FRAMES; i++) {
+      const f = document.createElement('iframe');
+      f.src = 'about:blank';
+      f.width = '10'; f.height = '10';
+      holder.appendChild(f);
+      frames.push(f);
+    }
+    // SYNCHRONOUS creation only. The shim's MutationObserver fires on these
+    // inserts and runs installInto() per realm, so this is the number that
+    // carries the per-iframe patching cost. The settle wait below is a timer,
+    // and a hidden tab throttles timers to about one per second — folding it in
+    // here (as an earlier version did) reported a 60-second "iframe cost" that
+    // was entirely Chrome's scheduler.
+    S.iframeCreateSyncMs = +(performance.now() - t0).toFixed(2);
+    await sleep(400);
+    S.iframeCreatePlusSettleMs = +(performance.now() - t0).toFixed(2);
+    S.iframeCreateMs = S.iframeCreateSyncMs;
+
+    // Confirm the realms were actually patched — otherwise this measures nothing.
+    let patched = 0, reachable = 0;
+    for (const f of frames) {
+      try {
+        const w = f.contentWindow;
+        if (!w) continue;
+        reachable++;
+        const d = Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'platform');
+        const looksPatched = !!d && !!d.get &&
+          (MODE === 'on' ? w.navigator.platform === navigator.platform : true);
+        if (looksPatched && MODE === 'on' && w.navigator.hardwareConcurrency === navigator.hardwareConcurrency) patched++;
+      } catch (_) { /* cross-origin — not expected for about:blank */ }
+    }
+    S.iframesReachable = reachable;
+    S.iframesLookingPatched = patched;
+    S.withFramesUsed = await settledUsed(5, 150);
+
+    for (const f of frames) f.remove();
+    holder.remove();
+    frames.length = 0;
+    // Churn allocation to encourage a GC, then settle.
+    for (let i = 0; i < 40; i++) { const junk = new Array(50000).fill(i); if (junk[0] === -1) console.log(junk); }
+    await sleep(900);
+    S.afterFramesRemovedUsed = await settledUsed(7, 150);
+
+    S.deltaPerIframeKB = (S.withFramesUsed != null && S.baselineUsed != null)
+      ? +(((S.withFramesUsed - S.baselineUsed) / N_FRAMES) / 1024).toFixed(1) : null;
+    S.retainedAfterRemovalKB = (S.afterFramesRemovedUsed != null && S.baselineUsed != null)
+      ? +(((S.afterFramesRemovedUsed - S.baselineUsed)) / 1024).toFixed(1) : null;
+    S.nFrames = N_FRAMES;
+
+    // Say out loud when the instrument could not resolve the question. A
+    // negative "per iframe" delta is not a memory saving — it is a garbage
+    // collection that happened to land mid-measurement, and it means the GC
+    // noise floor (tens of MB) is orders of magnitude above the signal we were
+    // looking for (hundreds of KB per realm).
+    S.resolvable = !(S.deltaPerIframeKB == null || S.deltaPerIframeKB < 0 ||
+                     S.retainedAfterRemovalKB == null || S.retainedAfterRemovalKB < 0);
+    if (!S.resolvable) {
+      const w = document.createElement('div');
+      w.className = 'box bad';
+      w.innerHTML = '<b>performance.memory could NOT resolve this.</b> One or more deltas came ' +
+        'back negative, which means a GC landed inside the measurement window. The noise floor ' +
+        'here is tens of MB; the quantity being looked for is a few hundred KB per realm. ' +
+        'No retained-heap number from this run should be quoted. The answerable version of the ' +
+        'same question is the TIME cost of <code>installInto()</code> across those realms, which ' +
+        'is measured above and is not GC-sensitive.';
+      out.appendChild(w);
+    }
+    const t = document.createElement('table');
+    const fmtKB = (b) => b == null ? 'n/a' : (b / 1024 / 1024).toFixed(2) + ' MB';
+    t.innerHTML =
+      '<thead><tr><th>memory measurement</th><th style="text-align:right">value</th></tr></thead><tbody>' +
+      '<tr><td class="name">used JS heap — baseline after boot + suites</td><td class="num">' + fmtKB(S.baselineUsed) + '</td></tr>' +
+      '<tr><td class="name">used JS heap — with ' + N_FRAMES + ' same-origin iframes</td><td class="num">' + fmtKB(S.withFramesUsed) + '</td></tr>' +
+      '<tr><td class="name">used JS heap — after removing them + churn + 1.2 s</td><td class="num">' + fmtKB(S.afterFramesRemovedUsed) + '</td></tr>' +
+      '<tr><td class="name">Δ per iframe realm</td><td class="num">' + (S.deltaPerIframeKB == null ? 'n/a' : S.deltaPerIframeKB + ' KB') + '</td></tr>' +
+      '<tr><td class="name">retained above baseline after removal</td><td class="num">' + (S.retainedAfterRemovalKB == null ? 'n/a' : S.retainedAfterRemovalKB + ' KB') + '</td></tr>' +
+      '<tr><td class="name">iframes reachable / looking patched</td><td class="num">' + reachable + ' / ' + patched + '</td></tr>' +
+      '<tr><td class="name">synchronous create of ' + N_FRAMES + ' iframes (incl. installInto)</td><td class="num">' + S.iframeCreateSyncMs + ' ms</td></tr>' +
+      '<tr><td class="name">total heap / limit</td><td class="num">' + fmtKB(S.snapshot.total) + ' / ' + fmtKB(S.snapshot.limit) + '</td></tr>' +
+      '</tbody>';
+    out.appendChild(t);
+  }
+  await yield_();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AREA 6 — DNR rule-set cost. Mostly NOT measurable from a page; say so.
+// ═══════════════════════════════════════════════════════════════════════════
+if (want('dnr')) {
+  status('area 6 — DNR rule sets…');
+  const S = perf.suites.dnr = {};
+  const h = document.createElement('h2'); h.textContent = '6. DNR rule sets'; out.appendChild(h);
+
+  const FILES = ['ads', 'analytics', 'social', 'fingerprinting', 'gpc', 'ua-win', 'ua-mac', 'ua-linux'];
+  S.rulesets = {};
+  let total = 0, bytes = 0;
+  for (const f of FILES) {
+    try {
+      const r = await fetch('/ext/rules/' + f + '.json?cb=' + Date.now(), { cache: 'no-store' });
+      const txt = await r.text();
+      const arr = JSON.parse(txt);
+      S.rulesets[f] = { rules: arr.length, bytes: txt.length };
+      total += arr.length; bytes += txt.length;
+    } catch (e) { S.rulesets[f] = { error: String(e && e.message || e) }; }
+  }
+  S.totalRules = total; S.totalBytes = bytes;
+
+  // Local request latency — a CALIBRATION, not a result. With no extension
+  // installed this is the negative control: whatever it reads here is the cost
+  // of the network stack without any DNR matching at all. Re-run it under a real
+  // unpacked install and the difference is the DNR cost.
+  const URLS = [];
+  for (let i = 0; i < 30; i++) URLS.push('/ext/icons/icon-16.png?cb=' + i + '.' + Date.now());
+  const lat = [];
+  for (const u of URLS) {
+    const t0 = performance.now();
+    try { await fetch(u, { cache: 'no-store' }); } catch (_) {}
+    lat.push(performance.now() - t0);
+  }
+  S.localRequestLatency = stats(lat);
+
+  const t = document.createElement('table');
+  t.innerHTML = '<thead><tr><th>ruleset</th><th style="text-align:right">rules</th>' +
+                '<th style="text-align:right">bytes</th></tr></thead><tbody>' +
+    FILES.map((f) => '<tr><td class="name">' + f + '</td><td class="num">' +
+      (S.rulesets[f].rules != null ? S.rulesets[f].rules : 'ERR') + '</td><td class="num">' +
+      (S.rulesets[f].bytes != null ? S.rulesets[f].bytes : '—') + '</td></tr>').join('') +
+    '<tr><td class="name"><b>total</b></td><td class="num"><b>' + total + '</b></td>' +
+    '<td class="num"><b>' + bytes + '</b></td></tr>' +
+    '<tr><td class="name">local request latency (30 × same-origin, negative control)</td>' +
+    '<td class="num" colspan="2">median ' + S.localRequestLatency.median.toFixed(2) +
+    ' ms · p95 ' + S.localRequestLatency.p95.toFixed(2) + ' ms</td></tr>' +
+    '</tbody>';
+  out.appendChild(t);
+
+  const note = document.createElement('div');
+  note.className = 'box warn';
+  note.innerHTML =
+    '<b>What a page genuinely cannot measure, and why.</b><br>' +
+    'DNR matching happens in the browser’s network stack, in C++, before any ' +
+    'page script exists. None of it is observable from JS:<ul>' +
+    '<li><b>Rule-set compile time at install/update.</b> Paid once by the browser, ' +
+    'off the page’s timeline entirely. Needs <code>chrome://extensions</code> ' +
+    'plus a real unpacked install to observe.</li>' +
+    '<li><b>Per-request match cost.</b> A blocked request never reaches the page, ' +
+    'and an allowed one carries no marker saying how many rules were evaluated. ' +
+    'The honest instrument is <code>onRuleMatchedDebug</code> (unpacked-only), or ' +
+    'a before/after comparison of a fixed page load with the rulesets toggled.</li>' +
+    '<li><b>Header-rewrite cost for the <code>ua-*</code> rulesets.</b> Those ship ' +
+    '<code>enabled:false</code> in the manifest and are switched on at runtime, so ' +
+    'their cost is not even present in a default profile.</li>' +
+    '<li><b>Service-worker wake-up.</b> MV3 tears the worker down; the first ' +
+    'navigation after an idle period pays a restart the page cannot time.</li></ul>' +
+    'The row above is therefore a <b>calibrated negative control</b>, in the same ' +
+    'sense as <code>harness/blocking-proof.html</code>: it establishes the ' +
+    'no-extension baseline so that the same measurement under a real install is ' +
+    'attributable. Reporting a DNR number from this page without that second run ' +
+    'would be a guess wearing a number.';
+  out.appendChild(note);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Wrap up
+// ═══════════════════════════════════════════════════════════════════════════
+if (window.__nullechoDev) {
+  perf.shimState = {
+    personaId: window.__nullechoDev.personaId,
+    upgraded: window.__nullechoDev.upgraded,
+    standingDown: window.__nullechoDev.standingDown,
+    reads: window.__nullechoDev.reads,
+    perApi: { ...window.__nullechoDev.perApi },
+    failures: window.__nullechoDev.failures,
+    forged: window.__nullechoDev.forged,
+  };
+}
+perf.done = true;
+status((MODE === 'on' ? 'SHIM ON' : 'SHIM OFF') + ' — run complete. ' +
+  (perf.shimState && perf.shimState.failures && perf.shimState.failures.length
+    ? '<b style="color:var(--bad)">' + perf.shimState.failures.length + ' shim patch failure(s)</b>'
+    : 'no shim patch failures.') +
+  ' Compare against the other mode; the control section decides whether the comparison is legitimate.');
+$('json').value = JSON.stringify(perf, null, 1);
+})().catch((e) => {
+  window.__perf = window.__perf || {};
+  window.__perf.fatal = String(e && e.stack || e);
+  window.__perf.done = true;
+  document.getElementById('sub').innerHTML =
+    '<b style="color:#f85149">FATAL: ' + String(e && e.message || e) + '</b>';
+});
+</script>
+</body>
+</html>

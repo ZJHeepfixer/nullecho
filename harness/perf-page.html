@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nullecho — page-load impact (representative page)</title>
+<!--
+  AREA 3 of the performance harness: does loading the shim at document_start
+  measurably delay a REAL page?
+
+  A blank page cannot answer that — it has no layout, no style recalc and no
+  decode for the shim's boot to sit in front of. So this page is deliberately
+  representative: ~430 DOM nodes across a header, a nav, a card grid, a table
+  and a footer; a few hundred CSS rules including gradients, flex and grid; and
+  six images. Nothing here is a fingerprinting move; it is what an ordinary page
+  looks like.
+
+      ?shim=on|off    default on
+      ?n=12           samples (page loads) to collect
+      ?salt=…-0003    persona (see harness/gen-perf-personas.mjs)
+
+  It RELOADS ITSELF n times, accumulating into sessionStorage, because one page
+  load is one sample and first paint is noisy. When it has n samples it stops
+  and publishes the aggregate on `window.__perfPage` (and renders it).
+
+  ⚠ SERVE FROM THE PROJECT ROOT (launch.json `nullecho-root`, port 4886) —
+    this page loads `/ext/src/shim.js`.
+-->
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--dim:#8b949e;
+        --accent:#58a6ff;--ok:#3fb950;--warn:#d29922;--bad:#f85149;
+        --mono:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  @media (prefers-color-scheme: light){
+    :root{--bg:#fff;--panel:#f6f8fa;--line:#d0d7de;--text:#1f2328;--dim:#59636e;
+          --accent:#0969da;--ok:#1a7f37;--warn:#9a6700;--bad:#cf222e;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:18px 24px;background:linear-gradient(120deg,#1f6feb22,#23863622);
+         border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;font-weight:650;letter-spacing:-.2px}
+  header .tag{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--panel);
+              border:1px solid var(--line);color:var(--dim)}
+  nav{display:flex;gap:4px;padding:8px 24px;border-bottom:1px solid var(--line);
+      overflow-x:auto;background:var(--panel)}
+  nav a{padding:5px 11px;border-radius:6px;color:var(--dim);text-decoration:none;
+        font-size:13px;white-space:nowrap}
+  nav a:hover{background:var(--bg);color:var(--text)}
+  nav a.on{color:var(--accent);font-weight:600}
+  main{padding:20px 24px;max-width:1100px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:16px 0}
+  .card{border:1px solid var(--line);border-radius:9px;padding:12px;background:var(--panel)}
+  .card h3{margin:0 0 4px;font-size:13.5px;font-weight:620}
+  .card p{margin:0;font-size:12.5px;color:var(--dim);line-height:1.45}
+  .card .row{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
+  .card .v{font-family:var(--mono);font-size:15px;font-weight:600}
+  .card .d{font-size:11px}
+  .up{color:var(--ok)} .down{color:var(--bad)} .flat{color:var(--dim)}
+  .bar{height:5px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--ok))}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+  th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line)}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim)}
+  td.n{text-align:right;font-family:var(--mono)}
+  .badge{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:999px;
+         background:var(--line);color:var(--text)}
+  .media{display:flex;gap:10px;align-items:center;margin:14px 0;flex-wrap:wrap}
+  .media img{border-radius:8px;border:1px solid var(--line);background:var(--panel)}
+  .quote{border-left:3px solid var(--accent);padding:6px 0 6px 12px;margin:16px 0;
+         color:var(--dim);font-size:13px;font-style:italic}
+  footer{padding:18px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:12px;margin-top:24px}
+  footer ul{margin:6px 0 0;padding-left:18px;columns:3;column-gap:24px}
+  footer li{font-size:11.5px;break-inside:avoid}
+  #verdict{margin:16px 24px;padding:14px 16px;border-radius:9px;border:1px solid var(--line);
+           background:var(--panel);font-family:var(--mono);font-size:12px;white-space:pre-wrap}
+  #progress{font-family:var(--mono);font-size:12px;color:var(--dim);padding:0 24px}
+</style>
+
+<script src="perf-personas.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STAGE 0 — identical handshake to harness/performance.html, at document_start.
+// ═══════════════════════════════════════════════════════════════════════════
+(() => {
+  const params = new URLSearchParams(location.search);
+  window.__mode = params.get('shim') === 'off' ? 'off' : 'on';
+  window.__n = Math.max(1, Math.min(60, parseInt(params.get('n') || '12', 10)));
+  window.__salt = params.get('salt') || 'nullecho-shim-test-0003';
+
+  window.__boot = { mode: window.__mode, beforeShimWrite: null, bootEvent: null,
+                    afterShimScript: null, resource: null };
+  if (window.__mode === 'off') return;
+
+  const persona = (window.__PERF_PERSONAS || {})[window.__salt];
+  if (!persona) { window.__bootError = 'no persona for ' + window.__salt; return; }
+  window.__persona = persona;
+
+  window.__handshakeNonce = null;
+  document.addEventListener('nullecho:status', (ev) => {
+    let d = null;
+    try { d = JSON.parse(ev.detail); } catch { return; }
+    if (!d || d.phase !== 'boot' || d.channel !== 'shim') return;
+    if (window.__handshakeNonce) return;
+    window.__boot.bootEvent = performance.now();
+    window.__handshakeNonce = d.nonce || null;
+    document.dispatchEvent(new CustomEvent('nullecho:persona', {
+      detail: JSON.stringify({ ok: true, enabled: true, gpc: false, site: 'localhost',
+                               dev: true, persona, nonce: d.nonce }),
+    }));
+  }, true);
+
+  // Cache-bust per load — the documented stale-shim.js trap.
+  const url = '/ext/src/shim.js?cb=' + Date.now() + '.' + Math.random().toString(36).slice(2);
+  window.__shimUrl = url;
+  window.__boot.beforeShimWrite = performance.now();
+  document.write(
+    '<scr' + 'ipt src="' + url + '"></scr' + 'ipt>' +
+    '<scr' + 'ipt>window.__boot.afterShimScript = performance.now();</scr' + 'ipt>'
+  );
+})();
+</script>
+</head>
+<body>
+
+<header>
+  <h1>Northwind Analytics</h1>
+  <span class="tag">representative page</span>
+  <span class="tag" id="modeTag">…</span>
+  <span class="tag" id="personaTag">…</span>
+</header>
+
+<nav id="nav"></nav>
+<div id="progress">measuring…</div>
+<div id="verdict">collecting samples…</div>
+
+<main>
+  <div class="media">
+    <img src="/ext/icons/icon-128.png" width="64" height="64" alt="">
+    <img src="/ext/icons/icon-48.png" width="48" height="48" alt="">
+    <img src="/ext/icons/icon-32.png" width="32" height="32" alt="">
+    <img src="/ext/icons/icon-16.png" width="16" height="16" alt="">
+    <img src="/ext/icons/icon-128.png" width="96" height="96" alt="">
+    <img src="/ext/icons/icon-48.png" width="24" height="24" alt="">
+  </div>
+
+  <div class="quote">A page that never fingerprints anything is the common case, and the
+  common case is the one a user judges the extension by.</div>
+
+  <div class="grid" id="cards"></div>
+
+  <table>
+    <thead><tr><th>Account</th><th>Region</th><th>Plan</th><th class="n">Seats</th>
+      <th class="n">MRR</th><th class="n">Δ 30d</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</main>
+
+<footer>
+  Sample footer with a link farm, because real pages have one.
+  <ul id="links"></ul>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// Build ~430 nodes from script, the way a real app renders. This runs BEFORE
+// first paint, so the shim's patches (if any) are in front of all of it.
+// ═══════════════════════════════════════════════════════════════════════════
+(() => {
+  const NAV = ['Overview','Accounts','Revenue','Retention','Cohorts','Funnels','Events',
+               'Segments','Alerts','Exports','Billing','Settings'];
+  const nav = document.getElementById('nav');
+  NAV.forEach((t, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + t.toLowerCase(); a.textContent = t;
+    if (i === 0) a.className = 'on';
+    nav.appendChild(a);
+  });
+
+  const CARDS = [
+    ['Monthly recurring','MRR across all active plans','$182,400','+4.2%','up',72],
+    ['Net revenue retention','Expansion minus churn','114%','+1.1%','up',84],
+    ['Active accounts','Seen in the last 30 days','1,284','+37','up',61],
+    ['Trial conversion','Trial → paid, trailing 90d','28.4%','-0.6%','down',44],
+    ['Support backlog','Open tickets over 48h','19','-7','up',22],
+    ['Median session','Across web and mobile','7m 12s','+18s','up',55],
+    ['Failed payments','Recovered within 14d','81%','flat','flat',81],
+    ['Seat utilisation','Assigned vs purchased','67%','+3%','up',67],
+  ];
+  const cards = document.getElementById('cards');
+  for (const [h, p, v, d, cls, pct] of CARDS) {
+    const c = document.createElement('div'); c.className = 'card';
+    const H = document.createElement('h3'); H.textContent = h;
+    const P = document.createElement('p'); P.textContent = p;
+    const R = document.createElement('div'); R.className = 'row';
+    const V = document.createElement('span'); V.className = 'v'; V.textContent = v;
+    const D = document.createElement('span'); D.className = 'd ' + cls; D.textContent = d;
+    const B = document.createElement('div'); B.className = 'bar';
+    const I = document.createElement('i'); I.style.width = pct + '%';
+    R.appendChild(V); R.appendChild(D); B.appendChild(I);
+    c.appendChild(H); c.appendChild(P); c.appendChild(R); c.appendChild(B);
+    cards.appendChild(c);
+  }
+
+  const REGIONS = ['NA-East','NA-West','EMEA','APAC','LATAM'];
+  const PLANS = ['Starter','Team','Business','Enterprise'];
+  const tbody = document.getElementById('tbody');
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 45; i++) {
+    const tr = document.createElement('tr');
+    const cells = [
+      ['Account ' + String(i + 1).padStart(3, '0'), ''],
+      [REGIONS[i % REGIONS.length], ''],
+      [PLANS[i % PLANS.length], 'badge'],
+      [String(3 + (i * 7) % 240), 'n'],
+      ['$' + (400 + (i * 137) % 9000).toLocaleString(), 'n'],
+      [((i % 5) - 2) * 1.4 + '%', 'n'],
+    ];
+    for (const [txt, cls] of cells) {
+      const td = document.createElement('td');
+      if (cls === 'badge') { const s = document.createElement('span'); s.className = 'badge'; s.textContent = txt; td.appendChild(s); }
+      else { td.textContent = txt; if (cls) td.className = cls; }
+      tr.appendChild(td);
+    }
+    frag.appendChild(tr);
+  }
+  tbody.appendChild(frag);
+
+  const links = document.getElementById('links');
+  for (let i = 0; i < 36; i++) {
+    const li = document.createElement('li');
+    const a = document.createElement('a'); a.href = '#l' + i; a.textContent = 'Resource link ' + (i + 1);
+    li.appendChild(a); links.appendChild(li);
+  }
+})();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// Sample this load, then either reload for the next sample or report.
+// ═══════════════════════════════════════════════════════════════════════════
+(() => {
+  const MODE = window.__mode, N = window.__n, SALT = window.__salt;
+  const KEY = 'nullecho-perf-page:' + MODE + ':' + SALT;
+  const dev = window.__nullechoDev;
+  const applied = !!(dev && dev.upgraded);
+
+  document.getElementById('modeTag').textContent = 'shim ' + MODE + (MODE === 'on' ? (applied ? ' ✓applied' : ' ✗NOT APPLIED') : '');
+  document.getElementById('personaTag').textContent = MODE === 'on'
+    ? (dev && dev.personaId || '—') + ' · ' + ((window.__persona && window.__persona.fontList || []).length) + ' fonts'
+    : 'no persona';
+
+  function stats(v) {
+    const s = v.slice().filter((x) => typeof x === 'number' && isFinite(x)).sort((a, b) => a - b);
+    if (!s.length) return null;
+    const q = (p) => s[Math.min(s.length - 1, Math.round((s.length - 1) * p))];
+    const mean = s.reduce((a, b) => a + b, 0) / s.length;
+    return { n: s.length, min: +s[0].toFixed(2), median: +q(0.5).toFixed(2),
+             p95: +q(0.95).toFixed(2), max: +s[s.length - 1].toFixed(2),
+             mean: +mean.toFixed(2) };
+  }
+
+  // Wait for load + one more frame so loadEventEnd is populated and paint has landed.
+  function collect() {
+    const nav = performance.getEntriesByType('navigation')[0] || {};
+    const paints = {};
+    for (const p of performance.getEntriesByType('paint')) paints[p.name] = p.startTime;
+    const res = performance.getEntriesByType('resource')
+      .filter((e) => window.__shimUrl && e.name.indexOf(window.__shimUrl) !== -1)[0];
+    const b = window.__boot;
+
+    const sample = {
+      // Page-load metrics
+      responseEnd: nav.responseEnd,
+      domInteractive: nav.domInteractive,
+      domContentLoaded: nav.domContentLoadedEventEnd,
+      loadEventEnd: nav.loadEventEnd,
+      firstPaint: paints['first-paint'],
+      firstContentfulPaint: paints['first-contentful-paint'],
+      // Shim boot metrics (null when shim=off)
+      shimFetchMs: res ? res.duration : null,
+      shimEvalMs: (res && b.afterShimScript != null) ? b.afterShimScript - res.responseEnd : null,
+      shimTotalBlockingMs: (b.afterShimScript != null && b.beforeShimWrite != null)
+        ? b.afterShimScript - b.beforeShimWrite : null,
+      shimBootEventMs: (b.bootEvent != null && b.beforeShimWrite != null)
+        ? b.bootEvent - b.beforeShimWrite : null,
+      shimPatchMs: (b.afterShimScript != null && b.bootEvent != null)
+        ? b.afterShimScript - b.bootEvent : null,
+      applied: applied,
+      shimBytes: res ? res.decodedBodySize : null,
+    };
+
+    let store;
+    try { store = JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch (_) { store = []; }
+    store.push(sample);
+    try { sessionStorage.setItem(KEY, JSON.stringify(store)); } catch (_) {}
+
+    document.getElementById('progress').textContent =
+      'sample ' + store.length + ' / ' + N + '  ·  shim ' + MODE +
+      (MODE === 'on' ? '  ·  applied=' + applied : '');
+
+    if (store.length < N) {
+      // Fresh document every time. `run` also busts the HTML cache.
+      const u = new URL(location.href);
+      u.searchParams.set('run', String(store.length));
+      // Straight to the next load — no timer, for the same throttling reason.
+      location.replace(u.toString());
+      return;
+    }
+
+    // Done — aggregate. Drop sample 1: the first load of a session pays cold
+    // caches, font loading and a cold JIT, and it is not what a user's second
+    // page on a site looks like. Kept in `raw` so the choice is inspectable.
+    const use = store.length > 3 ? store.slice(1) : store;
+    const agg = { mode: MODE, salt: SALT, samples: store.length, used: use.length,
+                  droppedFirst: store.length > 3, applied: applied,
+                  personaId: dev && dev.personaId || null,
+                  personaFonts: (window.__persona && window.__persona.fontList || []).length || null,
+                  ua: navigator.userAgent,
+                  visibility: document.visibilityState,
+                  paintTimingValid: document.visibilityState === 'visible',
+                  realChrome: /Chrome\/\d+/.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent),
+                  metrics: {}, raw: store };
+    for (const k of ['firstPaint','firstContentfulPaint','domInteractive','domContentLoaded',
+                     'loadEventEnd','responseEnd','shimFetchMs','shimEvalMs',
+                     'shimTotalBlockingMs','shimBootEventMs','shimPatchMs']) {
+      agg.metrics[k] = stats(use.map((s) => s[k]));
+    }
+    agg.shimBytes = use[0] && use[0].shimBytes;
+    window.__perfPage = agg;
+
+    const m = agg.metrics;
+    const line = (k, label) => m[k]
+      ? label.padEnd(30) + String(m[k].median).padStart(9) + ' ms   p95 ' + String(m[k].p95).padStart(9) + ' ms'
+      : label.padEnd(30) + '      n/a';
+    document.getElementById('verdict').textContent =
+      'shim=' + MODE + (MODE === 'on' ? '  persona=' + agg.personaId + ' (' + agg.personaFonts + ' fonts)' : '') +
+      '\nengine: ' + (agg.realChrome ? 'real Chrome' : 'NOT real Chrome — label accordingly') +
+      '\n' + agg.used + ' samples used of ' + agg.samples + (agg.droppedFirst ? ' (first dropped: cold cache)' : '') +
+      '\n\n' +
+      line('firstPaint', 'first paint') + '\n' +
+      line('firstContentfulPaint', 'first contentful paint') + '\n' +
+      line('domInteractive', 'domInteractive') + '\n' +
+      line('domContentLoaded', 'DOMContentLoaded') + '\n' +
+      line('loadEventEnd', 'load') + '\n' +
+      (MODE === 'on'
+        ? '\n' + line('shimFetchMs', 'shim.js fetch (harness only)') + '\n' +
+          line('shimEvalMs', 'shim.js eval (capture+patch)') + '\n' +
+          line('shimBootEventMs', '  ↳ up to boot event') + '\n' +
+          line('shimPatchMs', '  ↳ boot event → patched') + '\n' +
+          line('shimTotalBlockingMs', 'TOTAL document_start block') + '\n' +
+          '\nshim.js decoded size: ' + (agg.shimBytes ? (agg.shimBytes / 1024).toFixed(1) + ' KB' : 'n/a')
+        : '');
+    document.getElementById('progress').textContent = 'DONE — window.__perfPage holds the aggregate.';
+  }
+
+  // NO requestAnimationFrame AND NO setTimeout on this path.
+  //
+  // A hidden tab never paints, so rAF never fires. And a tab that has been
+  // hidden for more than five minutes falls under Chrome's INTENSIVE timer
+  // throttling — roughly one wake per minute — so `setTimeout(collect, 40)`
+  // does not run for a minute either. Both were observed here: the collector
+  // simply never ran and the page sat on "measuring…" forever.
+  //
+  // MessageChannel tasks are exempt from both. Tick on one until the navigation
+  // entry's loadEventEnd is populated, then collect.
+  const tick = (fn) => { const ch = new MessageChannel(); ch.port1.onmessage = fn; ch.port2.postMessage(0); };
+  const whenLoadTimingReady = (tries) => {
+    const nav = performance.getEntriesByType('navigation')[0];
+    if ((nav && nav.loadEventEnd > 0) || tries <= 0) { collect(); return; }
+    tick(() => whenLoadTimingReady(tries - 1));
+  };
+  const afterLoad = () => tick(() => whenLoadTimingReady(400));
+  if (document.readyState === 'complete') afterLoad();
+  else addEventListener('load', afterLoad);
+})();
+</script>
+</body>
+</html>
