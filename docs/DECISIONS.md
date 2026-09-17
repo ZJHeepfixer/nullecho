@@ -1587,3 +1587,55 @@ reached through `contentWindow` presents the parent's persona and its `brands`, 
 dictionary and WebGL extension list are all the CHILD realm's objects, while the parent's stay the
 parent's). The `instanceof` half was confirmed to fail against a deliberately re-broken build before
 being kept.
+
+## D32 — Every function the shim installs has a native's SHAPE: no own `prototype`, not a constructor. 2026-09-17.
+
+**Decision:** the shim never installs a plain `function () {}`. `replaceGetter` builds its getter by getter
+shorthand, `replaceMethod` installs a method-shorthand wrapper (`shaped(name, fn)`) around the factory's
+implementation, `patchFunctionToString` defines its replacement by method shorthand, and the one direct
+install site (the WebGPU feature set's `[Symbol.iterator]`) goes through `shaped()` too. Everything
+else — `markNative`'s `name`/`length`, the RESTORES ledger, descriptor flags, the delegated brand check —
+is unchanged. The fix is in the helpers, not the 43 call sites, so a future patch written as a plain
+function still lands shaped.
+
+**What §3b was.** `docs/CLAIM-VERIFICATION-2026-09-17.md` pointed vendored CreepJS at the shim for the
+first time. A plain function has an own `prototype` and is constructible; a native WebIDL accessor or
+method has exactly `length` and `name`, and `new f()` / `class X extends f {}` both throw. CreepJS runs
+those probes on every API it audits, so each of the 31 shim-installed functions it reached failed eight
+structural checks at once. Measured in real Chrome 151 (`Chrome/151.0.0.0`, no Electron), same host,
+same persona, one hour apart, shim on both times:
+
+| CreepJS lie type | before (`f7ee7b3`) | after |
+|---|---|---|
+| `failed "prototype" in function` · `own property names` · `own keys names` · `own property` · `descriptor` · `descriptor keys` · `class extends error` · `at instanceof check error` | 31 each (248) | **0** |
+| `failed new instance` · `call interface` · `apply interface` error | 2 each (6) | **0** |
+| `failed toString` | 197 | 197 |
+| `pixel data modified` · `sample noise detected` (the noise we publish) | 1 each | 1 each |
+| **lie records** | **453** | **199** |
+| `invariants.nativeShapePatched` | `[length,name,prototype] extends→no-throw` | `[length,name] extends→TypeError` (= control) |
+
+**What it did NOT close, and why — a correction to the write-up.** §3a/§3b attributed the 197-API
+`failed toString` cascade, `stealth.hasToStringProxy` and the `headless.webDriverIsOn` bot verdict to the
+toString replacement's shape. The measurement says otherwise: with the shape fixed, all three are
+unchanged. CreepJS evaluates `failed toString` through `scope.Function.prototype.toString`, and `scope`
+(`PHANTOM_DARKNESS`) is built by `getPhantomIframe()` as `self[self.length]` in the SAME synchronous
+block as the insertion — the pristine-realm path §3c already records as unreachable from an
+extension — and then nested once more through that pristine realm's own, unhooked `contentWindow`. A
+pristine `toString` reads the shim's real source for every patched function and for the page's patched
+`Function.prototype.toString` itself, so every API fails, patched or not, and `Navigator.webdriver`
+"lying" is what flips the bot flag. Verified in the same page: a child reached through `contentWindow`
+(the `getBehemothIframe` shape), its grandchild, and a plain appended iframe are all patched (persona
+cores, `[native code]` for the userAgent getter and for `Function.prototype.toString`); only `window[n]`
+read in the inserting tick is not. The remaining 197 records, `hasToStringProxy` and the bot verdict are
+therefore §3c's, and closing them means synchronous insertion hooks (`appendChild` / `append` /
+`innerHTML` / …) — a separate decision with its own breakage surface, not taken here.
+
+**FingerprintJS unaffected:** `visitorId` still differs between `localhost` and `127.0.0.1` and is
+identical on two loads of each (four runs).
+
+**Guards:** `ext/src/native-shape.test.js` — the probes on a patched accessor, a patched method and the
+toString replacement; an unpatched control (`Navigator.webdriver`) and a negative control (a page's own
+plain function fails the probe); a sweep of every function the shim changed in the realm, so an install
+site that bypasses the helpers cannot regress it silently; and keep-guards for the delegated brand check
+(ARKENFOX (f)), descriptor flags, and toString / `name` / `length`. Both D21 lints pass on the new
+syntax (rest parameters build an own-indexed array; nothing touches the iterator protocol).

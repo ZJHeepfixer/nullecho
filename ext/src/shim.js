@@ -932,17 +932,44 @@
     return fn;
   }
 
+  /**
+   * D32 — the SHAPE of an installed function. A native WebIDL method or accessor
+   * has exactly two own properties, `length` and `name`, and is not a constructor:
+   * `'prototype' in f` is false, and both `new f()` and `class X extends f {}`
+   * throw. A plain `function () {}` has an own `prototype` and IS a constructor —
+   * three one-line probes that CreepJS runs on every API it audits
+   * (docs/CLAIM-VERIFICATION-2026-09-17.md §3b). A function defined by method or
+   * getter shorthand has neither, so that is the only form this file installs.
+   *
+   * `shaped(name, fn)` wraps an ordinary implementation in such a method. The
+   * receiver and the exact argument count pass through (rest parameters build a
+   * fresh own-indexed array; nothing touches the iterator protocol, D21), and
+   * `fn` itself is never reachable from the page. `name` may be a symbol.
+   */
+  function shaped(name, fn) {
+    const holder = { [name](...args) { return apply(fn, this, args); } };
+    return holder[name];
+  }
+
   function patchFunctionToString(win) {
     const FP = win.Function.prototype;
     const d = objGetOwnPropertyDescriptor(FP, 'toString');
     if (!d || typeof d.value !== 'function') throw new RawError('Function.prototype.toString missing');
     if (wmHas(NATIVE_SRC, d.value)) return; // this realm is already done
     const orig = d.value;
-    const replacement = function toString() {
-      const src = wmGet(NATIVE_SRC, this);
-      if (src !== undefined) return src;
-      return apply(orig, this, []);
+    // Method shorthand, not `function toString() {}`. CreepJS's per-API
+    // `failed toString` check inspects `apiFunction.toString` — THIS function —
+    // so a plain-shaped replacement here flagged every API on the page at once,
+    // patched or not, and `Navigator.webdriver` (never patched) reading as a lie
+    // is what produced the bot verdict (D32, §3a).
+    const holder = {
+      toString() {
+        const src = wmGet(NATIVE_SRC, this);
+        if (src !== undefined) return src;
+        return apply(orig, this, []);
+      },
     };
+    const replacement = objGetOwnPropertyDescriptor(holder, 'toString').value;
     markNative(replacement, 'toString', orig);
     pushOwn(RESTORES, { target: FP, prop: 'toString', desc: d });
     objDefineProperty(FP, 'toString', {
@@ -967,7 +994,11 @@
     if (!d.get) throw new RawError('"' + prop + '" is not an accessor');
     if (!d.configurable) throw new RawError('"' + prop + '" is not configurable');
     const origGet = d.get;
-    const getter = function () { return apply(impl, this, [origGet]); };
+    // Getter shorthand: no own `prototype`, not a constructor — a native
+    // accessor's shape (D32). `this` stays dynamic; the delegate still runs the
+    // brand check, so a wrong receiver still throws exactly where the original does.
+    const holder = { get [prop]() { return apply(impl, this, [origGet]); } };
+    const getter = objGetOwnPropertyDescriptor(holder, prop).get;
     markNative(getter, 'get ' + prop, origGet);
     pushOwn(RESTORES, { target, prop, desc: d });
     objDefineProperty(target, prop, {
@@ -1009,7 +1040,7 @@
     if (!d || typeof d.value !== 'function') throw new RawError('no method "' + prop + '"');
     if (!d.configurable) throw new RawError('method "' + prop + '" is not configurable');
     const orig = d.value;
-    const impl = factory(orig);
+    const impl = shaped(prop, factory(orig));   // the factory's plain function is never installed (D32)
     markNative(impl, prop, orig);
     pushOwn(RESTORES, { target, prop, desc: d });
     objDefineProperty(target, prop, {
@@ -2151,11 +2182,11 @@
       if (objGetOwnPropertyDescriptor(P, symIterator)) {
         const d = objGetOwnPropertyDescriptor(P, symIterator);
         const origIter = d.value;
-        const impl = function () {
+        const impl = shaped(symIterator, function () {
           if (state.standingDown) return apply(origIter, this, arguments);
           touch('webgpu');
           return arrayValues(view(this));
-        };
+        });
         markNative(impl, '[Symbol.iterator]', origIter);
         pushOwn(RESTORES, { target: P, prop: symIterator, desc: d });
         objDefineProperty(P, symIterator, {

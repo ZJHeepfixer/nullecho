@@ -200,6 +200,10 @@ the classification is not "privacy tool", it is **"webdriver"**. Fingerprint.com
 weights put a bad bot at 7 and privacy settings at 6; a bot verdict is the more expensive one,
 and it is the one an off-the-shelf library reaches.
 
+> **2026-09-17:** the root of this cascade is §3c (the same-tick pristine realm CreepJS uses as its
+> `scope`), not the toString shape — see the D32 note at the end of §3b. Fixing the shape left
+> `webDriverIsOn` at `true`.
+
 ### 3b. A patched function is a plain `function`, and that is three one-line tells
 
 This is the concrete, fixable defect the exercise found. Our nine detectors check what a patched
@@ -230,6 +234,20 @@ shim that differs.
 This looks fixable: a patch defined as an arrow function or as method/getter shorthand has no
 own `prototype` and is not a constructor, so all three probes come out native. That is a
 shim change and is out of scope for this document — it belongs to whoever owns `shim.js`.
+
+> **CLOSED 2026-09-17 (DECISIONS.md D32).** `shim.js` now installs only getter/method-shorthand
+> functions (fixed in the three helpers + the one direct `[Symbol.iterator]` site). Real Chrome 151,
+> same host, shim on: `nativeShapePatched` reads `[length,name] extends→TypeError` for both surfaces
+> (= the control), and every structural lie type — `"prototype" in`, own property names/keys,
+> descriptor/descriptor keys, class extends, instanceof, new/call/apply interface — went from 31
+> (or 2) records to **0**; lie records **453 → 199**. FingerprintJS still splits `localhost` /
+> `127.0.0.1` and is stable per host. Regression tests: `ext/src/native-shape.test.js`.
+>
+> **Correction to the paragraph above:** `Function.prototype.toString`'s shape is *not* what sets
+> `stealth.hasToStringProxy` or starts the 3a cascade. With the shape fixed, `failed toString` is
+> unchanged at 197 and `hasToStringProxy` / `webDriverIsOn` are still `true`. CreepJS's `scope` is
+> `PHANTOM_DARKNESS`, built by `getPhantomIframe()` as `self[self.length]` in the inserting tick —
+> §3c's same-tick pristine realm — so that cascade, and the bot verdict, belong to §3c.
 
 ### 3c. The same-tick pristine realm defeats the `[native code]` lie entirely
 
@@ -376,6 +394,8 @@ scope), WASM-compiled fingerprinting, and the TLS/IP layer.
      brand check, and stop writing identifying text to a page-reachable console.
    - **The plain-function shape leak** (§3b). Root of 3a and 3b, three lines of
      `Object.getOwnPropertyNames` to detect, and it costs a bot classification.
+     **Closed 2026-09-17 (D32)** — 453 → 199 lie records; the bot classification did *not* move
+     with it, because it is §3c's (see the note under §3b).
 5. **The macOS pool is too tight to carry the claim on its own.** With `canvas` and `audio`
    discarded, the two assigned personas differed by one field. Either the pool needs more
    spread in `deviceMemory` / `hardwareConcurrency` / renderer within a family, or the claim
