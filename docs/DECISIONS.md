@@ -1835,3 +1835,157 @@ a layout?" are both exactly observable (`style.setProperty('font-family', …)` 
 claimed family listed first, and for the `Symbol` shape (installed, but no glyph for the text);
 byte-identical probe output on hosts that have and lack the family; and that the host probe is
 memoised rather than run per element. 310/310 (297 + 13).
+
+## D35 — A child realm is installed from INSIDE the insertion call, not one microtask later. 2026-09-19.
+
+**The defect, measured.** `docs/CLAIM-VERIFICATION-2026-09-17.md` §3c: a page that inserts an
+`<iframe>` and reads `self[self.length]` in the SAME synchronous block gets a **pristine realm** —
+the real machine, and a pristine `Function.prototype.toString` that prints the shim's actual source
+for every function patched in the parent. The shim had two doors into a child realm and both were
+late or optional: `HTMLIFrameElement.prototype.contentWindow` (only fires if the page reads it) and a
+`MutationObserver` (fires at the next microtask checkpoint, which is after the inserting block).
+`window[n]` is a live indexed property on a WindowProxy and cannot be hooked at all.
+
+CreepJS does exactly this. `harness/vendor/creepjs-2026-06-11.js:1026`, `getPhantomIframe()`:
+
+```js
+const numberOfIframes = self.length;
+const frag = new DocumentFragment(); const div = document.createElement('div');
+frag.appendChild(div); div.innerHTML = `<div style="${GHOST}"><iframe></iframe></div>`;
+document.body.appendChild(frag);
+const iframeWindow = self[numberOfIframes];        // ← PHANTOM_DARKNESS, pristine
+```
+
+Everything CreepJS measures it measures in `PHANTOM_DARKNESS`. That is why D32 (the function *shape*
+fix) took lie records from 453 to 199 and left `hasToStringProxy: true` and a `webDriverIsOn: true`
+**bot verdict** standing: those come from the pristine realm's toString, not from the shape.
+
+**The rule.** *A child browsing context is created synchronously inside the native insertion call, so
+the shim installs into it inside that same call, before the original's result is returned.* Every DOM
+entry point that can connect an `<iframe>` to the document is wrapped; after delegating, the wrapper
+walks this realm's frame list and installs into anything not yet installed. The MutationObserver
+stays as the backstop for paths no DOM call goes through — above all the HTML parser.
+
+**The table is in the code, and a lint holds it.** `INSERTION_SITES` in `shim.js` lists 30 rows
+(`Node.appendChild/insertBefore/replaceChild`; `Element.append/prepend/after/before/replaceWith/
+replaceChildren/insertAdjacentElement/insertAdjacentHTML/setHTMLUnsafe` + the `innerHTML` and
+`outerHTML` setters; `CharacterData.after/before/replaceWith`; `ShadowRoot.innerHTML/setHTMLUnsafe`;
+`Document.write/writeln/append/prepend/replaceChildren`; `DocumentFragment.append/prepend/
+replaceChildren`; `Range.insertNode/surroundContents`; `Window.open`).
+`ext/src/same-tick-realm.test.js` parses that literal out of the source and fails if a row is not
+really wrapped, if a wrapped function does not have a native's shape (D32) or masked source, or if a
+known entry point has lost its row. Three kinds: `method` and `setter` sweep after delegating;
+`opener` installs into the window `window.open()` RETURNS, because an auxiliary browsing context is a
+realm of its own and `length` never counted it.
+
+**Four designs considered and rejected, with the reason:**
+
+| Rejected | Why |
+|---|---|
+| Hook the indexed WindowProxy properties (`window[0]`) | Not interceptable. They are not ordinary properties of the global object; this is the whole reason the hole exists. |
+| Hook the `window.length` getter and sweep on read | Sound but insufficient, and measured against the actual adversary: CreepJS reads `self.length` **before** it inserts, then indexes without reading it again. It would close nothing here. |
+| A `length` delta — sweep only when the count GREW | **Unsound.** Moving an already-connected `<iframe>` destroys its browsing context and creates a new one: the count is unchanged and the realm behind `window[0]` is brand new and pristine. Verified in real Chrome — after `document.head.appendChild(f)` the WindowProxy identity itself changes. A two-line bypass. |
+| A subtree scan (`querySelectorAll('iframe')`) on the insertion path | The cost. `appendChild` is one of the hottest calls on the web; the frame walk below is O(child frames), which is 0 on most pages. |
+
+**The one-microsecond lesson: do not CALL `installInto` to find out it has nothing to do.**
+`installInto` declares several hundred locals (every captured native in the realm), so its
+interpreter frame is large and *merely entering it* costs about a microsecond even when it returns on
+line 1. The first build called it per frame per insertion and cost **+3.4 µs per `appendChild` on a
+page with 5 child frames**. Hoisting its own first line — the `INSTALLED` WeakSet check — into the
+sweep loop took the same page to **+0.62 µs**. Same WeakSet, same semantics, one function call less.
+A faithful hand-built twin of the sweep measured +0.10 µs, which is what pointed at the call itself.
+
+**Measured cost** (real Chrome 151.0.7922.174, macOS 26.6.0, M2 Max, paired ABBA, in-page null
+control `Element.clientWidth` at **1.014×**, shim=off null calibration for these four cells
+**1.027 / 1.00 / 0.98 / 1.00**):
+
+| Cell | Native | Shimmed | **Added** |
+|---|---|---|---|
+| `appendChild` a plain div, **0 child frames** | 3.10 µs | 3.59 µs | **+0.49 µs** (1.09×) |
+| `insertBefore` a plain div, 0 child frames | 3.81 µs | 4.54 µs | **+0.73 µs** (1.20×) |
+| `innerHTML` = 50-node string, 0 child frames | 0.169 ms | 0.167 ms | **below the noise floor** (1.00×) |
+| `appendChild`, **3 child frames** | 3.61 µs | 5.71 µs | **+2.10 µs** (1.61×) |
+
+On a quiet page (no other harness work) the same probe reads **+0.15 µs at 0 frames, +0.22 at 1,
++0.43 at 3, +0.62 at 5, +1.28 at 10, +2.34 at 20** — linear at **≈0.11 µs per existing child frame**,
+plus a fixed ≈0.15 µs. **The target was <1 µs added per `appendChild`; a page with no frames pays
+0.15–0.49 µs and a page with three pays 0.43–2.10 µs.** The spread between the two columns is the
+page itself: the harness's own row was taken after a full canvas/WebGL/layout run, where the native
+`appendChild` is also 4× slower. Both numbers are in `docs/PERFORMANCE-2026-09-17.md`.
+
+**What CreepJS reads now** (`harness/claim-verification.html`, real Chrome 151, fresh `?cb=`, both
+origins, control run in the same browser):
+
+| CreepJS signal | Control (no shim) | Before D35 | **After D35** |
+|---|---|---|---|
+| lie records | 0 | 199 | **2** |
+| APIs flagged as lying | 0 | 198 | **2** |
+| `stealth.hasToStringProxy` | false | **true** | **false** |
+| `headless.webDriverIsOn` | false | **true** | **false** — the bot verdict is gone |
+| `resistance.extensionHashPattern` | `{}` | ~30 entries | **`{}`** |
+| child-realm `hardwareConcurrency` | 12 (host) | 12 (host) | **8 (the persona)** |
+| pristine `toString(userAgent getter)` says `[native code]`? | true | **false** | **true** |
+| pristine `toString(Function.prototype.toString)`? | true | **false** | **true** |
+| trash | 2 | 2 | 3 |
+| captured errors | 4 | 4 | 4 |
+
+The **two** remaining lies are the defense working, not a tell we can remove: `AudioBuffer: sample
+noise detected` and `CanvasRenderingContext2D.getImageData: pixel data modified` — our own farbling,
+which also supplies the third trash entry (`suspicious pixel data`). Reproduced on
+`127.0.0.1:4886` and `localhost:4886`, which still get different FingerprintJS visitorIds, so the
+per-site split is unchanged.
+
+**The attack pass.** Every row was run in real Chrome against the live shim, comparing the child
+realm's `hardwareConcurrency` to the persona's (8) and to the host's (12).
+
+| Attack | Result |
+|---|---|
+| CreepJS's exact `getPhantomIframe` shape (fragment → `innerHTML` → `appendChild` → `self[n]`) | **patched** in the same tick |
+| `Range.createContextualFragment` + `Range.insertNode` | patched |
+| `DOMParser` + `document.adoptNode` + `appendChild` | patched |
+| `DOMParser` + `document.importNode` + `appendChild` | patched |
+| `<template>`, `content.cloneNode(true)`, then inserted | patched — and template content created **no** browsing context while detached, as the spec says |
+| `src` set **before** insertion | patched. Blink reuses the initial empty document's Window for the queued same-origin navigation, so it stays the realm we installed into |
+| `srcdoc` set before insertion | patched |
+| `window.frames[name]` — named access, never an index | patched |
+| an `<iframe>` created in a CHILD document, `adoptNode`d into this one, then appended | patched |
+| a **grandchild** created by the child realm's own `appendChild` | patched |
+| a **great-grandchild** — exactly how deep CreepJS's `getBehemothIframe` goes | patched |
+| **moving** a connected `<iframe>` (`length` unchanged, WindowProxy identity changed) | patched — this is the row the rejected delta design fails |
+| `<iframe>` inserted into a **shadow root** | `window.length` **0 → 0**: a shadow-tree navigable is not a *document-tree* child navigable, so `window[n]` cannot reach it either. `contentWindow` reaches it and it is patched |
+| `document.implementation.createHTMLDocument` | no browsing context at all: `defaultView === null`, `iframe.contentWindow === null`. Nothing to reach |
+| `window.open(url, name, 'noopener')` | returns `null` — no handle for us, and none for the page |
+| the **HTML parser** (inline `<script>` in the same parse as the `<iframe>`) | 🔴 **LEAKS.** Measured inside an installed child realm: during the parse the inline script read `self[0].navigator.hardwareConcurrency` = **12**; after the `document.write` call returned, the same frame read **8**. |
+| an `<iframe>` inserted as `about:blank` and **navigated later** by assigning `src` | 🔴 **LEAKS.** After load the realm reads **12** and its `userAgent` getter is unpatched. `INSTALLED` is keyed on the **WindowProxy**, which survives navigation, so every door — the sweep, `contentWindow`, the observer — says "already installed" about a realm that no longer exists. **Pre-existing, not introduced here**, and not same-tick (a navigation is a separate task). |
+
+**The two leaks, stated plainly.** Neither is reachable by the §3c bypass this entry closes, and
+CreepJS uses neither.
+
+1. **The parser.** An `<iframe>` in static markup, or written during parsing, is connected by the
+   parser itself — no DOM method is called, so there is nothing to wrap. Only code running *in the
+   same parse* sees the pristine realm; the MutationObserver closes it one microtask later. In a real
+   install Chrome's `match_about_blank` injection should give that frame its own copy of the shim
+   (D31) — that half is **assumed, not verified** (CLAIM-VERIFICATION §5).
+2. **Realm identity across navigation.** The fix is to key `INSTALLED` on the realm's `document`
+   (a `[LegacyUnforgeable]` own property of the global, so the page cannot spoof it) rather than on
+   the WindowProxy, with a second set for realms that throw on `document` so a cross-origin frame is
+   still attempted once rather than once per sweep. That is a change to `installInto`'s contract with
+   its own cost to measure, so it is **not** in this commit; it is the next decision. In production a
+   navigated same-origin frame gets its own content-script injection, which is why this has not shown
+   up before — and that, too, is assumed rather than verified here.
+
+**Other residuals:** a `[Replaceable]` `window.length` the page has overwritten with a data property
+(the sweep then reads the page's number — it has broken its own frame list, and `contentWindow` still
+works); any insertion API Chrome adds after this table was written; and a realm that is neither
+indexed by `length` nor reachable through `contentWindow`.
+
+**Guards:** `ext/src/same-tick-realm.test.js` — 18 tests in real `node:vm` realms whose fake DOM
+creates a browsing context synchronously on connection and a **brand-new** one on a move, and whose
+`MutationObserver` **never fires**, so every green assertion is a statement about the same tick.
+Covers CreepJS's exact path, `innerHTML`, `document.write`/`writeln`, `insertBefore`, `replaceChild`,
+`window.open`, the whole ChildNode/ParentNode family, `Range`, the move, a cross-origin child that
+must not break the page's own insertion call, idempotency (three more doors into an installed realm
+change no function identity), the grandchild, the shadow root, the table lint, and the descriptor /
+`name` / `length` / brand-check / console guards. `window.length` sits on `Window.prototype` in the
+rig to force the owner walk; in real Chrome 151 it is an **own** property of `window`, and
+`ownerOf()` handles both. 328/328 (310 + 18).

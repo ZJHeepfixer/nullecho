@@ -1058,6 +1058,33 @@
   }
 
   /**
+   * The mirror of `replaceGetter` for a SETTER, preserving `enumerable`,
+   * `configurable` and the existing getter. `impl(origSet, value)` receives the
+   * original setter so it can delegate — which it must, because the delegation is
+   * what reproduces the native brand check (`innerHTML` setter called on `{}`
+   * throws `Illegal invocation`, and a naive replacement silently would not).
+   *
+   * Setter shorthand, not `function (v) {}`: no own `prototype`, not a
+   * constructor — a native accessor's shape (D32). D35 is the first caller:
+   * `Element.prototype.innerHTML` is one of the DOM's insertion entry points.
+   */
+  function replaceSetter(target, prop, impl) {
+    const d = objGetOwnPropertyDescriptor(target, prop);
+    if (!d) throw new RawError('no own descriptor for "' + prop + '"');
+    if (!d.set) throw new RawError('"' + prop + '" has no setter');
+    if (!d.configurable) throw new RawError('"' + prop + '" is not configurable');
+    const origSet = d.set;
+    const holder = { set [prop](v) { apply(impl, this, [origSet, v]); } };
+    const setter = objGetOwnPropertyDescriptor(holder, prop).set;
+    markNative(setter, 'set ' + prop, origSet);
+    pushOwn(RESTORES, { target, prop, desc: d });
+    objDefineProperty(target, prop, {
+      get: d.get, set: setter, enumerable: d.enumerable, configurable: d.configurable,
+    });
+    return origSet;
+  }
+
+  /**
    * Accessor that always yields whatever `read()` returns now (persona-swap safe).
    *
    * The original getter is ALWAYS invoked first and its result discarded. That is
@@ -2918,12 +2945,12 @@
       // `contentWindow`, and those are live indexed properties on the WindowProxy
       // that cannot be intercepted. So we also install as frames are inserted.
       //
-      // HONEST LIMIT: a MutationObserver callback runs at the next microtask
-      // checkpoint, so a script that appends an iframe and reads `window[0]` in the
-      // SAME synchronous block still touches a pristine realm and sees the real
-      // machine. Narrow, but real, and it is a genuine bypass rather than a
-      // theoretical one. Closing it properly needs the browser to run our content
-      // script in every child realm.
+      // The observer is the BACKSTOP, not the mechanism: its callback runs at the
+      // next microtask checkpoint, which is a tick too late for a script that
+      // inserts and reads in one synchronous block. The same-tick block below
+      // installs from inside the insertion call itself (D35). What the observer
+      // still earns is every path that block does not wrap — above all the HTML
+      // PARSER, which inserts `<iframe>` elements by calling no DOM method at all.
       try {
         const obs = new RealmMutationObserver((records) => {
           if (state.standingDown) return;
@@ -2947,6 +2974,222 @@
         obs.observe(doc, { childList: true, subtree: true });
       } catch (err) { fail('iframe insertion observer', err); }
     });
+
+    // ────────────────────────────────────────────────────────────────────────
+    // SAME-TICK child realms — D35, and the close of CLAIM-VERIFICATION §3c.
+    //
+    // A child browsing context is created SYNCHRONOUSLY, inside the native call
+    // that connects the `<iframe>` element to the document. So the whole window
+    // between "a pristine realm exists" and "we patch it" is the tail of that one
+    // call — and the fix is to install before the call returns:
+    //
+    //     const n = self.length;
+    //     document.body.appendChild(fragmentContainingAnIframe);   // ← here
+    //     const w = self[n];            // …already patched by the time we land
+    //
+    // That is CreepJS's `getPhantomIframe()` verbatim (DocumentFragment → a div
+    // whose `innerHTML` carries an `<iframe>` → `body.appendChild(frag)` →
+    // `self[numberOfIframes]`), and everything it measures it measures in that
+    // realm — including a `Function.prototype.toString` that, left pristine, prints
+    // the shim's ACTUAL SOURCE for every function patched in the parent.
+    //
+    // COST DISCIPLINE. `appendChild` is one of the hottest calls on the web, so the
+    // wrapper does exactly one extra thing on a page with no frames: read
+    // `window.length` through its captured getter. Only if that is non-zero does it
+    // walk `win[i]`, and `installInto` early-outs on an already-installed realm
+    // through one WeakSet lookup. There is no subtree scan and no querySelectorAll.
+    //
+    // WHY NOT "did `length` GROW?". Because that test is unsound. Moving an already
+    // connected `<iframe>` destroys its browsing context and creates a new one, so
+    // the count is unchanged while the realm behind `window[0]` is brand new and
+    // pristine — `appendChild(f)` twice is a two-line bypass of a delta test. The
+    // unconditional walk costs the same as the "before" read it replaces when there
+    // are no frames, and it is correct when there are.
+    // ────────────────────────────────────────────────────────────────────────
+    safe('same-tick child realms', () => {
+      // `length` is a `[Replaceable]` attribute of the Window interface, so its
+      // getter sits on the prototype rather than on the global object — resolved by
+      // owner rather than assumed, captured HERE at the first touch of this realm,
+      // and invoked only through the captured `Reflect.apply` (D21).
+      //
+      // `null` is not an error and is not reported as one: a realm that exposes no
+      // `length` exposes no `window[n]` either, so it has no indexed frame list to
+      // sweep and §3c's bypass does not exist in it. The wrappers still go in —
+      // `window.open` hands back a realm that `length` never counted anyway.
+      const winLength = getterOf(ownerOf(win, 'length'), 'length');
+
+      /** Install into every document-tree child navigable this realm can see. */
+      const reachFrames = () => {
+        if (!winLength) return;
+        let n = 0;
+        try { n = apply(winLength, win, []) | 0; } catch (_) { return; }
+        for (let i = 0; i < n; i++) {
+          // `win[i]` is the one indexed WindowProxy read a page cannot intercept,
+          // which is precisely why this hole existed; it is also why reading it
+          // needs no captured builtin. A cross-origin frame throws inside
+          // `installInto` (it reads `win.document`) and is marked as seen, so it
+          // costs one throw ever, not one per insertion.
+          //
+          // The `wsHas` guard is `installInto`'s OWN first line, hoisted out — and
+          // it is worth ~1 µs per frame per insertion. `installInto` declares
+          // several hundred locals (every captured native in the realm), so its
+          // interpreter frame is large and merely CALLING it costs about a
+          // microsecond even when it returns on line 1. Measured on a page with 5
+          // child frames: +3.4 µs per `appendChild` with the naive call, +0.5 µs
+          // with this guard. Same WeakSet, same semantics, one function call less.
+          try { const w = win[i]; if (w && !wsHas(INSTALLED, w)) installInto(w); }
+          catch (_) { /* cross-origin: nothing to patch and nothing to leak */ }
+        }
+      };
+
+      // ── THE TABLE ────────────────────────────────────────────────────────
+      // Every DOM entry point that can connect an `<iframe>` to this document in
+      // the caller's own tick. `ext/src/same-tick-realm.test.js` parses this
+      // literal out of the source and fails if a row is not really wrapped, or if
+      // a known entry point has lost its row.
+      //
+      // `kind`: 'method' and 'setter' sweep the frame list after delegating;
+      // 'opener' installs into the window the call RETURNS (an auxiliary browsing
+      // context is a realm of its own and `length` does not count it).
+      //
+      // `DocumentFragment` is on the list even though a fragment is never
+      // connected: `ShadowRoot` does not define its own `append`/`prepend`/
+      // `replaceChildren` and inherits DocumentFragment's, and a shadow root IS
+      // connected. For an ordinary detached fragment the sweep is a no-op that
+      // costs one accessor read — see D35 for what was considered and rejected.
+      const INSERTION_SITES = [
+        // interface           kind      property
+        ['Node',              'method', 'appendChild'],
+        ['Node',              'method', 'insertBefore'],
+        ['Node',              'method', 'replaceChild'],
+        ['Element',           'method', 'append'],
+        ['Element',           'method', 'prepend'],
+        ['Element',           'method', 'after'],
+        ['Element',           'method', 'before'],
+        ['Element',           'method', 'replaceWith'],
+        ['Element',           'method', 'replaceChildren'],
+        ['Element',           'method', 'insertAdjacentElement'],
+        ['Element',           'method', 'insertAdjacentHTML'],
+        ['Element',           'method', 'setHTMLUnsafe'],
+        ['Element',           'setter', 'innerHTML'],
+        ['Element',           'setter', 'outerHTML'],
+        ['CharacterData',     'method', 'after'],
+        ['CharacterData',     'method', 'before'],
+        ['CharacterData',     'method', 'replaceWith'],
+        ['ShadowRoot',        'setter', 'innerHTML'],
+        ['ShadowRoot',        'method', 'setHTMLUnsafe'],
+        ['Document',          'method', 'write'],
+        ['Document',          'method', 'writeln'],
+        ['Document',          'method', 'append'],
+        ['Document',          'method', 'prepend'],
+        ['Document',          'method', 'replaceChildren'],
+        ['DocumentFragment',  'method', 'append'],
+        ['DocumentFragment',  'method', 'prepend'],
+        ['DocumentFragment',  'method', 'replaceChildren'],
+        ['Range',             'method', 'insertNode'],
+        ['Range',             'method', 'surroundContents'],
+        ['Window',            'opener', 'open'],
+      ];
+
+      /** One wrapper factory for every site in the table. */
+      const wrapSite = (iface, kind, prop) => {
+        // `open` is an own method of the Window interface, which for a global
+        // object means its owner is found by walking from `win` itself.
+        const P = iface === 'Window' ? ownerOf(win, prop) : (win[iface] && win[iface].prototype);
+        if (!P) return;
+        const d = objGetOwnPropertyDescriptor(P, prop);
+        if (!d) return;                              // not in this Chrome; nothing to wrap
+        if (kind === 'setter') {
+          if (typeof d.set !== 'function') return;
+          replaceSetter(P, prop, function (origSet, v) {
+            // `finally`, not a tail call: an entry point that throws AFTER
+            // connecting a node (or one called with a wrong receiver, which
+            // CreepJS does to every API it audits) must not skip the sweep.
+            try { apply(origSet, this, [v]); }
+            finally { if (!state.standingDown) reachFrames(); }
+          });
+          return;
+        }
+        if (typeof d.value !== 'function') return;
+        if (kind === 'opener') {
+          replaceMethod(P, prop, (orig) => function () {
+            const w = apply(orig, this, arguments);
+            if (!state.standingDown && w) {
+              try { installInto(w); } catch (_) { /* cross-origin opener */ }
+            }
+            return w;
+          });
+          return;
+        }
+        replaceMethod(P, prop, (orig) => function () {
+          try { return apply(orig, this, arguments); }
+          finally { if (!state.standingDown) reachFrames(); }
+        });
+      };
+
+      for (let i = 0; i < INSERTION_SITES.length; i++) {
+        const row = INSERTION_SITES[i];
+        try { wrapSite(row[0], row[1], row[2]); }
+        catch (err) { fail('insertion site ' + row[0] + '.' + row[2], err); }
+      }
+
+      // Frames that already exist at this moment — a realm we are installing into
+      // late, or a document whose parser ran ahead of us.
+      reachFrames();
+    });
+
+    // ────────────────────────────────────────────────────────────────────────
+    // HONEST LIMIT, as it now stands. Every DOM call that can connect an
+    // `<iframe>` is wrapped, so the same-tick `window[n]` bypass is closed for
+    // script-driven insertion at any depth — verified in real Chrome against
+    // CreepJS's own `getPhantomIframe` shape, a grandchild and a great-grandchild,
+    // `Range`, `DOMParser` + `adoptNode`/`importNode`, `<template>` clones, `src`
+    // and `srcdoc` set before insertion, named `window.frames[name]` access, and a
+    // MOVE (D35's attack table). What remains, MEASURED rather than assumed:
+    //
+    //  1. 🔴 **The HTML parser.** `<iframe>` in static markup, or written during
+    //     parsing, is connected by the parser itself — no DOM method is called, so
+    //     there is nothing to wrap. Measured inside an installed child realm: an
+    //     inline `<script>` in the SAME parse read the host's 12 cores; the moment
+    //     the enclosing `document.write` returned, the same frame read the
+    //     persona's 8. So the window is one parse wide. The MutationObserver above
+    //     closes it one microtask later, and in a real install Chrome's own
+    //     `match_about_blank` injection should give that frame its own copy of the
+    //     shim (D31) — that half is assumed, not verified.
+    //  2. 🔴 **A frame navigated AFTER insertion.** Insert `about:blank` (we
+    //     install), then assign `src`: the new realm reads the real machine and its
+    //     `userAgent` getter is unpatched. `INSTALLED` is keyed on the WindowProxy,
+    //     which SURVIVES navigation, so the sweep, `contentWindow` and the observer
+    //     all say "already installed" about a realm that no longer exists.
+    //     Pre-existing — every door has always used that key — and asynchronous, so
+    //     it is not the same-tick bypass. The fix is to key on the realm's own
+    //     `document` (a `[LegacyUnforgeable]` own property the page cannot spoof)
+    //     with a second set for realms that throw on it; that is a change to
+    //     `installInto`'s contract with its own cost, and it is the next decision.
+    //     Note `src` set BEFORE insertion does NOT leak: Blink reuses the initial
+    //     empty document's Window for that navigation, so it stays the realm we
+    //     installed into.
+    //  3. **A frame that starts cross-origin and later becomes same-origin.** Same
+    //     root cause as 2: `installInto` marks a realm as seen before it discovers
+    //     it cannot read its document, so that WindowProxy is never retried. The
+    //     alternative is a throw on every sweep for every cross-origin ad frame.
+    //  4. **Anything Chrome adds later.** A new insertion API with no row in
+    //     `INSERTION_SITES` is unwrapped by construction. The lint test pins the
+    //     table against the entry points we know about; it cannot pin it against
+    //     ones that do not exist yet.
+    //  5. **A realm we never learn about.** `window.open(..., 'noopener')` returns
+    //     `null` (nothing for us to install into, and nothing for the page either);
+    //     a cross-origin frame has nothing to patch; and a navigable that is
+    //     neither indexed by `length` nor reachable through `contentWindow` is out
+    //     of reach by construction. An `<iframe>` in a SHADOW tree is in that last
+    //     class for `window[n]` — measured, `window.length` does not count it, so
+    //     the page cannot reach it that way either — and `contentWindow` covers it.
+    //
+    // Rejected, with reasons, in DECISIONS.md D35: hooking the indexed
+    // WindowProxy properties (not interceptable), hooking `window.length` as the
+    // trigger (CreepJS reads it BEFORE inserting), a `length`-delta test (unsound
+    // across a move), and a subtree scan on the insertion path (the cost).
+    // ────────────────────────────────────────────────────────────────────────
 
   }
 

@@ -203,6 +203,11 @@ and it is the one an off-the-shelf library reaches.
 > **2026-09-17:** the root of this cascade is §3c (the same-tick pristine realm CreepJS uses as its
 > `scope`), not the toString shape — see the D32 note at the end of §3b. Fixing the shape left
 > `webDriverIsOn` at `true`.
+>
+> **2026-09-19 — and closing §3c closed this.** With the same-tick realm patched (D35),
+> `headless.webDriverIsOn` reads **`false`** and `stealth.hasToStringProxy` reads **`false`** — both
+> equal to the control — and lie records fall 199 → **2**. The cascade diagnosis above was right: the
+> root was the `scope` realm, not the shape.
 
 ### 3b. A patched function is a plain `function`, and that is three one-line tells
 
@@ -266,6 +271,48 @@ leak this — `contentWindow` is hooked and returned `[native code]` correctly. 
 same-tick `window[n]` path does. That is consistent with what the threat model says is
 unreachable; what is new is that the reachable consequence is not one field, it is the whole
 `toString` defence.
+
+> **CLOSED 2026-09-19 (DECISIONS.md D35).** "Unreachable" was wrong. The child browsing context is
+> created *synchronously inside the native insertion call*, so `shim.js` now wraps every DOM entry
+> point that can connect an `<iframe>` (30 of them, enumerated in one `INSERTION_SITES` table and
+> held by a lint test) and installs into the new realm before the original's result is returned.
+> Re-measured in real Chrome 151, fresh `?cb=`, on both harness origins, with a control run in the
+> same browser:
+>
+> | | Control | Before | **After** |
+> |---|---|---|---|
+> | child realm `hardwareConcurrency` | 12 (host) | 12 (host) | **8 (the persona)** |
+> | pristine `toString(userAgent getter)` says `[native code]`? | `true` | `false` | **`true`** |
+> | pristine `toString(Function.prototype.toString)`? | `true` | `false` | **`true`** |
+> | CreepJS lie records | 0 | 199 | **2** |
+> | CreepJS APIs flagged as lying | 0 | 198 | **2** |
+> | `stealth.hasToStringProxy` | `false` | `true` | **`false`** |
+> | `headless.webDriverIsOn` | `false` | `true` | **`false`** |
+> | `resistance.extensionHashPattern` | `{}` | ~30 entries | **`{}`** |
+> | `trash` | 2 | 2 | 3 |
+> | captured errors | 4 | 4 | 4 |
+>
+> **The bot verdict is gone**, and so is the extension signature CreepJS was building. The **two**
+> surviving lies are the defense itself and are not removable without removing it: `AudioBuffer:
+> sample noise detected` and `CanvasRenderingContext2D.getImageData: pixel data modified` — our own
+> farbling, which is also the third `trash` entry (`suspicious pixel data`).
+>
+> ⚠ **This does NOT fix the join, and must not be read as fixing it.** Measured in the same pair of
+> runs: FingerprintJS still gives the two origins different visitorIds (`2396…` vs `e28d…`), and
+> CreepJS still returns the **identical** id on both (`5e55ad8a2ff5dfda…`). §1 and §6.1 stand
+> unchanged — CreepJS keys on the display layer D11 made truthful, which is persona-invariant by
+> design and has nothing to do with how many lies it counts.
+>
+> **Two pristine-realm paths survive**, both found by D35's own attack pass, neither reachable by the
+> bypass above and neither used by CreepJS. (1) The **HTML parser**: an `<iframe>` in static markup
+> is connected by the parser, which calls no DOM method, so an inline `<script>` in the same parse
+> still reads a pristine realm — measured at 12 cores during the parse and 8 once the enclosing
+> `document.write` returned. (2) A frame inserted as `about:blank` and **navigated later**: the shim
+> keys "already installed" on the WindowProxy, which survives navigation, so the new realm is never
+> patched — pre-existing, async, and the next decision (key on the realm's `document` instead). Both
+> are recorded in D35 and in `docs/THREAT-MODEL.md`. Cost of the fix: +0.15–0.49 µs per `appendChild`
+> on a page with no child frames, ≈0.11 µs more per child frame
+> (`docs/PERFORMANCE-2026-09-17.md`, 2026-09-19 follow-up).
 
 ### 3d. The shim prints its own product name into the page console — and the message is false
 
@@ -349,9 +396,9 @@ independent reading to come in worse than the one before it.
 |---|---|---|
 | "different … per site" | ✅ **verified independently** | 4 personas → 4 FingerprintJS `visitorId`s, 4 ClientJS values |
 | stable per site (D2, implied) | ✅ **verified independently** | same site key, fresh load, cache-busted → identical id from all 3 libraries |
-| "internally consistent" | ⚠️ **partly refuted** | consistent in *values*; **not** in the shape of the patched function objects. 198 APIs flagged as lying by an outside library |
+| "internally consistent" | ✅ **as of 2026-09-19** | was: 198 APIs flagged as lying by an outside library. After D32 (shape) and D35 (same-tick realm): **2**, and both are our own canvas/audio noise — see the §3c closure note |
 | "breaks the join" | ⚠️ **verified for 2 of 3 libraries, refuted for the third** | FingerprintJS ✅, ClientJS ✅, **CreepJS ❌ — one identity across all four personas** |
-| "it is detectable" | ✅ verified, **and the magnitude was understated** | 0 → 453 lies; named as a toString proxy; classified as a webdriver; **and it prints its own product name to the page console** (§3d) |
+| "it is detectable" | ✅ verified — magnitude first understated, then corrected downward | 0 → 453 lies; named as a toString proxy; classified as a webdriver; printing its own product name to the page console (§3d). **All three closed: 453 → 199 (D32) → 2 (D35); `hasToStringProxy` and `webDriverIsOn` both back to the control's `false`; 0 console lines (D33).** Still detectable — the 2 remaining lies are the canvas and audio noise, by design |
 | "does not defeat a determined adversary" | ✅ **verified, and weaker than stated** | it does not defeat an *undetermined* one either — CreepJS needed no configuration |
 | engine invariants survive every persona | ✅ **verified** | libm, CSS `@media`, display, timezone, locale, touch: identical under all personas and to the control |
 | "nothing about your IP" | — | unchanged; unreachable from a WebExtension |

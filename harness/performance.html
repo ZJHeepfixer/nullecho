@@ -148,6 +148,13 @@
     // page as the patched cells, so it catches a biased instrument even on a
     // shim=on run where the shim=off null calibration is not available.
     clientWidth: (d(Element.prototype, 'clientWidth') || {}).get,
+    // D35 — the DOM insertion entry points. `appendChild` is one of the hottest
+    // calls on the web and the shim now wraps it (it is where a child browsing
+    // context is created, synchronously). This is the honest cost question for
+    // that change, and it is measured against the pristine natives captured here.
+    appendChild: Node.prototype.appendChild,
+    insertBefore: Node.prototype.insertBefore,
+    innerHTML: (d(Element.prototype, 'innerHTML') || {}).set,
   };
 
   if (window.__perfMode === 'off') return;
@@ -854,6 +861,64 @@ if (want('paired')) {
       () => { void conts[ci++ % 100].clientWidth; },
       () => { void NAT.clientWidth.call(conts[ci++ % 100]); }, { budgetMs: 1500 }));
     await yield_();
+
+    // ── AREA 4b (D35) — DOM INSERTION. The same-tick child-realm fix wraps every
+    //    DOM call that can connect an <iframe>, which includes `appendChild` and
+    //    the `innerHTML` setter. The added work is: one `window.length` read
+    //    through its captured getter, plus one WeakSet lookup per existing child
+    //    frame. On a page with no frames that is a single accessor call.
+    //
+    //    Both sides re-append a node that is ALREADY the host's last child, so the
+    //    native work (pre-insert validity, remove-from-old-parent, insert) is
+    //    identical on both sides and the tree does not grow under the benchmark.
+    //    The added-cost column is therefore exactly the wrapper, which is the
+    //    quantity under test.
+    const ihost = document.createElement('div');
+    ihost.style.cssText = 'position:absolute;left:-9999px;top:-9999px';
+    document.body.appendChild(ihost);
+    const idiv = document.createElement('div');
+    idiv.textContent = 'x';
+    ihost.appendChild(idiv);
+    prow('DOM — appendChild a plain div (0 child frames)', await paired(
+      () => { ihost.appendChild(idiv); },
+      () => { NAT.appendChild.call(ihost, idiv); }, { budgetMs: 1800 }));
+    await yield_();
+
+    const ianchor = document.createElement('span');
+    ihost.appendChild(ianchor);
+    prow('DOM — insertBefore a plain div (0 child frames)', await paired(
+      () => { ihost.insertBefore(idiv, ianchor); },
+      () => { NAT.insertBefore.call(ihost, idiv, ianchor); }, { budgetMs: 1800 }));
+    await yield_();
+
+    // 50 nodes of ordinary markup — the shape a template renderer produces.
+    const HTML50 = (() => {
+      let s = '';
+      for (let i = 0; i < 25; i++) s += '<span class="c' + i + '">n' + i + '</span><b>b' + i + '</b>';
+      return s;
+    })();
+    const hhost = document.createElement('div');
+    hhost.style.cssText = 'position:absolute;left:-9999px;top:-9999px';
+    document.body.appendChild(hhost);
+    prow('DOM — innerHTML = 50-node string (0 child frames)', await paired(
+      () => { hhost.innerHTML = HTML50; },
+      () => { NAT.innerHTML.call(hhost, HTML50); }, { budgetMs: 1800 }));
+    await yield_();
+
+    // …and the same call on a page that HAS child frames, because that is where
+    // the sweep actually loops. Run last: it changes `window.length` for the rest
+    // of the page. Same-origin `about:blank` frames, which is the worst case —
+    // the shim installs into each one and then re-checks it on every insertion.
+    const fbox = document.createElement('div');
+    fbox.style.cssText = 'position:absolute;left:-9999px;top:-9999px';
+    document.body.appendChild(fbox);
+    for (let i = 0; i < 3; i++) fbox.appendChild(document.createElement('iframe'));
+    P.childFrameCount = window.length;
+    prow('DOM — appendChild a plain div (' + window.length + ' child frames)', await paired(
+      () => { ihost.appendChild(idiv); },
+      () => { NAT.appendChild.call(ihost, idiv); }, { budgetMs: 1800 }));
+    await yield_();
+    fbox.remove(); hhost.remove(); ihost.remove();
 
     document.body.removeChild(wrap);
     document.body.removeChild(cw);

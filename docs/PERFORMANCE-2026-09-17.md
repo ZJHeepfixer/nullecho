@@ -644,3 +644,96 @@ One number did move, and it moved toward the truth: on a stack where a generic r
 before the claimed family, the ordinary page stack went from **474 px to 479 px**, and 479
 is what the un-shimmed browser reports. D34 explains why the old value had no defensive
 content. Stacks that name a system family first keep the old behaviour exactly.
+
+---
+
+# Follow-up, 2026-09-19 — what the same-tick child-realm fix (D35) costs
+
+D35 wraps every DOM entry point that can connect an `<iframe>` — `Node.appendChild` among
+them — so that a child browsing context is patched inside the call that creates it. That
+puts shim code on one of the hottest calls on the web, which makes this a cost question
+before it is anything else. Four new cells in `harness/performance.html` measure it with the
+same paired ABBA instrument as everything above.
+
+**Environment.** Real Chrome **151.0.7922.174**, macOS 26.6.0, Apple M2 Max, served from
+`http://localhost:4886` (launch config `nullecho-root`), fresh `?cb=` per run, persona
+`macos-chrome-m1-pro`. ⚠ Same caveat as the original run: the tab was
+`visibilityState: hidden` (permission to bring Chrome forward was not taken). Synchronous
+paired cells are unaffected and the calibration below proves it — but note that `setTimeout`
+in a hidden tab is throttled to as little as one wake per *minute*, which is why every
+hand-run probe in this section is strictly synchronous.
+
+**Calibration, printed rather than assumed.** `?shim=off`, both sides the same native
+function, so every ratio must be 1.00:
+
+| Null-run cell | Ratio |
+|---|---|
+| `DOM — appendChild a plain div (0 child frames)` | **1.027** |
+| `DOM — insertBefore a plain div (0 child frames)` | **1.000** |
+| `DOM — innerHTML = 50-node string (0 child frames)` | **0.980** |
+| `DOM — appendChild a plain div (3 child frames)` | **1.000** |
+| in-page null control `Element.clientWidth`, shim **on** | **1.014** |
+
+(The whole-run `nullWorstDeviation` on that calibration was 0.20 — one of the pre-existing
+cells swung 20%, worse than the 12.5% recorded on 2026-09-17. The four cells above are the
+ones this section reports and they are within 3%.)
+
+## The numbers
+
+Shim **on**, paired against the pristine natives captured at `document_start`:
+
+| Cell | Native (median) | Shimmed (median) | **Added** | Ratio |
+|---|---|---|---|---|
+| `appendChild` a plain div — **0 child frames** | 3.10 µs | 3.59 µs | **+0.49 µs** | 1.09× |
+| `insertBefore` a plain div — 0 child frames | 3.81 µs | 4.54 µs | **+0.73 µs** | 1.20× |
+| `innerHTML` = 50-node string — 0 child frames | 0.169 ms | 0.167 ms | **below the noise floor** | 1.00× |
+| `appendChild` a plain div — **3 child frames** | 3.61 µs | 5.71 µs | **+2.10 µs** | 1.61× |
+
+Those rows run at the end of the paired suite, on a page that has already done the 1920×1080
+canvas work and built 300 layout rows — which is why the *native* `appendChild` is 3.1 µs
+there. The same hand-run probe on a quiet page (`?only=none`, nothing else executed) reads:
+
+| Child frames on the page | Native | Shimmed | **Added** |
+|---|---|---|---|
+| 0 | 0.80 µs | 0.95 µs | **+0.15 µs** |
+| 1 | 0.76 µs | 0.98 µs | **+0.22 µs** |
+| 3 | 0.81 µs | 1.24 µs | **+0.43 µs** |
+| 5 | 0.87 µs | 1.49 µs | **+0.62 µs** |
+| 10 | 0.88 µs | 2.16 µs | **+1.28 µs** |
+| 20 | 0.84 µs | 3.18 µs | **+2.34 µs** |
+
+Linear at **≈0.11 µs per existing child frame**, on top of a fixed ≈0.15 µs.
+
+**Against the target.** The goal set for this change was **under 1 µs added per
+`appendChild`**. A page with no child frames pays **0.15–0.49 µs** and meets it. A page with
+three pays **0.43–2.10 µs**, and a page with twenty pays about **2.3 µs** — above the target,
+stated rather than rounded. The cost is O(child frames) by construction: the wrapper reads
+`window.length` through its captured getter and, only if that is non-zero, walks `window[i]`
+checking a WeakSet.
+
+## The 1 µs that was not where it looked — do not CALL a huge function to learn it is a no-op
+
+The first build called `installInto(window[i])` per frame per insertion and relied on
+`installInto`'s own first line (an `INSTALLED` WeakSet check) to return immediately. Measured,
+that cost **+3.4 µs per `appendChild` on a page with 5 child frames** — 8× what the parts
+should cost. The parts were timed individually on the same page and they are cheap:
+
+| Ingredient (5 child frames) | Cost |
+|---|---|
+| `window.length` through its captured getter | 0.054 µs |
+| one `window[i]` read | 0.085 µs |
+| the whole sweep, hand-built faithfully (getter + 5 index reads + 5 WeakSet checks) | **0.476 µs** |
+| a hand-built twin of the entire wrapper, vs the native | **+0.105 µs** |
+
+A twin that does the same work costing +0.1 µs while the real wrapper cost +3.2 µs is the
+whole finding: the difference is **entering `installInto` at all**. It declares several
+hundred locals — every captured native in the realm — so its interpreter frame is large and a
+call costs about a microsecond even when it returns on line 1. Hoisting that one WeakSet check
+into the sweep loop, so the call never happens for an already-installed realm, took the
+5-frame page from **+3.4 µs to +0.62 µs**. Same WeakSet, same semantics, one function call
+less.
+
+Worth keeping: a bisect build with the sweep body switchable at run time (wrapper only →
++ `length` read → + index loop → + `installInto`) was what isolated it, and the mode measured
+*last* always looked fastest — measurement order alone moved a cell by 6×. Read any single
+cell here against the null calibration and the twin, not on its own.
