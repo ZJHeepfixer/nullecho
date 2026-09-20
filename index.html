@@ -126,9 +126,11 @@
       of people actually run.</p></div>
     <div class="card"><h3>Stable within a site</h3>
       <p>Nothing flickers between page loads, so nothing breaks and you don't stand out.</p></div>
-    <div class="card"><h3>The join breaks</h3>
-      <p>Site A and Site B see different machines and can't connect your visit to one with your visit
-      to the other. That link is the actual harm.</p></div>
+    <div class="card"><h3>The join breaks — for most trackers</h3>
+      <p>Site A and Site B see different machines, so a tracker that hashes the signals we cover
+      can't connect one visit to the other — verified against FingerprintJS and ClientJS. A tracker
+      that <em>detects</em> spoofed values, discards them and keys on what's left still can; CreepJS
+      does exactly that.</p></div>
   </div>
 </div></section>
 
@@ -137,8 +139,11 @@
   <p>A privacy tool that oversells is worse than none — you make real decisions based on what it implies.</p>
   <div class="card no">
     <ul style="margin:0">
-      <li><b>It is detectable.</b> Against our own build, 2 of 10 adversarial detection methods still
-        fire. We publish that number rather than hide it.</li>
+      <li><b>It is detectable, by design.</b> Measured with CreepJS — a free third-party library,
+        not our own test suite — our build produces 2 lying API records, and both are the canvas and
+        audio noise that <em>is</em> the defense. The same library recorded 199 and a <b>bot</b>
+        verdict before 2026-09-19. We publish the number we don't control rather than the one we
+        scored ourselves.</li>
       <li><b>Nothing about your IP address or TLS fingerprint.</b> Those sit below the layer any
         browser extension can reach. If that's your threat model, you want a VPN or Tor.</li>
       <li><b>Firefox's built-in protection and Brave are stronger</b> at anti-fingerprinting — they

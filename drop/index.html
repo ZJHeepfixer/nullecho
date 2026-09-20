@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Make 603 data brokers delete you — a free California guide</title>
-<meta name="description" content="Since August 1, 2026, California data brokers must honor deletion requests filed through the state's DROP platform. One free request reaches all 603 registered brokers, covers the inferences they made about you, and keeps working — no renewal. Here's what you need and what to expect.">
+<meta name="description" content="Since August 1, 2026, California data brokers must act on deletion requests filed through the state's DROP platform. One free request reaches all 603 registered brokers and keeps working — no renewal. Here's what you need, what gets deleted, and what lawfully doesn't.">
 <style>
   :root{
     --bg:#0c0f14; --panel:#141922; --line:#242c3a; --raise:#1b2230;
-    --text:#e8edf5; --dim:#93a0b5; --faint:#66738a;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#7d8a9f;
     --accent:#5eead4; --accent-dim:#2dd4bf; --warn:#fbbf24; --bad:#f87171;
     --serif: ui-serif, Georgia, "Times New Roman", serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
@@ -17,8 +17,8 @@
   @media (prefers-color-scheme: light){
     :root{
       --bg:#fbfcfd; --panel:#fff; --line:#e2e8f0; --raise:#f1f5f9;
-      --text:#0f172a; --dim:#475569; --faint:#94a3b8;
-      --accent:#0d9488; --accent-dim:#0f766e;
+      --text:#0f172a; --dim:#475569; --faint:#5b6878;
+      --accent:#0f766e; --accent-dim:#0b5f58;
     }
   }
   *{box-sizing:border-box}
@@ -90,6 +90,8 @@
   .box ul{margin:8px 0 0; padding-left:20px; color:var(--dim); font-size:15px}
   .box li{margin-bottom:7px}
 
+  code{font-family:var(--mono); font-size:13.5px; color:var(--text); overflow-wrap:anywhere; word-break:break-word}
+
   table{width:100%; border-collapse:collapse; margin:18px 0; font-size:15px}
   th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top}
   th{font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:650}
@@ -115,12 +117,14 @@
     <div class="eyebrow"><span class="dot"></span>In force since August 1, 2026</div>
     <h1>California quietly gave you a button that forces data brokers to delete you.</h1>
     <p class="lede">
-      One request, filed once, reaches <b>all 603 data brokers registered in California</b>. They have
-      to delete what they hold on you — <b>including the inferences they made about you</b> — and
-      they have to keep doing it, every 45 days, indefinitely. It's free, it's the state's own
-      system, and it needs three pieces of information.
+      One request, filed once, reaches <b>all 603 data brokers registered in California</b>. A broker
+      that matches you has to <b>delete</b> what it holds — including the non-exempt inferences it
+      drew about you. A broker that can't match you exactly has to <b>stop selling or sharing</b> it
+      instead, and some data is <b>lawfully exempt</b> and stays. They keep re-checking at least
+      every 45 days for as long as the request stands. It's free, it's the state's own system, and it
+      needs three pieces of information.
     </p>
-    <a class="cta" href="https://consumer.drop.privacy.ca.gov" rel="noopener">Open California's DROP portal →</a>
+    <a class="cta" href="https://consumer.drop.privacy.ca.gov" target="_blank" rel="noopener noreferrer">Open California's DROP portal →</a>
     <span class="cta-sub">consumer.drop.privacy.ca.gov — the state's own portal. This page just explains what to expect.</span>
   </div>
 </header>
@@ -141,11 +145,12 @@
     <div class="facts">
       <div class="fact"><div class="n">603</div><div class="l">Registered brokers reached by a single request</div></div>
       <div class="fact"><div class="n">45</div><div class="l">Days — maximum between broker checks of the queue</div></div>
-      <div class="fact"><div class="n">$200</div><div class="l">Penalty per request, <em>per day</em>, for ignoring one</div></div>
+      <div class="fact"><div class="n">$200</div><div class="l">Fine per request, <em>per day</em>, for ignoring one — paid to the state, not to you</div></div>
       <div class="fact"><div class="n">$0</div><div class="l">Cost to you. It's a state service.</div></div>
     </div>
     <p style="font-size:13px;color:var(--faint);margin-top:14px">
-      603 is a live count parsed from the state's own broker registry on August 20, 2026. It moves as
+      603 is a live count parsed from the state's own broker registry, first on August 20, 2026 and
+      re-checked against the same CSV on September 19, 2026 — still exactly 603. It moves as
       companies register.
     </p>
   </div>
@@ -167,9 +172,12 @@
     <div class="box good">
       <h3>The part people miss</h3>
       <p>
-        The deletion obligation covers <strong>inferences</strong> — the conclusions brokers drew
+        The deletion obligation reaches <strong>inferences</strong> — the conclusions brokers drew
         about you, not merely the raw records they bought. That's the part that actually drives
-        what you get shown, what you get offered, and what you get charged.
+        what you get shown, what you get offered, and what you get charged. CalPrivacy's wording is
+        conditional and worth keeping: inferences are personal information "subject to deletion by
+        data brokers <em>who match your information in their records</em>" — and, as below, exempt
+        categories stay regardless.
       </p>
     </div>
   </div>
@@ -186,8 +194,11 @@
         <p>
           The test is broader than "lives in California." CalPrivacy's wording covers anyone
           <strong>domiciled in California</strong>, including someone outside the state
-          <em>for a temporary or transitory purpose</em> — so students, people on long work
-          assignments, and snowbirds may still qualify. Someone who genuinely moved away does not.
+          <em>for a temporary or transitory purpose</em>. The factors it names are where your primary
+          residence is, which state issued your driver's licence or ID, and where you're registered
+          to vote. <em>Our</em> reading of that — not CalPrivacy's words — is that students, people
+          on long work assignments and snowbirds may still qualify. Someone who genuinely moved away
+          does not.
         </p>
       </li>
       <li>
@@ -196,16 +207,39 @@
           <strong>Name, date of birth, and ZIP code.</strong> That's the required set. Email, phone,
           former/maiden names, mobile ad ID, connected-TV ID and VIN are all <em>optional</em> —
           each one you add widens the net brokers can match you against, so more optional data means
-          more thorough deletion. That trade-off is yours to make.
+          more thorough deletion. And you can add <strong>multiples of everything except your date
+          of birth</strong>: every email address you've used, every phone number, every former name.
+        </p>
+        <p>
+          <strong>Gather all of it before you submit.</strong> CalPrivacy is explicit that
+          <em>"updates are allowed once every 45 days"</em> (Cal. Civ. Code § 1798.99.86(a)(4) says
+          the same). Submit the bare minimum and you are locked out of adding your email address for
+          45 days, while brokers process against a profile that can't match you. This is the one
+          place where doing it in two sittings is worse than doing it in one.
         </p>
       </li>
       <li>
         <h3>Submit — no account needed</h3>
         <p>
-          Go to <a href="https://consumer.drop.privacy.ca.gov" rel="noopener">consumer.drop.privacy.ca.gov</a>.
-          Residency is verified through the California Identity Gateway, and CalPrivacy states that
-          information is not retained by DROP. You'll get an <strong>8-digit DROP ID</strong> — keep
-          it private; it's how you check status later. Don't pay a third-party site to file this for you.
+          Go to <a href="https://consumer.drop.privacy.ca.gov" target="_blank" rel="noopener noreferrer">consumer.drop.privacy.ca.gov</a>.
+          Residency is verified through the California Identity Gateway, and it's worth being precise
+          about what that does and doesn't keep: CalPrivacy says the information you enter <em>to
+          verify residency</em> is not shared with DROP and is not stored after the check. Your
+          <em>deletion profile</em> — the name, birth date and ZIP you're filing with — is stored, in
+          a secure format. You'll get an <strong>8-digit DROP ID</strong> — keep it private; it's how
+          you check status later. Don't pay a third-party site to file this for you.
+        </p>
+        <p>
+          <strong>Brokers never see what you typed.</strong> DROP hashes it — CalPrivacy's own worked
+          example is that <code>emailaddress@email.com</code> reaches a data broker as
+          <code>IokUeTFtxXZQdmjolr4Kn//apUY5a6J8sVdHyiWqqUk=</code>, and once hashed it is
+          "almost impossible to turn back into the original data." Matching happens on the hashes.
+        </p>
+        <p>
+          Two practical notes: the portal <strong>requires JavaScript and cookies</strong>, which is
+          worth knowing if you browse with either restricted. And you can sign in with Login.gov
+          instead of entering your details directly — CalPrivacy suggests that option only if you
+          already have a Login.gov account.
         </p>
       </li>
       <li>
@@ -214,8 +248,18 @@
           This is the part worth understanding: CalPrivacy describes DROP as
           <em>"ongoing – not a one-time action."</em> There's nothing to renew. Brokers return to the
           queue at least every 45 days, so a request filed today also reaches data they buy next year.
-          You won't get 603 confirmation emails — silence isn't failure. Status is at
-          <a href="https://consumer.drop.privacy.ca.gov/dropstatus" rel="noopener">the status page</a>.
+          You won't get 603 confirmation emails — silence isn't failure, and brokers have up to
+          <strong>90 days</strong> to report how they processed a request, so a check on day three
+          showing 603 &times; <code>Pending</code> is the expected result, not a problem. Status is at
+          <a href="https://consumer.drop.privacy.ca.gov/dropstatus" target="_blank" rel="noopener noreferrer">the status page</a>.
+        </p>
+        <p>
+          <strong>No renewal, but there are reasons to come back.</strong> CalPrivacy lists them:
+          you change your name, get a new phone number or email address, get a new device (and with
+          it a new mobile ad ID), or buy a different car. An identifier you never added is an
+          identifier no broker can match — and the 45-day update rule applies to those edits too.
+          You can also <em>narrow</em> a request: every active and future broker is included unless
+          you uncheck specific ones, which matters if there's a record you actually rely on.
         </p>
       </li>
     </ol>
@@ -232,8 +276,16 @@
       <thead><tr><th>Limit</th><th>What it means</th></tr></thead>
       <tbody>
         <tr>
+          <td class="d">Not always deletion</td>
+          <td>If a broker <em>can't verify an exact match</em> from what you gave it, the law makes it process your request as an opt-out of sale or sharing instead. CalPrivacy's own wording for that status: <em>"Opted-out — The data broker couldn't make an exact match based on the information you provided. For now, these data brokers still have your data, but they can no longer sell or share it."</em> That is the strongest argument for filling in the optional fields.</td>
+        </tr>
+        <tr>
+          <td class="d">Exempt data stays</td>
+          <td>Some records are exempt by statute and are not deleted; you'll see those marked <em>Exempted</em>. CalPrivacy's own examples are <strong>public records — vehicle and real-estate ownership, voter registration</strong> — along with other statutory exemptions and publicly available data. That is the core inventory of people-search sites, so expect to see it.</td>
+        </tr>
+        <tr>
           <td class="d">California only</td>
-          <td>The DELETE Act is state law. Other states may have their own deletion rights — they're generally weaker and filed per-company.</td>
+          <td>The DELETE Act is state law. Other states have deletion rights of their own — filed per-company rather than through one queue, which is the real difference. Oregon's, for one, expressly reaches data a controller "obtained from another source" plus derived data.</td>
         </tr>
         <tr>
           <td class="d">Registered brokers</td>
@@ -241,11 +293,11 @@
         </tr>
         <tr>
           <td class="d">Filing for others</td>
-          <td>Family situations are provided for — a parent for a child, a family member for an elderly relative. Whether a commercial or professional agent may file on your behalf is <em>not</em> something we could confirm from CalPrivacy's guidance, so we're not claiming it either way.</td>
+          <td>Family situations are provided for — a parent for a child, a family member for an elderly relative. Authorised agents are provided for too: Cal. Civ. Code § 1798.99.86(b)(8) says the mechanism "shall support the ability of a consumer's authorized agents to aid in the deletion request", and (b)(9) lets the consumer <em>or their authorized agent</em> check status. What we have not verified is how the deployed portal exposes that — we did not file a request to find out.</td>
         </tr>
         <tr>
-          <td class="d">Not everyone</td>
-          <td>"Data broker" is a legal category. Companies you have a direct relationship with — your bank, your employer, sites you have accounts on — are not brokers and aren't covered.</td>
+          <td class="d">First-party data</td>
+          <td>"Data broker" is a legal category. A company you deal with directly — your bank, your employer, a site you have an account on — isn't acting as a broker toward you. Note the nuance: some registered brokers <em>also</em> collect from you directly, and through DROP they must delete what they got from other sources but not what you handed them yourself.</td>
         </tr>
         <tr>
           <td class="d">Not retroactive to ads</td>
@@ -259,7 +311,9 @@
       <p>
         You are handing identifying details to a state system in order to have data about you deleted.
         The CPPA states this information is used only to complete deletion requests and is not sold or
-        shared. That's the trade; it's a reasonable one, but you should make it knowingly.
+        shared, and — the part that does most of the work here — <strong>brokers receive hashes, not
+        your details</strong>. That's the trade; it's a reasonable one, but you should make it
+        knowingly.
       </p>
     </div>
   </div>
@@ -269,36 +323,75 @@
   <div class="wrap">
     <h2>Not in California?</h2>
     <p class="body">
-      There's no national equivalent. What's actually worth doing instead:
+      There is no national equivalent, and only California has a one-request queue. But three of these
+      are things you can do today, and the first one is the best ratio.
     </p>
     <div class="box">
       <ul>
-        <li><strong>Turn on Global Privacy Control.</strong> A browser signal that legally counts as an opt-out in California and several other states. Free, takes seconds, and it's been enforced — a company was fined for ignoring it.</li>
-        <li><strong>Check your own state.</strong> A number of states now have consumer privacy laws with deletion rights. They're filed company-by-company, but they're real.</li>
-        <li><strong>Cut collection at the source.</strong> Blocking trackers stops new data being created, which no deletion request can do.</li>
+        <li><strong>Turn on Global Privacy Control.</strong> A browser signal that counts as a legal
+          do-not-sell request <em>if you live in a state that recognises it</em> — California,
+          Colorado and several others. The duty follows your residency, not the site's location.
+          Free, takes seconds, and it is genuinely enforced: California's Attorney General settled
+          with Sephora for $1.2&nbsp;million in August 2022 partly for failing to process opt-outs
+          sent through user-enabled global privacy controls, and the CPPA's own August 2026 board
+          materials record further GPC enforcement against Healthline, Tractor Supply, PlayOn Sports
+          and Disney between July 2025 and February 2026. One limitation worth knowing: the signal
+          covers <strong>the browser profile you turn it on in</strong> — your phone and your other
+          browsers each need their own.</li>
+        <li><strong>Use your own state's deletion right, company by company.</strong> Oregon's is the
+          strongest wording available outside California: ORS 646A.574 lets you require a controller
+          to delete personal data including data it
+          <em>"obtained from another source and derived data"</em> — which is exactly broker-held
+          records plus the inferences drawn from them. Texas's TDPSA § 541.051(b)(3) covers
+          "personal data provided by or obtained about the consumer". Both are filed per company.</li>
+        <li><strong>Know which registries exist, and what they are.</strong> California, Oregon, Texas
+          and Vermont each require data brokers to register — but a registry is a list, not a
+          button. <strong>Vermont has no companion deletion right</strong>: Act 138 (2026) adds a
+          field for a broker's deletion page <em>"if the data broker permits deletion"</em>, which is
+          conditional, and it takes effect 1 January 2027.</li>
+        <li><strong>Start with a non-commercial directory.</strong>
+          <a href="https://privacyrights.org/data-brokers" target="_blank" rel="noopener noreferrer">Privacy Rights Clearinghouse</a>
+          is a nonprofit, is not selling you a subscription, and is the one link here that puts a
+          non-Californian in front of an actual opt-out form today.</li>
+        <li><strong>Cut collection at the source.</strong> Blocking trackers stops new data being
+          created, which no deletion request can do.</li>
       </ul>
     </div>
+    <p style="font-size:13px;margin-top:14px">
+      One thing that does <em>not</em> travel: authorised agents. California requires DROP to support
+      them; Texas's authorised-agent provision appears limited to opt-out rather than deletion. "Have
+      someone file it for you" is a California advantage, not a national one.
+    </p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
     <p>
-      This guide is free and collects nothing. There's no analytics on this page, no tracker, no
-      email capture, and no affiliate link. It would be absurd to track you here.
+      This guide is free. <strong style="color:var(--dim)">The page itself collects nothing</strong> —
+      no analytics, no tracker, no cookie, no email capture, no affiliate link, no form, and not one
+      network request beyond the document you're reading. It would be absurd to track you here.
+      <strong style="color:var(--dim)">The host is a different question, and here is the honest
+      answer:</strong> this page is served by GitHub Pages, and GitHub's own documentation says
+      <em>"when a GitHub Pages site is visited, the visitor's IP address is logged and stored for
+      security purposes, regardless of whether the visitor has signed into GitHub or not."</em>
+      GitHub and its CDN see that; we never do, and there's no account through which we could.
     </p>
     <p style="margin-top:18px"><strong style="color:var(--dim)">Sources</strong></p>
     <div class="src">
-      <a href="https://consumer.drop.privacy.ca.gov" rel="noopener">consumer.drop.privacy.ca.gov</a> — the submission portal<br>
-      <a href="https://privacy.ca.gov/drop/" rel="noopener">privacy.ca.gov/drop</a> — the state's DROP information page<br>
-      <a href="https://cppa.ca.gov/data_broker_registry/registry.csv" rel="noopener">cppa.ca.gov/data_broker_registry/registry.csv</a> — the registry the 603 count comes from<br>
-      <a href="https://cppa.ca.gov/regulations/drop.html" rel="noopener">cppa.ca.gov/regulations/drop.html</a> — DROP system requirements<br>
-      Cal. Civ. Code § 1798.99.82 — the $200-per-request-per-day penalty
+      <a href="https://consumer.drop.privacy.ca.gov" target="_blank" rel="noopener noreferrer">consumer.drop.privacy.ca.gov</a> — the submission portal<br>
+      <a href="https://privacy.ca.gov/drop/" target="_blank" rel="noopener noreferrer">privacy.ca.gov/drop</a> — the state's DROP information page<br>
+      <a href="https://cppa.ca.gov/data_broker_registry/registry.csv" target="_blank" rel="noopener noreferrer">cppa.ca.gov/data_broker_registry/registry.csv</a> — the registry the 603 count comes from<br>
+      <a href="https://cppa.ca.gov/regulations/drop.html" target="_blank" rel="noopener noreferrer">cppa.ca.gov/regulations/drop.html</a> — DROP system requirements<br>
+      Cal. Civ. Code § 1798.99.82 — the $200-per-request-per-day fine<br>
+      Cal. Civ. Code § 1798.99.86 — the deletion mechanism: (a)(4) 45-day updates,
+      (b)(8)–(9) authorized agents, (c)(1)(B) opt-out where a request can't be verified,
+      (c)(2) exemptions, (d)(1) the ongoing duty
     </div>
     <p style="margin-top:22px; font-size:12.5px">
       Independent guide. Not legal advice, not affiliated with the State of California or the CPPA.
       Details of the program can change — the official pages above are authoritative where this page
-      and they disagree. Last reviewed August 20, 2026.
+      and they disagree. Last reviewed September 19, 2026.
     </p>
   </div>
 </footer>
