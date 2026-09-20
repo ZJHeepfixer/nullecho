@@ -37,7 +37,7 @@ def render(src: pathlib.Path, title_hint: str):
     body = markdown.markdown(text, extensions=["tables", "fenced_code", "sane_lists", "toc"],
                              extension_configs={"toc": {"toc_depth": "2-3"}}, output_format="html5")
     # python-markdown has no ~~strikethrough~~; the brief uses it to SHOW struck statutory text
-    body = re.sub(r"~~(.+?)~~", r"<del>\1</del>", body)
+    body = re.sub(r"~~(.+?)~~", r"<del>\1</del>", body, flags=re.S)  # source wraps mid-strike
     # title = first H1 in the source, else the hint
     title = next((l.lstrip("# ").strip() for l in text.splitlines() if l.startswith("# ")), title_hint)
     note = ("Rendered from the Markdown source in the public repository "
