@@ -170,6 +170,15 @@ test('G1: the reserved id range bounds how many hosts can be excepted', async ()
 
 // ═══════════════════════════════════════════════════════════════════════════
 // G2 / G3 — the page half: the property's VALUE when off, and its SHAPE
+//
+// ⚠ READ WITH D46. Since 2026-09-20 the SHIPPED path is `shim.js` installing
+// this property — one `Function.prototype.toString` mask per realm, and the
+// shim owns it. Everything below runs `gpc.js` with no shim in the realm, which
+// is still a real configuration (the shim failed to inject, or its persona
+// derivation failed) and is where `gpc.js` remains the whole feature, its own
+// masking layer included. The shim-owned path is pinned by
+// `gpc-one-mask-2026-09-20.test.js`, which asserts the same G2/G3 properties of
+// the shim's getter and that `gpc.js` adds no second layer over it.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**

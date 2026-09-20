@@ -781,6 +781,70 @@
   // ─── END GENERATED SUFFIX MIRROR ─────────────────────────────────────────
 
   // ══════════════════════════════════════════════════════════════════════════
+  // 1b. Global Privacy Control — the shipped breakage list (D46)
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `navigator.globalPrivacyControl` is installed by THIS file, because the rule
+  // is one `Function.prototype.toString` mask per realm and this file owns it
+  // (DECISIONS.md D46; the regression it closes is in D42's closing paragraph).
+  // `src/gpc.js` still carries the whole page half as a standalone fallback for
+  // the realms this file never patched, and stands aside wherever the signal is
+  // already up — see the comment above `ALREADY_SIGNALLED` there.
+  //
+  // ─── BEGIN GENERATED GPC BREAKAGE MIRROR ─────────────────────────────────
+  //
+  // Sites that BREAK when they see the JS property — EasyPrivacy's "! GPC"
+  // section — mirrored from `ext/rules/gpc.json` rule 5000's
+  // `excludedRequestDomains`, which is also what `manifest.json` turns into the
+  // `src/gpc.js` content script's `exclude_matches`. That manifest exclusion is
+  // what kept the property off these hosts while gpc.js owned it; this file has
+  // no per-host injection of its own, so the list has to be readable here, at
+  // document_start, before anything is installed. `ext/rules/validate.mjs` pins
+  // `gpc.json` to the manifest and
+  // `ext/src/gpc-one-mask-2026-09-20.test.js` pins this array to BOTH — a host
+  // added to one list and not the others fails the build.
+  //
+  // Suffix-matched, because `*://*.usaa.com/*` matches every subdomain too.
+  const GPC_PROP = 'globalPrivacyControl';
+  const GPC_BREAKAGE_HOSTS = setOf(strSplit(
+    'accuweather.com|acmemarkets.com|boston.com|capezio.com|chime.com|costco.com|' +
+    'crunchyroll.com|deezer.com|delta.com|dnb.com|dnb.co.uk|dollargeneral.com|' +
+    'engadget.com|espn.com|eventbrite.com|filson.com|flyfrontier.com|formula1.com|' +
+    'geizhals.de|gladiatorgarageworks.com|harborfreight.com|hopwtr.com|jdsports.com|' +
+    'kkrt.com|lenscrafters.com|livewithkellyandmark.com|madewell.com|mazdausa.com|' +
+    'michaels.com|monsterenergy.com|newyorker.com|norton.com|pandora.com|porsche.com|' +
+    'qobuz.com|rivals.com|soundcloud.com|spotify.com|subway.com|techcrunch.com|' +
+    'tidal.com|tirerack.com|uber.com|ubereats.com|usaa.com|vimeo.com|visible.com|' +
+    'weather.com|wunderground.com|yahoo.com', '|'));
+  // ─── END GENERATED GPC BREAKAGE MIRROR ───────────────────────────────────
+
+  /** `*://*.<host>/*` semantics: the host itself, or any subdomain of it. */
+  function gpcSuppressedFor(hostname) {
+    let h = lower(hostname || '');
+    while (h) {
+      if (setHas(GPC_BREAKAGE_HOSTS, h)) return true;
+      const dot = strIndexOf(h, '.');
+      if (dot < 0) return false;
+      h = strSlice(h, dot + 1);
+    }
+    return false;
+  }
+
+  /**
+   * One boot-time answer for this document. A same-origin child realm is by
+   * definition the same host, and a cross-origin one is never installed into, so
+   * the top document's location decides for every realm this file touches.
+   * `location.hostname` is `''` in an `about:blank`/`srcdoc` child, whose
+   * `location.origin` is the parent's — the same fallback `fallbackSiteKey()`
+   * uses, and the same thing `match_origin_as_fallback` does for the manifest.
+   */
+  const GPC_SUPPRESSED = (() => {
+    try {
+      return gpcSuppressedFor(location.hostname) || gpcSuppressedFor(hostOfOrigin(location.origin));
+    } catch (_) { return false; }
+  })();
+
+  // ══════════════════════════════════════════════════════════════════════════
   // 2. Mutable state. Every patch reads through this, so a persona upgrade is a
   //    pointer swap rather than a second round of patching.
   // ══════════════════════════════════════════════════════════════════════════
@@ -793,6 +857,15 @@
     handshakeDone: false,
     upgraded: false,
     standingDown: false,
+    /**
+     * The Global Privacy Control signal this document reports (D46). ON is the
+     * shipped default and is presented from document_start, because a page's own
+     * script reads the property long before the service-worker round trip
+     * resolves; the authenticated payload only ever walks it back. Read by the
+     * one getter `installGpc` installs per realm, so a change is a state write
+     * rather than a second `defineProperty` a page could watch.
+     */
+    gpc: true,
     /** Persona payloads rejected for a bad/absent nonce. Non-zero = a page tried. */
     forged: 0,
     forgeryReported: false,
@@ -1242,9 +1315,96 @@
 
   function restoreAll() {
     for (let i = RESTORES.length - 1; i >= 0; i--) {
-      try { objDefineProperty(RESTORES[i].target, RESTORES[i].prop, RESTORES[i].desc); } catch (_) {}
+      const r = RESTORES[i];
+      try {
+        // `remove` is for a property the browser never had: GPC on Chrome, which
+        // ships none, so "put it back" means DELETE rather than redefine (D46).
+        // Stand-down has to leave the realm as the engine had it, and a `false`
+        // where stock Chrome has nothing is still a Nullecho tell (D37).
+        if (r.remove) delete r.target[r.prop];
+        else objDefineProperty(r.target, r.prop, r.desc);
+      } catch (_) {}
     }
     RESTORES.length = 0;
+  }
+
+  // ── Global Privacy Control, one realm at a time (D46) ──────────────────────
+  //
+  // Every realm this file patches gets the property, so a same-tick child realm
+  // and its parent agree — the D31 rule. The realms are recorded because D37's
+  // OFF branch hands a native accessor back where the browser has one.
+  const GPC_REALMS = [];
+
+  /**
+   * Install `navigator.globalPrivacyControl` into `win`.
+   *
+   * D32 shape: a getter SHORTHAND, so the function has exactly `length` and
+   * `name`, no own `prototype`, and is not a constructor — and its name is
+   * `"get globalPrivacyControl"`, which is what every other accessor on
+   * `Navigator.prototype` is called. D38/D43 source: `markNative` copies the
+   * ENGINE's spelling — from the browser's own GPC getter where there is one
+   * (Firefox), otherwise from the boot-time accessor template with our name
+   * substituted, which is how Chrome gets
+   * `function get globalPrivacyControl() { [native code] }` and Firefox gets its
+   * own indented, prefix-less form.
+   *
+   * ⚠ HONEST LIMIT, unchanged by this move: on Chrome the property is still the
+   * LAST own key of `Navigator.prototype`, because it is appended rather than
+   * declared. Nothing an in-page script can do reorders an interface's own keys.
+   * See D38.
+   */
+  function installGpc(win) {
+    if (GPC_SUPPRESSED) return;                      // a shipped breakage host
+    const NavCtor = win.Navigator;
+    const P = NavCtor && NavCtor.prototype;
+    if (!P) return;                                  // no Navigator in this realm
+    const d = objGetOwnPropertyDescriptor(P, GPC_PROP);   // Firefox ships one
+    if (d && !d.configurable) return;                // the engine locked it
+    let nativeValue;
+    if (d) {
+      try { nativeValue = d.get ? apply(d.get, win.navigator, []) : d.value; }
+      catch (_) { nativeValue = undefined; }
+    }
+    // Already `true`? A GPC-native browser with the preference on, or another
+    // extension that got here first. Redefining is a no-op at best and a
+    // detectable double-shim at worst (D37).
+    if (nativeValue === true) return;
+
+    const holder = { get globalPrivacyControl() { return state.gpc === true; } };
+    const getter = objGetOwnPropertyDescriptor(holder, GPC_PROP).get;
+    markNative(getter, 'get ' + GPC_PROP, d && d.get);
+    pushOwn(RESTORES, d
+      ? { target: P, prop: GPC_PROP, desc: d }
+      : { target: P, prop: GPC_PROP, remove: true });
+    objDefineProperty(P, GPC_PROP, {
+      get: getter,
+      set: d ? d.set : undefined,
+      // WebIDL attributes are enumerable and configurable; `configurable` is
+      // also what lets stand-down give the realm back (D38).
+      enumerable: d ? d.enumerable : true,
+      configurable: true,
+    });
+    pushOwn(GPC_REALMS, { target: P, nativeDesc: d || null, nativeValue, handedBack: false });
+  }
+
+  /**
+   * The signal, from the authenticated payload. OFF reads `false` — never
+   * deleted; `undefined` is not a conformant value and `delete` removed
+   * Firefox's own property, which is review 2026-09-19 G2 / D37.
+   *
+   * Where the browser's own accessor ALREADY says `false`, hand it back: an
+   * untouched native accessor is strictly better than an identical-looking
+   * replacement (D37). That is the only descriptor swap after document_start,
+   * it happens on Firefox only, and it is a swap from ours to the engine's.
+   */
+  function setGpcSignal(on) {
+    state.gpc = on === true;
+    if (state.gpc) return;
+    for (let i = 0; i < GPC_REALMS.length; i++) {
+      const r = GPC_REALMS[i];
+      if (r.handedBack || !r.nativeDesc || r.nativeValue !== false) continue;
+      try { objDefineProperty(r.target, GPC_PROP, r.nativeDesc); r.handedBack = true; } catch (_) {}
+    }
   }
 
   // ── deterministic pseudo-random function ───────────────────────────────────
@@ -1784,6 +1944,12 @@
     // ────────────────────────────────────────────────────────────────────────
     // NAVIGATOR
     // ────────────────────────────────────────────────────────────────────────
+
+    // GPC first among the navigator patches, and immediately after the toString
+    // mask it depends on (D46). Not a `spoofGetter`: reading the signal is not a
+    // fingerprinting read and must not `touch()` — GPC exists to be read.
+    safe('navigator.globalPrivacyControl', () => installGpc(win));
+
     safe('navigator.userAgent', () => {
       const N = ownerOf(win.navigator, 'userAgent');
       spoofGetter(N, 'userAgent', 'navigator', () => D().ua);
@@ -3570,6 +3736,17 @@
     // ever sees them; every report from here on spends one. Own-property read and
     // copied element by element with `pushOwn`, like every other payload field.
     takeReportTokens(ownField(payload, 'reportTokens'));
+
+    // GPC, before every early return below (D46). The rule is gpc.js's, moved
+    // here verbatim: `enabled === false` hands the property back — which the
+    // stand-down branch's `restoreAll()` does — and anything else takes
+    // `gpc !== false`. It runs on a FAILURE payload too, which carries neither
+    // field, and that is why both reads are OWN-property reads (D29/B9): an
+    // absent `gpc` must default the signal ON, not resolve to whatever the page
+    // left on `Object.prototype`.
+    if (ownField(payload, 'enabled') !== false) {
+      try { setGpcSignal(ownField(payload, 'gpc') !== false); } catch (_) {}
+    }
 
     // EVERY branch below reads an OWN property (review B9, D29). Authentication
     // proves the message came from the loader; it says nothing about the fields

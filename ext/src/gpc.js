@@ -6,9 +6,19 @@
  *   1. `Sec-GPC: 1` on outgoing requests — a static DNR `modifyHeaders` rule,
  *      shipped as its own ruleset (`rules/gpc.json`, rule id 5000) so the user
  *      can toggle it independently of the blocklists.
- *   2. `navigator.globalPrivacyControl === true` — set from a MAIN-world
- *      content script at document_start, because a site's JS reads the JS
- *      property, not the header.
+ *   2. `navigator.globalPrivacyControl === true` — a MAIN-world property set at
+ *      document_start, because a site's JS reads the JS property, not the
+ *      header.
+ *
+ *      ⚠ SINCE D46 THAT PROPERTY IS INSTALLED BY `src/shim.js`, not here.
+ *      The rule is one `Function.prototype.toString` mask per realm and the
+ *      shim owns it; a second wrapper in this file was readable from every
+ *      other realm and cost 199 CreepJS lie records (D42's closing paragraph,
+ *      D46). The shim carries the shipped breakage list, installs the getter
+ *      through `markNative`, and takes the on/off value from the same
+ *      authenticated payload this file reads. The page half below is unchanged
+ *      and still complete: it is the fallback for a realm the shim never
+ *      patched, and it stands aside the moment it finds the signal already up.
  *
  * ─── HONEST LIMITS. Read before writing any UI copy. ────────────────────────
  *
@@ -54,8 +64,10 @@
  * `desc.get.toString()` was `"get() { return true; }"`, where every other
  * accessor on `Navigator.prototype` reads `"get <attr>"` / `[native code]` — a
  * one-line detector with no false positives, and on Firefox (which ships GPC
- * natively) it separated Nullecho from the browser's own signal. Both are now
- * fixed here to the same standard `shim.js` holds itself to (DECISIONS.md D32).
+ * natively) it separated Nullecho from the browser's own signal. Both are fixed
+ * to the same standard `shim.js` holds itself to (DECISIONS.md D32) — and since
+ * D46 they are fixed BY `shim.js`, through the one masking layer per realm that
+ * it owns. D38's answer was right about the standard and wrong about the layer.
  *
  * ⚠ HONEST LIMIT, not fixed and not claimed fixed: on Chrome the property is
  * the LAST own key of `Navigator.prototype`, because it is appended at
@@ -310,29 +322,49 @@
     })();
 
     /**
-     * `shim.js` owns `Function.prototype.toString` and masks every function IT
-     * installs through a WeakMap it alone can reach. `gpc.js` is a separate
-     * classic script in the same world with no way into that map, so it layers
-     * one more masking wrapper on top: ours for our two getters, delegate for
-     * everything else, and — the part that matters — the wrapper answers for
-     * ITSELF with whatever the layer below said about itself, because otherwise
-     * `Function.prototype.toString.toString()` would print this file. Echoing
-     * the layer below is the zero-delta answer: with the shim present that is
-     * `[native code]`, with no shim it is the engine's own native string, and
-     * in both cases the page sees exactly what it would have seen without us.
-     * Installed once, at document_start, before any page script.
+     * ─── ONE `Function.prototype.toString` MASK PER REALM (D46) ─────────────
      *
-     * Residual: `shim.js`'s `restoreAll()` on a whole-extension stand-down puts
-     * the original `toString` back over this wrapper. That is the allowlisted
-     * case, where `standDown()` below has already handed the property back, so
-     * there is nothing left to mask.
+     * D38 had this file layer its own masking wrapper over the one `shim.js`
+     * owns, because a separate classic content script has no way into the
+     * shim's `NATIVE_SRC` WeakMap. Measured 2026-09-20 with `ext/` loaded
+     * UNPACKED: that second wrapper was visible from every OTHER realm. A
+     * same-tick child realm's pristine `Function.prototype.toString`, applied
+     * to the TOP realm's `Function.prototype.toString`, printed this file's
+     * wrapper source — no shim closure knows that function, so the child's mask
+     * delegated to its native and read it out. CreepJS turned that one revealed
+     * `toString` into a `failed toString` lie on every API it audits:
+     * **199 lie records, `hasToStringProxy: true`, a 30-entry
+     * `extensionHashPattern`**, against 2 / false / 0 for the same build with
+     * `src/gpc.js` dropped from the manifest. See D42's closing paragraph.
+     *
+     * So the getters are masked by the layer that owns the mask. `shim.js`
+     * installs the property itself now (`installGpc`), through `markNative`,
+     * and this file stands aside wherever it finds the signal already up.
+     *
+     * The wrapper below survives for the realms `shim.js` never patched — the
+     * shim failed to inject, or its persona derivation failed — where this file
+     * IS the whole feature and its wrapper is the only mask in the realm. It is
+     * installed lazily, from `define()`, so it exists only when this file
+     * actually owns the property. That is not a heuristic: `installGpc` and
+     * `define` bail on exactly the same three conditions (no `Navigator`, a
+     * non-configurable descriptor, a signal already reading `true`), so a realm
+     * in which the shim installed its mask is a realm in which this file never
+     * reaches `define`.
+     *
+     * The wrapper answers for ITSELF with whatever the layer below said about
+     * itself, because otherwise `Function.prototype.toString.toString()` would
+     * print this file. Echoing the layer below is the zero-delta answer.
      */
-    (() => {
+    let maskInstalled = false;
+
+    function installSourceMask() {
+      if (maskInstalled) return;
+      maskInstalled = true;
       try {
         const d = rawGetOwnPropDesc(RawFunctionProto, 'toString');
         if (!d || typeof d.value !== 'function') return;
         const prev = d.value;
-        // What the layer below says about ITSELF — native, or shim.js's mask.
+        // What the layer below says about ITSELF — the engine's native string.
         let selfSrc;
         try { selfSrc = rawApply(prev, prev, []); }
         catch { selfSrc = 'function toString() { [native code] }'; }
@@ -351,7 +383,7 @@
           configurable: d.configurable,
         });
       } catch { /* leave the source visible rather than break the page */ }
-    })();
+    }
 
     /** True only while *we* own the property, so we never delete a native one. */
     let ownedByUs = false;
@@ -368,9 +400,34 @@
         enumerable: true,
       });
       ownedByUs = true;
+      // Only now, and only once: see `installSourceMask` above.
+      installSourceMask();
     }
 
+    /**
+     * ─── WHO OWNS THE PROPERTY IN THIS REALM (D46) ─────────────────────────
+     *
+     * `true` here means the signal was already up when this script booted, and
+     * therefore that this file must not touch the property at all — not to set
+     * it, not to take it down, and not to hand it back. Three ways that happens,
+     * and the right answer is the same for all three:
+     *
+     *   1. `shim.js` installed it (`installGpc`), which is the shipped case:
+     *      this file's whole page half then exists only to publish its nonce,
+     *      swallow the shim's relay and keep working where the shim is not.
+     *   2. a GPC-native browser with the preference ON.
+     *   3. another extension that got here first.
+     *
+     * The old code had this as an early-out inside `setSignal` alone, so `{gpc:
+     * false}` was correctly ignored but `standDown()` still redefined — and with
+     * the shim owning the property that put a REMOVED accessor back after a
+     * whole-extension stand-down. The flag is read at boot, before any page
+     * script exists to have moved the property.
+     */
+    const ALREADY_SIGNALLED = nativeValue === true;
+
     function setSignal(on) {
+      if (ALREADY_SIGNALLED) return;                    // not ours — D46
       if (!NAV_PROTO || typeof navigator === 'undefined') return;
       try {
         if (on) {
@@ -405,6 +462,7 @@
      * which is a preference the spec wants reported as `false`.
      */
     function standDown() {
+      if (ALREADY_SIGNALLED) return;                    // not ours — D46
       if (!NAV_PROTO) return;
       try {
         if (nativeDesc) rawDefineProperty(NAV_PROTO, GPC_PROP, nativeDesc);
@@ -420,6 +478,10 @@
      * case is correct with zero latency. The handshake below only ever has to
      * walk the signal *back* — for a user-added exception, or when GPC is
      * switched off globally.
+     *
+     * A no-op in the shipped configuration since D46, where `shim.js` has
+     * already put the signal up a script-evaluation earlier. It is the whole
+     * feature in a realm the shim never patched.
      */
     setSignal(true);
 
