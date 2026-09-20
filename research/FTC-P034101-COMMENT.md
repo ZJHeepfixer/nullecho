@@ -2,10 +2,9 @@
 
 **File No. P034101 · Docket FTC-2026-1057 · Comment deadline September 25, 2026**
 
-Submitted by: Jason Luker, Ridgecrest, California
-Capacity: individual; developer of Nullecho, a free, open-source browser extension (MIT license,
-github.com/ZJHeepfixer/nullecho)
-Date: September 20, 2026
+**Submitted by:** Jason Luker, Ridgecrest, California  
+**Capacity:** individual; developer of Nullecho, a free, open-source browser extension (MIT license, github.com/ZJHeepfixer/nullecho)  
+**Date:** September 20, 2026
 
 ---
 

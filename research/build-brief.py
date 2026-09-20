@@ -32,7 +32,7 @@ strong { font-weight: 700; }\ndel { text-decoration: line-through; color: #8a1c1
 .doc-note { font: 9pt/1.4 Helvetica, Arial, sans-serif; color: #555; border-bottom: 1px solid #d8d8d8; padding-bottom: 0.5em; margin-bottom: 1.2em; }
 @media print { a { color: #0b3d91; } body { padding: 0; max-width: none; } }
 """
-def render(src: pathlib.Path, title_hint: str):
+def render(src: pathlib.Path, title_hint: str, note: "str|None" = None):
     text = src.read_text(encoding="utf-8")
     body = markdown.markdown(text, extensions=["tables", "fenced_code", "sane_lists", "toc"],
                              extension_configs={"toc": {"toc_depth": "2-3"}}, output_format="html5")
@@ -40,11 +40,12 @@ def render(src: pathlib.Path, title_hint: str):
     body = re.sub(r"~~(.+?)~~", r"<del>\1</del>", body, flags=re.S)  # source wraps mid-strike
     # title = first H1 in the source, else the hint
     title = next((l.lstrip("# ").strip() for l in text.splitlines() if l.startswith("# ")), title_hint)
-    note = ("Rendered from the Markdown source in the public repository "
-            "github.com/ZJHeepfixer/nullecho (research/). Not legal advice; see the notice in the text.")
+    if note is None:
+        note = ("Rendered from the Markdown source in the public repository "
+                "github.com/ZJHeepfixer/nullecho (research/). Not legal advice; see the notice in the text.")
     doc = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title>
-<style>{CSS}</style></head><body><div class="doc-note">{html.escape(note)}</div>{body}</body></html>"""
+<style>{CSS}</style></head><body>{("<div class=\"doc-note\">" + html.escape(note) + "</div>") if note else ""}{body}</body></html>"""
     out = DIST / (src.stem + ".html"); out.write_text(doc, encoding="utf-8"); return out
 def to_pdf(html_path: pathlib.Path):
     chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
