@@ -2666,3 +2666,228 @@ third lane's whole footprint in one readable piece in a file two other lanes alr
 means a concurrent edit to the header cannot collide with it. The block registers its **own**
 `onMessage` listener, synchronously at top level per this file's MV3 rule, and returns `false` for
 anything that is not one of its three message types; `handleShell` never sees them.
+
+---
+
+## D47 — Realm identity is the Document, not the WindowProxy; a navigated frame is re-installed on its `load`. 2026-09-19.
+
+**The defect, measured.** D35's own attack pass found it and recorded it as the next decision. An
+`<iframe>` inserted as `about:blank` is installed inside the insertion call (D35). Assign `src`
+afterwards and the frame navigates in a later task: the WindowProxy at `window[n]` is the **same
+object**, and the realm behind it is brand new. `INSTALLED` was a WeakSet keyed on that proxy, so
+every door — the D35 sweep, `contentWindow`, the MutationObserver — said "already installed" about
+a realm that no longer existed. Real Chrome 151, shim as a page script, persona `macos-chrome-mini-m2`
+(8 cores) on a 12-core host, `harness/claim-verification.html` probe against the D35 build:
+
+| Moment | Child `hardwareConcurrency` |
+|---|---|
+| inserted as `about:blank` | 8 (D35) |
+| `src` assigned; navigation committed 24 ms later | **12** |
+| `load` fired, +7 ms | **12** |
+| `f.contentWindow` read | **12** |
+| next `appendChild` anywhere on the page (the D35 sweep) | **12** |
+
+And that realm's `Function.prototype.toString` was pristine, so it printed the shim's source for
+every function patched in the parent — §3c's whole consequence, one navigation away.
+
+**The rule.** *"Already installed" is a statement about a Document.* `installInto` keys `INSTALLED`
+on `win.document` — a `[LegacyUnforgeable]` own property of the global that no page can redefine —
+never on the WindowProxy the page hands us. A WindowProxy whose `document` throws (cross-origin) is
+remembered in a second WeakSet, `OPAQUE`, keyed on the proxy, so the insertion sweep pays one
+`SecurityError` per such frame ever rather than one per `appendChild`. And the parent gets a door
+that fires when a navigation finishes: a **capture-phase `load` listener on the document**, which
+runs before any listener the page put on the element, installs into `contentWindow` through the
+captured getter, and bypasses `OPAQUE` — a load is the one moment a frame that was cross-origin can
+have become same-origin.
+
+**The door is on the document, not the window, and that was measured before it was known.** Per
+the DOM spec, a Document's "get the parent" returns `null` for a `load` event, so a load's
+propagation path stops at the Document: a capture listener on the **window** never hears an
+iframe load. The first build registered on the window and, in real Chrome, the page's own load
+handler still read 12 while `contentWindow` and the sweep (now document-keyed) read 8. The rig was
+then corrected to stop a load's path at the document — which turned four green tests red — and the
+listener moved to `doc`.
+
+**The sweep's guard, rewritten.** D35 hoisted `installInto`'s first line into the loop because
+merely *calling* `installInto` costs ≈1 µs. The hoisted guard now asks the right question:
+
+```js
+let w = null;
+try { w = win[i]; } catch (_) { continue; }
+if (!w || wsHas(OPAQUE, w)) continue;
+let d = null;
+try { d = w.document; } catch (_) { wsAdd(OPAQUE, w); continue; }
+if (d && wsHas(INSTALLED, d)) continue;
+try { installInto(w); } catch (_) {}
+```
+
+One WindowProxy property read more per same-origin child frame per insertion than D35 — the cost
+measured below — and none for a cross-origin frame after its first throw.
+
+**Re-installing found a second defect: the restore ledger retained every dead realm.** `RESTORES`
+was a plain array of `{ target, prop, desc }`; `target` is the dead realm's prototype and `desc`
+holds its native getters. Chrome for Testing 149, `--js-flags=--expose-gc`, page-script shim,
+20 navigations of one same-origin child, WeakRefs to each dead realm's `Navigator.prototype` and
+`document` checked after `gc()` and `HeapProfiler.collectGarbage`:
+
+| Build | Dead realms still reachable | JS heap growth |
+|---|---|---|
+| D35 (never re-installs a navigated realm) | 2 of 20 | +0.89 MB |
+| D47, first build | **20 of 20** | **+7.74 MB** (≈390 KB per navigation, forever) |
+| D47 as shipped, weak ledger | **0 of 20** | −0.98 MB |
+
+The ledger is now a WeakMap `target → [entry]` (an entry lives exactly as long as the object it
+patches) plus an ordered array of `WeakRef<entry>` that `restoreAll()` dereferences and that is
+pruned of dead refs whenever it crosses a multiple of 2048. `WeakRef` and `deref` are captured at
+boot like everything else (D21).
+
+**Rejected, with the reason:**
+
+| Rejected | Why |
+|---|---|
+| Keep the sweep keyed on the proxy; key only the doors on the document | Cheaper by ≈0.3 µs per same-origin child frame per insertion, but blind to a navigation until its `load` — on a slow document that is the whole fetch, and the sweep is the only parent-side thing that can shorten it. Cost was measured and accepted instead. |
+| A window-capture `load` door | Never fires for an iframe load (spec, and measured). |
+| Hook `src` / `setAttribute('src')` / `srcdoc` / `location` | A navigation is asynchronous; the pristine realm does not exist when the setter runs, and `location.replace()` from the parent, form targets and link targets never touch the element. |
+| A `pagehide` / `unload` listener in the realm being left | Fires before the new Window exists; there is nothing to install into yet. |
+| Polling | No. |
+
+**Measured, real Chrome 151.0.7922.174** (the running binary; `Chrome/151`, no Electron, tab hidden;
+`harness/realm-timing.html`, shim as a page script, persona 8 cores, host 12), every reading taken
+through `window[n]`:
+
+| Reading | D35 | **D47** |
+|---|---|---|
+| inserted as `about:blank` | 8 | 8 |
+| `src` assigned, navigation committed (6 ms), read **at commit** | 12 | **12** — residual 2 below |
+| the page's OWN `load` listener on the element (+6 ms) | 12 | **8** |
+| after `load` | 12 | **8** |
+| that realm's `toString(userAgent getter)` says `[native code]` | false | **true** |
+| navigated cross-origin, then back same-origin: at commit / in the page's load handler / after | — / 12 / 12 | 12 / **8** / **8** |
+| `srcdoc` assigned after insertion: at commit / in handler / after | — | 12 / **8** / **8** |
+| `frames[n].location.replace(url)` from the parent: in handler / after | — | **8** / **8** |
+| `document.open()`+`write` on an installed child (modern Chrome keeps the Window) | — | same realm, **8** |
+| **static markup** `<iframe>` read by the next parser-inserted `<script>` | — | **8** |
+| `document.write('<iframe><script>…')` from a parser-inserted script of the same document, read inside the write | — | **8** |
+| `child.document.write('<iframe></iframe><script>…')` from the parent, grandchild read **inside the write** | 12 | 🔴 **12** — residual 1 below |
+| … the same grandchild once the write returned | 8 | 8 |
+
+**What the installed extension does — measured, for the first time.** `ext/` was loaded unpacked
+into **Chrome for Testing 149.0.7827.22** (new headless, `--load-extension`, a throwaway profile;
+`Chrome/149`, no Electron) — the first time this repo's extension has run *as an extension* rather
+than as a page script. The service worker booted and stored its `identity`; the MAIN-world shim ran
+before the page's first inline script (`hardwareConcurrency` already 8 at stage 0); and on
+`realm-timing.html?shim=off`, where the page loads no shim of its own, **every reading was the
+persona**: the static-markup frame in the same parse, the `document.write` shapes including the
+grandchild read inside the write, the navigated frame **at commit** (113–271 ms after `src`, the
+headless fetch), in the handler and after load, and the cross-origin-then-back frame at commit.
+Chrome's per-frame injection (`all_frames` + `match_origin_as_fallback`) covers both residuals in
+an installed extension. That was assumed in D35 and CLAIM-VERIFICATION §5; it is now a measurement,
+in Chrome for Testing, not yet in a user's own profile.
+
+**CreepJS, re-run with a fresh `?cb=`** (real Chrome 151, both origins, `harness/claim-verification.html`,
+shim as a page script):
+
+| Signal | D35 | **D47** `localhost` | **D47** `127.0.0.1` |
+|---|---|---|---|
+| lie records | 2 | **2** | **2** |
+| `stealth.hasToStringProxy` | false | **false** | **false** |
+| `headless.webDriverIsOn` | false | **false** | **false** |
+| `resistance.extensionHashPattern` | `{}` | **`{}`** | **`{}`** |
+| same-tick child realm: cores / pristine `toString` says native | 8 / true | 8 / true | 8 / true |
+| trash / captured errors | 3 / 4 | 3 / 4 | 3 / 4 |
+| FingerprintJS `visitorId` | `e28d…` / `2396…` | `e28d…` | `2396…` |
+| CreepJS id | `5e55ad8a…` on both | `5e55ad8a…` | `5e55ad8a…` |
+
+D35's numbers hold; the per-site split holds; the CreepJS join is still not broken (§1, §6.1). The
+same page in Chrome for Testing 149 reads lie records 2 and `hasToStringProxy` false on both
+origins, and `webDriverIsOn` **true** — that is automation's genuine `navigator.webdriver`, not the
+shim, and is why the bot verdict is reported from the user's Chrome only.
+
+**Cost, real Chrome 151, hidden tab, same session, same instrument** — `harness/performance.html?only=none`
+(nothing else runs) with a twin of its paired ABBA (`b` = the pristine `appendChild` captured at
+`document_start`; 2 s budget, ≥ 12 rounds, medians), the D35 build served from the main checkout and
+D47 from this one, then `?shim=off` as the null calibration:
+
+| Same-origin child frames | D35 added | **D47 added** | shim=off (must be 0) |
+|---|---|---|---|
+| 0 | +0.92 µs | **+0.33 µs** | +0.03 |
+| 1 | +0.48 | +1.68 | −0.04 |
+| 3 | +2.49 | +2.04 | −0.10 |
+| 5 | +4.28 | +3.86 | −0.03 |
+| 10 | +5.01 | +6.96 | −0.02 |
+| 20 | +9.42 | **+14.89** | −0.07 |
+
+Slope: D35 ≈ 0.45 µs per frame, D47 ≈ 0.73 — **≈ +0.3 µs per same-origin child frame per
+insertion**, the second WindowProxy read. With no child frames the two builds are within each
+other's noise. The native `appendChild` reads ≈3.2–3.9 µs with *either* shim present and ≈1.2 µs
+with none: the MutationObserver's mutation record is queued on both sides of the pair, and that is
+not D47's. Five **cross-origin** child frames (`127.0.0.1`), paired the same way: D35 **+3.32 µs**,
+D47 **+3.81 µs** — the same class, no throw per insertion; the indexed `win[i]` read is what a
+cross-origin frame costs in either build and `OPAQUE` adds one WeakSet lookup to it. The standard
+cells (`?only=paired&q=1`, D47): `appendChild` 0 frames +0.98 µs (1.36×; D35's table +0.49),
+`insertBefore` +0.63 (+0.73), `innerHTML` below the floor (same), `appendChild` **3 frames +3.08 µs**
+(2.07×; D35 +2.10) — the 3-frame cell is where the per-frame read shows. This session's instrument
+is noisier than D35's: the shim=off cells read 1.000 / 1.000 / 1.004 / 0.955 and the in-page null
+control 0.929 (D35: 1.014), so sub-microsecond differences at 0 frames are noise here; the slope is
+the finding. Both builds sit well above D35's published quiet-page line (+0.15 fixed, +0.11 per
+frame): that line was taken on a different day and the absolute level moved for both builds
+together. `docs/PERFORMANCE-2026-09-17.md` has the tables.
+
+**The attack pass**, all in real Chrome 151 against this build unless marked:
+
+| Attack | Result |
+|---|---|
+| navigate after insertion, read in the page's own `load` handler | patched |
+| read **at commit**, before `load` (poll with `MessageChannel`, unthrottled in a hidden tab) | 🔴 pristine for 5–11 ms on localhost; **patched under the installed extension** (CfT 149) |
+| a second navigation of the same frame | patched |
+| `srcdoc` assigned after insertion | patched in the handler; pristine at commit as above |
+| `location.replace()` from the parent — `src` never touched | patched |
+| `document.open()` + `write` on an installed child | same realm (Chrome keeps the Window), patched |
+| navigate to a cross-origin document | `SecurityError` on `document`, marked `OPAQUE`, 25 later insertions read it 0 times (rig, counted) |
+| cross-origin, then back same-origin | patched on that `load` — D35's HONEST LIMIT 3, closed |
+| page replaces `HTMLIFrameElement.prototype.contentWindow` with a spy, then navigates | spy called 0 times; realm patched (rig) |
+| page dispatches a synthetic `load` at an installed iframe, or at an `<img>` | no re-wrap, no throw (rig: function identity unchanged through three doors) |
+| a window-capture door | blind (spec; measured on the first build) — that is why the door is on the document |
+| page registers a document-capture `load` listener **before** ours and stops propagation | only by beating `document_start` — the injection race, THREAT-MODEL |
+| 20 navigations of one child, then GC | 0 dead realms retained (CfT 149) |
+
+**Residuals, stated plainly.** (1) `document.write` into a document whose parser is not the caller
+— `child.document.write('<iframe></iframe><script>…')` from the parent — runs the written script
+inside the write, before the wrapper's sweep: the grandchild reads the host. Narrower than D35
+recorded: static markup and a write from inside the same parse already read the persona. (2) The
+interval between a navigation committing and its `load`. Both are closed by the installed extension's
+own per-frame injection, measured in Chrome for Testing and not yet in a user's profile. (3) A
+page that beats `document_start` (unchanged). (4) The `RESTORES` WeakRef list grows by ≈150 entries
+per installed realm between prunes — bounded, tiny, noted.
+
+**Guards:** `ext/src/same-tick-realm.test.js`, whose rig now hands out a real WindowProxy — a
+`Proxy` forwarding to whichever realm is current — with `__navigate(iframe)` swapping the realm
+behind it and dispatching `load` along the spec's path (document → … → element, never the window).
+Ten tests: the rig's own fidelity (same proxy, new Document, new intrinsics); re-install by the
+sweep with no load; by `contentWindow`; the page's own load listener and `onload=`; the door reads
+`contentWindow` through the captured getter; a cross-origin frame's document is read exactly once
+across 25 insertions; cross-origin-then-back is installed on that load; three doors after a
+navigation change no function identity; a load at a non-iframe is ignored; and a navigated-away
+realm is not retained — the last one with `gc()` interleaved with event-loop turns, because Node
+tears a vm context down in a second-pass weak callback that runs as a task (three back-to-back
+collections in one job read 8 of 8 alive in the full file and 0 of 8 alone). `harness/realm-timing.html`
+is the browser-side instrument for both residual paths, in page-script and installed-extension modes,
+and `harness/unpacked-chrome.mjs` is what loads `ext/` unpacked into Chrome for Testing and drives it
+(`smoke` / `timing` / `claim` / `retain`) — the extension-mode and retention numbers above came from
+its scratch ancestors, and it reproduces them. 328 → **338**.
+
+**Found with that driver, and NOT D47's — recorded here because this is where it was measured.**
+With `ext/` unpacked, `unpacked-chrome.mjs claim` reads **199 lie records, `hasToStringProxy: true`
+and a 30-entry `extensionHashPattern`** on both origins — the D32-era signature that page-script mode
+reports as 2 / false / empty. `main` at `86a62b3` loaded the same way reads the same. A chain probe
+names it: a same-tick child realm's `Function.prototype.toString` applied to the **top** realm's
+`Function.prototype.toString` prints `toString() { if (this === getOn || this === getOff) return
+NATIVE_SOURCE; …` — `gpc.js`'s own toString wrapper (D38, 2026-09-19). No shim closure knows that
+function, so any other realm's mask delegates to its native and prints it, and CreepJS turns one
+revealed toString into a `failed toString` lie on every API it audits. The parent's patched getters
+stay masked through the parent-closure chain (`childTs_on_topUaGetter: true`); only the second
+wrapper leaks. **Decisive:** the same extension with `src/gpc.js` dropped from the manifest reads
+**2 / false / 0** on both origins. Not present at D47's base — the pre-D38 `gpc.js` installed no
+toString wrapper. The fix belongs to D38's owner and the rule is one toString mask per realm:
+install the GPC getters from `shim.js` through `markNative`, or give `gpc.js` a way into
+`NATIVE_SRC`. `unpacked-chrome.mjs claim` expecting 2 / false / 0 on both origins is the gate.
