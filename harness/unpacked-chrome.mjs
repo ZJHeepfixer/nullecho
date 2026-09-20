@@ -1,7 +1,7 @@
 /**
  * Drives the REAL extension: loads `ext/` UNPACKED into Chrome for Testing and points it
  * at the harness pages. This is the "rigorous version" CLAIM-VERIFICATION §5 asks for, and
- * the instrument behind D42's "measured, not assumed" — that Chrome's own per-frame
+ * the instrument behind D47's "measured, not assumed" — that Chrome's own per-frame
  * injection (`all_frames` + `match_origin_as_fallback`) covers the parser and navigation
  * child-realm paths a page-script shim cannot.
  *

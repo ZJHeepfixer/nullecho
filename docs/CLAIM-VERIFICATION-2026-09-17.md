@@ -314,7 +314,7 @@ unreachable; what is new is that the reachable consequence is not one field, it 
 > on a page with no child frames, ≈0.11 µs more per child frame
 > (`docs/PERFORMANCE-2026-09-17.md`, 2026-09-19 follow-up).
 >
-> **D42 (2026-09-19), on those two.** (2) is **closed**: "already installed" is keyed on the realm's
+> **D47 (2026-09-19), on those two.** (2) is **closed**: "already installed" is keyed on the realm's
 > Document, not its WindowProxy, and a document-capture `load` door installs the new realm before the
 > page's own load handler runs. Re-measured in real Chrome 151 with a fresh `?cb=` on both origins:
 > the page's handler on a navigated frame reads the persona (was the host), that realm's `toString`
@@ -326,7 +326,7 @@ unreachable; what is new is that the reachable consequence is not one field, it 
 > is not the caller (a child written from the parent) still reads the host inside the write.
 > **Both remaining gaps are closed by the installed extension, now measured**: `ext/` loaded unpacked
 > in Chrome for Testing 149 returned the persona for every reading on `harness/realm-timing.html`,
-> including the grandchild read inside the write and the navigated frame at commit (§5). Cost of D42:
+> including the grandchild read inside the write and the navigated frame at commit (§5). Cost of D47:
 > nothing measurable with no child frames, ≈ +0.3 µs per same-origin child frame per insertion.
 
 ### 3d. The shim prints its own product name into the page console — and the message is false
@@ -433,7 +433,7 @@ replace the extension. The following are **assumed, not verified**, here:
    observed end-to-end.
 4. **Header-layer behaviour** (the D19 DNR UA rulesets). Not exercised at all.
 
-> **Update 2026-09-19 (D42).** `ext/` was loaded unpacked for the first time — into **Chrome for
+> **Update 2026-09-19 (D47).** `ext/` was loaded unpacked for the first time — into **Chrome for
 > Testing 149.0.7827.22** (new headless, `--load-extension`, a throwaway profile; `Chrome/149`, no
 > Electron), driven from Puppeteer — now `harness/unpacked-chrome.mjs`, whose `claim` mode runs this
 > page on both loopback hostnames with the extension supplying the persona. What that verified: the service worker boots and stores its
@@ -451,7 +451,7 @@ replace the extension. The following are **assumed, not verified**, here:
 > worker — but CreepJS reads **199 lies, `hasToStringProxy: true`, a 30-entry extension hash** on
 > both origins, where page-script mode reads 2 / false / empty. It is `gpc.js`'s D38 toString
 > wrapper, revealed from a child realm; the same build with `gpc.js` not injected reads 2 / false / 0.
-> D42's closing paragraph has the chain probe and the decisive experiment.
+> D47's closing paragraph has the chain probe and the decisive experiment.
 
 **To run the rigorous version:** load `ext/` unpacked at `chrome://extensions`, then open
 `harness/claim-verification.html?shim=off` (so the page does not fight the real content script)

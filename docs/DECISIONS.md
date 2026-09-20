@@ -2293,7 +2293,7 @@ gap is the JS property only, which is why "the worker gap breaks GPC" would be t
 as open, leaves `gpc.js` — and if worker scope is ever installed into, so that the comment is updated
 in the same change rather than becoming a lie.
 
-## D42 — Realm identity is the Document, not the WindowProxy; a navigated frame is re-installed on its `load`. 2026-09-19.
+## D47 — Realm identity is the Document, not the WindowProxy; a navigated frame is re-installed on its `load`. 2026-09-19.
 
 **The defect, measured.** D35's own attack pass found it and recorded it as the next decision. An
 `<iframe>` inserted as `about:blank` is installed inside the insertion call (D35). Assign `src`
@@ -2357,8 +2357,8 @@ holds its native getters. Chrome for Testing 149, `--js-flags=--expose-gc`, page
 | Build | Dead realms still reachable | JS heap growth |
 |---|---|---|
 | D35 (never re-installs a navigated realm) | 2 of 20 | +0.89 MB |
-| D42, first build | **20 of 20** | **+7.74 MB** (≈390 KB per navigation, forever) |
-| D42 as shipped, weak ledger | **0 of 20** | −0.98 MB |
+| D47, first build | **20 of 20** | **+7.74 MB** (≈390 KB per navigation, forever) |
+| D47 as shipped, weak ledger | **0 of 20** | −0.98 MB |
 
 The ledger is now a WeakMap `target → [entry]` (an entry lives exactly as long as the object it
 patches) plus an ordered array of `WeakRef<entry>` that `restoreAll()` dereferences and that is
@@ -2379,7 +2379,7 @@ boot like everything else (D21).
 `harness/realm-timing.html`, shim as a page script, persona 8 cores, host 12), every reading taken
 through `window[n]`:
 
-| Reading | D35 | **D42** |
+| Reading | D35 | **D47** |
 |---|---|---|
 | inserted as `about:blank` | 8 | 8 |
 | `src` assigned, navigation committed (6 ms), read **at commit** | 12 | **12** — residual 2 below |
@@ -2411,7 +2411,7 @@ in Chrome for Testing, not yet in a user's own profile.
 **CreepJS, re-run with a fresh `?cb=`** (real Chrome 151, both origins, `harness/claim-verification.html`,
 shim as a page script):
 
-| Signal | D35 | **D42** `localhost` | **D42** `127.0.0.1` |
+| Signal | D35 | **D47** `localhost` | **D47** `127.0.0.1` |
 |---|---|---|---|
 | lie records | 2 | **2** | **2** |
 | `stealth.hasToStringProxy` | false | **false** | **false** |
@@ -2430,9 +2430,9 @@ shim, and is why the bot verdict is reported from the user's Chrome only.
 **Cost, real Chrome 151, hidden tab, same session, same instrument** — `harness/performance.html?only=none`
 (nothing else runs) with a twin of its paired ABBA (`b` = the pristine `appendChild` captured at
 `document_start`; 2 s budget, ≥ 12 rounds, medians), the D35 build served from the main checkout and
-D42 from this one, then `?shim=off` as the null calibration:
+D47 from this one, then `?shim=off` as the null calibration:
 
-| Same-origin child frames | D35 added | **D42 added** | shim=off (must be 0) |
+| Same-origin child frames | D35 added | **D47 added** | shim=off (must be 0) |
 |---|---|---|---|
 | 0 | +0.92 µs | **+0.33 µs** | +0.03 |
 | 1 | +0.48 | +1.68 | −0.04 |
@@ -2441,14 +2441,14 @@ D42 from this one, then `?shim=off` as the null calibration:
 | 10 | +5.01 | +6.96 | −0.02 |
 | 20 | +9.42 | **+14.89** | −0.07 |
 
-Slope: D35 ≈ 0.45 µs per frame, D42 ≈ 0.73 — **≈ +0.3 µs per same-origin child frame per
+Slope: D35 ≈ 0.45 µs per frame, D47 ≈ 0.73 — **≈ +0.3 µs per same-origin child frame per
 insertion**, the second WindowProxy read. With no child frames the two builds are within each
 other's noise. The native `appendChild` reads ≈3.2–3.9 µs with *either* shim present and ≈1.2 µs
 with none: the MutationObserver's mutation record is queued on both sides of the pair, and that is
-not D42's. Five **cross-origin** child frames (`127.0.0.1`), paired the same way: D35 **+3.32 µs**,
-D42 **+3.81 µs** — the same class, no throw per insertion; the indexed `win[i]` read is what a
+not D47's. Five **cross-origin** child frames (`127.0.0.1`), paired the same way: D35 **+3.32 µs**,
+D47 **+3.81 µs** — the same class, no throw per insertion; the indexed `win[i]` read is what a
 cross-origin frame costs in either build and `OPAQUE` adds one WeakSet lookup to it. The standard
-cells (`?only=paired&q=1`, D42): `appendChild` 0 frames +0.98 µs (1.36×; D35's table +0.49),
+cells (`?only=paired&q=1`, D47): `appendChild` 0 frames +0.98 µs (1.36×; D35's table +0.49),
 `insertBefore` +0.63 (+0.73), `innerHTML` below the floor (same), `appendChild` **3 frames +3.08 µs**
 (2.07×; D35 +2.10) — the 3-frame cell is where the per-frame read shows. This session's instrument
 is noisier than D35's: the shim=off cells read 1.000 / 1.000 / 1.004 / 0.955 and the in-page null
@@ -2500,7 +2500,7 @@ and `harness/unpacked-chrome.mjs` is what loads `ext/` unpacked into Chrome for 
 (`smoke` / `timing` / `claim` / `retain`) — the extension-mode and retention numbers above came from
 its scratch ancestors, and it reproduces them. 328 → **338**.
 
-**Found with that driver, and NOT D42's — recorded here because this is where it was measured.**
+**Found with that driver, and NOT D47's — recorded here because this is where it was measured.**
 With `ext/` unpacked, `unpacked-chrome.mjs claim` reads **199 lie records, `hasToStringProxy: true`
 and a 30-entry `extensionHashPattern`** on both origins — the D32-era signature that page-script mode
 reports as 2 / false / empty. `main` at `86a62b3` loaded the same way reads the same. A chain probe
@@ -2511,7 +2511,7 @@ function, so any other realm's mask delegates to its native and prints it, and C
 revealed toString into a `failed toString` lie on every API it audits. The parent's patched getters
 stay masked through the parent-closure chain (`childTs_on_topUaGetter: true`); only the second
 wrapper leaks. **Decisive:** the same extension with `src/gpc.js` dropped from the manifest reads
-**2 / false / 0** on both origins. Not present at D42's base — the pre-D38 `gpc.js` installed no
+**2 / false / 0** on both origins. Not present at D47's base — the pre-D38 `gpc.js` installed no
 toString wrapper. The fix belongs to D38's owner and the rule is one toString mask per realm:
 install the GPC getters from `shim.js` through `markNative`, or give `gpc.js` a way into
 `NATIVE_SRC`. `unpacked-chrome.mjs claim` expecting 2 / false / 0 on both origins is the gate.

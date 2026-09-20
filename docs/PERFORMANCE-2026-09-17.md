@@ -738,9 +738,9 @@ Worth keeping: a bisect build with the sweep body switchable at run time (wrappe
 *last* always looked fastest — measurement order alone moved a cell by 6×. Read any single
 cell here against the null calibration and the twin, not on its own.
 
-# Follow-up, 2026-09-19 (b) — what keying realm identity on the Document costs (D42)
+# Follow-up, 2026-09-19 (b) — what keying realm identity on the Document costs (D47)
 
-D42 changes the D35 insertion sweep's per-frame guard from "is this WindowProxy installed?" (one
+D47 changes the D35 insertion sweep's per-frame guard from "is this WindowProxy installed?" (one
 indexed read + one WeakSet lookup) to "is this frame's *Document* installed?" (one indexed read,
 one `document` read through the proxy, up to two WeakSet lookups), and adds a document-capture
 `load` listener per realm. The `load` door is off the hot path. The sweep's second WindowProxy read
@@ -749,7 +749,7 @@ after its first throw and costs one WeakSet lookup.
 
 **Environment.** Real Chrome **151.0.7922.174** (the running binary; the app on disk had already
 updated to 153 and had not relaunched), macOS 26.6.0, M2 Max, tab `visibilityState: hidden`
-throughout. D35 served from the main checkout on `:4886`, D42 from its worktree on `:4887`, the same
+throughout. D35 served from the main checkout on `:4886`, D47 from its worktree on `:4887`, the same
 `harness/performance.html`, a fresh `?cb=` per load, nothing else running in the browser or on the
 machine during the pass. Probes are synchronous; the only async step is the ABBA instrument's own
 yield, which is a `MessageChannel` task and is not throttled in a hidden tab.
@@ -760,7 +760,7 @@ yield, which is a `MessageChannel` task and is not throttled in a hidden tab.
 pristine `Node.prototype.appendChild` captured at `document_start`; ABBA quartets, 2 s budget,
 ≥ 12 rounds, medians — at increasing counts of same-origin `about:blank` child frames:
 
-| Child frames | D35 native | D35 shimmed | **D35 added** | D42 native | D42 shimmed | **D42 added** | shim=off null |
+| Child frames | D35 native | D35 shimmed | **D35 added** | D47 native | D47 shimmed | **D47 added** | shim=off null |
 |---|---|---|---|---|---|---|---|
 | 0 | 3.16 µs | 4.08 | **+0.92** | 3.31 | 3.65 | **+0.33** | +0.03 |
 | 1 | 3.44 | 3.92 | +0.48 | 3.22 | 4.91 | +1.68 | −0.04 |
@@ -769,13 +769,13 @@ pristine `Node.prototype.appendChild` captured at `document_start`; ABBA quartet
 | 10 | 3.29 | 8.30 | +5.01 | 3.56 | 10.52 | +6.96 | −0.02 |
 | 20 | 2.86 | 12.28 | **+9.42** | 3.12 | 18.02 | **+14.89** | −0.07 |
 
-Slope ≈ **0.45 µs per frame (D35) → 0.73 (D42): +0.28 µs per same-origin child frame per
+Slope ≈ **0.45 µs per frame (D35) → 0.73 (D47): +0.28 µs per same-origin child frame per
 insertion.** At 0 frames the two builds are inside each other's noise. The `shim=off` column is the
 calibration: the same probe with both sides native, ratios 0.97–0.99.
 
 Two things about the native column. It reads ≈3.2–3.9 µs with *either* shim present and ≈1.2 µs
 with none: the shim's MutationObserver (`childList`, `subtree`) queues a mutation record inside the
-native `appendChild` on both sides of every pair, which is the price of the D35 backstop, not D42's.
+native `appendChild` on both sides of every pair, which is the price of the D35 backstop, not D47's.
 And the whole table sits well above D35's published quiet-page line (+0.15 µs fixed, +0.11 per
 frame) — for the D35 build too — so that line and this one were taken under different conditions on
 different days, and only the same-session difference between the columns is claimed here.
@@ -788,16 +788,16 @@ the same paired twin, 2.5 s budget:
 | Build | Native | Shimmed | **Added** | Ratio |
 |---|---|---|---|---|
 | D35 | 2.29 µs | 5.62 | **+3.32** | 1.93× |
-| D42 | 2.15 | 5.96 | **+3.81** | 1.81× |
+| D47 | 2.15 | 5.96 | **+3.81** | 1.81× |
 
 The same class in both builds and no throw per insertion: the indexed `win[i]` read through a
 cross-origin WindowProxy is what such a frame costs, and `OPAQUE` adds one WeakSet lookup to it —
 which is also why the same-origin slope (+0.28 µs per frame for the extra `document` read) is the
-only cost D42 adds.
+only cost D47 adds.
 
 ## The standard cells
 
-`?only=paired&q=1`, D42, this session:
+`?only=paired&q=1`, D47, this session:
 
 | Cell | Native | Shimmed | **Added** | Ratio | D35's table |
 |---|---|---|---|---|---|
@@ -822,8 +822,8 @@ realm-blind, so WeakRefs from the page were used): 20 navigations of one same-or
 | Build | Dead realms reachable (of 20) | JS heap growth |
 |---|---|---|
 | D35 | 2 | +0.89 MB |
-| D42, first build (plain `RESTORES` array) | **20** | **+7.74 MB** |
-| D42 shipped (WeakMap ledger + `WeakRef` order list) | **0** | −0.98 MB |
+| D47, first build (plain `RESTORES` array) | **20** | **+7.74 MB** |
+| D47 shipped (WeakMap ledger + `WeakRef` order list) | **0** | −0.98 MB |
 
 ≈390 KB per navigation, retained forever, was the cost of the first build. It is gone.
 
@@ -831,6 +831,6 @@ realm-blind, so WeakRefs from the page were used): 20 navigations of one same-or
 
 Same page, `harness/realm-timing.html` (page-script mode, real Chrome 151): a navigation commits
 **4–7 ms** after `src` is assigned on localhost and `load` follows **2–11 ms** later. The read at
-commit is pristine (D42 residual 2); the page's own `load` handler reads the persona. Under the
+commit is pristine (D47 residual 2); the page's own `load` handler reads the persona. Under the
 installed extension in Chrome for Testing the commit is 113–271 ms (headless fetch) and the read at
 commit is already the persona.

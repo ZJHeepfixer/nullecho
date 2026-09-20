@@ -6,7 +6,7 @@
 
 <!--
   ══════════════════════════════════════════════════════════════════════════════
-  CHILD-REALM TIMING — the two paths no DOM call announces (D35 residual 1, D42)
+  CHILD-REALM TIMING — the two paths no DOM call announces (D35 residual 1, D47)
   ══════════════════════════════════════════════════════════════════════════════
 
   1. THE PARSER. An <iframe> in static markup is connected by the HTML parser,
@@ -18,7 +18,7 @@
 
   2. NAVIGATION. A frame inserted as about:blank and navigated later gets a brand
      new realm in a later task, behind the SAME WindowProxy. The parent's shim
-     hears the element's `load` event (D42). Between the navigation COMMITTING
+     hears the element's `load` event (D47). Between the navigation COMMITTING
      and `load` firing there is a window only the frame's OWN content script can
      close — this page measures how wide it is and what a page reads inside it.
 

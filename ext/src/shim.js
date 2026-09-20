@@ -237,7 +237,7 @@
   const wmHas = uncurry(WeakMap.prototype.has);
   const wsHas = uncurry(WeakSet.prototype.has);
   const wsAdd = uncurry(WeakSet.prototype.add);
-  const RawWeakRef = WeakRef;                        // the restore ledger (D42)
+  const RawWeakRef = WeakRef;                        // the restore ledger (D47)
   const wrDeref = uncurry(WeakRef.prototype.deref);
   const promiseThen = uncurry(Promise.prototype.then);
   // Review B9: every handshake field is read as an OWN property through this, so a
@@ -964,7 +964,7 @@
    * list in a WeakMap keyed on the object it patches, so an entry lives exactly
    * as long as its target does; `RESTORES` keeps the order through WeakRefs.
    *
-   * Why weak (D42): a child realm that is navigated away from is dead, but its
+   * Why weak (D47): a child realm that is navigated away from is dead, but its
    * prototypes and captured natives are still what its entries point at. As a
    * plain array this ledger kept every navigated-away realm alive forever —
    * measured in Chrome for Testing 149, page-script shim: 20 navigations of one
@@ -1552,7 +1552,7 @@
    * loads a new document, while everything behind it (`Navigator.prototype`,
    * `Function.prototype.toString`, the lot) is brand new and pristine. Keyed on the
    * proxy, every door said "already installed" about a realm that no longer
-   * existed (D42; measured in real Chrome: 12 cores after the load, persona 8).
+   * existed (D47; measured in real Chrome: 12 cores after the load, persona 8).
    *
    * `OPAQUE` remembers WindowProxies whose `document` THREW — cross-origin
    * frames. It is keyed on the proxy on purpose: it exists so the insertion sweep
@@ -3031,7 +3031,7 @@
         obs.observe(doc, { childList: true, subtree: true });
       } catch (err) { fail('iframe insertion observer', err); }
 
-      // ── The `load` door (D42). A frame NAVIGATED after insertion gets a new
+      // ── The `load` door (D47). A frame NAVIGATED after insertion gets a new
       //    realm in a later task, and no DOM call in this realm announces it. What
       //    does announce it is the element's `load` event, which passes this
       //    DOCUMENT in the CAPTURE phase before any listener the page put on the
@@ -3129,7 +3129,7 @@
           // with the guard (D35). Same sets, same semantics, one function call less.
           //
           // The question the guard asks is "is this frame's DOCUMENT installed?",
-          // not "is this proxy?" — the proxy outlives its realm (D42). A frame that
+          // not "is this proxy?" — the proxy outlives its realm (D47). A frame that
           // would not show us its document (cross-origin) is remembered in `OPAQUE`
           // by proxy, so it costs one SecurityError ever, not one per insertion;
           // its next `load` is what gets it looked at again.
@@ -3240,13 +3240,13 @@
     });
 
     // ────────────────────────────────────────────────────────────────────────
-    // HONEST LIMIT, as it now stands (D35, D42). Every DOM call that can connect
+    // HONEST LIMIT, as it now stands (D35, D47). Every DOM call that can connect
     // an `<iframe>` is wrapped, so the same-tick `window[n]` bypass is closed for
     // script-driven insertion at any depth (D35's attack table). A frame that is
     // NAVIGATED after insertion is re-installed: "already installed" is a
     // statement about a Document, not a WindowProxy, and the document-capture
     // `load` door installs the new realm before any listener the page put on the
-    // element (D42 — measured in real Chrome 151: the page's own load handler on
+    // element (D47 — measured in real Chrome 151: the page's own load handler on
     // the navigated frame reads the persona, that realm's toString is masked, and
     // a frame that was cross-origin and comes back same-origin is caught on that
     // load). What remains, MEASURED rather than assumed
@@ -3290,7 +3290,7 @@
     //     injection race (THREAT-MODEL), not a new door: registered later, a
     //     page listener runs after ours, and a load never reaches the window.
     //
-    // Rejected, with reasons, in DECISIONS.md D35 and D42: hooking the indexed
+    // Rejected, with reasons, in DECISIONS.md D35 and D47: hooking the indexed
     // WindowProxy properties (not interceptable), hooking `window.length` as the
     // trigger (CreepJS reads it BEFORE inserting), a `length`-delta test (unsound
     // across a move), a subtree scan on the insertion path (the cost), a

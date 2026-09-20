@@ -43,14 +43,14 @@
  * makes every green assertion below a statement about the SAME TICK: if a child
  * realm reads as patched here, nothing but a synchronous install can have done it.
  *
- * NAVIGATION (D42). What `window[i]` / `contentWindow` hand out is a WINDOWPROXY:
+ * NAVIGATION (D47). What `window[i]` / `contentWindow` hand out is a WINDOWPROXY:
  * an object whose identity survives navigation while the Window (realm) behind it
  * is replaced. The rig hands out exactly that — a `Proxy` forwarding to whichever
  * realm is current — and `__navigate(iframe)` swaps the realm behind it and fires
  * the element's `load` event along the real path (document → … → element,
  * capture then target; a load's path never includes the window). A navigation is a separate task in a browser, so
  * `__navigate` calls no DOM method: the only thing the parent hears is `load`.
- * Keying "already installed" on that proxy is the defect D42 closes.
+ * Keying "already installed" on that proxy is the defect D47 closes.
  *
  * Run: `node --test` from `ext/`.
  */
@@ -93,7 +93,7 @@ const RIG_TOKENS = Array.from({ length: 32 }, (_, i) => `rigtoken${String(i).pad
 const DOM_SETUP = `
 (() => {
   const slots = new WeakMap();
-  // \`o\` may be a WindowProxy (D42): listeners and frame slots belong to the
+  // \`o\` may be a WindowProxy (D47): listeners and frame slots belong to the
   // Window BEHIND it, exactly as in a browser.
   const slot = (o) => { o = __proxyInner(o); let s = slots.get(o); if (!s) { s = { children: [], parent: null }; slots.set(o, s); } return s; };
   const brand = (self, C) => { if (!(self instanceof C)) throw new TypeError('Illegal invocation'); };
@@ -212,7 +212,7 @@ const DOM_SETUP = `
   const detach = (n) => walk(n, (x) => { if (x instanceof HTMLIFrameElement && slot(x).win) destroyContext(x); });
 
   /**
-   * NAVIGATION (D42). The WindowProxy at window[i] / contentWindow survives; the
+   * NAVIGATION (D47). The WindowProxy at window[i] / contentWindow survives; the
    * Window behind it is replaced by a brand-new realm — or, with \`to\`, by a
    * cross-origin stand-in whose \`document\` throws. A navigation is a separate
    * task in a browser, so nothing here calls a DOM method the shim could have
@@ -433,7 +433,7 @@ const DOM_SETUP = `
 `;
 
 /**
- * A WINDOWPROXY (D42). In a browser `window[i]` and `contentWindow` do not hand
+ * A WINDOWPROXY (D47). In a browser `window[i]` and `contentWindow` do not hand
  * out the realm's global object but a proxy that forwards to whichever Window is
  * CURRENT in that browsing context. Its identity is stable across navigation; the
  * Window behind it is not. That is the object the shim used to key `INSTALLED` on,
@@ -847,10 +847,10 @@ test('D35: an iframe inside a SHADOW root is not a document-tree child navigable
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// D42 — realm identity across NAVIGATION: the WindowProxy survives, the realm does not
+// D47 — realm identity across NAVIGATION: the WindowProxy survives, the realm does not
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('D42 RIG: a navigation keeps the WindowProxy and replaces the Document and the intrinsics behind it — what Chrome does', () => {
+test('D47 RIG: a navigation keeps the WindowProxy and replaces the Document and the intrinsics behind it — what Chrome does', () => {
   const s = bootRealm({ pool: 2 });
   const got = s.page(`
     (() => {
@@ -871,7 +871,7 @@ test('D42 RIG: a navigation keeps the WindowProxy and replaces the Document and 
   assert.equal(got.taken, 2, 'rig: the navigation consumed a second realm');
 });
 
-test('D42: a frame navigated AFTER insertion is re-installed by the next insertion sweep — "already installed" is a statement about a Document, not a WindowProxy', () => {
+test('D47: a frame navigated AFTER insertion is re-installed by the next insertion sweep — "already installed" is a statement about a Document, not a WindowProxy', () => {
   const s = bootRealm({ pool: 2 });
   const got = s.page(`
     (() => {
@@ -889,7 +889,7 @@ test('D42: a frame navigated AFTER insertion is re-installed by the next inserti
   assert.equal(got.ua, DELIVERED.ua);
 });
 
-test('D42: contentWindow re-installs a navigated frame too', () => {
+test('D47: contentWindow re-installs a navigated frame too', () => {
   const s = bootRealm({ pool: 2 });
   const got = s.page(`
     (() => {
@@ -904,7 +904,7 @@ test('D42: contentWindow re-installs a navigated frame too', () => {
   assert.equal(got.viaIndex, DELIVERED.cores);
 });
 
-test('D42: the page\'s own load listener on the navigated iframe already sees an installed realm — the shim hears load at DOCUMENT capture, ahead of any target listener (a load never reaches the window)', () => {
+test('D47: the page\'s own load listener on the navigated iframe already sees an installed realm — the shim hears load at DOCUMENT capture, ahead of any target listener (a load never reaches the window)', () => {
   const s = bootRealm({ pool: 2 });
   const got = s.page(`
     (() => {
@@ -929,7 +929,7 @@ test('D42: the page\'s own load listener on the navigated iframe already sees an
   assert.equal(got.onloadCores, DELIVERED.cores, 'onload= sees the same');
 });
 
-test('D42: the load door reaches the child through the CAPTURED contentWindow getter, never the live prototype', () => {
+test('D47: the load door reaches the child through the CAPTURED contentWindow getter, never the live prototype', () => {
   const s = bootRealm({ pool: 2 });
   const got = s.page(`
     (() => {
@@ -948,7 +948,7 @@ test('D42: the load door reaches the child through the CAPTURED contentWindow ge
   assert.equal(got.spied, 0, 'the shim read contentWindow through the page\'s own (hookable) prototype');
 });
 
-test('D42: a frame that navigates to a CROSS-ORIGIN document is attempted exactly once, and 25 later insertions never touch it again', () => {
+test('D47: a frame that navigates to a CROSS-ORIGIN document is attempted exactly once, and 25 later insertions never touch it again', () => {
   const s = bootRealm({ pool: 2 });
   const x = crossOriginStandIn();
   s.ctx.__xo = x.win;
@@ -969,7 +969,7 @@ test('D42: a frame that navigates to a CROSS-ORIGIN document is attempted exactl
   assert.equal(s.page('(() => { try { void self[0].document; return false; } catch (_) { return true; } })()'), true, 'rig: the frame is cross-origin now');
 });
 
-test('D42: a frame that WAS cross-origin and navigates back same-origin is installed on that load (HONEST LIMIT 3 of D35, closed)', () => {
+test('D47: a frame that WAS cross-origin and navigates back same-origin is installed on that load (HONEST LIMIT 3 of D35, closed)', () => {
   const s = bootRealm({ pool: 3 });
   const x = crossOriginStandIn();
   s.ctx.__xo = x.win;
@@ -990,7 +990,7 @@ test('D42: a frame that WAS cross-origin and navigates back same-origin is insta
   assert.equal(got.after, DELIVERED.cores);
 });
 
-test('D42: after a navigation, re-reaching the new realm through three doors changes no function identity', () => {
+test('D47: after a navigation, re-reaching the new realm through three doors changes no function identity', () => {
   const s = bootRealm({ pool: 2 });
   const got = s.page(`
     (() => {
@@ -1018,7 +1018,7 @@ test('D42: after a navigation, re-reaching the new realm through three doors cha
   assert.equal(got.value, DELIVERED.ua);
 });
 
-test('D42: a navigated-away realm is not retained by the shim — the restore ledger is weak', async () => {
+test('D47: a navigated-away realm is not retained by the shim — the restore ledger is weak', async () => {
   // `gc` without a command-line flag: flip the V8 flag at run time and pull the
   // function out of a fresh context.
   v8.setFlagsFromString('--expose-gc');
@@ -1041,7 +1041,7 @@ test('D42: a navigated-away realm is not retained by the shim — the restore le
     '(measured in Chrome for Testing 149: 20 navigations of one child, 20 dead realms alive after gc, +7.7 MB)');
 });
 
-test('D42 KEEP: a load event on anything that is not an iframe is ignored, and nothing throws into the page', () => {
+test('D47 KEEP: a load event on anything that is not an iframe is ignored, and nothing throws into the page', () => {
   const s = bootRealm({ pool: 1 });
   const got = s.page(`
     (() => {
