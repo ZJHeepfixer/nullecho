@@ -202,8 +202,8 @@ the FTC statement.
   job to do by October 1, and some of it is currently building to text that is either repealed
   (Connecticut's) or never enacted (Maryland's).
 - ⚠️ **Frame it as a shared checking problem, never as "firm X is wrong."** The accurate and
-  defensible sentence is *"several widely circulated summaries describe § 13-322 as enacted; the
-  state's own codified-statute endpoint and the conforming amendments say otherwise, and I made
+  defensible sentence is *"at least one widely read law-firm alert — and the AI answers of major search engines — describe
+  § 13-322 as enacted, while most firm alerts got it right; the state's own codified-statute endpoint and the conforming amendments say otherwise, and I made
   the same error before I stopped using text extraction."* Do not name firms as wrong, do not say
   anyone was negligent, and lead with your own corrected draft. That framing is both fairer and
   far more likely to get a reply.
@@ -264,8 +264,8 @@ Written down because these are the specific ways this pitch could go wrong.
   anywhere.** It is the struck Maryland section. Quote it only as *the section that was struck* —
   and note that Md. **HB 1475**, a different bill carrying a similar string without the "OR BY",
   **died in committee**, so neither string is Maryland law.
-- ⚠️ **Do not name any firm or organisation as "wrong."** The defensible formulation is *"several
-  widely circulated summaries describe § 13-322 as enacted."* Say what the primary sources show,
+- ⚠️ **Do not name any firm or organisation as "wrong."** The defensible formulation is *"at least one widely read law-firm alert, and the AI answers of major search engines, describe
+  § 13-322 as enacted; most firm alerts I read got it right."* Say what the primary sources show,
   say that an earlier draft of the brief made the same error, and let the reporter do the naming if
   they choose to. Do not characterise anyone's work as negligent, and do not offer a list of who
   got it wrong even if asked to speculate — point at the endpoint and the conforming amendments.
@@ -304,7 +304,7 @@ Written down because these are the specific ways this pitch could go wrong.
   "first-in-the-nation express."** The enacted text creates none; the introduced A.4523's
   $3,000/treble consumer suit was dropped in the Committee Substitute. The exposure is derivative:
   a violation is a Consumer Fraud Act "unlawful practice," and the CFA's private action with treble
-  damages attaches by operation of law. Several law-firm alerts get this wrong; do not inherit it.
+  damages attaches by operation of law. Some published alerts get this wrong; do not inherit it.
 - ⛔ **Do not write "New Jersey Fair Price Protection Act" or "P.L. 2026, c. 65."** The short title
   is the **Fair Price Protection Act** and the chapter is **c. 55** (per the Legislature's own bill
   history for A.4085). The chapter-law document is not yet posted, so attribute the number to the

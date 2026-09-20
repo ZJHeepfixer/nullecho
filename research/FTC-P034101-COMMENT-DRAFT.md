@@ -58,8 +58,8 @@ Two more states chose bans rather than disclosure:
   ban on personalized pricing of tax-exempt food by large food retailers and third-party delivery
   providers. The bill as introduced also carried a proposed § 13-322 that would have required every
   merchant to display "THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR PERSONAL DATA." **That section
-  was struck by amendment before passage and is not law.** Several published summaries describe it as
-  enacted. The error is easy to make: the chapter law prints the struck section in strikethrough, and
+  was struck by amendment before passage and is not law.** At least one published law-firm client alert describes it as enacted, and so do the AI-generated
+  answers of major search engines; most firm alerts I read got it right. The error is easy to make: the chapter law prints the struck section in strikethrough, and
   text extraction from the PDF silently drops the strikethrough. The State's own codified-statute service
   returns text for § 13-321 and "File Not Found" for § 13-322, and the codified §§ 13-408(a) and 13-411(a)
   reference only § 13-321.
