@@ -150,7 +150,7 @@ This policy covers two different things and they have two different answers.
 to, which is the section above.
 
 **The website is hosted by someone else, and that is not nothing.** The pages at
-`https://zjheepfixer.github.io/nullecho/` are served by GitHub Pages. They carry no
+`https://nullecho.org/` are served by GitHub Pages. They carry no
 analytics script, no tracking pixel, no embedded font, no CDN asset, no iframe, and
 no form — a page load fetches the HTML document and nothing else, which is
 verifiable from your own browser's network panel. But GitHub, as the host, keeps
@@ -193,5 +193,5 @@ here. Both stores ask for a contact email on the developer account; that field i
 the right home for it, and it does not need to be published in this document.]`
 
 This policy is published at
-<https://zjheepfixer.github.io/nullecho/privacy/>, which is the URL given as the
+<https://nullecho.org/privacy/>, which is the URL given as the
 privacy-policy link on both store listings.

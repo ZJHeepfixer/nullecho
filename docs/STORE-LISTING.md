@@ -100,12 +100,12 @@ owner — the most common way a trusted extension turns malicious is an acquisit
 followed by a quiet update, so the commitment is written into the repository's
 README rather than left implied.
 
-Privacy policy: https://zjheepfixer.github.io/nullecho/privacy/
+Privacy policy: https://nullecho.org/privacy/
 Source, issues and security advisories: https://github.com/ZJHeepfixer/nullecho
 
 ## Privacy policy URL (required field)
 
-> https://zjheepfixer.github.io/nullecho/privacy/
+> https://nullecho.org/privacy/
 
 Chrome requires a posted privacy policy for any item that *handles* user data,
 and handling is the trigger, not transmitting — "extensions are required to
