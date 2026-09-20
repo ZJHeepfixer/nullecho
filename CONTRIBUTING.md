@@ -35,9 +35,11 @@ This repo is public on purpose: a privacy tool nobody can audit gets distrusted 
 checkable matters more here than being secret. But there is a line.
 
 **We publish honest gap disclosure.** `docs/THREAT-MODEL.md` lists what Nullecho cannot protect, and
-`docs/ARKENFOX-RESPONSE.md` names the detectors that still fire against our own build. Users need
-that to decide whether the tool fits their threat model. Hiding it would make the tool less safe to
-rely on, not more.
+`docs/CLAIM-VERIFICATION-2026-09-17.md` records what third-party libraries actually detect — which is
+the number that counts, not our score on our own suite. (`docs/ARKENFOX-RESPONSE.md` carries the
+earlier self-measured detector counts and a correction banner saying so; don't quote them.) Users
+need this to decide whether the tool fits their threat model. Hiding it would make the tool less safe
+to rely on, not more.
 
 **We do not publish evasion roadmaps.** No running "how we're beating detection this week," no
 blocklist-circumvention techniques, no changelog framed as staying ahead of specific vendors. That

@@ -12,7 +12,7 @@ not a fact.
 
 | Check | Command | Result |
 |---|---|---|
-| Test suite | `cd ext && npm test` | **RUN** — 258/258 passing |
+| Test suite | `cd ext && npm test` | **RUN** — 258/258 passing *as of 2026-09-16; this figure is a dated snapshot, not the current count. Re-run at `1b5f316` on 2026-09-19: **328/328 passing** (D32–D35 added tests). Do not quote 258 anywhere forward-facing.* |
 | Ruleset validation | `cd ext && npm run validate` | **RUN** — 182 static rules, 182 unique ids, 0 errors; 69 never-block + 24 cookie-block-only entries |
 | UA/Client-Hints generator is idempotent | `cd ext && node rules/gen-ua.mjs` then `git status` | **RUN** — regenerates `ua-{win,mac,linux}.json`; working tree unchanged after. 15 personas covered |
 | Suffix-mirror generator is idempotent | `cd ext && node tools/gen-suffix-mirror.mjs` | **RUN** — "shim.js suffix mirror already current (104 suffixes)"; no write |

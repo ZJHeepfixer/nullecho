@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nullecho — privacy policy</title>
+<meta name="description" content="Nullecho's privacy policy. The extension collects nothing and has no network endpoint; this website is hosted on GitHub Pages, which logs visitor IP addresses. Both answers, stated separately.">
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141922; --line:#242c3a; --raise:#1b2230;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#7d8a9f;
+    --accent:#5eead4; --accent-dim:#2dd4bf; --warn:#fbbf24;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#fbfcfd; --panel:#fff; --line:#e2e8f0; --raise:#f1f5f9;
+      --text:#0f172a; --dim:#475569; --faint:#5b6878;
+      --accent:#0f766e; --accent-dim:#0b5f58;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.65 var(--sans); -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:0 22px}
+
+  header{padding:56px 0 34px; border-bottom:1px solid var(--line)}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:16px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  h1{font:600 clamp(28px,4.6vw,38px)/1.18 var(--serif); margin:0 0 14px; letter-spacing:-.02em}
+  .lede{font-size:18px; color:var(--dim); margin:0; line-height:1.6}
+  .meta{margin-top:18px; font-size:13px; color:var(--faint)}
+
+  section{padding:38px 0; border-bottom:1px solid var(--line)}
+  h2{font:600 23px/1.3 var(--serif); margin:0 0 10px; letter-spacing:-.01em}
+  h3{font-size:16px; margin:24px 0 6px; font-weight:650}
+  p{margin:0 0 14px; color:var(--dim)}
+  p.body{color:var(--text)}
+  a{color:var(--accent); text-underline-offset:3px; overflow-wrap:anywhere}
+  ul{margin:8px 0 14px; padding-left:20px; color:var(--dim)}
+  li{margin-bottom:8px}
+  code{font-family:var(--mono); font-size:13.5px; color:var(--text); overflow-wrap:anywhere; word-break:break-word}
+
+  pre{
+    background:var(--panel); border:1px solid var(--line); border-radius:9px;
+    padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:13px;
+    color:var(--text); line-height:1.7; margin:0 0 14px;
+  }
+
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:20px; margin:20px 0}
+  .box.warn{border-left:3px solid var(--warn)}
+  .box.good{border-left:3px solid var(--accent)}
+  .box h3{margin:0 0 8px}
+  .box p{margin:0 0 10px; font-size:15px}
+  .box p:last-child{margin:0}
+  blockquote{
+    margin:0 0 14px; padding:0 0 0 16px; border-left:2px solid var(--line);
+    color:var(--text); font-size:15px;
+  }
+
+  .tablewrap{overflow-x:auto; margin:16px 0}
+  table{width:100%; border-collapse:collapse; font-size:14.5px; min-width:480px}
+  th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:650}
+  td.k{font-family:var(--mono); font-size:12.5px; color:var(--text); white-space:nowrap}
+
+  footer{padding:34px 0 64px; font-size:13.5px; color:var(--faint)}
+  footer p{color:var(--faint); font-size:13.5px}
+  footer a{color:var(--dim)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>Nullecho</div>
+    <h1>Privacy policy</h1>
+    <p class="lede">
+      This covers two separate things with two separate answers: the <strong>browser extension</strong>,
+      which collects nothing and has nowhere to send anything; and this <strong>website</strong>, which
+      is hosted by someone else who keeps server logs. Saying only the first half would be the kind of
+      claim this project exists not to make.
+    </p>
+    <p class="meta">Effective 2026-09-19. Every claim about the extension was checked against the
+      source in <code>ext/</code>, not asserted from memory — the grep citations are below.</p>
+  </div>
+</header>
+
+<section><div class="wrap">
+  <h2>What Nullecho does</h2>
+  <p class="body">
+    Nullecho blocks trackers (ads, analytics, social pixels, known fingerprinting vendors), sends the
+    Global Privacy Control signal, shows each site a different but internally-consistent device
+    profile, and offers a guided link to California's data-broker deletion platform (DROP).
+  </p>
+  <p>Two qualifications belong here rather than in a footnote.</p>
+  <div class="box">
+    <h3>The device profile breaks <em>most</em> fingerprint joins, not all of them</h3>
+    <p>
+      It breaks the join for trackers that hash the signals Nullecho covers — verified 2026-09-17
+      against FingerprintJS 5.2.0 and ClientJS, which gave four personas four distinct visitor IDs.
+      It does <strong>not</strong> break it for a lie-aware library: CreepJS discards values it
+      catches being spoofed, keys on what is left, and re-joins the personas into one identity.
+      Nullecho is detectable by design and does nothing about your IP address.
+    </p>
+  </div>
+  <div class="box">
+    <h3>Global Privacy Control depends on where <em>you</em> live</h3>
+    <p>
+      It is a legal do-not-sell request if you live in a state that recognises it — California,
+      Colorado and several others. The duty attaches to your residency, not to where the site is,
+      and whether a given business is covered, or acted on the signal, happens on their servers
+      where a browser cannot see it. The signal covers <strong>this browser profile only</strong>:
+      your phone and your other browsers each need their own.
+    </p>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Data collected: none</h2>
+  <p class="body">
+    Nullecho has no server, no account, no sign-in, no telemetry, no analytics, and no crash
+    reporting — it does not send a single byte about you or your browsing to anyone, ever.
+  </p>
+  <p>
+    <strong>How we know this, not just claim it:</strong> grepping the shipped extension source
+    (<code>ext/src/</code>, <code>ext/popup/</code>, <code>ext/options/</code>) for every way a web
+    page or extension can reach the network finds exactly two <code>fetch()</code> calls in the whole
+    codebase:
+  </p>
+<pre>ext/src/background.js   fetch(chrome.runtime.getURL('rules/fingerprinting.json'))
+ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
+  <p>
+    Cited by file and expression rather than by line number, deliberately — a line number in a
+    published policy rots silently. At commit <code>33dfefa</code> they are
+    <code>background.js:97</code> and <code>gpc.js:349</code>; the automated test below is what
+    actually holds the claim.
+  </p>
+  <p>
+    Both read a JSON file bundled <em>inside</em> the extension package —
+    <code>chrome.runtime.getURL(...)</code> resolves to <code>chrome-extension://…</code>, never a
+    remote host. There is no other <code>fetch</code>, <code>XMLHttpRequest</code>,
+    <code>navigator.sendBeacon</code>, <code>WebSocket</code>, <code>EventSource</code>, or
+    <code>importScripts</code> anywhere in the shipped source — enforced by an automated test
+    (<code>ext/src/manifest.test.js</code>) that fails the build if any of those appear, or if a
+    <code>fetch()</code> argument is not a bundled-file <code>chrome.runtime.getURL(...)</code>.
+  </p>
+  <p>
+    "Analytics" and "telemetry" do appear in the source — as the <em>category label for third-party
+    trackers Nullecho blocks</em> (Google Analytics, Mixpanel, and so on) and in a lookup table
+    (<code>ext/src/linkage.js</code>) naming which company a blocked domain belongs to, shown only to
+    you, locally. None of that data leaves your device.
+  </p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Data stored locally</h2>
+  <p class="body">
+    Everything Nullecho stores in an installed build lives only in <code>chrome.storage.local</code> —
+    a private, per-browser-profile store on your own machine that Chrome and Firefox delete
+    automatically when you uninstall the extension. Nothing is synced to your Google or Firefox
+    account (<code>chrome.storage.sync</code> is never used, enforced by the same build-failing test).
+    Grepping every <code>storage.local.set</code> call in the source gives this exact list:
+  </p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Key</th><th>What it holds</th></tr></thead>
+    <tbody>
+      <tr><td class="k">identity</td><td>A random session salt (seeds which device persona each site sees) and when it was last rotated. Never leaves this key.</td></tr>
+      <tr><td class="k">settings</td><td>Which tracker categories you block, whether GPC is on, salt auto-rotation interval, loud-failure logging.</td></tr>
+      <tr><td class="k">allowlist</td><td>Sites where you've turned Nullecho off.</td></tr>
+      <tr><td class="k">stats</td><td>Per-site counters — blocked count, fingerprint-read attempts by API, categories seen, last visit, persona shown, last shim status. Capped at 500 sites / 60 tracker entries per site.</td></tr>
+      <tr><td class="k">nullecho:heuristics:v1</td><td>Per-domain "strike" counts the passive tracker-detection observer has built (3 cross-site appearances → learned tracker).</td></tr>
+      <tr><td class="k">nullecho:gpc:v1</td><td>Sites where you've manually excepted the GPC signal because it broke something.</td></tr>
+      <tr><td class="k">nullecho.drop.residency<br>nullecho.drop.submittedAt</td><td>Your California-residency answer and a date you typed, only if you use the DROP guide. Deliberately excludes name, birthdate, ZIP, and the state's deletion-request ID — those live only on California's own site, which Nullecho links to.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>
+    None of these keys contain your browsing history, page content, or anything identifying beyond a
+    random salt and domains you've explicitly interacted with.
+  </p>
+  <p>
+    One honest footnote, because this list is presented as a grep result and a grep for
+    <code>localStorage</code> finds something: <code>ext/options/drop.js:83-105</code> falls back to
+    <code>localStorage</code> when the DROP page is opened <em>outside</em> the extension — local
+    development only. In a packed install <code>chrome.storage.local</code> always exists, so that
+    path never runs.
+  </p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Data shared: none</h2>
+  <p class="body">
+    Nullecho has no backend to share data with. The permissions it requests let it watch and modify
+    requests <em>inside your own browser</em> — none of them involve sending anything to Nullecho or
+    to any third party.
+  </p>
+  <h3>Permissions, and why each is needed</h3>
+  <ul>
+    <li><strong><code>declarativeNetRequest</code> / <code>declarativeNetRequestFeedback</code></strong> —
+      runs the static tracker-blocking rules and reports what was blocked for the popup's count. The
+      browser evaluates these rules; Nullecho's own code never sees the URL of a request it didn't
+      block.</li>
+    <li><strong><code>storage</code></strong> — the local-only data above.
+      <strong><code>alarms</code></strong> — wakes the background service worker to rotate your salt
+      if you've turned that optional feature on.</li>
+    <li><strong><code>webRequest</code></strong> (observation only, not <code>webRequestBlocking</code>) —
+      lets the tracker-detection observer watch which domains a site loads, to learn trackers not
+      already on the blocklists. It only reads request headers; it can't block anything itself, and
+      nothing it sees is ever transmitted anywhere.</li>
+    <li><strong><code>host_permissions: ["&lt;all_urls&gt;"]</code></strong> — needed on every site so
+      blocking, the GPC signal, and the persona shim all work everywhere, not just a list you'd have
+      to remember to maintain.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
+  <h2>How to delete everything</h2>
+  <ul>
+    <li><strong>Uninstall the extension.</strong> Chrome and Firefox both delete an extension's
+      <code>chrome.storage.local</code> data automatically on uninstall — there is nothing left
+      behind, because there was never anywhere else for it to go.</li>
+    <li><strong>Get a "new identity" without uninstalling.</strong> The popup's "New identity" button
+      generates a fresh random salt and writes it over the old one. Every site then sees a brand-new,
+      unrelated device persona going forward. This does not touch your blocking stats or allowlist —
+      those are separate keys — but it breaks the link between your past and future persona at every
+      site.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The website</h2>
+  <p class="body">
+    <strong>The extension collects nothing</strong> — there is no endpoint for it to send anything to,
+    which is everything above.
+  </p>
+  <p class="body">
+    <strong>This website is hosted by someone else, and that is not nothing.</strong> The pages at
+    <code>zjheepfixer.github.io/nullecho/</code> are served by GitHub Pages. They carry no analytics
+    script, no tracking pixel, no embedded font, no CDN asset, no iframe, and no form — a page load
+    fetches the HTML document and nothing else, which you can confirm in your own browser's network
+    panel right now. But GitHub, as the host, keeps server logs. GitHub's own documentation says so:
+  </p>
+  <blockquote>
+    "When a GitHub Pages site is visited, the visitor's IP address is logged and stored for security
+    purposes, regardless of whether the visitor has signed into GitHub or not."
+  </blockquote>
+  <p>
+    GitHub's CDN provider sees the same requests. We neither receive, request, nor have access to
+    those logs, and there is no account through which we could. "The pages collect nothing" is true of
+    the pages; it is not true of the hosting.
+  </p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Chrome Web Store "Limited Use" disclosure</h2>
+  <p class="body">
+    Google's Limited Use policy governs data obtained <em>through a Google API</em>. Nullecho calls no
+    Google API and requests no Google OAuth scope, so there is no such data to disclose. The Limited
+    Use certification is a required dashboard checkbox set at submission time, not prose written here;
+    the certification made there is the one this document describes — nothing is collected and nothing
+    is transmitted.
+  </p>
+  <p>
+    Chrome's Handling Requirements ask that user data be transmitted with modern cryptography.
+    Nullecho transmits no user data at all, so the requirement has nothing to attach to.
+  </p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Contact</h2>
+  <p class="body">
+    There is no support mailbox. Both channels are on the public repository — the same place the
+    source and the git history live, so anything said here can be checked against the code.
+  </p>
+  <ul>
+    <li>Questions, bugs, site breakage —
+      <a href="https://github.com/ZJHeepfixer/nullecho/issues" target="_blank" rel="noopener noreferrer">github.com/ZJHeepfixer/nullecho/issues</a></li>
+    <li>Security or privacy findings that shouldn't be public first —
+      <a href="https://github.com/ZJHeepfixer/nullecho/security/advisories/new" target="_blank" rel="noopener noreferrer">github.com/ZJHeepfixer/nullecho/security/advisories/new</a></li>
+  </ul>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Canonical URL: <code>https://zjheepfixer.github.io/nullecho/privacy/</code> — this is the
+      privacy-policy link given on both store listings. The source of truth is
+      <a href="https://github.com/ZJHeepfixer/nullecho/blob/main/docs/PRIVACY-POLICY.md" target="_blank" rel="noopener noreferrer">docs/PRIVACY-POLICY.md</a>
+      in the repository; this page renders it.
+    </p>
+    <p>
+      This page has no script, no stylesheet file, no font, and no image. One request loads it.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

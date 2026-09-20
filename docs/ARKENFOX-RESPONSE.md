@@ -9,6 +9,16 @@ this the most credible objection in the category. It deserves measurements, not 
 Every number below was produced by `harness/shim-test.html` against `ext/src/shim.js`, in **real
 Chrome 151 on macOS 26.6.0 (Apple M2 Max)**, persona `win11-chrome-rtx3060`.
 
+> ⛔ **CORRECTION 2026-09-19 — every "2 of 9" and "2 of 10" in this document is OUR OWN SCORE ON
+> OUR OWN TEST, and it understated detectability by two orders of magnitude.** Measured against
+> CreepJS, a free third-party library, the same build produced **453 lie records across 198 APIs and
+> a `webDriverIsOn` bot verdict** (2026-09-17). Those were closed in D32/D33/D35, and CreepJS now
+> records **2 lie records** — both of them our own canvas and audio noise, which is the defense
+> rather than a leak. The detector counts below are kept as the record of what the argument was, not
+> as a claim about the artifact. The governing statement is `docs/THREAT-MODEL.md`'s evidence table;
+> the measurement is `docs/CLAIM-VERIFICATION-2026-09-17.md`. **Do not quote a detector count from
+> this file into any user-facing copy.**
+>
 > ⚠ **Read the tables below as the pre-D12 record.** That persona is a *Windows* one, measured on a
 > Mac — which is precisely what open follow-up #5 turned out to be about. #5 is now closed
 > (DECISIONS.md D12: the persona always names the host's own OS), and the post-D12 numbers, taken on

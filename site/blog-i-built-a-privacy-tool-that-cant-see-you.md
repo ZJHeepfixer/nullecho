@@ -36,9 +36,12 @@ visitor whose GPU flickers on refresh.
 Nullecho does something narrower and, I think, more honest. It picks **one internally consistent
 fake machine per website** — a real, common hardware-and-OS configuration that millions of people
 actually run — and holds every field consistent with it. Site A sees one ordinary machine. Site B
-sees a different ordinary machine. Neither can join you to the other, which is the actual harm.
-Within a site, across a session, you look completely stable — so nothing breaks, and you don't stand
-out.
+sees a different ordinary machine. For a tracker that hashes the signals it covers, that breaks the
+join between the two — the actual harm. I verified it rather than assuming it: FingerprintJS and
+ClientJS both hand four personas four distinct visitor IDs. A tracker that *detects* spoofed values,
+throws them away and keys on what's left does re-join them; CreepJS does exactly that, and I'm not
+going to pretend otherwise. Within a site, across a session, you look completely stable — so nothing
+breaks, and you don't stand out.
 
 The goal was never to be invisible. You can't be invisible to a site you're logged into; it knows
 who you are. The goal is to break the link *between* sites — the quiet machinery that connects your
@@ -53,18 +56,21 @@ no privacy tool — you make real decisions based on what it implies.
 **What it does:**
 - Blocks known ad, analytics, social, and fingerprinting trackers.
 - Presents each site a different, internally consistent device profile, breaking the cross-site
-  fingerprint join.
-- Sends Global Privacy Control, which is legally enforceable in California and several other states.
-- Shows you what each shopping page did before it quoted you a price — including whether it carried
-  the personalized-pricing disclosure New York law now requires.
-- For Californians: walks you into the state's DROP platform, which forces 600+ registered data
-  brokers to delete you — the one feature here that *removes* data instead of just obstructing
-  collection.
+  fingerprint join for trackers that hash the signals it covers.
+- Sends Global Privacy Control — a legal do-not-sell request if *you* live in a state that
+  recognises it (California, Colorado and several others). It's your residency that creates the
+  duty, not where the site is, and it covers this browser profile only: your phone needs its own.
+- For Californians: walks you into the state's DROP platform, which makes 600+ registered data
+  brokers delete you, opt you out of sale, or record an exemption — the one feature here that
+  *removes* data instead of just obstructing collection.
 
 **What it doesn't:**
-- It is **detectable.** A determined site can tell Nullecho is installed. When I tested my own build
-  adversarially, 2 of 10 detection methods still fire — mostly things no browser extension can reach.
-  I'd rather tell you that than have you find out.
+- It is **detectable, and that's the design.** A site that looks can tell Nullecho is installed. I
+  stopped grading my own homework on this: measured with CreepJS — a free, off-the-shelf library
+  anyone can point at their own browser — my build produces two lying API records, and both of them
+  are the canvas and audio noise that *is* the protection. Before the 19th of September it produced
+  199 and CreepJS called my browser a bot, which is a worse verdict for you than "privacy tool" is.
+  I'd rather publish the number I can't control than the one I scored myself.
 - It does **nothing about your IP address or your TLS fingerprint.** Those live below the layer any
   extension can touch. If that's your threat model, you want a VPN or Tor, and I'll say so in the app.
 - **Firefox's built-in protection and Brave are genuinely stronger** at anti-fingerprinting, because
@@ -72,8 +78,8 @@ no privacy tool — you make real decisions based on what it implies.
   those, you may not need this. Nullecho's honest niche is Chrome, where neither of those exists.
 - It will **not** get you cheaper prices. I looked hard at this — the best controlled study found that
   clearing your tracks gives you the *worse* price more often than the better one. Anyone selling a
-  browser extension as a discount machine is selling you something that doesn't work. Nullecho shows
-  you the pricing *mechanism*; it doesn't promise to beat it.
+  browser extension as a discount machine is selling you something that doesn't work, and Nullecho
+  doesn't claim to.
 
 ## Why "collects nothing" is the feature, not a footnote
 
@@ -113,8 +119,11 @@ tracker does.
   copy get ahead of the gate.
 - **Fill the bracketed links** once AMO/Chrome listings exist. Lead with the Firefox/AMO link and the
   repo, not the Chrome Web Store link (r/degoogle Rule 5 blocks first-party Google links).
-- **The "2 of 10 detectors" and "600+ brokers" and "worse price ~60% of the time" numbers are all
-  from our own verified research** — sources are in `docs/` and `research/`. Keep them exact or drop
-  them; don't round them into something you can't defend.
+- **The numbers in here are load-bearing and each one has a source in `docs/` or `research/`** —
+  the CreepJS detectability figure (2 lying API records, both of them our own canvas/audio noise,
+  measured 2026-09-19; 199 and a bot verdict before that), "600+ brokers", "worse price ~60% of the
+  time". Keep them exact or drop them; don't round them into something you can't defend. ⛔ The old
+  "2 of 10 adversarial detectors" line was **our score on our own test** and understated
+  detectability by two orders of magnitude — it must not come back.
 - Disclosing "written with AI assistance" on a *blog post* is fine and honest. Doing it on a Reddit
   comment is required. Different channels, different rules.

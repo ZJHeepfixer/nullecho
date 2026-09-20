@@ -1,9 +1,9 @@
 # Nullecho — what is actually left before launch
 
 One ordered list. `BREAKAGE-TESTING.md` is the *protocol*; this is the *queue*.
-Last revised 2026-08-21.
+Last revised 2026-09-19.
 
-**Where things stand:** 258/258 tests, 182 DNR rules valid, ~16k lines, loads clean in real
+**Where things stand:** 328/328 tests, 182 DNR rules valid, ~16k lines, loads clean in real
 Chrome 151, open-sourced and public but **announced nowhere**. The code is in good shape. Nearly
 everything below needs a human in front of a browser, which is the actual bottleneck — so the work
 this pass went into making each item *small*, not into writing more code.
@@ -74,10 +74,69 @@ is not a report, "it broke under `win11-chrome-rtx3060`" is.
 
 ---
 
+## 3b. Package the store build — MUST happen before any submission
+
+**There is no packaging script today, and zipping `ext/` whole fails AMO validation.**
+`npx web-ext@8 lint` on the tree returns **3 errors and 2 warnings**, every one of them from a file
+that has no business in a shipped package: the three `.mjs` generators start with a
+`#!/usr/bin/env node` shebang that AMO's parser rejects, `src/gpc.test.js` trips
+`UNSAFE_VAR_ASSIGNMENT` on a dynamic import, and `src/personas.test.js` trips `DANGEROUS_EVAL` on a
+`Function` constructor. `ext/` is 56 files; **21 of them must not ship.**
+
+**The step:**
+
+1. Build the package from an **allowlist**, never by zipping the tree. Ship exactly:
+   - `manifest.json` (or `manifest.firefox.json` renamed to `manifest.json` for the AMO build —
+     exactly one manifest per zip)
+   - `icons/` — `icon-16.png`, `icon-32.png`, `icon-48.png`, `icon-128.png`
+   - `src/*.js` **minus every `*.test.js`**
+   - `popup/` — `popup.html`, `popup.js`, `popup.css`
+   - `options/` — `options.html`, `options.js`, `options.css`, `drop.html`, `drop.js`
+   - `rules/*.json` only
+2. **Excluded, explicitly** — the 21 files: `PERMISSIONS.md`, `README.md`, `package.json`,
+   `rules/README.md`, `rules/gen-ua.mjs`, `rules/validate.mjs`, `rules/ua.test.js`,
+   `tools/gen-suffix-mirror.mjs`, and the thirteen `src/*.test.js` files
+   (`background`, `claim-verification-2026-09-17`, `gpc`, `handshake-integration`, `heuristics`,
+   `layout-early-out`, `linkage`, `manifest`, `native-shape`, `personas`, `protocol`,
+   `review-2026-09-16`, `shim-handshake`) — plus `src/same-tick-realm.test.js` and any `*.test.js`
+   added after this was written. The rule is the glob, not the list.
+   Also excluded by the same rule: the *other* platform's manifest, so a Chrome zip never carries
+   `manifest.firefox.json` and vice versa.
+3. Re-run **`npx web-ext@8 lint` on the package, not on the tree**, and require **0 errors**.
+4. Re-run `npm run validate` and `npm test` from the tree first; both are generators-and-tests work
+   that must pass before a package is cut.
+
+> **TODO for the `ext/` owner — not written by this lane.** The script belongs at
+> `ext/tools/package.mjs` with an `npm run package` entry in `ext/package.json`, taking a
+> `--firefox` flag to swap the manifest. This lane owns docs, not `ext/`, so the step above is the
+> checklist item and the script is still owed. Until it exists, the allowlist has to be applied by
+> hand, and hand-application is exactly how the 21 files get shipped.
+
+**Reproducible-build facts AMO will ask for** (source-code submission is owed because two custom
+generators produce files that ship — `rules/gen-ua.mjs` → `rules/ua-{win,mac,linux}.json`, and
+`tools/gen-suffix-mirror.mjs` → the generated blocks in `src/shim.js`):
+
+- Node 20 or newer, macOS or Linux. There is no `engines` field and no `.nvmrc`; pin one.
+- **Zero npm dependencies, therefore no `package-lock.json`.** Say that explicitly — an absent
+  lockfile reads as an omission unless it is declared.
+- Build: `node rules/gen-ua.mjs && node tools/gen-suffix-mirror.mjs && npm run validate && npm test`,
+  then the packaging allowlist above. `npm run validate` **fails** if a generated file differs from
+  what its generator emits, which is the diff-to-zero property AMO's reviewers check for.
+
+---
+
 ## 4. Launch — after the gate, not before
 
 Ordered by dependency. Everything here is gated on §3 passing.
 
+- **Chrome program prerequisites — each one is a hard gate on the submit button:**
+  - **2-Step Verification on the developer account.** It is its own section of the Developer Program
+    Policies and is a precondition for publishing. Neither developer account exists yet.
+  - **Opt into CWS verified uploads** (RSA-signed uploads). This is the direct countermeasure to the
+    Cyberhaven-style account takeover the README's trust section is written about.
+  - **EU trader declaration.** Mandatory, and *posted publicly on the listing* — legal name, phone,
+    address. It interacts with the `LICENSE` copyright-holder question (legal name vs. handle);
+    whichever Jason picks, `LICENSE`, the store publisher name and the trader declaration must agree.
 - **Register `getnullecho.com` + `nullecho.app`** (~$25, still unregistered).
 - **Rewrite the blog post in Jason's own voice** — `site/blog-i-built-a-privacy-tool-that-cant-see-you.md`
   is a draft written by Claude and **must not ship as-is**: r/degoogle removes AI-written copy and

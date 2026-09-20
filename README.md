@@ -1,9 +1,10 @@
 # Nullecho
 
-**A browser extension that blocks trackers, defends against fingerprinting, and collects nothing
-about you — which is exactly why it ships a button that lets you measure whether it's working.**
+**A browser extension that blocks trackers, shows each site a different device profile, and collects
+nothing about you — which is exactly why it ships a button that lets you measure whether it's
+working.**
 
-> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 258 tests passing, but breakage testing is
+> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 328 tests passing, but breakage testing is
 > incomplete and there are open release blockers (see [Status](#status)). Not yet published to any
 > store. Don't rely on it as your only protection yet.
 
@@ -26,20 +27,33 @@ We can't see the result either.
 - **Blocks trackers** — ads, analytics, social pixels, and commercial fingerprinting vendors
   (182 rules, sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
 - **Per-origin device personas** — each site sees a *different but internally consistent* machine
-  drawn from a pool of real, high-population configurations. Site A and Site B can't join you.
-- **Global Privacy Control** — legally enforceable in California and several other states.
-- **Checkout Report** — what a shopping page contacted before it quoted you a price, and whether it
-  carried the algorithmic-pricing disclosure NY/MD/CT law now requires.
+  drawn from a pool of real, high-population configurations. That breaks the fingerprint join for
+  trackers that hash the signals we cover: verified 2026-09-17 against FingerprintJS 5.2.0 and
+  ClientJS, which gave four personas four distinct visitor IDs. It does **not** break it for a
+  lie-aware library — CreepJS discards values it catches being spoofed, keys on what's left, and
+  re-joins all four into one identity.
+- **Global Privacy Control** — a legal do-not-sell request if *you* live in one of the states that
+  recognise it (California, Colorado and several others). The duty attaches to your residency, not
+  to where the site is; whether a given business is covered, and whether it complied, happens on
+  their servers and is not observable from a browser. The signal covers **this browser profile
+  only** — your phone and your other browsers each need their own.
 - **DROP onboarding** (California) — walks you into the state platform that forces 600+ registered
-  data brokers to delete you. The only feature here that *removes* data rather than obstructing
-  collection.
+  data brokers to delete, opt you out of sale, or record an exemption. The only feature here that
+  *removes* data rather than obstructing collection.
+
+Planned, not built: an observation-only pricing-disclosure notice — see
+[`docs/review-2026-09-19/pricing.md`](docs/review-2026-09-19/pricing.md).
 
 ## What it does NOT do
 
 Stated up front, because a privacy tool that oversells is worse than none — you make real decisions
 based on what it implies.
 
-- **It is detectable.** 2 of 10 adversarial detection methods still fire against our own build.
+- **It is detectable, by design.** Measured with CreepJS — a free third-party library, not our own
+  test suite — our build produces **2 lying API records**, and both of them are the canvas and audio
+  noise that *is* the defense. Before 2026-09-19 the same library recorded 199 and returned a **bot**
+  verdict. Two is the current measurement, not a floor: a site that looks can always tell Nullecho is
+  installed.
 - **Nothing about your IP address or TLS fingerprint.** Those are below the layer any extension can
   reach. If that's your threat model, you want a VPN or Tor.
 - **Firefox's `resistFingerprinting` and Brave are genuinely stronger** at anti-fingerprinting —
@@ -66,7 +80,7 @@ Full reasoning: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/DECISIO
 
 ```bash
 git clone <repo> && cd nullecho/ext
-npm test          # 258 tests
+npm test          # 328 tests
 ```
 
 Chrome: `chrome://extensions` → Developer mode → **Load unpacked** → select `ext/`.
@@ -79,20 +93,24 @@ cd nullecho && python3 -m http.server 4886
 ```
 
 - `http://localhost:4886/harness/index.html` — your real fingerprint, unprotected
-- `http://localhost:4886/harness/shim-test.html` — with protection, plus 10 adversarial detectors
+- `http://localhost:4886/harness/shim-test.html` — with protection, plus our own 10-probe
+  adversarial suite (our score on our own test — the number that matters is CreepJS's, below)
+- `http://localhost:4886/harness/claim-verification.html` — the real measurement: FingerprintJS,
+  ClientJS and CreepJS, vendored, run against your own browser
 - `http://localhost:4886/harness/breakage-battery.html` — does the shim break real workloads
 
 ## Status
 
 | | |
 |---|---|
-| Tests | 258 passing |
+| Tests | 328 passing |
 | Loads in Chrome 151 | ✅ verified |
 | reCAPTCHA / Google SSO | ✅ verified unbroken |
 | Shim breakage battery | ✅ 0 failures |
 | Full Tier A breakage suite | ⏳ incomplete |
 | **Linux personas** | 🚫 **GPU renderer strings unverified on real hardware — release blocker** |
-| **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed:** A1–A5, B1, B2, B4, B5, B7, B8, C2, C3 — each reproduction flipped into a regression guard (D19–D28; see `docs/DECISIONS.md`). **Still open:** A8 workers, B3 same-origin child frames, B6 WebGPU architecture, B9 `Object.prototype` pollution, C1 unauthenticated reverse channel. Full status + effort estimates: [`docs/RELEASE-READINESS-2026-09-16.md`](docs/RELEASE-READINESS-2026-09-16.md). |
+| **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed:** A1–A5, B1–B5, B7–B9, C1–C3 — each reproduction flipped into a regression guard (D19–D31; see `docs/DECISIONS.md`). **Still open:** A8 (Web Workers — no content script runs in a worker scope) and B6 (WebGPU architecture — needs hardware). Full status + effort estimates: [`docs/RELEASE-READINESS-2026-09-16.md`](docs/RELEASE-READINESS-2026-09-16.md). |
+| **Third-party detectability (2026-09-19)** | Measured, not asserted. CreepJS: **2 lie records**, both our own canvas/audio noise; `hasToStringProxy` and `webDriverIsOn` back to the control's `false` (was 199 records and a bot verdict before D35). FingerprintJS + ClientJS: four personas, four distinct visitor IDs. CreepJS still re-joins them — see `docs/THREAT-MODEL.md`. |
 | Published to stores | ❌ not yet |
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)

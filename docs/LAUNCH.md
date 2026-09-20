@@ -104,9 +104,12 @@ task on an engine that already exists and is well-reasoned. (Also: `siteePairsFo
 ### 1.4 The Firefox manifest doesn't claim the capability the pitch depends on
 
 `manifest.firefox.json` declares `"webRequest"` but **not** `"webRequestBlocking"`. Without it you
-observe requests, you don't cancel them. "Our Firefox build is strictly more capable" is a true and
-valuable line — but it isn't true of the artifact yet. Add the permission; prove it with a test that
-blocks something on Firefox that DNR alone would pass.
+observe requests, you don't cancel them — so the framing this section was originally written around,
+that the Firefox build is more capable than the Chrome one, is **false of the artifact** and must not
+be used anywhere. It is recorded as this project's one over-claim in `ext/PERMISSIONS.md:187`. The
+true version, usable in any pitch: *Firefox gives us better tracker attribution in a packed build,
+because `webRequest` observation survives there; blocking behaviour is identical on both, because
+every block is a DNR rule.*
 
 > **RESOLVED 2026-08-21 — the other way.** The mismatch is closed by **correcting the claim**, not by
 > taking the capability. Reasons, in order of weight:
@@ -923,9 +926,14 @@ These don't conflict, and the distinction matters:
    resets the queue. Your submission date, not your readiness date, sets your Chrome ship date.
 2. **The Chrome market moment is now** — the Aug 31 MV2 purge is eleven days out and users are
    actively replacing blockers.
-3. **Firefox is the better product and the better launch story.** "The Firefox version blocks things
-   the Chrome version structurally cannot, because Google removed the API" is true, interesting,
-   on-beat for r/firefox, r/degoogle and privacy YouTube, and costs nothing.
+3. **Firefox is the better launch venue, and the story has to be the true one.** ⛔ "The Firefox
+   version blocks things the Chrome version structurally cannot" is **false of our artifact** —
+   `webRequestBlocking` is requested on neither platform (enforced by `ext/src/manifest.test.js`), so
+   both builds block exactly the same things, through DNR. Do not ship that sentence to a subreddit
+   or a journalist. What is true and still on-beat for r/firefox, r/degoogle and privacy YouTube:
+   *Firefox kept `webRequest` observation, so the Firefox build can attribute trackers in a packed
+   release that the Chrome build can only attribute in development — the blocking itself is
+   identical.*
 4. **AMO turnaround is 24 hours when clean**, so it's the venue you can actually schedule a launch
    around.
 
@@ -942,7 +950,10 @@ Zero launch attention.
 
 ### 5.4 Open source: yes, unambiguously — and the reason isn't the license
 
-**Ship the full source under GPL-3.0 on GitHub before launch, with reproducible builds.**
+**Ship the full source on GitHub before launch, with reproducible builds. The licence is MIT** —
+see `LICENSE`. This section originally recommended GPL-3.0; the repo is public under MIT,
+relicensing after publication is a one-way door, and the case table further down this same section
+records that GPLv3 did nothing in the two cases this project's threat model is written about.
 
 The argument is mechanical, not ideological: **your entire differentiating claim is unverifiable
 without source.** "Internally consistent personas drawn from a high-population pool, not naive
@@ -1002,10 +1013,12 @@ source was public; the closed-source cases took researchers or acquisitions to e
 4. **Publish a no-sale succession policy.** Both Nano and The Great Suspender were *sales*, not hacks.
    Say in the README that you will never transfer the extension, and that if you ever must, it happens
    with a verifiable signed-key rotation announced in advance.
-5. **The license.** GPL-3.0 over MIT — copyleft forces a cloner shipping modifications to publish
-   them, raising the cost of a quiet malicious fork and giving you a lever independent of trademark.
-   `[judgment call — MIT would maximize adoption; GPL is right because the threat you care about is
-   commercial re-skinning, not integration.]` Recognize it as the *fifth*-order defense.
+5. **The license.** ⛔ **Superseded 2026-09-19: the repo ships MIT and stays MIT.** This entry used
+   to argue GPL-3.0 over MIT (copyleft raising the cost of a quiet malicious fork). It is left here
+   as the record of the argument, not as the recommendation — the case table in §5.4 records that
+   GPLv3 did nothing in the uBlock and CrashFix cases, `README.md` builds its trust argument on MIT
+   ("you may fork it, rename it, and ship it — that's deliberate"), and relicensing a published repo
+   is a one-way door. It was always the *fifth*-order defense; the first four are what matter.
 
 **Privacy Guides does not require open source** — *"generally preferred"* [cited]. Open source is
 still correct here; just don't justify it with a requirement that doesn't exist.
@@ -1262,9 +1275,10 @@ does it.
   asking a real question in a thread, not pitching — *"I need people to try to break this on sites I
   don't use, especially non-US banking and non-English sites."* Distribute via an **AMO
   unlisted-signed build** (§5.2).
-- **Week −1:** Fix what beta found. Submit to AMO. Publish the GitHub repo, GPL-3.0, reproducible
-  build instructions, threat model in the README, and the **no-sale succession policy**. Enable **CWS
-  verified uploads**. Email **info@globalprivacycontrol.org** to get listed as a GPC sender (§3.8).
+- **Week −1:** Fix what beta found. Submit to AMO. Publish the GitHub repo (**MIT** — see `LICENSE`),
+  reproducible build instructions, threat model in the README, and the **no-sale succession policy**.
+  Enable **CWS verified uploads**. Email **info@globalprivacycontrol.org** to get listed as a GPC
+  sender (§3.8).
 - **Week −1:** Draft everything — the essay, the Show HN text, the methodology page, five reporter
   emails, one creator email. Send nothing. Put your **email in your HN profile** and pick a personal
   username, not the project name.

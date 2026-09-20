@@ -33,7 +33,10 @@ is fine if disclosed. Forum comment: must be yours.
   randomization backfires) or the *findings* story (the surveillance-pricing / DROP research).
 
 **Phase 3 — the stores:**
-- Firefox AMO first (friendlier review, our build is more capable there).
+- Firefox AMO first (friendlier review, 24-hour turnaround when clean). ⛔ Do **not** say the
+  Firefox build is more capable — `webRequestBlocking` is requested on neither platform, so both
+  builds block identically through DNR. The true line: Firefox keeps `webRequest` observation in a
+  packed release, so tracker *attribution* survives there where Chrome only has it in development.
 - Chrome Web Store second.
 - GitHub release as the always-available fallback.
 
@@ -60,8 +63,10 @@ is fine if disclosed. Forum comment: must be yours.
 > - **Repo/site:** [AMO link] · [GitHub]
 > - **What it does:** shows each site a different but internally-consistent device profile (not naive
 >   randomization — that backfires), blocks trackers, sends GPC, and for CA users routes into DROP.
-> - **What it doesn't:** it's detectable (2/10 methods still fire), does nothing about your IP, and
->   Firefox RFP / Brave are stronger below the JS layer. Chrome is its niche.
+> - **What it doesn't:** it's detectable by design (CreepJS, a third-party library, records 2 lying
+>   APIs against it — both of them its own canvas/audio noise), the join it breaks is the one
+>   FingerprintJS-style trackers make and *not* the one a lie-aware library makes, it does nothing
+>   about your IP, and Firefox RFP / Brave are stronger below the JS layer. Chrome is its niche.
 > - **AI involvement:** [state it honestly — code and this post drafted with AI assistance, reviewed
 >   and edited by me]
 > Built it because I was tired of privacy tools asking me to trust a green shield. This one ships a
