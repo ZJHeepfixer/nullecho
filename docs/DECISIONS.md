@@ -2669,6 +2669,46 @@ anything that is not one of its three message types; `handleShell` never sees th
 
 ---
 
+## D46 — One `Function.prototype.toString` mask per realm, and `shim.js` owns it. 2026-09-20.
+
+**Decision:** `gpc.js` no longer installs its own `Function.prototype.toString` wrapper. The
+`navigator.globalPrivacyControl` getter is installed by `shim.js` through `markNative` (D32 shape, D43
+copied native source), taking the on/off value from the persona payload the ISOLATED loader already
+delivers; `gpc.js` stays in the manifests only as the fallback for a realm the shim never reaches. D36–D41
+semantics are unchanged (off reads `false`; a stand-down on Chrome DELETES the property the browser never
+had — the `remove` flag now travels through the D47 ledger; per-site exceptions; the WorkerNavigator limit).
+
+**The regression this closes — measured, not argued.** D38 (2026-09-19) gave `gpc.js` a second masking
+wrapper because, as a separate classic script, it could not reach the shim's `NATIVE_SRC`. Every harness
+run that day was in page-script mode, where `gpc.js` is never loaded, and read 2 lies. The first run of
+`harness/unpacked-chrome.mjs claim` (D47's real-install gate; Chrome for Testing 149, `ext/` loaded
+unpacked, both origins) read **lieCount 199, `hasToStringProxy` true, `extensionHashPattern` 30** — the
+same numbers as before D32–D35. Mechanism: a child realm's pristine `Function.prototype.toString` applied
+to the TOP realm's `Function.prototype.toString` printed `gpc.js`'s wrapper source; no shim closure knew
+that function, so every other realm's mask delegated to its native and revealed it, and CreepJS turns one
+revealed `toString` into a failed-toString lie on every API. The same build with `src/gpc.js` removed from
+the manifest read 2 / false / 0. Rule: **one mask per realm**; a second owner of `toString` is a leak by
+construction, whoever writes it.
+
+**After, on the merged tree `7fd6964` (D46 + D47), real install, both origins (`localhost` and
+`127.0.0.1`, 2026-09-20):** lieCount **2** (the canvas/audio noise), `hasToStringProxy` **false**,
+`extensionHashPattern` **0**; FingerprintJS `3071cab4…` vs `d1ef751f…` and ClientJS `705808318` vs
+`2556000097` (two site keys, two ids under the real service worker); CreepJS one id on both (§6.1 of
+CLAIM-VERIFICATION stands — the join is not broken against a lie-discarding library). Same-tick child
+realm: cores = persona, pristine `toString(userAgent getter)` → `[native code]`,
+`toString(Function.prototype.toString)` → `[native code]`. `webDriverIsOn` reads true under the automation
+and is the automation's (`unpacked-chrome.mjs` header, trap 3), not the shim's.
+
+**What was not finished.** The agent that wrote the fix was stopped by the account's spend limit after
+confirming before/after but before its adversarial pass; the director merged the WIP (`dab5572`) after
+routing its two strong ledgers — the GPC restore entry and `GPC_REALMS`, a strong list of every realm's
+`Navigator.prototype` — through D47's WeakRef pattern (the merge conflict and a red D47 retention test
+caught both). Not re-run tonight: `unpacked-chrome.mjs timing` (post-navigation realm) and the Firefox
+G2/G3 semantics against this exact build. Guards: `ext/src/gpc-one-mask-2026-09-20.test.js` (21 tests),
+`review-2026-09-19.test.js`, `same-tick-realm.test.js`. Suite 467/467.
+
+---
+
 ## D47 — Realm identity is the Document, not the WindowProxy; a navigated frame is re-installed on its `load`. 2026-09-19.
 
 **The defect, measured.** D35's own attack pass found it and recorded it as the next decision. An

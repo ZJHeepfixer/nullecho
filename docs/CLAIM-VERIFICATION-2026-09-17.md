@@ -465,6 +465,10 @@ scope), WASM-compiled fingerprinting, and the TLS/IP layer.
 
 ---
 
+> **CLOSED 2026-09-20 (D46).** The real-install regression D47's gate found — 199 lies from a second
+> `Function.prototype.toString` mask in `gpc.js` — is gone: `unpacked-chrome.mjs claim` on `7fd6964` reads
+> 2 / false / 0 on both origins with two FingerprintJS visitorIds. One mask per realm, owned by `shim.js`.
+
 ## 6. What this changes, in order of importance
 
 1. **"Breaks the device-fingerprint join" cannot stand unqualified.** It is true of the most
