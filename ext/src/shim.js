@@ -249,6 +249,17 @@
   const taBuffer = uncurry(getterOf(TypedArrayProto, 'buffer'));
   const taByteOffset = uncurry(getterOf(TypedArrayProto, 'byteOffset'));
   const taJoin = uncurry(TypedArrayProto.join);
+  // D42 — the ENGINE's own spelling of a native function's source. `markNative`
+  // used to write Chrome's form on every engine; Firefox prints a different one
+  // (no `get `/`set ` prefix, and an indented body), so every masked function was
+  // one string compare from any native the shim leaves alone. The source is now
+  // copied from a real native instead of assumed, which needs the engine's
+  // `Function.prototype.toString` captured before we replace it, plus one
+  // pristine native per KIND as a template for the cases where the function
+  // being replaced is not itself native (test rigs; another extension first).
+  const rawFuncToString = uncurry(Function.prototype.toString);
+  const NATIVE_MODEL_METHOD = Object.prototype.hasOwnProperty;
+  const NATIVE_MODEL_ACCESSOR = Object.getOwnPropertyDescriptor(Object.prototype, '__proto__');
   // ─── END CAPTURED BUILTINS ────────────────────────────────────────────────
 
   // ── small helpers built only from the captures above ──────────────────────
@@ -960,25 +971,128 @@
   const NATIVE_SRC = new RawWeakMap();
 
   /**
-   * Requirement 1: `Function.prototype.toString` on a patched function must report
-   * `[native code]`. Page scripts check this routinely — a wrapper whose source is
-   * visible is a louder tell than the value it was hiding.
+   * ── The spelling of `[native code]` is the ENGINE's, never ours (D42) ──────
    *
-   * We register the *exact* string Chrome would emit and consult a WeakMap from a
-   * patched `Function.prototype.toString`. WeakMap, not a property, so the mapping
-   * is not enumerable, not reachable, and not forgeable from the page — PROVIDED
-   * it is consulted through the captured `WeakMap.prototype.get`. Through the live
-   * one, a page hook received the map itself as `this` and could then `has()` any
-   * function: an exact, enumerable oracle of everything we patched (review C2).
+   * A native function's source string is not standardised beyond "an
+   * implementation-defined NativeFunction". Measured 2026-09-19, same page, same
+   * probe:
+   *
+   *   Chrome 147   `function get userAgent() { [native code] }`
+   *   Firefox 156  `function userAgent() {\n    [native code]\n}`
+   *
+   * SpiderMonkey drops the `get `/`set ` prefix from the SOURCE (it keeps it in
+   * `.name`) and indents the body. Writing Chrome's form on every engine — which
+   * is what this file did — left every masked function one string compare from
+   * any native the shim leaves alone: on Firefox `toDataURL` read single-line
+   * while `getContext`, same interface, same kind, read multi-line.
+   *
+   * So don't spell it. COPY it:
+   *
+   *   1. from the function being replaced, when that function is itself native.
+   *      Byte-identical by construction — it is literally what the page read a
+   *      moment ago, name and all. This is the path every install site takes in
+   *      a real browser, and it is also why an aliased native (WebIDL setlike
+   *      `[Symbol.iterator]`, whose own name is `values`) now reports what the
+   *      original reported instead of a name no engine prints.
+   *   2. otherwise from a pristine native of the same KIND captured at boot,
+   *      with the model's name swapped for ours. `get`/`set` fall out of the
+   *      template: whichever prefix the engine puts there is carried along.
+   *   3. and only if neither is usable — a rig with no natives at all — the
+   *      Chrome form, which is what this file always wrote.
+   *
+   * This is `gpc.js`'s D38 calibration generalised from one getter to all 43
+   * install sites. `rawFuncToString` is the engine's own, captured before
+   * `patchFunctionToString` replaces it, so another extension's wrapper cannot
+   * feed us a source and step 1's nativeness check cannot be spoofed by one.
+   *
+   * Requirement 1 is unchanged: `Function.prototype.toString` on a patched
+   * function must report `[native code]`. Page scripts check this routinely — a
+   * wrapper whose source is visible is a louder tell than the value it was
+   * hiding. The mapping lives in a WeakMap, not a property, so it is not
+   * enumerable, not reachable and not forgeable from the page — PROVIDED it is
+   * consulted through the captured `WeakMap.prototype.get`. Through the live
+   * one, a page hook received the map itself as `this` and could then `has()`
+   * any function: an exact, enumerable oracle of everything we patched (C2).
    */
-  function markNative(fn, name, model) {
+
+  /** `"get userAgent"` → `"userAgent"`. The engine decides whether to print it. */
+  function bareName(name) {
+    if (typeof name !== 'string') return '';
+    const head = strSlice(name, 0, 4);
+    return (head === 'get ' || head === 'set ') ? strSlice(name, 4) : name;
+  }
+
+  /** A function's OWN `name`, never one inherited from a page-owned prototype. */
+  function ownNameOf(fn) {
     try {
-      objDefineProperty(fn, 'name', { value: name, writable: false, enumerable: false, configurable: true });
+      const d = objGetOwnPropertyDescriptor(fn, 'name');
+      return d && typeof d.value === 'string' ? d.value : '';
+    } catch (_) { return ''; }
+  }
+
+  /** What this engine prints for `fn`, below every masking layer. */
+  function engineSourceOf(fn) {
+    if (typeof fn !== 'function') return '';
+    try {
+      const s = rawFuncToString(fn);
+      return typeof s === 'string' ? s : '';
+    } catch (_) { return ''; }
+  }
+
+  const isNativeSource = (src) => src !== '' && strIndexOf(src, '[native code]') >= 0;
+
+  /**
+   * One template per kind — `{ src, name }` where `name` is the bare name that
+   * appears in `src`. Built from intrinsics captured at boot, so a page cannot
+   * substitute a model, and rebuilt for nothing afterwards.
+   */
+  function templateFrom(fn) {
+    const src = engineSourceOf(fn);
+    const n = bareName(ownNameOf(fn));
+    if (!isNativeSource(src) || n === '' || strIndexOf(src, n + '(') < 0) return null;
+    return { src, name: n };
+  }
+
+  const SRC_TEMPLATES = {
+    method: templateFrom(NATIVE_MODEL_METHOD),
+    'get ': templateFrom(NATIVE_MODEL_ACCESSOR && NATIVE_MODEL_ACCESSOR.get),
+    'set ': templateFrom(NATIVE_MODEL_ACCESSOR && NATIVE_MODEL_ACCESSOR.set),
+  };
+
+  function sourceFromTemplate(tpl, name) {
+    if (!tpl) return '';
+    const at = strIndexOf(tpl.src, tpl.name + '(');
+    if (at < 0) return '';
+    return strSlice(tpl.src, 0, at) + bareName(name) + strSlice(tpl.src, at + tpl.name.length);
+  }
+
+  /** The exact string this engine would print for the function we are replacing. */
+  function nativeSourceFor(name, model) {
+    const fromModel = engineSourceOf(model);
+    if (isNativeSource(fromModel)) return fromModel;
+    const head = strSlice(typeof name === 'string' ? name : '', 0, 4);
+    const kind = (head === 'get ' || head === 'set ') ? head : 'method';
+    const fromTemplate = sourceFromTemplate(SRC_TEMPLATES[kind] || SRC_TEMPLATES.method, name);
+    if (fromTemplate !== '') return fromTemplate;
+    return 'function ' + name + '() { [native code] }';
+  }
+
+  function markNative(fn, name, model) {
+    const src = nativeSourceFor(name, model);
+    // A native model's OWN name wins: `length` was already taken from it, and a
+    // replacement whose `name` and source disagree is a tell of its own. It only
+    // ever differs for an aliased member — `GPUSupportedFeatures.prototype
+    // [Symbol.iterator]` is named `values` in both engines, where this file used
+    // to write `[Symbol.iterator]`.
+    const modelName = isNativeSource(engineSourceOf(model)) ? ownNameOf(model) : '';
+    const shown = modelName !== '' ? modelName : name;
+    try {
+      objDefineProperty(fn, 'name', { value: shown, writable: false, enumerable: false, configurable: true });
       if (model) {
         objDefineProperty(fn, 'length', { value: model.length, writable: false, enumerable: false, configurable: true });
       }
     } catch (_) { /* name/length are best-effort; the toString mapping is the load-bearing part */ }
-    wmSet(NATIVE_SRC, fn, 'function ' + name + '() { [native code] }');
+    wmSet(NATIVE_SRC, fn, src);
     return fn;
   }
 

@@ -2377,3 +2377,80 @@ both listeners land with the portable spec, and `GET_PERSONA` answers `ok:true` 
 Chrome-shaped stub still gets `extraHeaders` (the fix is a detect, not a removal); `install()` does
 not throw when both registrations are refused, or when there is no `webRequest` at all; and a source
 lint fails the build if `'extraHeaders'` ever appears outside the one constant.
+
+---
+
+## D43 — The spelling of `[native code]` is the engine's. `markNative` copies it; it never writes it. 2026-09-19.
+
+**Decision:** `markNative` no longer composes a source string. It takes the one the engine itself
+prints — **from the function being replaced**, when that function is native, which is every install
+site in a real browser; from a pristine native **of the same kind** captured at boot, with the name
+swapped, when it is not (a test rig, or another extension that patched first); and only if neither
+is usable, the Chrome form this file always wrote. A native model's own `name` wins too, because
+`length` already did and a replacement whose name and source disagree is a tell of its own.
+
+**What it was.** One line: `'function ' + name + '() { [native code] }'`. A native function's source
+is "an implementation-defined NativeFunction" and the two engines disagree about it. Measured
+2026-09-19, same page, same probe, Chrome for Testing 147.0.7727.15 and Firefox 156.0:
+
+| | Chrome 147 | Firefox 156 |
+|---|---|---|
+| `Navigator.prototype.userAgent` getter | `function get userAgent() { [native code] }` | `function userAgent() {\n    [native code]\n}` |
+| `Element.prototype.innerHTML` setter | `function set innerHTML() { [native code] }` | `function innerHTML() {\n    [native code]\n}` |
+| `HTMLCanvasElement.prototype.getContext` | `function getContext() { [native code] }` | `function getContext() {\n    [native code]\n}` |
+| the getter's `.name`, both | `get userAgent` | `get userAgent` |
+
+SpiderMonkey drops the accessor prefix from the SOURCE while keeping it in `.name`, and indents the
+body. D38 found this for one getter and fixed that one by calibrating from `Navigator.prototype.onLine`;
+its own "Adjacent, observed, not fixed" paragraph named the rest of the file. This is the rest of the
+file.
+
+✅ **Before → after, real Firefox 156, the shipped content scripts, one page load:**
+
+| | before | after | the engine's own, same page |
+|---|---|---|---|
+| `Navigator.userAgent` getter | `function get userAgent() { [native code] }` 🔴 | `function userAgent() {\n    [native code]\n}` | `onLine`: `function onLine() {\n    [native code]\n}` |
+| `HTMLCanvasElement.toDataURL` | `function toDataURL() { [native code] }` 🔴 | `function toDataURL() {\n    [native code]\n}` | `getContext`: `function getContext() {\n    [native code]\n}` |
+| `Function.prototype.toString` | `function toString() { [native code] }` 🔴 | `function toString() {\n    [native code]\n}` | — |
+| `navigator.globalPrivacyControl` getter | `function globalPrivacyControl() {\n    [native code]\n}` | unchanged | matches (D38 already calibrated it) |
+
+Twelve shim-installed functions were checked; all twelve read Chrome's spelling before and the
+engine's after. **The detector this closes is one compare, no list of expected values:** `toDataURL`
+and `getContext` are both methods on `HTMLCanvasElement.prototype`, and on Firefox one was
+single-line and the other was not. `Screen.prototype.width` — which the shim deliberately does not
+patch (G5, the display layer) — read multi-line throughout and is the control that proves the probe
+discriminates.
+
+**Chrome is untouched: 12 of 12 masked functions byte-identical before and after**, verified against
+the same probe in Chrome for Testing 147 with the same build. The fix cannot regress Chrome by
+construction — on V8 the copied source *is* the string the old code composed.
+
+**A second, smaller thing the copy fixes.** `GPUSupportedFeatures.prototype[Symbol.iterator]` is an
+alias: its own `name` is `values` and both engines print `function values() { [native code] }` for
+it (measured in Chrome 147). The old code wrote `[Symbol.iterator]` into both the name and the
+source — a name no engine prints for it. Taking the model's own name and source fixes both. ⚠ That
+one path is covered by the unit tests and by the native measurement, but was NOT re-verified in a
+patched browser: `navigator.gpu` stopped being exposed in this Chrome for Testing session (no GPU
+process), so the patched WebGPU objects could not be reached again.
+
+**`gpc.js` needs no change and inherits the fix.** Its D38 calibration copies from `onLine`, which
+the shim does not patch, so it was already correct on both engines; and its `selfSrc` echo — what
+the layer below says about `Function.prototype.toString` — is now the engine's spelling on Firefox
+too, because that layer is `shim.js`'s mask. Its remaining hard-coded Chrome-form strings are the
+un-calibratable fallbacks, unreachable in any real browser, and a test pins them.
+
+**Kept intact:** D21 (nothing calls a prototype at run time — the new code uses only boot-captured
+`strIndexOf`/`strSlice`/`Object` intrinsics and the boot-captured `Function.prototype.toString`,
+which is also why another extension's wrapper cannot feed us a source); D32 (the shape probes are
+unchanged; this touches only the string); D33 (no console call is added, and the derivation cannot
+throw out of `markNative`).
+
+**Guards:** `native-source-2026-09-19.test.js` — a `node:vm` realm per engine, with a fake
+`Function.prototype.toString` installed BEFORE the shim so the shim captures it, printing V8's
+spelling or SpiderMonkey's and reporting `[native code]` for the realm's own natives the way a
+browser does. On both: every masked function equals what that engine prints for a native of the
+same name and kind; a masked member is byte-identical to an UNPATCHED neighbour on the same
+interface with the name substituted (the attacker's compare); `Function.prototype.toString` reports
+itself the engine's way; no shim source reaches the page; a non-native model falls back to the
+template rather than to that extension's source; an engine that refuses to stringify anything still
+yields `[native code]`; and D33's no-console rule is re-asserted around the new code.
