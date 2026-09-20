@@ -376,6 +376,16 @@ test('G3 HONEST LIMIT: the property is still the LAST own key of Navigator.proto
     + 'This is documented in gpc.js and DECISIONS.md D38 as an unfixed limit, not claimed closed.');
 });
 
+test('G5 HONEST LIMIT: worker scope is not implemented, and gpc.js says so with the spec cite', () => {
+  const GPC_SRC = read('src/gpc.js');
+  assert.ok(/WorkerNavigator includes GlobalPrivacyControl/.test(GPC_SRC),
+    'the normative line the extension does not satisfy must be quoted, not paraphrased away');
+  // `[\s*]+` so a comment line break between the two words does not pass the guard.
+  assert.ok(/A8[\s*]+stays open/.test(GPC_SRC), 'an unclosed gap must be named as unclosed');
+  assert.equal(/defineProperty\(\s*WorkerNavigator/.test(GPC_SRC), false,
+    'if worker scope is ever installed into, this comment block is the thing to update first');
+});
+
 // ═══════════════════════════════════════════════════════════════════════════
 // G4 — the per-site exception has a user interface
 // ═══════════════════════════════════════════════════════════════════════════

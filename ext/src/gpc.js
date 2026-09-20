@@ -64,6 +64,36 @@
  * compares key ORDER still learns the property was installed rather than
  * declared. See DECISIONS.md D38.
  *
+ * ─── OPEN LIMIT: the worker half of the spec is not implemented (A8 / G5) ──
+ *
+ * The spec says, normatively: `WorkerNavigator includes GlobalPrivacyControl;`
+ * (W3C GPC, Working Draft 2026-09-17). Nullecho sets nothing in worker scope,
+ * so inside a Worker the page's own code sees no GPC property while the server
+ * sees `Sec-GPC: 1` on the very request that worker made.
+ *
+ * ✅ Measured 2026-09-19, signal ON, header confirmed going out:
+ *
+ *   Chrome for Testing 147  window `true`   · classic Worker `undefined`,
+ *                           blob: Worker `undefined`, ServiceWorker `undefined`
+ *                           (`'globalPrivacyControl' in WorkerNavigator.prototype === false`)
+ *   Firefox 156 + Nullecho  window `true`   · Worker `false`, blob: Worker `false`
+ *   Firefox 156 stock       window `false`  · Worker `false`  ← consistent
+ *
+ * The Firefox row is the one that costs something: both values come from one
+ * preference natively, so no stock Firefox can produce `true` in the window and
+ * `false` in a worker. That pair is a cleaner detector than anything the getter
+ * itself leaks, and it is not closed here.
+ *
+ * Why it is not closed here: a MAIN-world content script cannot inject into a
+ * worker scope. Reaching it at all means wrapping `Worker`/`SharedWorker` to
+ * prepend a `defineProperty` to the script, which covers same-origin and
+ * `blob:` classic workers only — module workers, cross-origin worker sources
+ * and service workers stay uncovered — and the wrapper is itself detectable.
+ * That is a design decision with its own breakage surface, not a patch. **A8
+ * stays open.** The header is unaffected: DNR matches at the request level, and
+ * worker- and service-worker-initiated requests carry `Sec-GPC: 1` (18 of 18
+ * and 4 of 4, captured).
+ *
  * ─── Known breakage ────────────────────────────────────────────────────────
  *
  * Some sites break when GPC is present rather than honouring it. EasyPrivacy

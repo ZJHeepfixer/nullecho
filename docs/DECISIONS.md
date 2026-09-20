@@ -2236,3 +2236,40 @@ from one is not evidence. Same family as the hidden-pane rule already in the ope
 what the user reads); no state count anywhere; `DEFAULT_SETTINGS.isCalifornian === false`; a shipped,
 non-demo settings object turning the nudge on in both the aggregate and the per-site remedy; and the
 options control existing and writing through `patchSettings`.
+
+## D41 — `WorkerNavigator.globalPrivacyControl` stays unimplemented, and the mismatch is written down. 2026-09-19.
+
+**Decision:** do **not** build worker-scope GPC now. Record the gap where someone writing UI copy or
+a threat-model claim will trip over it — in `gpc.js`'s header, with the normative sentence quoted and
+the measurements beside it — and leave **A8 open**.
+
+**The requirement.** W3C GPC, Working Draft 17 September 2026, normative:
+`WorkerNavigator includes GlobalPrivacyControl;`. Nullecho sets nothing in worker scope.
+
+✅ **Measured 2026-09-19**, signal ON, header confirmed going out on every request:
+
+| | window | classic Worker | `blob:` Worker | ServiceWorker |
+|---|---|---|---|---|
+| Chrome for Testing 147 + Nullecho | `true` | `undefined` | `undefined` | `undefined` |
+| Firefox 156 + Nullecho | `true` | **`false`** | **`false`** | — |
+| Firefox 156 stock (no extension) | `false` | `false` | `false` | — |
+
+**The Firefox row is the cost.** Both native values come from one preference, so no stock Firefox can
+answer `true` in the window and `false` in a worker. That pair is a cleaner detector than anything the
+getter itself leaks now that D38 has closed the name and the source — and unlike the key-order tell it
+is fixable in principle. It is not fixed here.
+
+**Why not.** A MAIN-world content script cannot inject into a worker scope. Reaching it means
+wrapping `Worker`/`SharedWorker` to prepend a `defineProperty` to the worker's script, which covers
+same-origin and `blob:` classic workers only — module workers, cross-origin worker sources and
+service workers stay out of reach — and the wrapper is itself a new detectable surface on two
+constructors every page can see. That is a design with its own breakage budget, not a patch, and it
+belongs with the general worker-shim question rather than being smuggled in under a GPC fix.
+
+**What is NOT broken.** The header. DNR matches at the request level, so requests issued from inside
+dedicated workers and service workers carry `Sec-GPC: 1` — 18 of 18 and 4 of 4 in the capture. The
+gap is the JS property only, which is why "the worker gap breaks GPC" would be the wrong summary.
+
+**Guard:** `review-2026-09-19.test.js` fails if the quoted normative line, or the sentence naming A8
+as open, leaves `gpc.js` — and if worker scope is ever installed into, so that the comment is updated
+in the same change rather than becoming a lie.
