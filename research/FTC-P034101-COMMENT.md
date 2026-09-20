@@ -15,8 +15,8 @@ each website a different, internally consistent device profile so that the finge
 cannot be joined to the fingerprint another site records. It collects no data and has no accounts. I have
 no commercial relationship with any retailer, pricing vendor, or data broker, and I am not a lawyer. I am
 commenting because the Statement describes, accurately, the position my users are in, and because in the
-course of building the tool I had to read the state disclosure laws closely enough to find that several
-widely circulated summaries of them are wrong.
+course of building the tool I had to read the state disclosure laws closely enough to find that some
+widely circulated summaries of them — including the AI-generated answers of major search engines — are wrong.
 
 ## 2. The Statement's premise is right, and the tools it mentions have limits worth stating
 

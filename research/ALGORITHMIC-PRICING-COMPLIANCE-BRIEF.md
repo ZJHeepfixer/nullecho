@@ -53,9 +53,11 @@ Prepared from primary statutory sources except where marked.
 > failed.
 >
 > **This correction is also the brief's most useful single finding for a compliance reader.**
-> Several widely circulated law-firm and advocacy summaries — from firms and organisations that
-> practitioners rely on — describe § 13-322 and its mandated string as enacted Maryland law taking
-> effect 2026-10-01. On the primary sources above, they are describing a section that was struck
+> At least one widely read law-firm client alert describes § 13-322 and its mandated string as enacted
+> Maryland law taking effect 2026-10-01 — and so do the AI-generated answers of major search engines,
+> which reproduce the enrolled-bill text. (Read on 2026-09-20: of fourteen firm alerts, one carried the
+> error, thirteen did not, and one states the correction outright.) On the primary sources above, that
+> alert and those answers are describing a section that was struck
 > before passage. A business building an all-merchant Maryland disclosure banner for October 1 is
 > building to a statute that does not exist.
 
@@ -431,7 +433,7 @@ Jersey Consumer Fraud Act, P.L. 1960, c. 39 (N.J.S.A. 56:8-1 *et seq.*).
 | **AG enforcement (§ 7)** | In addition to any other authority, the AG may bring a civil action to enjoin the practice, enforce compliance, obtain **actual monetary damages for each negligent or greater violation** in addition to any other penalty provided by law, and obtain any other restitution, penalty or relief the court deems appropriate |
 | **⚠️ The $50,000 figure is wrong** | Widely repeated reporting says the Act carries a **$50,000** statutory minimum per violation. It did — in the First Reprint. **The Third Reprint struck it** (`obtain for each negligent or greater violation … actual monetary damages incurred from the violation [or $50,000, whichever is greater]`). The enacted text provides actual damages plus other penalties provided by law, not a $50,000 floor |
 | **Penalty via the CFA** | Because a violation is a CFA "unlawful practice," the CFA's own penalties attach — reported as up to **$10,000 for a first offence and $20,000 for each subsequent offence** under N.J.S.A. 56:8-13 *(secondary)* |
-| **Private right of action** | **Not express — but it attaches by operation of law, and that is the single largest change in the risk profile across the four states.** ⚠️ **The enacted text creates no private right of action.** One was proposed: introduced A.4523 § 6 gave a consumer a suit for the greater of $3,000 or treble actual damages. **It did not survive into the Assembly Committee Substitute.** What the Act does instead is declare a violation an "unlawful practice" under the CFA (§ 3(a)) — and N.J.S.A. 56:8-19 then gives any person suffering an ascertainable loss from an unlawful practice a private action for **treble damages plus reasonable attorneys' fees and costs**. **This is an inference from the CFA's structure, not a holding.** ⚠️ **Several law-firm alerts describe this as a "first-in-the-nation *express* private right of action." That is wrong on the face of the enacted text** — the derivative route is the right description, and the distinction matters to anyone briefing a motion to dismiss |
+| **Private right of action** | **Not express — but it attaches by operation of law, and that is the single largest change in the risk profile across the four states.** ⚠️ **The enacted text creates no private right of action.** One was proposed: introduced A.4523 § 6 gave a consumer a suit for the greater of $3,000 or treble actual damages. **It did not survive into the Assembly Committee Substitute.** What the Act does instead is declare a violation an "unlawful practice" under the CFA (§ 3(a)) — and N.J.S.A. 56:8-19 then gives any person suffering an ascertainable loss from an unlawful practice a private action for **treble damages plus reasonable attorneys' fees and costs**. **This is an inference from the CFA's structure, not a holding.** ⚠️ **Some published alerts describe this as a "first-in-the-nation *express* private right of action." That is wrong on the face of the enacted text** — the derivative route is the right description, and the distinction matters to anyone briefing a motion to dismiss |
 | **Effective dates (§ 9)** | The Act takes effect on the first day of the **13th month** next following enactment = **2027-08-01**. Section 4 (**ESL moratorium**) takes effect on the first day of the **7th month** = **2027-02-01**. Section 5 (study) took effect immediately |
 | **Rulemaking** | The Director of the Division of Consumer Affairs may adopt implementing rules under the Administrative Procedure Act |
 
