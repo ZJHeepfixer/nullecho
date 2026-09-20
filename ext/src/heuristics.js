@@ -574,23 +574,86 @@ export function handleContentReport() {
 // ── public surface ────────────────────────────────────────────────────────
 
 /**
+ * `extraHeaders` is a CHROME-ONLY `extraInfoSpec` value. Chrome hides `Cookie`
+ * and `Set-Cookie` from the ordinary `requestHeaders`/`responseHeaders` view
+ * unless it is asked for, so on Chrome this layer is blind without it. Firefox
+ * has no such split — the cookie headers are in the ordinary view — and it
+ * REJECTS the value:
+ *
+ *   Type error for parameter extraInfoSpec (Error processing 1: Invalid
+ *   enumeration value "extraHeaders") for webRequest.onBeforeSendHeaders.
+ *
+ * Passing it unconditionally therefore cost nothing on Chrome and cost the whole
+ * extension on Firefox — the throw lands on `background.js`'s top level, above
+ * `runtime.onMessage.addListener`, so the message surface is never registered
+ * (DECISIONS.md D42). The enum object the option comes from is the feature
+ * detect: Chrome ships `webRequest.OnBeforeSendHeadersOptions.EXTRA_HEADERS`,
+ * Firefox ships neither enum.
+ */
+const EXTRA_HEADERS = 'extraHeaders';
+
+function specFor(base, optionsEnum) {
+  if (optionsEnum?.EXTRA_HEADERS !== EXTRA_HEADERS) return base;
+  const spec = base.slice();
+  spec.push(EXTRA_HEADERS);
+  return spec;
+}
+
+/**
+ * Register one `webRequest` listener without ever throwing at the caller.
+ *
+ * The feature detect above should make the fallback unreachable, but a browser
+ * that refuses the spec for some other reason must still not take the service
+ * worker down with it: losing this listener costs the heuristics layer, and
+ * throwing costs GET_PERSONA, the popup, the options page and the GPC toggle.
+ * So: try the detected spec, retry without the Chrome-only option, then give up
+ * loudly on the extension's own console and let the rest of the worker boot.
+ */
+function addWebRequestListener(label, event, fn, filter, base, optionsEnum) {
+  if (!event?.addListener) {
+    console.warn(`[nullecho] webRequest.${label} is unavailable; heuristics disabled`);
+    return null;
+  }
+  const spec = specFor(base, optionsEnum);
+  try {
+    event.addListener(fn, filter, spec);
+    return spec;
+  } catch (e) {
+    if (spec.length > base.length) {
+      try {
+        event.addListener(fn, filter, base);
+        console.warn(`[nullecho] webRequest.${label} refused "${EXTRA_HEADERS}"; registered without it:`, e);
+        return base;
+      } catch (e2) {
+        console.warn(`[nullecho] webRequest.${label} could not be registered; heuristics disabled:`, e2);
+        return null;
+      }
+    }
+    console.warn(`[nullecho] webRequest.${label} could not be registered; heuristics disabled:`, e);
+    return null;
+  }
+}
+
+/**
  * Wire up the observers.
  *
  * MUST be called synchronously from the service worker's top level.
  * `webRequest` listeners registered inside a promise callback are missed when
  * the worker is respawned for an event, and the failure is silent — the
  * extension simply stops learning.
+ *
+ * MUST NOT throw. It is called above `runtime.onMessage.addListener`, and a
+ * throw here means the extension has no message surface at all.
  */
 export function install() {
   const filter = { urls: ['http://*/*', 'https://*/*'] };
+  const wr = chrome.webRequest;
 
   // No `onBeforeRequest`: see the note above `onBeforeSendHeaders`.
-  chrome.webRequest.onBeforeSendHeaders.addListener(
-    onBeforeSendHeaders, filter, ['requestHeaders', 'extraHeaders'],
-  );
-  chrome.webRequest.onHeadersReceived.addListener(
-    onHeadersReceived, filter, ['responseHeaders', 'extraHeaders'],
-  );
+  addWebRequestListener('onBeforeSendHeaders', wr?.onBeforeSendHeaders, onBeforeSendHeaders,
+    filter, ['requestHeaders'], wr?.OnBeforeSendHeadersOptions);
+  addWebRequestListener('onHeadersReceived', wr?.onHeadersReceived, onHeadersReceived,
+    filter, ['responseHeaders'], wr?.OnHeadersReceivedOptions);
 
   // Reconcile in the background; nothing above depends on it finishing.
   void reconcile().catch((e) => console.error('[nullecho] reconcile failed:', e));

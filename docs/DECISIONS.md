@@ -2292,3 +2292,88 @@ gap is the JS property only, which is why "the worker gap breaks GPC" would be t
 **Guard:** `review-2026-09-19.test.js` fails if the quoted normative line, or the sentence naming A8
 as open, leaves `gpc.js` — and if worker scope is ever installed into, so that the comment is updated
 in the same change rather than becoming a lie.
+
+---
+
+## D42 — Nothing on the service worker's top level may throw. Firefox was dead on arrival. 2026-09-19.
+
+**Decision:** `webRequest`'s Chrome-only `extraHeaders` option is passed only when the browser's own
+option enum advertises it; `heuristics.install()` is written so it cannot throw at all; and every
+top-level side effect in `background.js` goes through a `bootStep()` that catches. A feature we
+cannot wire up is a feature lost. It must never be the extension.
+
+**What it was.** One line, `heuristics.js:588`:
+
+```js
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  onBeforeSendHeaders, filter, ['requestHeaders', 'extraHeaders'],
+);
+```
+
+Firefox rejects the value — `Type error for parameter extraInfoSpec (Error processing 1: Invalid
+enumeration value "extraHeaders") for webRequest.onBeforeSendHeaders.` — and `install()` is called
+from `background.js`'s top level, **above** `chrome.runtime.onMessage.addListener`. One throw, and
+the listener below it is never reached. The extension installs, the icon appears, the DNR rulesets
+load, the popup opens — and there is no message surface at all. This has been true for as long as
+`manifest.firefox.json` has existed, and no test could see it because every test stubs a `chrome`
+that accepts anything.
+
+✅ **Measured, Firefox 156.0, a throwaway profile per run, the extension installed over WebDriver
+BiDi `webExtension.install` from a scratch copy (nothing under `ext/` was loaded):**
+
+| | before | after |
+|---|---|---|
+| `runtime.sendMessage({type:'nullecho:get-persona'})` | `Could not establish connection. Receiving end does not exist.` | answered by the worker |
+| `nullecho:get-overview` | same error | `{identity:{tag:"0E3E12",…}, sites:[…]}` |
+| sites the worker served a persona for | — | `a.test` → `macos-chrome-m3-4k`, `third.test` → `macos-chrome-mini-m2` (the cross-origin iframe) |
+| loader console per page | `[Nullecho] Could not reach the extension service worker` ×3–4 | only the `about:`/error sub-frames, which genuinely have no site key |
+| JS errors in the browser console | the `extraInfoSpec` throw + 20 uncaught rejections | **none** |
+| **two fresh profiles, same page** | **identical persona** (cores 8 / cores 8) — the fallback, un-salted | **different personas** (cores 8 / cores 10) |
+
+That last row is the one that matters: a persona that is the same on two fresh profiles is the
+domain-derived FALLBACK. Firefox was running the whole extension on it — no salt rotation, no
+per-origin key, and "New identity" changing nothing. The per-origin split in the row above it
+(`a.test` and `third.test` on the same page getting *different* personas) is the thing Nullecho is
+for, and on Firefox it had never once happened.
+
+**The feature detect was measured on both engines, not assumed.** The enum object exists on BOTH —
+what differs is its contents, so `'OnBeforeSendHeadersOptions' in webRequest` would have been the
+wrong test:
+
+    Chrome 147   { BLOCKING, EXTRA_HEADERS: 'extraHeaders', REQUEST_HEADERS: 'requestHeaders' }
+    Firefox 156  { BLOCKING, REQUESTHEADERS: 'requestHeaders' }          ← no underscore, no EXTRA_HEADERS
+
+So the test is `optionsEnum?.EXTRA_HEADERS === 'extraHeaders'`. Chrome keeps the option, which it
+needs: it hides `Cookie`/`Set-Cookie` from the ordinary header view without it, and the whole
+heuristics layer reads those. Firefox does not hide them, so dropping it there costs nothing.
+
+**Belt and braces, because the detect is still a guess about the future.** `addWebRequestListener()`
+retries without the option if the spec is refused, gives up with a warning on the worker's own
+console if that fails too, and returns; `install()` has no path that throws. `bootStep()` wraps
+`heuristics.install()` and `NullechoGPC.init()` in `background.js` so that the next Chrome-only call
+anyone adds up there costs its own feature and not the message surface.
+
+**Audited in the same run, and NOT fixed — the other Chrome-only surfaces.** Read out of a real
+Firefox 156 extension page:
+
+| | Chrome 147 | Firefox 156 | consequence |
+|---|---|---|---|
+| `declarativeNetRequest.onRuleMatchedDebug` | object | **undefined** | guarded with `?.` — no throw |
+| `declarativeNetRequest.getMatchedRules` | function | **undefined** | `matchedRulesForTab()` catches → `null` |
+| `updateStaticRules` / `getDisabledRuleIds` | ✓ | ✓ (tier-B opt-in works; the 8 ids read back disabled) | — |
+| `testMatchOutcome` | ✓ | ✓ | only used by the rigs |
+| `chrome.storage.*` | promises | promises (`chrome` is a real alias, not callback-only) | — |
+| `storage.session` | ✓ | ✓ | unused by design |
+
+So on Firefox the popup's "requests blocked" has **no source at all** — both DNR reporting APIs are
+missing, and the comment above `recordMatch()` that promises `getMatchedRules()` as the packed-build
+fallback is Chrome-only advice. Nothing throws, nothing lies to the user (the counter stays at
+zero), and `webRequest` — which this extension already holds — could supply it. Left open
+deliberately: it is a counter, not a protection, and wiring it is a UI change with its own lane.
+
+**Guards:** `firefox-boot-2026-09-19.test.js` — `background.js` imported under a webRequest stub that
+throws on `extraHeaders` exactly as Firefox does, and with no option enum: `onMessage` IS registered,
+both listeners land with the portable spec, and `GET_PERSONA` answers `ok:true` with a persona; a
+Chrome-shaped stub still gets `extraHeaders` (the fix is a detect, not a removal); `install()` does
+not throw when both registrations are refused, or when there is no `webRequest` at all; and a source
+lint fails the build if `'extraHeaders'` ever appears outside the one constant.

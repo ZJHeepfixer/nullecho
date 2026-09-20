@@ -67,9 +67,26 @@ export { registrableDomain };
 // §1 — blocking + GPC wiring
 // ═══════════════════════════════════════════════════════════════════════════
 
-heuristics.install();
+/**
+ * Every top-level side effect goes through this.
+ *
+ * MV3 requires the event listeners to be registered synchronously from the
+ * worker's top level, so everything here shares one execution: a throw in the
+ * FIRST statement means `runtime.onMessage.addListener` further down is never
+ * reached, and the extension has no message surface at all — no persona, no
+ * popup, no options page, no GPC toggle — while every other part of it looks
+ * installed. That is exactly what `extraHeaders` did on Firefox for as long as
+ * there has been a Firefox manifest (DECISIONS.md D42).
+ *
+ * A feature we cannot wire up is a feature lost. It must never be the extension.
+ */
+function bootStep(label, fn) {
+  try { fn(); } catch (e) { console.error(`[nullecho] boot step "${label}" failed:`, e); }
+}
 
-void globalThis.NullechoGPC.init();
+bootStep('heuristics.install', () => heuristics.install());
+
+bootStep('gpc.init', () => { void globalThis.NullechoGPC.init(); });
 
 /**
  * Rule ids 4500-4699 in `fingerprinting.json` are the anti-fraud device-ID
