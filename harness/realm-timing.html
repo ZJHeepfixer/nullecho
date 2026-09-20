@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nullecho — child-realm timing: the parser and navigation</title>
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  CHILD-REALM TIMING — the two paths no DOM call announces (D35 residual 1, D42)
+  ══════════════════════════════════════════════════════════════════════════════
+
+  1. THE PARSER. An <iframe> in static markup is connected by the HTML parser,
+     which calls no DOM method. An inline <script> in the SAME parse reads
+     window[n]. Two shapes: static markup (the parser performs a microtask
+     checkpoint before running the next <script>, so the observer has had its
+     turn) and document.write from a script (nesting level > 0, no checkpoint —
+     the shape that leaks to a page-script shim).
+
+  2. NAVIGATION. A frame inserted as about:blank and navigated later gets a brand
+     new realm in a later task, behind the SAME WindowProxy. The parent's shim
+     hears the element's `load` event (D42). Between the navigation COMMITTING
+     and `load` firing there is a window only the frame's OWN content script can
+     close — this page measures how wide it is and what a page reads inside it.
+
+  Every reading is `navigator.hardwareConcurrency` in the child realm, taken the
+  way a page would take it (`window[n]`, never `contentWindow`, which is a door).
+
+  RUN IT TWO WAYS:
+    ?shim=on   (default) — the shim as a page script through the real handshake,
+                           exactly as claim-verification.html boots it. This
+                           measures the PARENT's doors and nothing else.
+    ?shim=off            — no page script. Load ext/ unpacked and open this page:
+                           it then measures Chrome's own per-frame injection
+                           (`all_frames` + `match_origin_as_fallback`), which is
+                           what a real install relies on for both paths.
+
+  VERDICTS. "covered" = the child reports what the TOP window reports after boot
+  (the persona). "PRISTINE" = it differs — on this host that is the real core
+  count. With ?shim=on the host count is also printed (captured before the shim
+  is written in); with the extension it cannot be, because the content script
+  runs before any page script.
+
+  ⚠ Serve the PROJECT ROOT (launch config `nullecho-root`, port 4886): this page
+  loads /ext/src/shim.js. Cache-bust with ?cb=<new value> per measurement.
+  `window.__timingDone` is the promise an automated driver awaits;
+  `window.__timing` is the result.
+-->
+
+<script>
+(() => {
+  const params = new URLSearchParams(location.search);
+  const CB = params.get('cb') || (String(Date.now()) + Math.random().toString(36).slice(2, 8));
+  window.__MODE = params.get('shim') === 'off' ? 'off' : 'on';
+  const host = location.hostname;
+  window.__SITE_KEY = params.get('site') ||
+    ((host.indexOf('.') < 0 || /^\d+\.\d+\.\d+\.\d+$/.test(host)) ? host : host.split('.').slice(-2).join('.'));
+
+  const T = window.__timing = {
+    mode: window.__MODE,
+    ua: navigator.userAgent,
+    realChrome: /Chrome\//.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent),
+    hidden: document.hidden,
+    // ?shim=on: the host, captured before the shim is written in.
+    // ?shim=off + extension: already the persona — the content script ran first.
+    topAtStage0: navigator.hardwareConcurrency,
+    readings: {},
+    order: [],
+  };
+  window.__read = (label, w) => {
+    let v;
+    try { v = w ? w.navigator.hardwareConcurrency : 'no window'; } catch (e) { v = 'throws ' + e.name; }
+    T.readings[label] = v;
+    T.order.push(label);
+    return v;
+  };
+
+  const w = (src) => document.write('<scr' + 'ipt src="' + src + (src.indexOf('?') < 0 ? '?' : '&') + 'cb=' + CB + '"></scr' + 'ipt>');
+  if (window.__MODE === 'on') {
+    // The real handshake, answered synchronously inside the boot dispatch — the
+    // same responder claim-verification.html uses.
+    document.addEventListener('nullecho:status', (ev) => {
+      let d = null;
+      try { d = JSON.parse(ev.detail); } catch { return; }
+      if (!d || d.phase !== 'boot' || d.channel !== 'shim' || window.__handshakeNonce) return;
+      window.__handshakeNonce = d.nonce || null;
+      const persona = (window.__NULLECHO_CLAIM_PERSONAS || {})[window.__SITE_KEY];
+      if (!persona) { T.personaMissing = true; return; }
+      T.persona = persona.id;
+      T.personaCores = persona.cores;
+      document.dispatchEvent(new CustomEvent('nullecho:persona', {
+        detail: JSON.stringify({ ok: true, enabled: true, gpc: false, site: window.__SITE_KEY, dev: true, persona, nonce: d.nonce }),
+      }));
+    }, true);
+    w('claim-personas.generated.js');
+    w('/ext/src/shim.js');
+  }
+})();
+</script>
+<script>
+  // What the TOP window says once whatever is going to patch it has patched it.
+  window.__timing.topAfterBoot = navigator.hardwareConcurrency;
+</script>
+
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --dim:#8b949e; --ok:#3fb950; --bad:#f85149; --warn:#d29922;
+          --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  body { margin:0; padding:24px; background:var(--bg); color:var(--text); font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  h1 { font-size:20px; margin:0 0 6px; }
+  .sub { color:var(--dim); margin-bottom:14px; max-width:900px; }
+  .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:12px; font-family:var(--mono); font-size:12.5px; }
+  table { border-collapse:collapse; width:100%; margin-bottom:14px; }
+  th, td { text-align:left; padding:6px 9px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top; }
+  th { color:var(--dim); font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+  td.mono { font-family:var(--mono); font-size:12.5px; }
+  .ok { color:var(--ok); font-weight:600; } .bad { color:var(--bad); font-weight:700; } .warn { color:var(--warn); }
+  pre { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:12px; overflow:auto; }
+</style>
+</head>
+<body>
+<h1>Nullecho — child-realm timing</h1>
+<div class="sub">Two paths that no DOM call announces: an <code>&lt;iframe&gt;</code> connected by the HTML parser, and a frame navigated after insertion. Every number is <code>navigator.hardwareConcurrency</code> read from the child realm through <code>window[n]</code>.</div>
+<div id="env" class="box">booting…</div>
+
+<!-- ── PATH 1: THE PARSER. Nothing sits between this frame and the script below but the parser. ── -->
+<iframe id="static" style="display:none"></iframe>
+<script>
+  // Same parse, same task. No DOM method connected the frame above and no
+  // MutationObserver callback has run: whatever is in window[0] now is what the
+  // parser alone, plus any per-frame injection the browser did, left there.
+  window.__timing.readings['parser.length'] = window.length;
+  window.__read('parser.inlineScript', window[window.length - 1]);
+</script>
+<script>
+  // The same path through document.write FROM A SCRIPT. The parser's script
+  // nesting level is not zero here, so no microtask checkpoint runs between the
+  // frame being connected and the inline script that reads it — the exact shape
+  // D35's attack pass measured at the host's core count. (Static markup above
+  // gets a checkpoint before its next <script>, which is where the observer
+  // catches it.)
+  document.write('<iframe style="display:none"></iframe>' +
+    '<scr' + 'ipt>window.__read("parser.documentWrite.sameWrite", window[window.length - 1]);</scr' + 'ipt>');
+  window.__read('parser.documentWrite.afterWriteReturned', window[window.length - 1]);
+</script>
+
+<table id="out"><thead><tr><th>reading</th><th>cores</th><th>verdict</th></tr></thead><tbody></tbody></table>
+<pre id="json"></pre>
+
+<script>
+window.__timingDone = (async () => {
+  const T = window.__timing;
+  const tick = () => new Promise((r) => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
+  const until = async (pred, ms) => {
+    const t0 = performance.now();
+    while (performance.now() - t0 < ms) {
+      let ok = false;
+      try { ok = pred(); } catch (_) { ok = false; }
+      if (ok) return Math.round(performance.now() - t0);
+      await tick();
+    }
+    return null;
+  };
+  const ORIGIN = location.origin;
+  const OTHER = location.hostname === 'localhost' ? ORIGIN.replace('localhost', '127.0.0.1') : ORIGIN.replace('127.0.0.1', 'localhost');
+
+  // ── the parser path, one microtask later (the observer has had its turn) and after the parse ──
+  await Promise.resolve();
+  window.__read('parser.nextMicrotask', window[0]);
+  await new Promise((r) => (document.readyState !== 'loading' ? r() : document.addEventListener('DOMContentLoaded', r)));
+  window.__read('parser.afterParse', window[0]);
+
+  // ── the parser path, D35's exact shape: document.write INTO A CHILD DOCUMENT ──
+  // The caller is not that document's parser, so the tokenizer runs the written
+  // markup to completion inside the write — the inline script executes BEFORE the
+  // write returns, and before any wrapper's sweep. (A write from a parser-inserted
+  // script of the same document, above, defers its inner script until the outer
+  // script finishes, which is why that shape reads covered.) The inner script runs
+  // in the CHILD realm and reads its own window[0], the grandchild.
+  {
+    const c = document.createElement('iframe');
+    c.style.display = 'none';
+    document.body.appendChild(c);                                  // installed on insertion (D35)
+    const child = window[window.length - 1];
+    window.__read('childWrite.childItself', child);
+    child.document.write('<iframe></iframe>' +
+      '<scr' + 'ipt>parent.__read("childWrite.grandchild.sameWrite", window[0]);</scr' + 'ipt>');
+    window.__read('childWrite.grandchild.afterWriteReturned', child[0]);
+    child.document.close();
+    c.remove();
+  }
+
+  // ── the navigation path ────────────────────────────────────────────────────
+  const n = window.length;
+  const f = document.createElement('iframe');
+  f.style.display = 'none';
+  document.body.appendChild(f);
+  const p = window[n];
+  const d0 = p.document;
+  window.__read('nav.insertedAboutBlank', p);
+  let loads = 0;
+  // The page's OWN handler on the element: what a script that "waits for load" sees.
+  f.addEventListener('load', () => { loads++; window.__read('nav.' + loads + '.pageLoadHandler', window[n]); });
+
+  f.src = ORIGIN + '/README.md?cb=' + Date.now();
+  T.readings['nav.1.commitMs'] = await until(() => p.document !== d0, 10000);
+  T.readings['nav.1.sameWindowProxy'] = window[n] === p;
+  window.__read('nav.1.atCommit', p);                   // the commit→load window
+  T.readings['nav.1.loadMs'] = await until(() => loads >= 1, 10000);
+  window.__read('nav.1.afterLoad', p);
+  T.readings['nav.1.toStringMasked'] = (() => {
+    try { return /native code/.test(p.Function.prototype.toString.call(Object.getOwnPropertyDescriptor(p.Navigator.prototype, 'userAgent').get)); }
+    catch (e) { return 'throws ' + e.name; }
+  })();
+
+  // cross-origin, then back — the frame the sweep must give up on and the load door must retry
+  f.src = OTHER + '/README.md?cb=' + Date.now();
+  T.readings['nav.2cross.commitMs'] = await until(() => { try { void p.document; return false; } catch (_) { return true; } }, 10000);
+  T.readings['nav.2cross.loadMs'] = await until(() => loads >= 2, 10000);
+  window.__read('nav.2cross.afterLoad', p);
+  document.body.appendChild(document.createElement('span'));   // an insertion while it is cross-origin: the sweep must skip it, silently
+
+  f.src = ORIGIN + '/CONTRIBUTING.md?cb=' + Date.now();
+  T.readings['nav.3back.commitMs'] = await until(() => { try { void p.document; return true; } catch (_) { return false; } }, 10000);
+  window.__read('nav.3back.atCommit', p);
+  T.readings['nav.3back.loadMs'] = await until(() => loads >= 3, 10000);
+  window.__read('nav.3back.afterLoad', p);
+  f.remove();
+
+  T.done = true;
+  render();
+  return T;
+})();
+
+function render() {
+  const T = window.__timing;
+  const persona = T.topAfterBoot;
+  const env = document.getElementById('env');
+  env.innerHTML =
+    (T.realChrome ? '<span class="ok">✓ real Chrome</span>' : '<span class="bad">⚠ NOT real Chrome — numbers are not authoritative</span>') +
+    ' · mode=' + T.mode + (T.mode === 'on' ? ' · persona=' + (T.persona || '(missing!)') : ' · (extension supplies the persona)') +
+    ' · hidden=' + T.hidden + '<br>' +
+    'top window at stage 0: <b>' + T.topAtStage0 + '</b> cores · after boot: <b>' + T.topAfterBoot + '</b>' +
+    (T.mode === 'on' ? ' (host is ' + T.topAtStage0 + ')' : '') + '<br>' + T.ua;
+  const tb = document.querySelector('#out tbody');
+  tb.innerHTML = T.order.map((k) => {
+    const v = T.readings[k];
+    let verdict;
+    if (typeof v !== 'number') verdict = '<span class="warn">' + v + '</span>';
+    else if (v === persona) verdict = '<span class="ok">covered — the top window\'s value</span>';
+    else verdict = '<span class="bad">PRISTINE — differs from the top window' + (T.mode === 'on' && v === T.topAtStage0 ? ' (the host)' : '') + '</span>';
+    return '<tr><td class="mono">' + k + '</td><td class="mono">' + v + '</td><td>' + verdict + '</td></tr>';
+  }).join('') +
+  Object.keys(T.readings).filter((k) => T.order.indexOf(k) < 0).map((k) =>
+    '<tr><td class="mono">' + k + '</td><td class="mono">' + T.readings[k] + '</td><td style="color:var(--dim)">timing / structure</td></tr>').join('');
+  document.getElementById('json').textContent = JSON.stringify(T, null, 2);
+}
+</script>
+</body>
+</html>

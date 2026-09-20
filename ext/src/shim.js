@@ -237,6 +237,8 @@
   const wmHas = uncurry(WeakMap.prototype.has);
   const wsHas = uncurry(WeakSet.prototype.has);
   const wsAdd = uncurry(WeakSet.prototype.add);
+  const RawWeakRef = WeakRef;                        // the restore ledger (D42)
+  const wrDeref = uncurry(WeakRef.prototype.deref);
   const promiseThen = uncurry(Promise.prototype.then);
   // Review B9: every handshake field is read as an OWN property through this, so a
   // page that owns `Object.prototype` cannot supply a field the loader omitted.
@@ -956,7 +958,36 @@
   // 3. Primitives: native-source masking, descriptor-preserving patching, PRF
   // ══════════════════════════════════════════════════════════════════════════
 
-  const RESTORES = [];
+  /**
+   * The restore ledger: everything `restoreAll()` has to put back when the shim
+   * stands down. Each entry `{ target, prop, desc }` is held STRONGLY only by a
+   * list in a WeakMap keyed on the object it patches, so an entry lives exactly
+   * as long as its target does; `RESTORES` keeps the order through WeakRefs.
+   *
+   * Why weak (D42): a child realm that is navigated away from is dead, but its
+   * prototypes and captured natives are still what its entries point at. As a
+   * plain array this ledger kept every navigated-away realm alive forever —
+   * measured in Chrome for Testing 149, page-script shim: 20 navigations of one
+   * same-origin child, all 20 dead realms still reachable after gc, +7.7 MB.
+   * The WeakRef list is pruned of dead entries whenever it crosses a multiple of
+   * 2048, so it is bounded by the number of LIVE patched objects.
+   */
+  const LEDGER = new RawWeakMap();      // target → [entry]
+  const RESTORES = [];                  // WeakRef<entry>, insertion order
+  function remember(target, prop, desc) {
+    const entry = { target, prop, desc };
+    let list = wmGet(LEDGER, target);
+    if (!list) { list = []; wmSet(LEDGER, target, list); }
+    pushOwn(list, entry);
+    pushOwn(RESTORES, new RawWeakRef(entry));
+    if ((RESTORES.length & 2047) === 0) pruneLedger();
+  }
+  function pruneLedger() {
+    const live = [];
+    for (let i = 0; i < RESTORES.length; i++) if (wrDeref(RESTORES[i])) pushOwn(live, RESTORES[i]);
+    RESTORES.length = 0;
+    for (let i = 0; i < live.length; i++) pushOwn(RESTORES, live[i]);
+  }
   const NATIVE_SRC = new RawWeakMap();
 
   /**
@@ -1021,7 +1052,7 @@
     };
     const replacement = objGetOwnPropertyDescriptor(holder, 'toString').value;
     markNative(replacement, 'toString', orig);
-    pushOwn(RESTORES, { target: FP, prop: 'toString', desc: d });
+    remember(FP, 'toString', d);
     objDefineProperty(FP, 'toString', {
       value: replacement, writable: d.writable, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -1050,7 +1081,7 @@
     const holder = { get [prop]() { return apply(impl, this, [origGet]); } };
     const getter = objGetOwnPropertyDescriptor(holder, prop).get;
     markNative(getter, 'get ' + prop, origGet);
-    pushOwn(RESTORES, { target, prop, desc: d });
+    remember(target, prop, d);
     objDefineProperty(target, prop, {
       get: getter, set: d.set, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -1077,7 +1108,7 @@
     const holder = { set [prop](v) { apply(impl, this, [origSet, v]); } };
     const setter = objGetOwnPropertyDescriptor(holder, prop).set;
     markNative(setter, 'set ' + prop, origSet);
-    pushOwn(RESTORES, { target, prop, desc: d });
+    remember(target, prop, d);
     objDefineProperty(target, prop, {
       get: d.get, set: setter, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -1119,7 +1150,7 @@
     const orig = d.value;
     const impl = shaped(prop, factory(orig));   // the factory's plain function is never installed (D32)
     markNative(impl, prop, orig);
-    pushOwn(RESTORES, { target, prop, desc: d });
+    remember(target, prop, d);
     objDefineProperty(target, prop, {
       value: impl, writable: d.writable, enumerable: d.enumerable, configurable: d.configurable,
     });
@@ -1128,7 +1159,9 @@
 
   function restoreAll() {
     for (let i = RESTORES.length - 1; i >= 0; i--) {
-      try { objDefineProperty(RESTORES[i].target, RESTORES[i].prop, RESTORES[i].desc); } catch (_) {}
+      const e = wrDeref(RESTORES[i]);
+      if (!e) continue;                                 // its target is gone; nothing to put back
+      try { objDefineProperty(e.target, e.prop, e.desc); } catch (_) {}
     }
     RESTORES.length = 0;
   }
@@ -1511,7 +1544,30 @@
   // 6. The patches
   // ══════════════════════════════════════════════════════════════════════════
 
-  const INSTALLED = new RawWeakSet();
+  /**
+   * "Already installed" is a statement about a REALM, and a realm is identified by
+   * its Document — a `[LegacyUnforgeable]` own property of the global that no page
+   * can redefine — never by the WindowProxy a page hands us. A WindowProxy
+   * SURVIVES navigation: `window[0]` is the same object before and after the frame
+   * loads a new document, while everything behind it (`Navigator.prototype`,
+   * `Function.prototype.toString`, the lot) is brand new and pristine. Keyed on the
+   * proxy, every door said "already installed" about a realm that no longer
+   * existed (D42; measured in real Chrome: 12 cores after the load, persona 8).
+   *
+   * `OPAQUE` remembers WindowProxies whose `document` THREW — cross-origin
+   * frames. It is keyed on the proxy on purpose: it exists so the insertion sweep
+   * does not pay a SecurityError per cross-origin ad frame per `appendChild`, and
+   * the `load` door bypasses it, because a load is the one moment a frame that was
+   * cross-origin can have become same-origin. Both sets are weak; neither retains
+   * a realm.
+   */
+  const INSTALLED = new RawWeakSet();   // Documents
+  const OPAQUE = new RawWeakSet();      // WindowProxies that would not show us a document
+
+  /** The realm's own Document, or null when its WindowProxy will not show it to us. */
+  function documentOf(win) {
+    try { return win.document || null; } catch (_) { return null; }
+  }
 
   /**
    * `navigator.userAgentData.brands` — review B7, DECISIONS.md D27 as REWRITTEN
@@ -1537,10 +1593,11 @@
    */
 
   function installInto(win) {
-    if (!win || wsHas(INSTALLED, win)) return;
-    wsAdd(INSTALLED, win);
-
-    const doc = win.document;
+    if (!win || typeof win !== 'object') return;
+    const doc = documentOf(win);
+    if (!doc) { wsAdd(OPAQUE, win); return; }    // cross-origin: attempted, and not again until its next load
+    if (wsHas(INSTALLED, doc)) return;
+    wsAdd(INSTALLED, doc);
     const D = () => state.derived;
 
     // ── Per-realm natives, captured NOW (first touch of this realm, which for the
@@ -2278,7 +2335,7 @@
           return arrayValues(view(this));
         });
         markNative(impl, '[Symbol.iterator]', origIter);
-        pushOwn(RESTORES, { target: P, prop: symIterator, desc: d });
+        remember(P, symIterator, d);
         objDefineProperty(P, symIterator, {
           value: impl, writable: d.writable, enumerable: d.enumerable, configurable: d.configurable,
         });
@@ -2973,6 +3030,41 @@
         });
         obs.observe(doc, { childList: true, subtree: true });
       } catch (err) { fail('iframe insertion observer', err); }
+
+      // ── The `load` door (D42). A frame NAVIGATED after insertion gets a new
+      //    realm in a later task, and no DOM call in this realm announces it. What
+      //    does announce it is the element's `load` event, which passes this
+      //    DOCUMENT in the CAPTURE phase before any listener the page put on the
+      //    element — so by the time the page's own handler reads `frames[n]`, the
+      //    realm is installed. The document, not the window: a load event's path
+      //    stops at the Document (DOM spec, "get the parent" of a Document returns
+      //    null for `load`), and a window-capture listener hears nothing — measured
+      //    in real Chrome 151, where that first build left the page's handler
+      //    reading the host's cores. Registered through this realm's captured
+      //    `addEventListener`, target read through the captured
+      //    `Event.prototype.target` getter (D21), child reached through the
+      //    captured `contentWindow` getter. It bypasses `OPAQUE` on purpose: a load
+      //    is the one moment a frame that was cross-origin can have become
+      //    same-origin, so each load is one fresh attempt, and a frame that is
+      //    still cross-origin costs one throw per load, never one per insertion.
+      //
+      //    Not covered, and not coverable from here: the interval between the
+      //    navigation COMMITTING (the pristine realm exists) and `load` firing. In
+      //    an installed extension the frame's own content script runs at that
+      //    document's `document_start`, which is the only thing that can close it.
+      try {
+        const realmAddEventListener = methodOf(win.EventTarget, 'addEventListener');
+        const evTarget = propReader(win.Event, 'target');
+        if (realmAddEventListener) {
+          apply(realmAddEventListener, doc, ['load', (ev) => {
+            if (state.standingDown) return;
+            try {
+              const t = evTarget(ev);
+              if (t && nodeType(t) === 1 && elTagName(t) === 'IFRAME') installInto(childWindowOf(t));
+            } catch (_) { /* cross-origin: attempted once per load, nothing to patch */ }
+          }, true]);
+        }
+      } catch (err) { fail('iframe load door', err); }
     });
 
     // ────────────────────────────────────────────────────────────────────────
@@ -3026,19 +3118,28 @@
         for (let i = 0; i < n; i++) {
           // `win[i]` is the one indexed WindowProxy read a page cannot intercept,
           // which is precisely why this hole existed; it is also why reading it
-          // needs no captured builtin. A cross-origin frame throws inside
-          // `installInto` (it reads `win.document`) and is marked as seen, so it
-          // costs one throw ever, not one per insertion.
+          // needs no captured builtin.
           //
-          // The `wsHas` guard is `installInto`'s OWN first line, hoisted out — and
-          // it is worth ~1 µs per frame per insertion. `installInto` declares
+          // The guard below is `installInto`'s OWN first lines, hoisted out — and
+          // that is worth ~1 µs per frame per insertion. `installInto` declares
           // several hundred locals (every captured native in the realm), so its
           // interpreter frame is large and merely CALLING it costs about a
           // microsecond even when it returns on line 1. Measured on a page with 5
           // child frames: +3.4 µs per `appendChild` with the naive call, +0.5 µs
-          // with this guard. Same WeakSet, same semantics, one function call less.
-          try { const w = win[i]; if (w && !wsHas(INSTALLED, w)) installInto(w); }
-          catch (_) { /* cross-origin: nothing to patch and nothing to leak */ }
+          // with the guard (D35). Same sets, same semantics, one function call less.
+          //
+          // The question the guard asks is "is this frame's DOCUMENT installed?",
+          // not "is this proxy?" — the proxy outlives its realm (D42). A frame that
+          // would not show us its document (cross-origin) is remembered in `OPAQUE`
+          // by proxy, so it costs one SecurityError ever, not one per insertion;
+          // its next `load` is what gets it looked at again.
+          let w = null;
+          try { w = win[i]; } catch (_) { continue; }
+          if (!w || wsHas(OPAQUE, w)) continue;
+          let d = null;
+          try { d = w.document; } catch (_) { wsAdd(OPAQUE, w); continue; }
+          if (d && wsHas(INSTALLED, d)) continue;
+          try { installInto(w); } catch (_) { /* nothing to patch and nothing to leak */ }
         }
       };
 
@@ -3139,40 +3240,40 @@
     });
 
     // ────────────────────────────────────────────────────────────────────────
-    // HONEST LIMIT, as it now stands. Every DOM call that can connect an
-    // `<iframe>` is wrapped, so the same-tick `window[n]` bypass is closed for
-    // script-driven insertion at any depth — verified in real Chrome against
-    // CreepJS's own `getPhantomIframe` shape, a grandchild and a great-grandchild,
-    // `Range`, `DOMParser` + `adoptNode`/`importNode`, `<template>` clones, `src`
-    // and `srcdoc` set before insertion, named `window.frames[name]` access, and a
-    // MOVE (D35's attack table). What remains, MEASURED rather than assumed:
+    // HONEST LIMIT, as it now stands (D35, D42). Every DOM call that can connect
+    // an `<iframe>` is wrapped, so the same-tick `window[n]` bypass is closed for
+    // script-driven insertion at any depth (D35's attack table). A frame that is
+    // NAVIGATED after insertion is re-installed: "already installed" is a
+    // statement about a Document, not a WindowProxy, and the document-capture
+    // `load` door installs the new realm before any listener the page put on the
+    // element (D42 — measured in real Chrome 151: the page's own load handler on
+    // the navigated frame reads the persona, that realm's toString is masked, and
+    // a frame that was cross-origin and comes back same-origin is caught on that
+    // load). What remains, MEASURED rather than assumed
+    // (harness/realm-timing.html, both modes):
     //
-    //  1. 🔴 **The HTML parser.** `<iframe>` in static markup, or written during
-    //     parsing, is connected by the parser itself — no DOM method is called, so
-    //     there is nothing to wrap. Measured inside an installed child realm: an
-    //     inline `<script>` in the SAME parse read the host's 12 cores; the moment
-    //     the enclosing `document.write` returned, the same frame read the
-    //     persona's 8. So the window is one parse wide. The MutationObserver above
-    //     closes it one microtask later, and in a real install Chrome's own
-    //     `match_about_blank` injection should give that frame its own copy of the
-    //     shim (D31) — that half is assumed, not verified.
-    //  2. 🔴 **A frame navigated AFTER insertion.** Insert `about:blank` (we
-    //     install), then assign `src`: the new realm reads the real machine and its
-    //     `userAgent` getter is unpatched. `INSTALLED` is keyed on the WindowProxy,
-    //     which SURVIVES navigation, so the sweep, `contentWindow` and the observer
-    //     all say "already installed" about a realm that no longer exists.
-    //     Pre-existing — every door has always used that key — and asynchronous, so
-    //     it is not the same-tick bypass. The fix is to key on the realm's own
-    //     `document` (a `[LegacyUnforgeable]` own property the page cannot spoof)
-    //     with a second set for realms that throw on it; that is a change to
-    //     `installInto`'s contract with its own cost, and it is the next decision.
-    //     Note `src` set BEFORE insertion does NOT leak: Blink reuses the initial
-    //     empty document's Window for that navigation, so it stays the realm we
-    //     installed into.
-    //  3. **A frame that starts cross-origin and later becomes same-origin.** Same
-    //     root cause as 2: `installInto` marks a realm as seen before it discovers
-    //     it cannot read its document, so that WindowProxy is never retried. The
-    //     alternative is a throw on every sweep for every cross-origin ad frame.
+    //  1. 🔴 **`document.write` into a document whose parser is not the caller.**
+    //     `child.document.write('<iframe></iframe><script>…')` from the parent
+    //     runs the written script INSIDE the write, before this wrapper's sweep:
+    //     the grandchild read the host's cores (`childWrite.grandchild.sameWrite`),
+    //     and the persona's once the write returned. Narrower than D35 recorded:
+    //     static markup, and a write from a parser-inserted script of the SAME
+    //     document, already read the persona — the parser performs a microtask
+    //     checkpoint before running its next script (the observer's turn), and a
+    //     write from inside the parse defers its inner script past the sweep.
+    //  2. 🔴 **Between a navigation COMMITTING and its `load` firing.** The new
+    //     realm exists from commit; the parent hears nothing until `load` (5–11 ms
+    //     later on localhost, the whole fetch on a slow document). A read of
+    //     `frames[n]` in that interval is pristine. The document-keyed sweep
+    //     shortens it to the page's next insertion; nothing parent-side closes it.
+    //  ↳ Both are closed in an INSTALLED extension by Chrome's own per-frame
+    //     injection (`all_frames` + `match_origin_as_fallback`): with ext/ loaded
+    //     unpacked in Chrome for Testing 149, the same-write grandchild, the
+    //     at-commit read and every other reading on that page returned the
+    //     persona. Verified there; not yet repeated in a user's Chrome profile.
+    //  3. **A `[Replaceable]` `window.length` the page has overwritten** with a
+    //     data property: the sweep reads the page's number (it has broken its own
+    //     frame list, and `contentWindow` and the `load` door still work).
     //  4. **Anything Chrome adds later.** A new insertion API with no row in
     //     `INSERTION_SITES` is unwrapped by construction. The lint test pins the
     //     table against the entry points we know about; it cannot pin it against
@@ -3184,11 +3285,18 @@
     //     of reach by construction. An `<iframe>` in a SHADOW tree is in that last
     //     class for `window[n]` — measured, `window.length` does not count it, so
     //     the page cannot reach it that way either — and `contentWindow` covers it.
+    //  6. **A page that beats `document_start`** can register a document-capture
+    //     `load` listener ahead of ours and stop propagation. That is the
+    //     injection race (THREAT-MODEL), not a new door: registered later, a
+    //     page listener runs after ours, and a load never reaches the window.
     //
-    // Rejected, with reasons, in DECISIONS.md D35: hooking the indexed
+    // Rejected, with reasons, in DECISIONS.md D35 and D42: hooking the indexed
     // WindowProxy properties (not interceptable), hooking `window.length` as the
     // trigger (CreepJS reads it BEFORE inserting), a `length`-delta test (unsound
-    // across a move), and a subtree scan on the insertion path (the cost).
+    // across a move), a subtree scan on the insertion path (the cost), a
+    // window-capture `load` door (a load's path stops at the Document), and
+    // keeping the sweep keyed on the proxy (cheaper by ≈0.3 µs per same-origin
+    // child frame, but blind to a navigation until its `load`).
     // ────────────────────────────────────────────────────────────────────────
 
   }

@@ -313,6 +313,21 @@ unreachable; what is new is that the reachable consequence is not one field, it 
 > are recorded in D35 and in `docs/THREAT-MODEL.md`. Cost of the fix: +0.15–0.49 µs per `appendChild`
 > on a page with no child frames, ≈0.11 µs more per child frame
 > (`docs/PERFORMANCE-2026-09-17.md`, 2026-09-19 follow-up).
+>
+> **D42 (2026-09-19), on those two.** (2) is **closed**: "already installed" is keyed on the realm's
+> Document, not its WindowProxy, and a document-capture `load` door installs the new realm before the
+> page's own load handler runs. Re-measured in real Chrome 151 with a fresh `?cb=` on both origins:
+> the page's handler on a navigated frame reads the persona (was the host), that realm's `toString`
+> is masked, and every number in the table above holds — lie records **2**, `hasToStringProxy`
+> **false**, `webDriverIsOn` **false**, `extensionHashPattern` **`{}`**, the same two visitorIds and
+> the same single CreepJS id. What remains of (2) is the interval between the navigation committing
+> and `load` (5–11 ms on localhost). (1) is **narrowed**: static markup and `document.write` from a
+> parser-inserted script already read the persona; only `document.write` into a document whose parser
+> is not the caller (a child written from the parent) still reads the host inside the write.
+> **Both remaining gaps are closed by the installed extension, now measured**: `ext/` loaded unpacked
+> in Chrome for Testing 149 returned the persona for every reading on `harness/realm-timing.html`,
+> including the grandchild read inside the write and the navigated frame at commit (§5). Cost of D42:
+> nothing measurable with no child frames, ≈ +0.3 µs per same-origin child frame per insertion.
 
 ### 3d. The shim prints its own product name into the page console — and the message is false
 
@@ -417,6 +432,18 @@ replace the extension. The following are **assumed, not verified**, here:
    `127.0.0.1` unchanged, and `personaFor` maps them to two different personas. But it was not
    observed end-to-end.
 4. **Header-layer behaviour** (the D19 DNR UA rulesets). Not exercised at all.
+
+> **Update 2026-09-19 (D42).** `ext/` was loaded unpacked for the first time — into **Chrome for
+> Testing 149.0.7827.22** (new headless, `--load-extension`, a throwaway profile; `Chrome/149`, no
+> Electron), driven from Puppeteer. What that verified: the service worker boots and stores its
+> `identity`; the MAIN-world shim runs before the page's first inline script (item 1, on that page:
+> `hardwareConcurrency` was already the persona's at stage 0); and Chrome's per-frame injection
+> (`all_frames` + `match_origin_as_fallback`) covers every child-realm path
+> `harness/realm-timing.html?shim=off` measures — the static-markup frame in the same parse, the
+> `document.write` shapes including a grandchild read inside the write, and a navigated frame **at
+> commit** — which D35 and the threat model had called assumed. Still not verified there: the
+> two-hostname persona split end-to-end (item 3), the DNR header rulesets (item 4), and any of this
+> in a user's own Chrome profile.
 
 **To run the rigorous version:** load `ext/` unpacked at `chrome://extensions`, then open
 `harness/claim-verification.html?shim=off` (so the page does not fight the real content script)
