@@ -131,8 +131,9 @@ the pitch says so — a reporter who finds an unmarked inference will never open
 > without mentioning it.** Everyone assumes Robinson-Patman is the federal hook for "different
 > prices for different people." The FTC's own conduct says otherwise: it brought a Robinson-Patman
 > suit against Southern Glazer's (No. 8:24-cv-02684-FWS-ADS, C.D. Cal., filed December 2024, motion
-> to dismiss denied April 2025, then stayed for settlement — the stay has since run out by its own
-> terms, so pull the docket for the current posture rather than taking mine), and its August 19
+> to dismiss denied April 2025, stayed for settlement in June 2026, and on August 28 the parties
+> told the court they had signed a memorandum of understanding to resolve all claims, pending a
+> Commission vote — it is settling, not lost), and its August 19
 > personalized-pricing statement contains **zero** occurrences of "Robinson," "Patman," "Clayton,"
 > or "commodity." Its footnote listing the other laws the same conduct might violate names ROSCA
 > and the Fees Rule — not the price-discrimination statute the agency is simultaneously litigating.
@@ -359,10 +360,11 @@ Written down because these are the specific ways this pitch could go wrong.
    as of September 19 (Pamphlet Laws stop at c. 30, Advance Laws at c. 50). If it has posted,
    confirm the chapter number against it and say so; if not, attribute **c. 55** to the
    Legislature's bill history for A.4085 and the text to the Third Reprint.
-7. **Check the Southern Glazer's docket** before repeating any stay language. The stay the brief
-   quoted ran through September 4, 2026 and has now lapsed by its own terms; the argument — the FTC
-   litigating Robinson-Patman while writing about personalized pricing without mentioning it — does
-   not depend on the stay's status, so drop the parenthetical rather than guess at it.
+7. **Check the Southern Glazer's docket** before repeating any posture language. Verified
+   2026-09-19: MOU executed 2026-08-28 (Dkt 226), administratively closed 2026-09-01 (Dkt 228), next
+   joint status report due 2026-09-25. If you send after September 25, re-read the docket first; the
+   argument — the FTC pursuing Robinson-Patman while writing about personalized pricing without
+   mentioning it — does not depend on the posture, so drop the parenthetical rather than guess.
 8. **Recompute the countdown in the subject line.** It is written for a September 19 send. If it is
    past October 1, drop the countdown entirely — the finding survives the deadline, the urgency
    framing does not, and "took effect October 1 and the summaries still have it wrong" is a

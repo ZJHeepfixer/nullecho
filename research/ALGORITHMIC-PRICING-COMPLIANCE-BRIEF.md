@@ -186,7 +186,7 @@ purpose-limitation clause.
 
 **And one thing not to spend money on.** The federal price-discrimination statute — Robinson-Patman
 — does not reach consumer-facing personalized pricing, for several independent reasons. The
-strongest evidence is that the FTC is **currently litigating** a Robinson-Patman case and, on
+strongest evidence is that the FTC brought — and, as of 2026-09-19, is **settling** — a Robinson-Patman case and, on
 **2026-08-19**, addressed personalized pricing in a policy statement that **never mentions the
 Act**. Build
 your federal analysis around FTC Act § 5. See §4.2.
@@ -649,12 +649,16 @@ that the RPA therefore reaches personalized consumer pricing is natural, common,
 
 The most persuasive evidence is not doctrinal. It is what the FTC did with its own docket.
 
-- **The FTC is currently litigating a major Robinson-Patman price-discrimination case.** *FTC v.
+- **The FTC brought, and is now settling, a major Robinson-Patman price-discrimination case.** *FTC v.
   Southern Glazer's Wine and Spirits, LLC*, **No. 8:24-cv-02684 (C.D. Cal., Judge Fred W.
-  Slaughter)**, filed **2024-12-12**. The motion to dismiss was **denied 2025-04-17**. The case was
-  stayed in 2026 for settlement; the parties asked the court to extend the stay "for an additional
-  twenty-nine (29) days, **through September 4, 2026**, to allow time to complete this process,
-  **secure the necessary Commission vote**, and finalize the resolution of the action."
+  Slaughter)**, filed **2024-12-12**. The motion to dismiss was **denied 2025-04-17**. Docket posture
+  verified 2026-09-19 (ECF via CourtListener, Dkts 219–228): stayed for settlement **2026-06-22** (Dkt 220);
+  on **2026-08-28** (Dkt 226) the parties reported they had "reached an agreement in principle and executed
+  a memorandum of understanding that, once finalized with additional terms in a final order, will resolve
+  all claims in this action," pending "the necessary Commission vote"; the clerk **administratively closed**
+  the case on 2026-09-01 (Dkt 228) as a statistical closure tied to the stay — **not a judgment, consent
+  decree or dismissal**; no stipulated final order is entered; next joint status report due **2026-09-25**.
+  The FTC's own matter page (2110155) still shows nothing after 2025-04-17 and is not a reliable status source.
 - **On 2026-08-19 — two days before this brief — that same Commission confronted consumer
   personalized pricing directly** and said: *"Congress has not given the Commission the authority to
   prohibit personalized pricing outright."* It then proceeded under **FTC Act § 5**, not under the
@@ -812,7 +816,7 @@ involves individual consumers:
 
 | Case | Disfavored purchasers | Favored | Posture |
 |---|---|---|---|
-| ***FTC v. Southern Glazer's Wine and Spirits, LLC***, No. 8:24-cv-02684 (C.D. Cal.), filed 2024-12-12 | Small independent "mom and pop" liquor retailers | Large chains | Secondary-line § 2(a). MTD **denied 2025-04-17**; stayed for settlement through **2026-09-04** pending a Commission vote |
+| ***FTC v. Southern Glazer's Wine and Spirits, LLC***, No. 8:24-cv-02684 (C.D. Cal.), filed 2024-12-12 | Small independent "mom and pop" liquor retailers | Large chains | Secondary-line § 2(a). MTD **denied 2025-04-17**; stayed for settlement 2026-06-22; **MOU / agreement in principle 2026-08-28** (Dkt 226); administratively closed 2026-09-01 pending a Commission vote and final order; status report due 2026-09-25 |
 | ***FTC v. PepsiCo*** (S.D.N.Y.), filed January 2025 | Smaller grocery and convenience retailers | One big-box buyer | §§ 2(d)/(e). **Voluntarily dismissed May 2025** *(reported 3-0, 2025-05-22 — secondary)* |
 | ***LA International Corp. v. Prestige Brands Holdings, Inc.***, Nos. 24-3776, 24-5009, 24-5227 (9th Cir. **2026-02-24**, published) | Ten wholesale distributors reselling to convenience stores | Costco Business Centers, Sam's Club, Select Corp. | Jury verdict for plaintiffs on Clear Eyes pricing **affirmed**; functional-discount defence rejected. Attorney's-fee award **vacated and remanded** |
 
@@ -1427,7 +1431,7 @@ act PDF on 2026-09-16; it was re-checked line by line against `cga.ct.gov` and e
 | ***Volvo Trucks N. Am., Inc. v. Reeder-Simco GMC, Inc.***, 546 U.S. 164 (2006) — opinion text | The three-line framework verbatim; "Absent actual competition with a favored Volvo dealer … Reeder cannot establish the competitive injury required under the Act"; the competitor-versus-competition caution |
 | ***Gulf Oil Corp. v. Copp Paving Co.***, 419 U.S. 186 (1974); ***Brooke Group***, 509 U.S. 209 (1993); ***Falls City Industries***, 460 U.S. 428 (1983); ***Texaco v. Hasbrouck***, 496 U.S. 543 (1990) | Quoted propositions in §4.2 |
 | **FTC Proposed Policy Statement P034101 — full-text keyword search** | **Zero** occurrences of "Robinson," "Patman," "Clayton," "15 U.S.C. § 13," or "commodity/commodities." Independently re-run for this brief: the only "antitrust" string in the document is a journal title in a footnote |
-| ***FTC v. Southern Glazer's*** docket number and stay | Case No. **8:24-cv-02684** confirmed against the FTC's own hosted complaint PDF and the court filing; the "through September 4, 2026 … secure the necessary Commission vote" language quoted from the stay application as reported |
+| ***FTC v. Southern Glazer's*** docket number and posture | Case No. **8:24-cv-02684-FWS-ADS** confirmed against the court-stamped ECF header on the filed complaint (Dkt 57) and the CourtListener docket (Slaughter / Spaeth); posture (stay 2026-06-22, MOU 2026-08-28, administrative closure 2026-09-01, status report due 2026-09-25) read from Dkts 219–228 on 2026-09-19 |
 | ***LA International Corp. v. Prestige Brands Holdings, Inc.***, Nos. 24-3776, 24-5009, 24-5227 (9th Cir. 2026-02-24) | Published opinion, posted on the Ninth Circuit's own site; affirmance for the wholesale distributors; fee award vacated and remanded; Costco Business Centers / Sam's Club as favored purchasers |
 
 ### 8.2 Verified from a reliable secondary source, not read in the original
@@ -1555,8 +1559,9 @@ act PDF on 2026-09-16; it was re-checked line by line against `cga.ct.gov` and e
 - **"Functional availability"** as a defence is a judicially created doctrine with no single
   controlling case located. Treated as secondary throughout.
 - **Southern Glazer's posture after 2026-08-21** and the reported PepsiCo 3-0 dismissal vote of
-  2025-05-22 are secondary. The Southern Glazer's stay expires **2026-09-04**, so this is perishable
-  — re-check before citing.
+  2025-05-22 are secondary. Southern Glazer's posture was read from the docket on **2026-09-19**
+  (MOU 2026-08-28, administrative closure 2026-09-01); the next joint status report is due
+  **2026-09-25**, so re-check after that date before citing.
 
 ### 8.5 Explicitly not relied on
 
