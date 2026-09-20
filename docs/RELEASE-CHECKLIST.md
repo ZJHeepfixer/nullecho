@@ -161,3 +161,17 @@ Ordered by dependency. Everything here is gated on §3 passing.
   device-fingerprint join. It is detectable, it does not defeat a determined adversary, and it does
   nothing about your IP.* Firefox RFP and Brave are genuinely stronger; we say so in-product. Our
   niche is Chrome, where neither exists.
+
+## Versioning — what the number is allowed to say
+
+`0.9.0` (2026-09-20) means **release candidate**: feature-complete for the claims in `THREAT-MODEL.md`, every
+claim measured by a third-party library or a loaded browser, legal surfaces reviewed 2026-09-19. Chrome's
+`version_name` carries that sentence; Firefox shows the bare number.
+
+**`1.0.0` may be set only when all three are true, in this order, and each is recorded in this file with a date:**
+1. Loaded **unpacked in stable Chrome by the owner** (not Chrome for Testing) and the popup, options, per-site
+   GPC switch and the measure-it-yourself panel each rendered and worked.
+2. **Tier A breakage pass clean** (`docs/BREAKAGE-TESTING.md`: checkout, bank login, SSO, CAPTCHA) on that install.
+3. **Store submission filed** (Chrome Web Store and/or AMO) with the packaged zip from `ext/tools/package.mjs`.
+
+Until then the number stays `0.9.x`; patch releases bump the third digit. The version is a claim like any other.

@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Nullecho",
-  "version": "0.1.0",
+  "version": "0.9.0",
+  "version_name": "0.9.0 · release candidate — every claim independently measured",
   "description": "Degrades commercial ad-tech profiling: tracker blocking, Global Privacy Control, and per-origin fingerprint personas.",
   "minimum_chrome_version": "121",
   "icons": {

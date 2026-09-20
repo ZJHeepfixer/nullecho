@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Nullecho",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "Degrades commercial ad-tech profiling: tracker blocking, Global Privacy Control, and per-origin fingerprint personas.",
   "browser_specific_settings": {
     "gecko": {

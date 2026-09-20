@@ -228,6 +228,21 @@ time to raise it.)*
 session" mode. It may ship a **Checkout Report** — a view over `siteReport()` — that shows what a
 shopping page did *before* it quoted a price. Full research: `research/SURVEILLANCE-PRICING.md`.
 
+> **⛔ Corrected 2026-09-20 (legal review 2026-09-19, `docs/review-2026-09-19/pricing.md` + its erratum).**
+> Three things below are no longer true and are left in place as history:
+> 1. **The Checkout Report was never built** — `git log --all -S'Checkout Report' -- ext/` is empty. It was
+>    nonetheless promised in README, STORE-LISTING, PRIVACY-POLICY and the blog; those promises were removed
+>    in `44be2dd`. The replacement is an observation-only **Price Disclosure Notice** (next build lane).
+> 2. **"Four states have now enacted" the disclosure is wrong — it is TWO.** Maryland's proposed § 13-322
+>    (the `OR BY` string) was **struck before passage**; Maryland enacted only § 13-321, a food-retailer
+>    ban with no wording (state statute endpoint: 13-321 = text, 13-322 = "File Not Found"; codified
+>    §§ 13-408(a)/13-411(a) name only 13-321). New Jersey is a grocery ban with no string. Mandated strings:
+>    **NY (in force) and CT (2027-07-01, "or substantially similar")**. The MD bullet below is dead text.
+> 3. **Presence of the string is not compliance** — the NY AG's Instacart letter ruled a page non-compliant
+>    with the exact sentence on it. The detector may report *"this page carries the disclosure"*, never a
+>    compliance verdict. Both written specs (sweep §5 "Spec A", the substring list here "Spec B") have
+>    reproduced defects: Spec B's `using your personal data` anchor fires on ordinary privacy-policy prose.
+
 **Why "lower prices" is out — the evidence is one-sided:**
 - Consumer Reports 2016 (372 simultaneous searches, cookies-rich vs scrubbed): 88% identical, and of
   the pairs that differed, **59% had the HIGHER fare on the *scrubbed* browser.** Clearing tracks
@@ -510,6 +525,10 @@ Host as the page sees it: `MacIntel`, 12 cores, 32 GB, 1512×982 @2x, colorDepth
 | Windows persona, i.e. the pre-D12 behaviour | **3 of 10** | `1d74600c9420f0` |
 | macOS persona `macos-chrome-m1-pro` (host-matched) | **2 of 10** | `022e2b68c014e7` |
 | macOS persona `macos-chrome-m1` (a second origin) | **2 of 10** | `02cae21b7f5fe7` |
+
+> *Superseded 2026-09-17/19:* "N of 10" was our own detector set and understated detectability. The
+> published number is now measured with a third-party library (CreepJS): 199 lie records and a bot
+> verdict before D32–D35, **2** after (both the canvas/audio noise itself). See `THREAT-MODEL.md`.
 
 **Read the count carefully.** The suite is now ten detectors, not nine, and the child-realm probe
 is stricter than it was. So the honest comparison is **3 → 2 on the new suite**, not 2 → 2 on the
