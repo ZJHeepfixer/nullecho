@@ -2495,5 +2495,23 @@ navigation change no function identity; a load at a non-iframe is ignored; and a
 realm is not retained — the last one with `gc()` interleaved with event-loop turns, because Node
 tears a vm context down in a second-pass weak callback that runs as a task (three back-to-back
 collections in one job read 8 of 8 alive in the full file and 0 of 8 alone). `harness/realm-timing.html`
-is the browser-side instrument for both residual paths, in page-script and installed-extension modes.
-328 → **338**.
+is the browser-side instrument for both residual paths, in page-script and installed-extension modes,
+and `harness/unpacked-chrome.mjs` is what loads `ext/` unpacked into Chrome for Testing and drives it
+(`smoke` / `timing` / `claim` / `retain`) — the extension-mode and retention numbers above came from
+its scratch ancestors, and it reproduces them. 328 → **338**.
+
+**Found with that driver, and NOT D42's — recorded here because this is where it was measured.**
+With `ext/` unpacked, `unpacked-chrome.mjs claim` reads **199 lie records, `hasToStringProxy: true`
+and a 30-entry `extensionHashPattern`** on both origins — the D32-era signature that page-script mode
+reports as 2 / false / empty. `main` at `86a62b3` loaded the same way reads the same. A chain probe
+names it: a same-tick child realm's `Function.prototype.toString` applied to the **top** realm's
+`Function.prototype.toString` prints `toString() { if (this === getOn || this === getOff) return
+NATIVE_SOURCE; …` — `gpc.js`'s own toString wrapper (D38, 2026-09-19). No shim closure knows that
+function, so any other realm's mask delegates to its native and prints it, and CreepJS turns one
+revealed toString into a `failed toString` lie on every API it audits. The parent's patched getters
+stay masked through the parent-closure chain (`childTs_on_topUaGetter: true`); only the second
+wrapper leaks. **Decisive:** the same extension with `src/gpc.js` dropped from the manifest reads
+**2 / false / 0** on both origins. Not present at D42's base — the pre-D38 `gpc.js` installed no
+toString wrapper. The fix belongs to D38's owner and the rule is one toString mask per realm:
+install the GPC getters from `shim.js` through `markNative`, or give `gpc.js` a way into
+`NATIVE_SRC`. `unpacked-chrome.mjs claim` expecting 2 / false / 0 on both origins is the gate.

@@ -435,7 +435,8 @@ replace the extension. The following are **assumed, not verified**, here:
 
 > **Update 2026-09-19 (D42).** `ext/` was loaded unpacked for the first time — into **Chrome for
 > Testing 149.0.7827.22** (new headless, `--load-extension`, a throwaway profile; `Chrome/149`, no
-> Electron), driven from Puppeteer. What that verified: the service worker boots and stores its
+> Electron), driven from Puppeteer — now `harness/unpacked-chrome.mjs`, whose `claim` mode runs this
+> page on both loopback hostnames with the extension supplying the persona. What that verified: the service worker boots and stores its
 > `identity`; the MAIN-world shim runs before the page's first inline script (item 1, on that page:
 > `hardwareConcurrency` was already the persona's at stage 0); and Chrome's per-frame injection
 > (`all_frames` + `match_origin_as_fallback`) covers every child-realm path
@@ -444,6 +445,13 @@ replace the extension. The following are **assumed, not verified**, here:
 > commit** — which D35 and the threat model had called assumed. Still not verified there: the
 > two-hostname persona split end-to-end (item 3), the DNR header rulesets (item 4), and any of this
 > in a user's own Chrome profile.
+>
+> **What the rigorous version found, the first time it ran** (`unpacked-chrome.mjs claim`, both
+> hostnames): item 3 holds — two site keys, two FingerprintJS visitorIds under the real service
+> worker — but CreepJS reads **199 lies, `hasToStringProxy: true`, a 30-entry extension hash** on
+> both origins, where page-script mode reads 2 / false / empty. It is `gpc.js`'s D38 toString
+> wrapper, revealed from a child realm; the same build with `gpc.js` not injected reads 2 / false / 0.
+> D42's closing paragraph has the chain probe and the decisive experiment.
 
 **To run the rigorous version:** load `ext/` unpacked at `chrome://extensions`, then open
 `harness/claim-verification.html?shim=off` (so the page does not fight the real content script)
