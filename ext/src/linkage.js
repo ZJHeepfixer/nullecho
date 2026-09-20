@@ -212,6 +212,7 @@ export const FINDING = {
  * @param {boolean} [ctx.blockingEnabled=true]   Nullecho on for this site
  * @param {boolean} [ctx.gpcSent]                Sec-GPC actually sent here
  * @param {boolean} [ctx.gpcExcepted]            suppressed for this site specifically
+ * @param {boolean} [ctx.gpcUserExcepted]        …and the user is who suppressed it
  * @param {boolean} [ctx.strictFingerprinting]   tier-B anti-fraud rules enabled
  * @param {boolean} [ctx.isCalifornian]
  * @param {boolean} [ctx.dropFiled]
@@ -362,15 +363,24 @@ function buildFindings(report, ctx) {
     );
   }
 
+  // The "legally binding" claim is a fact about where the USER lives, not about
+  // where the site is: every statute in `docs/review-2026-09-19/gpc.md` §2.1
+  // scopes its duty to that state's own consumers. A California resident's
+  // signal creates a duty for a covered business wherever that business sits; a
+  // Wyoming resident's identical signal creates none, on the same site, in the
+  // same second. No count of states appears here and none should: eleven are
+  // verified in that document and nine states were never reached.
   push(
     FINDING.GPC,
     report.gpc.sent
       ? 'Global Privacy Control was sent to this site'
       : 'Global Privacy Control was not sent to this site',
     report.gpc.sent
-      ? 'In California, Colorado and several other states this is a legally binding do-not-sell request. Whether the site acted on it happens on their servers — Nullecho can show the signal went out, never that anyone honoured it.'
+      ? 'If you live in California, Colorado or one of the several other states that recognise it, this is a legally binding opt-out. Whether the site acted on it happens on their servers — Nullecho can show the signal went out, never that anyone honoured it.'
       : report.gpc.excepted
-        ? 'You turned the signal off for this site, or it ships off here because the site breaks when it sees it.'
+        ? (ctx.gpcUserExcepted
+            ? 'You turned the signal off for this site. No request here carried the Sec-GPC header.'
+            : 'Nullecho ships the signal off here, because this site breaks when it sees it.')
         : 'The signal is switched off, so this site was never asked not to sell or share your data.',
   );
 
@@ -737,7 +747,7 @@ export function remedyFor(subject, state = {}) {
     return { text: 'Turn on tracker blocking, then re-run this.', action: 'enable-blocking' };
   }
   if (!state.gpcEnabled) {
-    return { text: 'Send Global Privacy Control — it is legally enforceable in some states.', action: 'enable-gpc' };
+    return { text: 'Send Global Privacy Control — a legal opt-out if you live in one of the states that recognise it.', action: 'enable-gpc' };
   }
   if (state.isCalifornian && !state.dropFiled) {
     return { text: 'Blocking stops new data. File a DROP request to delete what brokers already hold.', action: 'open-drop' };
@@ -787,8 +797,25 @@ function siteRemedy(kind, report, state) {
 
     case FINDING.GPC:
       if (!report.gpc?.sent) {
+        // Three different reasons the signal did not go out, and only one of
+        // them is fixed by the global toggle. Offering "Turn on Global Privacy
+        // Control" on a host where it IS on and the site is excluded is a
+        // button that does nothing — which is the failure mode this whole
+        // remedy table exists to avoid.
+        if (state.gpcUserExcepted) {
+          return {
+            text: 'You turned the signal off for this site. Turn it back on here if the site works without that.',
+            action: 'enable-gpc-site',
+          };
+        }
+        if (report.gpc?.excepted) {
+          return {
+            text: 'Nothing to change here: Nullecho ships the signal off on this site because the site breaks with it on. It still goes out everywhere else.',
+            action: null,
+          };
+        }
         return {
-          text: 'Turn on Global Privacy Control. In California, Colorado and several other states it is a legally binding do-not-sell request.',
+          text: 'Turn on Global Privacy Control. If you live in California, Colorado or one of several other states that recognise it, it is a legally binding opt-out.',
           action: 'enable-gpc',
         };
       }

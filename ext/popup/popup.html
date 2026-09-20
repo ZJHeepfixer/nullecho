@@ -100,6 +100,21 @@
       </p>
     </section>
 
+    <!-- The documented recovery path for a site that misbehaves with GPC:
+         "enable cookies" errors, blank pages, refused sign-in. Strictly better
+         than switching the signal off globally, which is the only lever a user
+         had before this row existed (review 2026-09-19, G4). -->
+    <section class="panel" id="gpc-panel" hidden>
+      <div class="gpc-row">
+        <label class="switch">
+          <input type="checkbox" id="gpc-site">
+          <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+          <span class="gpc-label">Send Global Privacy Control here</span>
+        </label>
+      </div>
+      <p class="note" id="gpc-note"></p>
+    </section>
+
     <section class="panel" id="trackers-panel" hidden>
       <details>
         <summary><span id="trackers-summary">Blocked domains</span></summary>

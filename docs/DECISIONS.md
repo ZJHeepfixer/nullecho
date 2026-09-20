@@ -1989,3 +1989,250 @@ change no function identity), the grandchild, the shadow root, the table lint, a
 `name` / `length` / brand-check / console guards. `window.length` sits on `Window.prototype` in the
 rig to force the owner walk; in real Chrome 151 it is an **own** property of `window`, and
 `ownerOf()` handles both. 328/328 (310 + 18).
+
+## D36 — A per-site GPC exception is TWO DNR rules, because one `condition` is ANDed. 2026-09-19.
+
+**Decision:** `syncExceptionRules()` emits two `modifyHeaders`/`remove` rules per excepted host —
+one keyed on `requestDomains` alone, one on `initiatorDomains` alone — at ids
+`1100000 + i*2` and `+1`, capping the list at 500 hosts inside the reserved 1000-id range. Never
+both fields in one condition.
+
+**What G1 was.** The rule carried `requestDomains: [host]` **and** `initiatorDomains: [host]` in a
+single condition. DNR **ANDs** the fields inside a condition, so the rule matched only a request that
+was both *to* the host and *from* it. A top-level navigation typed, bookmarked, opened in a new tab
+or followed from another site has **no initiator at all**, so the document request — the one the user
+complained about — never matched, and the site received `Sec-GPC: 1` while `linkage.js` printed
+"Global Privacy Control was **not** sent to this site". The exclusion lists on rule 5000
+(`excludedRequestDomains` / `excludedInitiatorDomains`) are ORed, which is why the shipped 50-host
+breakage list was correct and only the user-facing exception was broken.
+
+✅ **Chrome for Testing 147.0.7727.15**, `chrome.declarativeNetRequest.testMatchOutcome` asked from
+the live service worker after `setSiteException('a.test', true)` — `1100000`/`1100001` are the
+exception, `5000` is the Sec-GPC rule:
+
+| request | before | after |
+|---|---|---|
+| top-level nav to a.test, **no initiator** | `[5000]` — **exception missed** | `[1100000, 5000]` |
+| top-level nav to a.test, initiator a.test | `[1100000, 5000]` | `[1100001, 1100000, 5000]` |
+| a.test subresource → a.test | `[1100000, 5000]` | `[1100001, 1100000, 5000]` |
+| a.test page → third.test (3P) | `[5000]` — **missed** | `[1100001, 5000]` |
+| b.test page → a.test subresource | `[5000]` — **missed** | `[1100000, 5000]` |
+
+✅ **And the header capture agreed**, same run, same probe page (18 requests, `a.test` excepted):
+**before 3 of 18 carried `Sec-GPC: 1`** — including `main_frame a.test /`, the document request —
+**after 1 of 18.**
+
+**The one that still leaks, named rather than hidden:** a `fetch()` issued from *inside* a
+cross-origin iframe on the excepted page. Its initiator is the iframe's own origin, so neither rule
+covers it. That is **G8**, it is a property of DNR having no "top-level context is X" condition, and
+it is **not fixed here**. The cross-origin iframe's *document* request is now suppressed (its
+initiator is the excepted page); only what that frame fetches for itself is not.
+
+**Why `initiatorDomains` at all, rather than `requestDomains` alone.** Dropping it would make the
+popup sentence exactly true and suppress strictly less. It would also leave every third party on a
+site Nullecho ships GPC off for still receiving the signal — the G8 complaint, one level up. The
+two-rule shape approximates the `gpcAtNavigation` scoping the spec actually names, which is what G8
+asks for, and the popup copy says "not sent to this site" for a state where nothing on the page
+carries the header.
+
+**Guards:** `ext/src/review-2026-09-19.test.js` models DNR's documented AND/OR semantics and asserts
+all five shapes plus subdomain coverage, id uniqueness, and the reserved range under 600 hosts.
+`ext/src/gpc.test.js` pins the two-rule shape — and **replaces the comment that caused the bug**
+("main_frame navigation matches on requestDomains; subresources on the page match on
+initiatorDomains. Missing either leaks the header"), which is true of two rules and false of one, and
+is why a reviewer reading that test concluded the rule was correct.
+
+## D37 — GPC off reads `false`; Nullecho standing down gives the property back. 2026-09-19.
+
+**Decision:** two different facts, two different outcomes, and `delete` is used for neither on a
+browser that shipped the property.
+
+- `gpc === false` (the signal is off globally or for this site) → the property reads **`false`**.
+  W3C GPC: *"The value is `false` if no `Sec-GPC` header field would be sent; otherwise, the value is
+  `true`"*, on a `readonly attribute boolean`. Where the browser's own accessor already answers
+  `false`, its captured descriptor is restored instead of ours being installed — an untouched native
+  accessor beats an identical-looking replacement.
+- `enabled === false` (the user allowlisted this site, so Nullecho is off here) → the property goes
+  back to **exactly what the browser had**: the captured native descriptor on Firefox, absent on
+  Chrome. Standing down means being absent, which is what `shim.js`'s `restoreAll()` already means.
+
+The descriptor and its value are captured at boot, before we overwrite anything (D21).
+
+**What G2 was.** `setSignal(false)` did `delete RawNavigator.prototype.globalPrivacyControl` for both
+cases. On Chrome that is merely non-conformant. On Firefox — which implements GPC natively — it
+deleted **the browser's own property**.
+
+✅ **Firefox 156.0**, real extension installed over WebDriver BiDi `webExtension.install`, GPC turned
+off through the **real options-page checkbox**, then a fresh navigation:
+
+| | `navigator.globalPrivacyControl` | `in Navigator.prototype` | descriptor | getter name |
+|---|---|---|---|---|
+| stock Firefox 156, no extension | `false` (boolean) | true | native | `get globalPrivacyControl` |
+| **before** | **`undefined`** | **false** | **none** | — |
+| **after** | **`false`** (boolean) | true | **the native one, restored** | `get globalPrivacyControl` |
+
+The "before" row is a Firefox with no `globalPrivacyControl` at all — a state no stock Firefox can
+produce, and a stronger identifier than the one the exception was meant to avoid.
+
+✅ **Chrome for Testing 147**, per-site exception active on `a.test`: `windowProp` **`undefined` →
+`false`**, `typeof` **`undefined` → `boolean`**, descriptor **absent → present**.
+
+**⚠ What the Firefox measurement needed, and what that exposed.** On a stock Firefox the run above
+does nothing, because **`background.js` never finishes evaluating on Firefox**:
+
+```
+JavaScript error: moz-extension://…/src/heuristics.js, line 588:
+Error: Type error for parameter extraInfoSpec (Error processing 1: Invalid enumeration value
+"extraHeaders") for webRequest.onBeforeSendHeaders.
+```
+
+`extraHeaders` is Chrome-only. The throw kills the background module, so `chrome.runtime.onMessage`
+is never registered, every `GET_PERSONA` answers `{ok:false, enabled:null, gpc:null}` (captured from
+an instrumented build), and the whole extension runs in permanent fallback on Firefox: the persona
+never upgrades and **the GPC toggle cannot reach the page at all**. That is pre-existing, is not
+fixed here, and is the single most important thing the Firefox half of this run turned up. The
+measurements above were taken with `'extraHeaders'` removed from the two `heuristics.js` listener
+registrations **in the throwaway rig copy only** — nothing in `ext/` was changed for it.
+
+**Guards:** `review-2026-09-19.test.js` covers the four states (off → `false`; native-`false` browser
+→ descriptor restored; native-`true` browser → untouched both ways; stand-down → original restored,
+absent on Chrome). `gpc.test.js`, `handshake-integration.test.js`, `review-2026-09-16.test.js` A2d/A3
+and B9 had all pinned `undefined`; every one of them now pins the conformant value, with the reason
+in the comment.
+
+## D38 — The GPC getter carries a native accessor's name and source. The key-order tell stays, and is documented. 2026-09-19.
+
+**Decision:** the property is installed from a **getter shorthand named `globalPrivacyControl`**, once
+per value (`true` and `false`, both built at boot), and its source is masked to whatever a *sibling
+native accessor on the same interface* stringifies to, with the model's name substituted.
+`gpc.js` layers one more `Function.prototype.toString` wrapper over the one `shim.js` owns, because a
+separate classic content script has no way into the shim's `NATIVE_SRC` WeakMap; the wrapper answers
+for **itself** with whatever the layer below said about itself, so its presence adds no delta.
+
+**What G3 was.** The getter came from `{ get() { return true; } }`. Measured in **Chrome for Testing
+147**: `desc.get.name === "get"` and `Function.prototype.toString.call(desc.get) === "get() { return
+true; }"`, where every other accessor on `Navigator.prototype` reads `"get <attr>"` /
+`function get <attr>() { [native code] }`. One property read, no list of expected values — just
+"does this one match its neighbours".
+
+✅ **Before → after, both engines, same probe:**
+
+| | Chrome 147 before | Chrome 147 after | Firefox 156 before | Firefox 156 after | Firefox 156 **stock** |
+|---|---|---|---|---|---|
+| `get.name` | `get` | `get globalPrivacyControl` | `get` | `get globalPrivacyControl` | `get globalPrivacyControl` |
+| `toString` | `get() { return true; }` | `function get globalPrivacyControl() { [native code] }` | `get() { return true; }` | `function globalPrivacyControl() {\n    [native code]\n}` | `function globalPrivacyControl() {\n    [native code]\n}` |
+| A1 fires | **yes** | no | **yes** | no | no |
+| A2 fires | **yes** | no | **yes** | no | no |
+| shape probe | native | native | native | native | native |
+
+On Firefox the "after" row is **byte-identical to the browser's own**, newlines included, because the
+masked source is calibrated from `Navigator.prototype.onLine` rather than assumed: Chrome prints
+`function get onLine() { [native code] }`, Firefox prints `function onLine() {\n    [native code]\n}`.
+A fallback to `markNative`'s spelling covers a browser with no usable model.
+
+**⚠ HONEST LIMIT, measured and not fixed:** on Chrome the property is still the **last own key** of
+`Navigator.prototype` — index **36 of 37**, before and after — because it is appended at
+`document_start` and a WebIDL member sits in declaration order. Nothing an in-page script can do
+reorders an interface's own keys. The A3 check therefore still fires on Chrome, so the attack script's
+verdict is still "SHIMMED". That costs nothing beyond the bit the feature already spends there —
+Chrome ships no native GPC, so *any* `globalPrivacyControl` on Chrome is an extension. It costs
+something on Firefox, where a native one exists, and **A3 does not fire on Firefox** (31 of 48 before
+and after: `defineProperty` over an existing key keeps its slot). The comment in `gpc.js` that said
+"no amount of `toString` masking can hide it" has been replaced: it conflated the signal's *presence*
+(which must be visible, and is the feature) with its *implementation* (which need not be).
+
+**Adjacent, observed, not fixed:** `Function.prototype.toString.call(Function.prototype.toString)`
+reads `function toString() { [native code] }` on Firefox, where the engine's own spelling is
+`function toString() {\n    [native code]\n}`. That is `shim.js`'s `markNative`, which always writes
+the Chrome form, and it applies to every function the shim masks on Firefox. Unchanged by this
+commit, and a D32-level decision of its own.
+
+**Guards:** `review-2026-09-19.test.js` — the name, the D32 shape probes, both engines' source
+spellings through a calibration model, the un-calibratable fallback, the OFF getter (an excepted site
+must not get a louder tell than an on one), the masking layer masking itself with and without a shim
+underneath, and the key-order tell pinned as a **known limit** rather than quietly passing.
+
+## D39 — The per-site GPC exception has a control, and the remedy under it points at something that works. 2026-09-19.
+
+**Decision:** the popup carries a per-site GPC switch, in three states with three sentences:
+signal off globally (disabled, points at settings), shipped breakage host (disabled, says Nullecho
+ships it off here), otherwise a live switch that sends `GPC_MSG.SET_SITE_EXCEPTION`. `GPC_MSG` is a
+new export in `protocol.js` — deliberately not part of `MSG`, because `background.js` routes
+everything in `MSG` to `handleShell`, which does not know these two.
+
+**What G4 was.** `setSiteException` was implemented, persisted under `nullecho:gpc:v1`, rule-synced,
+documented in `gpc.js` as "the recovery path for a site that misbehaves with GPC", and covered by
+eight tests — and `grep -rn "gpc:setSiteException" ext/` returned exactly one hit: the handler.
+Nothing in `popup/` or `options/` ever sent it. A user who hit GPC breakage outside the shipped 50
+had one lever: switch GPC off **globally**, which is the outcome the feature exists to avoid. It is
+also the only reason D36's bug was not already shipping harm, which is why the two go together.
+
+**The report now says WHOSE exception it is.** `onGetSiteReport` adds `gpc.userExcepted`, because
+"you turned it off here" and "Nullecho ships it off here" are different sentences with different
+remedies and only one of them is a switch the user can flip back. The GPC finding's remedy used to
+offer "Turn on Global Privacy Control" on a shipped-exception host — a button that sets a global
+toggle which is **already on**, so it did nothing. Three branches now: `enable-gpc-site` for the
+user's own exception, no action (and a sentence saying the signal still goes out everywhere else) for
+a shipped one, `enable-gpc` only when the signal is actually off.
+
+✅ **Rendered, not grepped** — Chrome for Testing 147, the real popup page driven against a real site
+tab (`tabs.query` finds the site tab, so this is the popup's own code path):
+
+| state | switch | note |
+|---|---|---|
+| `b.test`, signal on | checked, enabled | "If this site stops working … turn the signal off here rather than everywhere. This covers this browser profile only." |
+| after clicking it | unchecked, enabled | "You turned the signal off for this site…" — and `getDynamicRules()` gained `1100002`/`1100003` for `b.test` |
+| the finding's remedy, clicked | back to checked | dynamic rules back to `[]`; the finding returns to "was sent to this site" |
+| `usaa.com` (shipped exception) | unchecked, **disabled**, label dimmed | "Nullecho ships the signal off on this site because it breaks when it sees it…" |
+
+Light scheme checked as well as dark (`prefers-color-scheme: light`: label `rgb(22,28,35)` on panel
+`rgb(246,248,250)`, off-track `rgb(140,150,161)`).
+
+**⚠ A rig lesson worth keeping.** Read from a **background** tab, `getComputedStyle` on the switch
+returned the *checked* colours (`rgb(86,195,164)`, thumb translated) while `input.checked` and
+`input.matches(':checked')` were both `false`. Foregrounding the tab and re-reading gave the correct
+off colours. A background tab defers style recalc; a screenshot-free "it renders correctly" taken
+from one is not evidence. Same family as the hidden-pane rule already in the operator notes.
+
+## D40 — The copy says where the duty comes from, discloses the mechanism's scope, and `isCalifornian` is a real setting. 2026-09-19.
+
+**Decision:** three copy changes and one setting.
+
+1. **Residency, not site.** Every "legally binding in California, Colorado and several other states"
+   now reads as a property of **where the user lives**: *"If you live in California, Colorado or one
+   of the several other states that recognise it, this is a legally binding opt-out"*, and the
+   aggregate remedy is *"Send Global Privacy Control — a legal opt-out if you live in one of the
+   states that recognise it."* Every statute in `docs/review-2026-09-19/gpc.md` §2.1 scopes its duty
+   to that state's own consumers: a California resident's signal creates a duty for a covered
+   business wherever that business sits; a Wyoming resident's identical signal creates none, on the
+   same site, in the same second. The old phrasing was not false; it was the kind of true-sounding
+   sentence a user reads as "this works where I am".
+2. **No number of states, ever.** Eleven are verified in that document and **nine were never
+   reached**. "12 states" circulates in vendor marketing and is not supported by anything we have.
+   A test fails the build on `\b(\d+|two|…|twelve)\s+(US\s+)?states\b` in the user-facing copy.
+3. **The disclosure Colorado asks of the PROVIDER, not of the sites.** 4 CCR 904-3 Rule 5.03(A)(3)(b)
+   names "that the mechanism applies only to a single browser or device" as its own example of a
+   limitation the provider must disclose. Every "this device" line in the extension was about where
+   *data is stored*. `options.html` now says, in the GPC section: **"This covers this browser profile
+   only."** — your phone, your other browsers and any other profile on this machine each need their
+   own — and widens the purpose line with Rule 5.03(A)(4)(a)'s blessed, state-agnostic phrasing: the
+   signal "exercises any and all opt-out rights available to you under state laws, which in most of
+   them covers sale, sharing *and* targeted advertising". Nine of the eleven verified states scope
+   the duty to targeted advertising as well as sale; New Jersey adds profiling. "Do-not-sell" alone
+   under-sold the signal everywhere outside California.
+4. **`isCalifornian` is a setting.** It was read at `linkage.js:742/795/807` and written in exactly
+   one place in all of `ext/` — `popup.js`'s `DEMO` fixture. So all three DROP nudges rendered in
+   design review and were **dead in the shipped extension**. It is now in `DEFAULT_SETTINGS` as
+   `false`, with a checkbox in the options DROP card ("I live in California — show the DROP
+   data-broker deletion step") that persists through `SET_SETTINGS`. **User-declared, never
+   inferred**: Colorado Rule 5.03(C) says a mechanism's provider "is not obligated to authenticate
+   that a user is a Resident of Colorado", Nullecho has no location by design, and a California-only
+   step must not be shown to everyone. `dropFiled` is read the same way and still has no writer —
+   named here so the next person does not rediscover it as a new bug.
+
+**Guards:** `review-2026-09-19.test.js` — the scope sentence and the purpose phrasing in
+`options.html`; every "legal" claim in `linkage.js`, `options.html` and `popup.js` must carry
+"you live"/"your state" (comments stripped first, because those discuss the law at length and are not
+what the user reads); no state count anywhere; `DEFAULT_SETTINGS.isCalifornian === false`; a shipped,
+non-demo settings object turning the nudge on in both the aggregate and the per-site remedy; and the
+options control existing and writing through `patchSettings`.

@@ -89,6 +89,7 @@ function render(s) {
   renderPool(s);
 
   $('gpc').checked = !!s.settings.gpc;
+  $('is-californian').checked = !!s.settings.isCalifornian;
   $('loud-failures').checked = !!s.settings.loudFailures;
   $('auto-rotate').value = String(s.settings.autoRotateDays ?? 0);
 
@@ -395,6 +396,10 @@ function relTime(ts) {
 // ── interactions ────────────────────────────────────────────────────────────
 
 $('gpc').addEventListener('change', (e) => patchSettings({ gpc: e.target.checked }));
+// User-declared, never inferred: the DROP walkthrough is California-only, and
+// until this control existed `isCalifornian` was read in three places and
+// written in exactly one — popup.js's DEMO fixture (review 2026-09-19).
+$('is-californian').addEventListener('change', (e) => patchSettings({ isCalifornian: e.target.checked }));
 $('loud-failures').addEventListener('change', (e) => patchSettings({ loudFailures: e.target.checked }));
 $('auto-rotate').addEventListener('change', (e) =>
   patchSettings({ autoRotateDays: Number(e.target.value) })
@@ -456,6 +461,7 @@ $('allow-form').addEventListener('submit', async (e) => {
 const DEMO_SETTINGS = {
   categories: { ads: true, analytics: true, social: true, fingerprinting: true },
   gpc: true,
+  isCalifornian: false,
   autoRotateDays: 0,
   loudFailures: true,
 };

@@ -207,7 +207,10 @@ test('an allowlisted site: the authenticated stand-down restores the real APIs',
 test('a GPC exception reaches gpc.js through the same authenticated payload', async () => {
   const r = await runPage({ gpcOn: false });
   assert.equal(r.ua, SALTED.ua, 'a GPC exception must not disturb the persona');
-  assert.equal(r.gpc, undefined);
+  // `false`, not absent. The spec: "The value is false if no Sec-GPC header
+  // field would be sent." Standing the whole extension DOWN is the other case
+  // (the test above) and restores whatever the browser had — G2, 2026-09-19.
+  assert.equal(r.gpc, false);
 });
 
 test('an unreachable service worker fails loud and keeps the fallback persona', async () => {

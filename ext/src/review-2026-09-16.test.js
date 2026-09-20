@@ -682,7 +682,9 @@ test('A2d GUARD: the same charCodeAt hook cannot delete navigator.globalPrivacyC
   // It reaches gpc.js through the shim's relay (A3 below) and must still be honoured.
   s.upgrade(DELIVERED, { gpc: false });
   assert.equal(s.ua(), DELIVERED.ua, 'the shim half authenticated');
-  assert.equal(s.ctx.navigator.globalPrivacyControl, undefined, 'the gpc half authenticated its own nonce under the hook');
+  // `false`, not absent, since 2026-09-19 G2: OFF is a conformant value, and
+  // `delete` was removing Firefox's own native property.
+  assert.equal(s.ctx.navigator.globalPrivacyControl, false, 'the gpc half authenticated its own nonce under the hook');
   s.page('String.prototype.charCodeAt = globalThis.__origCharCodeAt;');
 });
 
@@ -897,7 +899,7 @@ test('A3 GUARD: a page window-capture listener sees neither the persona delivery
   `);
   s.upgrade(DELIVERED, { gpc: false });
   assert.equal(s.ua(), DELIVERED.ua, 'the shim consumed the handshake');
-  assert.equal(s.ctx.navigator.globalPrivacyControl, undefined, 'gpc.js heard {gpc:false} through the shim\'s relay');
+  assert.equal(s.ctx.navigator.globalPrivacyControl, false, 'gpc.js heard {gpc:false} through the shim\'s relay');
   assert.equal(s.ctx.__stolen, null, 'REGRESSION: a page listener read the delivered payload');
   assert.equal(s.ctx.__fires, 0, 'REGRESSION: a page listener fired on the delivery or on the relay');
 });
@@ -1529,7 +1531,7 @@ test('B9 GUARD: with the shim never booted, Object.prototype.gpc/enabled cannot 
   // down, so the guard above is own-property discipline and not a dead branch.
   const t = bootRealm({ gpc: true, shim: false });
   t.send({ ok: true, enabled: true, gpc: false, site: 'x.test', gpcNonce: t.gpcBoot.nonce });
-  assert.equal(t.ctx.navigator.globalPrivacyControl, undefined, 'control: a genuine {gpc:false} still takes the signal down');
+  assert.equal(t.ctx.navigator.globalPrivacyControl, false, 'control: a genuine {gpc:false} still takes the signal down');
 
   // `gpcNonce` is read as an own property too, for the same reason — though a
   // prototype-supplied nonce could never have MATCHED (it is compared against a

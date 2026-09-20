@@ -90,16 +90,17 @@ test('a site exception emits a header REMOVE, never an allow rule', async () => 
   await GPC.setSiteException('www.Example-Bank.com', true);
 
   const rules = [...dynamicRules.values()];
-  assert.equal(rules.length, 1);
-  const [rule] = rules;
+  assert.equal(rules.length, 2, 'one condition cannot cover both halves — see the next test');
 
-  assert.equal(rule.action.type, 'modifyHeaders',
-    'an allow rule here would also unblock every tracker on the site');
-  assert.equal(rule.action.requestHeaders[0].header, 'Sec-GPC');
-  assert.equal(rule.action.requestHeaders[0].operation, 'remove');
-  assert.ok(rule.priority > 1, 'must outrank rule 5000 to suppress it');
-  assert.ok(rule.id >= 1_100_000 && rule.id < 1_101_000,
-    `id ${rule.id} outside the reserved GPC exception range`);
+  for (const rule of rules) {
+    assert.equal(rule.action.type, 'modifyHeaders',
+      'an allow rule here would also unblock every tracker on the site');
+    assert.equal(rule.action.requestHeaders[0].header, 'Sec-GPC');
+    assert.equal(rule.action.requestHeaders[0].operation, 'remove');
+    assert.ok(rule.priority > 1, 'must outrank rule 5000 to suppress it');
+    assert.ok(rule.id >= 1_100_000 && rule.id < 1_101_000,
+      `id ${rule.id} outside the reserved GPC exception range`);
+  }
 });
 
 test('exception hosts are normalised', async () => {
@@ -107,13 +108,30 @@ test('exception hosts are normalised', async () => {
   assert.deepEqual(list, ['example-bank.com'], 'www. and case should be stripped');
 });
 
-test('the exception covers the site as both request and initiator', async () => {
-  const [rule] = [...dynamicRules.values()];
-  // main_frame navigation matches on requestDomains; subresources on the page
-  // match on initiatorDomains. Missing either leaks the header.
-  assert.deepEqual(rule.condition.requestDomains, ['example-bank.com']);
-  assert.deepEqual(rule.condition.initiatorDomains, ['example-bank.com']);
-  assert.ok(rule.condition.resourceTypes.includes('main_frame'),
+test('the exception covers the site as request OR initiator — two rules, never one', () => {
+  // ⚠ THE COMMENT THAT USED TO BE HERE SAID THE OPPOSITE OF THE PLATFORM.
+  //
+  // It read: "main_frame navigation matches on requestDomains; subresources on
+  // the page match on initiatorDomains. Missing either leaks the header." That
+  // is true of two rules and false of one, because DNR **ANDs** the fields
+  // inside a single `condition`. With both in one condition the rule matched
+  // only a request that was BOTH to the host and from it, so the entry
+  // navigation — which has no initiator at all — never matched, and the site
+  // got `Sec-GPC: 1` on the document request while the popup said it had not
+  // been sent. Chrome's own `testMatchOutcome` and a header capture both
+  // confirmed it (review 2026-09-19, G1). The test passed the whole time.
+  const rules = [...dynamicRules.values()];
+  const byRequest = rules.find((r) => r.condition.requestDomains);
+  const byInitiator = rules.find((r) => r.condition.initiatorDomains);
+
+  assert.ok(byRequest && byInitiator, 'both halves must exist as SEPARATE rules');
+  assert.deepEqual(byRequest.condition.requestDomains, ['example-bank.com']);
+  assert.equal(byRequest.condition.initiatorDomains, undefined,
+    'an initiator condition here is ANDed, and the entry navigation has no initiator');
+  assert.deepEqual(byInitiator.condition.initiatorDomains, ['example-bank.com']);
+  assert.equal(byInitiator.condition.requestDomains, undefined,
+    'ANDing this back would drop every third-party request the excepted page makes');
+  assert.ok(byRequest.condition.resourceTypes.includes('main_frame'),
     'the top-level navigation is where sites look for the signal');
 });
 
@@ -225,18 +243,24 @@ test('page half: it publishes a boot nonce, once, on the gpc channel', async () 
   assert.match(boot.nonce, /^[0-9a-f]{32}$/, '128 bits of hex from crypto.getRandomValues');
 });
 
-test('page half: an authenticated gpc:false takes the signal back down', async () => {
+test('page half: an authenticated gpc:false takes the signal back down to FALSE', async () => {
   const { boot, send, nav } = await freshPage();
   send({ ok: true, enabled: true, gpc: false, site: 'usaa.com', persona: {}, gpcNonce: boot.nonce });
-  assert.equal(nav.globalPrivacyControl, undefined);
+  // Spec: "The value is false if no Sec-GPC header field would be sent."
+  // It used to `delete` the property, which is not a conformant value and, on
+  // Firefox, deleted the BROWSER's own (review 2026-09-19, G2).
+  assert.equal(nav.globalPrivacyControl, false);
 });
 
-test('page half: an authenticated allowlist stand-down drops the signal too', async () => {
+test('page half: an authenticated allowlist stand-down restores what the browser had', async () => {
   // The per-site allowlist emits allowAllRequests at priority 100000, which
-  // suppresses the Sec-GPC header. The property has to agree.
-  const { boot, send, nav } = await freshPage();
+  // suppresses the Sec-GPC header. The property has to agree — and because
+  // "Nullecho is switched off here" is different from "GPC is off", this one
+  // hands the property back entirely: absent on a browser that never had it.
+  const { boot, send, nav, Navigator } = await freshPage();
   send({ ok: true, enabled: false, gpc: true, site: 'a.test', persona: null, gpcNonce: boot.nonce });
   assert.equal(nav.globalPrivacyControl, undefined);
+  assert.equal(Object.getOwnPropertyDescriptor(Navigator.prototype, 'globalPrivacyControl'), undefined);
 });
 
 test('page half: an authenticated gpc:true leaves the signal up', async () => {
@@ -266,16 +290,16 @@ test('page half: a hostile page cannot switch GPC off without the nonce', async 
   // …and the real handshake still works afterwards: a rejected forgery must not
   // consume the one-shot, or shouting first becomes a denial-of-service.
   send({ ok: true, enabled: true, gpc: false, site: 'a.test', gpcNonce: boot.nonce });
-  assert.equal(nav.globalPrivacyControl, undefined);
+  assert.equal(nav.globalPrivacyControl, false);
 });
 
 test('page half: the config is applied once; a replay of the real payload is ignored', async () => {
   const { boot, send, nav } = await freshPage();
   const real = { ok: true, enabled: true, gpc: false, site: 'a.test', gpcNonce: boot.nonce };
   send(real);
-  assert.equal(nav.globalPrivacyControl, undefined);
+  assert.equal(nav.globalPrivacyControl, false);
   send({ ...real, gpc: true });   // same nonce, opposite instruction
-  assert.equal(nav.globalPrivacyControl, undefined, 'a replay moved the signal');
+  assert.equal(nav.globalPrivacyControl, false, 'a replay moved the signal');
 });
 
 test('page half: malformed payloads are ignored, not obeyed', async () => {

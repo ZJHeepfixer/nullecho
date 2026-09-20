@@ -36,14 +36,33 @@
  * Watch item (D6): California AB 566 requires browsers to ship a built-in
  * opt-out signal from 2027-01-01, which may make this feature redundant.
  *
- * ─── GPC is a disclosed signal, and that is not a fingerprinting bug ───────
+ * ─── GPC is a disclosed signal. Its IMPLEMENTATION is not. ─────────────────
  *
  * Chrome does not implement `navigator.globalPrivacyControl` natively, so a
  * page that sees it is looking at either an extension or a non-Chrome browser.
- * That costs roughly a bit of entropy, and no amount of `toString` masking can
- * hide it — the entire point of GPC is to be *seen*. This is the one place in
- * Nullecho where announcing yourself is the feature, which is exactly why it is a
- * per-user toggle and why layer 2 must not be judged by the same standard.
+ * That costs roughly a bit of entropy, and it is the feature: the entire point
+ * of GPC is to be *seen*. This is the one place in Nullecho where announcing
+ * yourself is the point, which is why it is a per-user toggle and why layer 2
+ * must not be judged by the same standard.
+ *
+ * ⚠ That argument used to end "…and no amount of `toString` masking can hide
+ * it", which conflated two different things and was wrong about the second
+ * (review 2026-09-19, G3). Disclosing *that the signal is on* is ~1 bit and is
+ * the feature. Disclosing *which software is sending it* is not the feature and
+ * is a stable cross-site bit that undoes some of what the persona lane buys.
+ * Measured in Chrome for Testing 147: `desc.get.name` was `"get"` and
+ * `desc.get.toString()` was `"get() { return true; }"`, where every other
+ * accessor on `Navigator.prototype` reads `"get <attr>"` / `[native code]` — a
+ * one-line detector with no false positives, and on Firefox (which ships GPC
+ * natively) it separated Nullecho from the browser's own signal. Both are now
+ * fixed here to the same standard `shim.js` holds itself to (DECISIONS.md D32).
+ *
+ * ⚠ HONEST LIMIT, not fixed and not claimed fixed: on Chrome the property is
+ * the LAST own key of `Navigator.prototype`, because it is appended at
+ * document_start; a WebIDL member sits in declaration order. Nothing an
+ * in-page script can do reorders an interface's own keys, so a page that
+ * compares key ORDER still learns the property was installed rather than
+ * declared. See DECISIONS.md D38.
  *
  * ─── Known breakage ────────────────────────────────────────────────────────
  *
@@ -149,6 +168,13 @@
     // through this, so a field the loader OMITTED cannot be supplied by the page's
     // `Object.prototype`.
     const rawHasOwn = Object.prototype.hasOwnProperty;
+    // D32/D38: the getter's SHAPE and SOURCE are built from these. `rawFuncToString`
+    // is whatever layer owns `Function.prototype.toString` when we boot — in the
+    // shipped manifest that is `shim.js`'s masking replacement, which runs first.
+    const rawGetOwnPropDesc = Object.getOwnPropertyDescriptor;
+    const RawFunctionProto = Function.prototype;
+    const rawFuncToString = RawFunctionProto.toString;
+    const rawIndexOf = String.prototype.indexOf;
     // ─── END CAPTURED BUILTINS ────────────────────────────────────────────
 
     /**
@@ -183,38 +209,178 @@
       return diff === 0;
     }
 
+    // ── the property: its value, and its shape ────────────────────────────
+    //
+    // Spec (W3C GPC, 2026-09-17 WD): `readonly attribute boolean
+    // globalPrivacyControl`, and "The value is `false` if no `Sec-GPC` header
+    // field would be sent; otherwise, the value is `true`." `undefined` is not
+    // a conformant value, and `delete` is not a conformant way to reach it —
+    // review 2026-09-19 G2. On Firefox, which implements GPC natively, the old
+    // `delete` removed the BROWSER's own property and left the user with a
+    // Firefox where `'globalPrivacyControl' in Navigator.prototype === false`:
+    // a state no stock Firefox can produce, and therefore a stronger identifier
+    // than the one the per-site exception was meant to avoid.
+
+    const GPC_PROP = 'globalPrivacyControl';
+    /**
+     * A sibling accessor on the same interface, used ONLY as a formatting
+     * model for the masked source. It must be one the shim does not patch, so
+     * that what we copy is the engine's own spelling — measured 2026-09-19:
+     * Chrome for Testing 147 prints `function get onLine() { [native code] }`;
+     * Firefox 156 prints `function onLine() {\n    [native code]\n}`, with no
+     * `get ` and with newlines. Copying beats assuming.
+     */
+    const MODEL_PROP = 'onLine';
+
+    const NAV_PROTO = RawNavigator ? RawNavigator.prototype : null;
+
+    /**
+     * The descriptor the BROWSER shipped, captured before we overwrite it, and
+     * the value it yields. Firefox ships GPC natively, so neither is
+     * hypothetical — and by D21 discipline this is read once, at boot, not
+     * looked up later on an object the page has had time to touch.
+     */
+    const nativeDesc = NAV_PROTO ? rawGetOwnPropDesc(NAV_PROTO, GPC_PROP) : undefined;
+    const nativeValue = (() => {
+      if (!nativeDesc) return undefined;
+      if (!nativeDesc.get) return nativeDesc.value;
+      try { return rawApply(nativeDesc.get, navigator, []); } catch { return undefined; }
+    })();
+
+    // Getter SHORTHAND, twice, once per value. D32: a function defined this way
+    // has exactly `length` and `name`, no own `prototype`, and is not a
+    // constructor — a native WebIDL accessor's shape — and its `name` is
+    // "get globalPrivacyControl", which is what every other accessor on
+    // `Navigator.prototype` is called. A plain `{ get() {…} }` is named "get".
+    const onHolder = { get globalPrivacyControl() { return true; } };
+    const offHolder = { get globalPrivacyControl() { return false; } };
+    const getOn = rawGetOwnPropDesc(onHolder, GPC_PROP).get;
+    const getOff = rawGetOwnPropDesc(offHolder, GPC_PROP).get;
+
+    /**
+     * What a native accessor on this interface stringifies to, with the model's
+     * name swapped for ours — so the spelling is the ENGINE's, not an assumption
+     * about Chrome. Falls back to the `markNative` form `shim.js` uses when
+     * there is no usable model (a test rig, or a browser without `onLine`).
+     */
+    const NATIVE_SOURCE = (() => {
+      const fallback = 'function get ' + GPC_PROP + '() { [native code] }';
+      try {
+        const d = NAV_PROTO ? rawGetOwnPropDesc(NAV_PROTO, MODEL_PROP) : null;
+        if (!d || typeof d.get !== 'function') return fallback;
+        const src = rawApply(rawFuncToString, d.get, []);
+        if (typeof src !== 'string') return fallback;
+        if (rawApply(rawIndexOf, src, ['[native code]']) < 0) return fallback;
+        const at = rawApply(rawIndexOf, src, [MODEL_PROP]);
+        if (at < 0) return fallback;
+        return rawApply(rawStrSlice, src, [0, at])
+             + GPC_PROP
+             + rawApply(rawStrSlice, src, [at + MODEL_PROP.length]);
+      } catch { return fallback; }
+    })();
+
+    /**
+     * `shim.js` owns `Function.prototype.toString` and masks every function IT
+     * installs through a WeakMap it alone can reach. `gpc.js` is a separate
+     * classic script in the same world with no way into that map, so it layers
+     * one more masking wrapper on top: ours for our two getters, delegate for
+     * everything else, and — the part that matters — the wrapper answers for
+     * ITSELF with whatever the layer below said about itself, because otherwise
+     * `Function.prototype.toString.toString()` would print this file. Echoing
+     * the layer below is the zero-delta answer: with the shim present that is
+     * `[native code]`, with no shim it is the engine's own native string, and
+     * in both cases the page sees exactly what it would have seen without us.
+     * Installed once, at document_start, before any page script.
+     *
+     * Residual: `shim.js`'s `restoreAll()` on a whole-extension stand-down puts
+     * the original `toString` back over this wrapper. That is the allowlisted
+     * case, where `standDown()` below has already handed the property back, so
+     * there is nothing left to mask.
+     */
+    (() => {
+      try {
+        const d = rawGetOwnPropDesc(RawFunctionProto, 'toString');
+        if (!d || typeof d.value !== 'function') return;
+        const prev = d.value;
+        // What the layer below says about ITSELF — native, or shim.js's mask.
+        let selfSrc;
+        try { selfSrc = rawApply(prev, prev, []); }
+        catch { selfSrc = 'function toString() { [native code] }'; }
+        const holder = {
+          toString() {
+            if (this === getOn || this === getOff) return NATIVE_SOURCE;
+            if (this === masked) return selfSrc;
+            return rawApply(prev, this, []);
+          },
+        };
+        const masked = rawGetOwnPropDesc(holder, 'toString').value;
+        rawDefineProperty(RawFunctionProto, 'toString', {
+          value: masked,
+          writable: d.writable,
+          enumerable: d.enumerable,
+          configurable: d.configurable,
+        });
+      } catch { /* leave the source visible rather than break the page */ }
+    })();
+
     /** True only while *we* own the property, so we never delete a native one. */
     let ownedByUs = false;
 
+    function define(getter) {
+      rawDefineProperty(NAV_PROTO, GPC_PROP, {
+        get: getter,
+        // configurable: true matches the spec'd property, and is what lets us
+        // move the signal on a site the user has excepted. The observed failure
+        // mode is sites *reading* GPC and refusing service — not sites
+        // overwriting it — so locking the property down buys nothing and costs
+        // us the recovery path.
+        configurable: true,
+        enumerable: true,
+      });
+      ownedByUs = true;
+    }
+
     function setSignal(on) {
-      if (!RawNavigator || typeof navigator === 'undefined') return;
-      if (on) {
-        if (ownedByUs) return;
-        try {
+      if (!NAV_PROTO || typeof navigator === 'undefined') return;
+      try {
+        if (on) {
+          if (ownedByUs) return;
           // Already true? Another extension or a GPC-native browser got here
           // first. Redefining would be a no-op at best and a detectable
           // double-shim at worst.
-          if (navigator.globalPrivacyControl === true) return;
-          rawDefineProperty(RawNavigator.prototype, 'globalPrivacyControl', {
-            get() { return true; },
-            // configurable: true matches the spec'd property, and is what lets
-            // us take the signal back down on a site the user has excepted.
-            // The observed failure mode is sites *reading* GPC and refusing
-            // service — not sites overwriting it — so locking the property
-            // down buys nothing and costs us the recovery path.
-            configurable: true,
-            enumerable: true,
-          });
-          ownedByUs = true;
-        } catch {
-          // Non-configurable native definition: the browser ships GPC itself.
+          if (navigator[GPC_PROP] === true) return;
+          define(getOn);
+          return;
         }
-      } else if (ownedByUs) {
-        try {
-          delete RawNavigator.prototype.globalPrivacyControl;
+        // OFF means "no Sec-GPC header would be sent", which the spec says reads
+        // `false` — not absent. Where the browser's own property already says
+        // exactly that, hand it back instead: an untouched native accessor is
+        // strictly better than an identical-looking replacement.
+        if (nativeDesc && nativeValue === false) {
+          rawDefineProperty(NAV_PROTO, GPC_PROP, nativeDesc);
           ownedByUs = false;
-        } catch { /* someone locked it after us */ }
+          return;
+        }
+        if (nativeDesc && !ownedByUs) return;   // a native `true` we never took over
+        define(getOff);
+      } catch {
+        // Non-configurable native definition: the browser ships GPC itself.
       }
+    }
+
+    /**
+     * The user allowlisted this site: Nullecho stands down here entirely, so the
+     * property goes back to exactly what the browser had — absent on Chrome,
+     * the native accessor on Firefox. This is NOT the same as GPC being off,
+     * which is a preference the spec wants reported as `false`.
+     */
+    function standDown() {
+      if (!NAV_PROTO) return;
+      try {
+        if (nativeDesc) rawDefineProperty(NAV_PROTO, GPC_PROP, nativeDesc);
+        else if (ownedByUs) delete NAV_PROTO[GPC_PROP];
+        ownedByUs = false;
+      } catch { /* someone locked it after us */ }
     }
 
     /**
@@ -247,8 +413,10 @@
       nonce = null;                                    // used once; no replay value
       // `enabled === false` means the user allowlisted this site outright. The
       // per-site allowlist emits a DNR `allow` rule, which suppresses the
-      // Sec-GPC header too — so dropping the JS property here keeps the two
-      // halves telling the same story.
+      // Sec-GPC header too — so handing the property back here keeps the two
+      // halves telling the same story. `gpc === false` is a different fact:
+      // the signal is off, the header is not sent, and the spec says the
+      // property must say `false` rather than vanish (G2).
       //
       // OWN properties, never `cfg.gpc` (D29). Authentication proves the loader
       // sent this message; it says nothing about the fields the loader left OUT,
@@ -260,8 +428,8 @@
       // carries neither `gpc` nor `enabled`. `Object.prototype.gpc = false` then
       // suppressed the user's do-not-sell signal: a privacy regression the page
       // could trigger, on the one path where the extension is already degraded.
-      const on = ownField(cfg, 'gpc') !== false && ownField(cfg, 'enabled') !== false;
-      setSignal(on);
+      if (ownField(cfg, 'enabled') === false) standDown();
+      else setSignal(ownField(cfg, 'gpc') !== false);
       return true;
     }
 
@@ -327,6 +495,9 @@
   /** Reserved runtime id range — see ext/rules/validate.mjs DYNAMIC_RANGES. */
   const EXCEPTION_RULE_BASE = 1_100_000;
   const EXCEPTION_RULE_LIMIT = 1000;
+  /** Two rules per excepted host — see `syncExceptionRules`. */
+  const RULES_PER_EXCEPTION = 2;
+  const MAX_EXCEPTIONS = EXCEPTION_RULE_LIMIT / RULES_PER_EXCEPTION;
 
   // Namespaced to match the sibling lanes' convention (`nullecho:heuristics:v1`).
   const STORAGE_KEY = 'nullecho:gpc:v1';
@@ -375,6 +546,34 @@
    * would also switch off ad, analytics and social blocking on that site —
    * the opposite of what a user asking for "GPC off, please" wants. A
    * competing modifyHeaders rule at higher priority suppresses just the header.
+   *
+   * TWO rules per host, and that is the whole of review 2026-09-19 G1.
+   *
+   * DNR **ANDs** the fields inside one `condition`. A single condition carrying
+   * both `requestDomains` and `initiatorDomains` therefore matched only a
+   * request that was BOTH to the host and from it — which the entry navigation
+   * is not: a URL typed, bookmarked, opened in a new tab or followed from
+   * another site has no initiator at all. Chrome's own matcher, asked directly
+   * with `chrome.declarativeNetRequest.testMatchOutcome` in Chrome for Testing
+   * 147 with `a.test` excepted:
+   *
+   *   top-level nav to a.test (NO initiator)    -> [5200, 5000]   exception MISSED
+   *   top-level nav to a.test (initiator a.test)-> [1100000, 5200, 5000]
+   *   a.test subresource -> a.test              -> [1100000, 5200, 5000]
+   *   a.test page -> third.test (3P)            -> [5200, 5000]   exception MISSED
+   *   b.test page -> a.test subresource         -> [5200, 5000]   exception MISSED
+   *
+   * …and a header capture agreed: the document request carried `Sec-GPC: 1`
+   * while the popup printed "Global Privacy Control was **not** sent to this
+   * site". The exclusion lists on rule 5000 behave the OPPOSITE way — they are
+   * ORed — which is why the shipped breakage list was correct and only the
+   * user-facing exception was broken.
+   *
+   * So: one rule keyed on `requestDomains` (the entry navigation and every
+   * request TO the host) and one on `initiatorDomains` (every request the
+   * excepted page makes, third parties included). Together they approximate the
+   * top-level scoping the spec actually names — `gpcAtNavigation` — which is
+   * also what G8 asks for.
    */
   async function syncExceptionRules() {
     await loadUserExceptions();
@@ -384,19 +583,28 @@
                   && r.id < EXCEPTION_RULE_BASE + EXCEPTION_RULE_LIMIT)
       .map((r) => r.id);
 
-    const addRules = userExceptions.slice(0, EXCEPTION_RULE_LIMIT).map((host, i) => ({
-      id: EXCEPTION_RULE_BASE + i,
-      priority: 2, // must beat rule 5000's priority 1
-      action: {
-        type: 'modifyHeaders',
-        requestHeaders: [{ header: 'Sec-GPC', operation: 'remove' }],
-      },
-      condition: {
-        requestDomains: [host],
-        initiatorDomains: [host],
-        resourceTypes: HEADER_RESOURCE_TYPES,
-      },
-    }));
+    const action = {
+      type: 'modifyHeaders',
+      requestHeaders: [{ header: 'Sec-GPC', operation: 'remove' }],
+    };
+    const addRules = [];
+    userExceptions.slice(0, MAX_EXCEPTIONS).forEach((host, i) => {
+      const base = EXCEPTION_RULE_BASE + i * RULES_PER_EXCEPTION;
+      addRules.push(
+        {
+          id: base,
+          priority: 2, // must beat rule 5000's priority 1
+          action,
+          condition: { requestDomains: [host], resourceTypes: HEADER_RESOURCE_TYPES },
+        },
+        {
+          id: base + 1,
+          priority: 2,
+          action,
+          condition: { initiatorDomains: [host], resourceTypes: HEADER_RESOURCE_TYPES },
+        },
+      );
+    });
 
     await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds, addRules });
   }
@@ -453,6 +661,19 @@
       const h = normalise(host);
       if (!h || !userExceptions) return false;
       return userExceptions.some((d) => h === d || h.endsWith(`.${d}`));
+    },
+
+    /**
+     * True when the USER excepted this host, as opposed to Nullecho shipping
+     * GPC off here because the site breaks. The popup needs the difference:
+     * one is a switch the user can flip back, the other is a shipped fact
+     * with a different sentence attached (review 2026-09-19 G1 / G4).
+     */
+    async isUserExcepted(host) {
+      const h = normalise(host);
+      if (!h) return false;
+      const user = await loadUserExceptions();
+      return user.some((d) => h === d || h.endsWith(`.${d}`));
     },
 
     /**

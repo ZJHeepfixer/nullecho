@@ -12,7 +12,7 @@
  *     rather than hiding them behind a link.
  */
 
-import { MSG, CATEGORY_LABELS } from '../src/protocol.js';
+import { MSG, GPC_MSG, CATEGORY_LABELS } from '../src/protocol.js';
 import {
   siteReport,
   siteShareText,
@@ -122,6 +122,7 @@ function render(s) {
   $('stat-fp').textContent = nf.format(s.stats?.fp ?? 0);
 
   renderReport(s, enabled);
+  renderGpcSite(s);
   renderPersona(s, enabled);
   renderTrackers(s);
   renderCookiesStripped(s);
@@ -157,6 +158,7 @@ function renderReport(s, enabled) {
     blockingEnabled: enabled,
     gpcSent: !!s.gpc?.sent,
     gpcExcepted: !!s.gpc?.excepted,
+    gpcUserExcepted: !!s.gpc?.userExcepted,
     strictFingerprinting: !!s.strictFingerprinting,
     isCalifornian: !!s.settings?.isCalifornian,
     dropFiled: !!s.settings?.dropFiled,
@@ -284,8 +286,14 @@ async function runRemedy(action) {
     case 'enable-gpc':
       if (LIVE) await sendMessage({ type: MSG.SET_SETTINGS, patch: { gpc: true } });
       pendingReload = true;
-      state = { ...state, gpc: { sent: true, excepted: false } };
+      state = { ...state, gpc: { sent: true, excepted: false, userExcepted: false } };
       render(state);
+      return;
+
+    case 'enable-gpc-site':
+      // The control is the switch below; drive it rather than duplicating it.
+      $('gpc-site').checked = true;
+      $('gpc-site').dispatchEvent(new Event('change'));
       return;
 
     case 'open-blocking-settings': return openOptions('#blocking');
@@ -340,6 +348,57 @@ function renderPersona(s, enabled) {
       ? 'This profile stays the same for this site until you rotate it. Every other site gets a different one, which is what breaks the join between them.'
       : 'Nullecho is off here, so this site sees your real device. This is the profile it would see if you turned Nullecho back on.';
   }
+}
+
+/**
+ * The per-site GPC exception — the documented recovery path for a site that
+ * misbehaves with the signal on.
+ *
+ * It was implemented in `gpc.js`, persisted, rule-synced and covered by eight
+ * tests, and **nothing in `popup/` or `options/` ever called it** (review
+ * 2026-09-19, G4). A user who hit GPC breakage outside the ~50 shipped hosts
+ * had exactly one lever: switch GPC off globally — the outcome the feature
+ * exists to avoid.
+ *
+ * Three states, three different sentences:
+ *   · signal off globally  → say so, and point at settings. No per-site switch,
+ *                            because there is nothing per-site to decide.
+ *   · shipped exception    → switch off and DISABLED. Nullecho ships GPC off on
+ *                            these ~50 hosts because they break; the content
+ *                            script is `exclude_matches`-ed off them, so there
+ *                            is no per-site state for the user to own.
+ *   · everything else      → a live switch.
+ */
+function renderGpcSite(s) {
+  const panel = $('gpc-panel');
+  const input = $('gpc-site');
+  const note = $('gpc-note');
+
+  if (!s.site || s.settings?.gpc === false) {
+    if (s.site && s.settings?.gpc === false) {
+      panel.hidden = false;
+      input.checked = false;
+      input.disabled = true;
+      note.textContent =
+        'The signal is switched off everywhere. Turn it back on in All settings — it is a legal opt-out if you live in one of the states that recognise it.';
+      return;
+    }
+    panel.hidden = true;
+    return;
+  }
+
+  const sent = !!s.gpc?.sent;
+  const userExcepted = !!s.gpc?.userExcepted;
+  const shipped = !sent && !userExcepted;
+
+  panel.hidden = false;
+  input.checked = sent;
+  input.disabled = shipped;
+  note.textContent = shipped
+    ? 'Nullecho ships the signal off on this site because it breaks when it sees it — refusing sign-in, or asking you to enable cookies.'
+    : sent
+      ? 'If this site stops working — “enable cookies”, a blank page, a sign-in that will not complete — turn the signal off here rather than everywhere. This covers this browser profile only.'
+      : 'You turned the signal off for this site. The Sec-GPC header is not sent on any request here, and the page is told the same.';
 }
 
 function renderTrackers(s) {
@@ -495,6 +554,22 @@ $('site-toggle').addEventListener('change', async (e) => {
   render({ ...state, enabled });
 });
 
+$('gpc-site').addEventListener('change', async (e) => {
+  const excepted = !e.target.checked;
+  if (LIVE) {
+    await sendMessage({
+      type: GPC_MSG.SET_SITE_EXCEPTION,
+      host: state.site,
+      excepted,
+    });
+  }
+  pendingReload = true;
+  // The header rule changes immediately; the JS property follows on the next
+  // navigation, which is what the reload notice is for.
+  state = { ...state, gpc: { sent: !excepted, excepted, userExcepted: excepted } };
+  render(state);
+});
+
 $('rotate').addEventListener('click', async () => {
   const btn = $('rotate');
 
@@ -598,7 +673,7 @@ const DEMO = {
   tabUrl: 'https://www.theguardian.com/international',
   identity: { tag: 'A7F3C1', rotatedAt: Date.now() - 1000 * 60 * 260 },
   settings: { gpc: true, isCalifornian: true, dropFiled: false },
-  gpc: { sent: true, excepted: false },
+  gpc: { sent: true, excepted: false, userExcepted: false },
   strictFingerprinting: false,
   /**
    * owner → how many of the user's own sites that company also appeared on.

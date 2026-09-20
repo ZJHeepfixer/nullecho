@@ -185,12 +185,22 @@
     </div>
     <p class="note">
       Adds a <code>Sec-GPC: 1</code> header and sets
-      <code>navigator.globalPrivacyControl</code>. In California, Colorado and
-      several other states this is a legally binding do-not-sell request — the
-      Sephora settlement was partly about ignoring it. Coverage is real but
-      partial: a 2025 study found only about a third of sites that appear to sell
-      or share data implement any opt-out signal, and only 44% of those honoured
-      all of them.
+      <code>navigator.globalPrivacyControl</code>. It is meant to opt you out —
+      it exercises any and all opt-out rights available to you under state laws,
+      which in most of them covers sale, sharing <em>and</em> targeted
+      advertising. If you live in California, Colorado or one of the several
+      other states that recognise it, that is legally binding on businesses the
+      law covers — the Sephora settlement was partly about ignoring it, and
+      enforcement has continued since. Coverage is real but partial: a 2025 study
+      found only about a third of sites that appear to sell or share data
+      implement any opt-out signal, and only 44% of those honoured all of them.
+    </p>
+    <p class="note">
+      <strong>This covers this browser profile only.</strong> Your phone, your
+      other browsers and any other profile on this machine each need their own —
+      the signal travels with the requests this browser makes, and nowhere else.
+      You can also turn the signal off for a single site from the Nullecho popup,
+      which is better than turning it off everywhere when one site breaks.
     </p>
   </section>
 
@@ -282,6 +292,20 @@
       including inferences drawn about you, and report that they did. One
       submission reaches every registered broker.
     </p>
+    <div class="field checkline">
+      <label class="switch">
+        <input type="checkbox" id="is-californian">
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+        <span>I live in California — show the DROP data-broker deletion step</span>
+      </label>
+    </div>
+    <p class="note">
+      Off by default, and it stays on this machine: Nullecho never measures or
+      guesses where you are, and nothing about this setting is sent anywhere. It
+      only decides whether the popup and this page suggest the California-only
+      deletion step. The walkthrough below is always available either way.
+    </p>
+
     <p>
       <a class="btn primary inlinebtn" id="drop-link" href="drop.html">Open the deletion walkthrough</a>
     </p>

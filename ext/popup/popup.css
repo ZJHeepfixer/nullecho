@@ -141,6 +141,25 @@ html, body {
   min-width: 22px;
 }
 
+/* ── per-site GPC exception ─────────────────────────────────────────────── */
+/* The recovery path for a site that breaks with the signal on. Deliberately a
+   plain sentence-case label rather than the uppercase On/Off of the header
+   switch: this one says what it does, not which way it is pointing. */
+
+.gpc-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.gpc-label {
+  font-size: 12.5px;
+  font-weight: 560;
+  color: var(--text);
+}
+.switch input:disabled + .track { opacity: .5; }
+.gpc-row:has(input:disabled) { cursor: default; }
+.gpc-row:has(input:disabled) .gpc-label { color: var(--text-3); }
+
 /* ── alerts ─────────────────────────────────────────────────────────────── */
 
 .alerts:empty { display: none; }

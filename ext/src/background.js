@@ -39,6 +39,7 @@ import { personaFor, newSalt, hashString, personasForFamily, hostFamily } from '
 import { buildLinkageGraph, reachByOwner } from './linkage.js';
 import {
   MSG,
+  GPC_MSG,
   RULESETS,
   BLOCKING_RULESET_IDS,
   DEFAULT_SETTINGS,
@@ -526,10 +527,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'nullecho:heuristics:reset':
       heuristics.reset().then(() => sendResponse({ ok: true }));
       return true;
-    case 'nullecho:gpc:setEnabled':
+    case GPC_MSG.SET_ENABLED:
       globalThis.NullechoGPC.setEnabled(message.enabled).then(() => sendResponse({ ok: true }));
       return true;
-    case 'nullecho:gpc:setSiteException':
+    case GPC_MSG.SET_SITE_EXCEPTION:
       globalThis.NullechoGPC.setSiteException(message.host, message.excepted)
         .then(() => sendResponse({ ok: true }));
       return true;
@@ -673,6 +674,13 @@ async function onGetSiteReport(msg) {
   try { gpcSent = await globalThis.NullechoGPC.isEnabledForSite(site); }
   catch (e) { warn('gpc.isEnabledForSite')(e); }
 
+  // "You turned it off here" and "it ships off here because the site breaks"
+  // are different sentences with different remedies, and only one of them is a
+  // switch the user can flip back. The popup needs to know which (G1 / G4).
+  let gpcUserExcepted = false;
+  try { gpcUserExcepted = await globalThis.NullechoGPC.isUserExcepted(site); }
+  catch (e) { warn('gpc.isUserExcepted')(e); }
+
   return {
     ok: true,
     site,
@@ -683,6 +691,8 @@ async function onGetSiteReport(msg) {
       sent: gpcSent,
       /** Signal is on globally but suppressed here specifically. */
       excepted: !!settings.gpc && !gpcSent,
+      /** …and the user is the one who suppressed it, so they can undo it. */
+      userExcepted: gpcUserExcepted,
     },
     strictFingerprinting: await strictFingerprintingEnabled(),
     /**

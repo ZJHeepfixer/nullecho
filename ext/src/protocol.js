@@ -31,6 +31,22 @@ export const MSG = {
   CLEAR_STATS: 'nullecho:clear-stats',           // { site? }  omit site = all
 };
 
+/**
+ * GPC control messages: UI → service worker.
+ *
+ * Deliberately NOT part of `MSG`. `background.js` builds `SHELL_TYPES` from
+ * `Object.values(MSG)` and routes everything in it to `handleShell`, which knows
+ * nothing about these two — they are answered by the §1 handlers ahead of it. A
+ * separate object is what lets the popup import the strings instead of retyping
+ * them, which is how `setSiteException` went a whole release with a handler, a
+ * storage key, rule syncing and eight tests, and no caller anywhere in `popup/`
+ * or `options/` (review 2026-09-19, G4).
+ */
+export const GPC_MSG = {
+  SET_ENABLED: 'nullecho:gpc:setEnabled',            // { enabled }
+  SET_SITE_EXCEPTION: 'nullecho:gpc:setSiteException', // { host, excepted }
+};
+
 /** DOM CustomEvent names bridging ISOLATED ⇄ MAIN world. */
 export const EVENTS = {
   /**
@@ -250,6 +266,19 @@ export const DEFAULT_SETTINGS = {
   },
   /** Sec-GPC header (DNR) + navigator.globalPrivacyControl (shim). */
   gpc: true,
+  /**
+   * User-declared residency, for the one feature that is California-only: the
+   * DROP data-broker deletion nudge. NEVER inferred, never measured, never
+   * sent anywhere — Colorado Rule 5.03(C) says a mechanism's provider "is not
+   * obligated to authenticate that a user is a Resident of Colorado", and
+   * Nullecho has no location by design.
+   *
+   * Default `false`, and off means the nudge is not shown. It was read in three
+   * places in `linkage.js` and written in exactly one — `popup.js`'s DEMO
+   * fixture — so every California branch rendered in design review and was dead
+   * in the shipped extension (review 2026-09-19, drop.md S1 / pricing.md).
+   */
+  isCalifornian: false,
   /**
    * Days between automatic salt rotations. 0 = off (the default).
    *
