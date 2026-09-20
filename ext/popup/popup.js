@@ -395,7 +395,7 @@ function renderPersona(s, enabled) {
   const note = document.querySelector('.persona + .note');
   if (note) {
     note.textContent = enabled
-      ? 'This profile stays the same for this site until you rotate it. Every other site gets a different one, which is what breaks the join between them.'
+      ? 'This profile stays the same for this site until you rotate it. Every other site gets a different one, which breaks the join most trackers use between them — a library that detects spoofed values can still re-join.'
       : 'Nullecho is off here, so this site sees your real device. This is the profile it would see if you turned Nullecho back on.';
   }
 }
