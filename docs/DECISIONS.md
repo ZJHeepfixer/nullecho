@@ -2454,3 +2454,215 @@ interface with the name substituted (the attacker's compare); `Function.prototyp
 itself the engine's way; no shim source reaches the page; a non-native model falls back to the
 template rather than to that extension's source; an engine that refuses to stringify anything still
 yields `[native code]`; and D33's no-console rule is re-asserted around the new code.
+
+---
+
+## D44 — The price disclosure notice reports OBSERVATIONS. Two sentences, both in full, behind a price gate. 2026-09-20.
+
+**Decision:** Nullecho ships a **price disclosure notice**: when a page displays one of the two
+algorithmic-pricing sentences a U.S. state mandates **and** publishes a machine-readable price, the
+popup says so and offers a local, copyable record. It never says whether a business is complying
+with anything. New feature files: `ext/src/pricing.js` (pure), `ext/src/pricing-scan.js` (content
+script, ISOLATED, `document_idle`, top frame only), `PRICING_MSG` + `PRICING_STORAGE_KEY` in
+`protocol.js`, `priceNoticeCard()` in `linkage.js`, a popup panel, an options explainer, and a
+§3 block at the end of `background.js`. 60 tests in `ext/src/pricing.test.js`.
+
+This replaces the **Checkout Report**, which was promised in three shipping documents and existed in
+zero lines of code — `git log --all -S'Checkout Report' -- ext/` was empty, so it was never built and
+then removed; it was never built at all. The promises came out in `44be2dd`. D16 carries the
+correction block.
+
+### The two sentences, and why there are exactly two
+
+| | Wording | Status | Matchable? |
+|---|---|---|---|
+| **New York** GBL § 349-a | `THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL DATA` | **In force.** Effective 2025-07-08; enforced from 2025-11-10, when the AG's voluntary stay lapsed 30 days after *NRF v. James* was dismissed with prejudice | **Yes, exactly.** Hard-coded by statute, no alternative wording. The only exact-matchable disclosure string in force in the U.S. |
+| **Connecticut** P.A. 26-130 § 11 | `THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA` | Effective **2027-07-01** | **Only the canonical form.** The statute adds *"or a substantially similar disclosure"*, so a compliant Connecticut page can use its own words. **A match means something; an absence means nothing.** |
+| Maryland | — | Com. Law § 13-321, a food-retailer ban | **No string exists.** The proposed § 13-322 carrying `…SET BY AN ALGORITHM **OR BY** USING YOUR PERSONAL DATA` was **struck by amendment before passage.** |
+| New Jersey | — | Fair Price Protection Act, a grocery ban | No prescribed wording. |
+
+⛔ **There is no Maryland branch, and a test asserts the struck string matches nothing.** Two
+independent passes "verified" § 13-322 as enacted, both by running `pdftotext` over the chapter-law
+PDF — which silently drops strikethrough. The controls that settle it: the state's codified-statute
+endpoint returns text for § 13-321 and **"File Not Found"** for § 13-322, and the codified
+§§ 13-408(a) / 13-411(a) each read *"does not apply to a violation of § 13-321"* with no "or
+§ 13-322". **Method rule: never verify a chapter law by text extraction — render the pages, or query
+the state's codified endpoint with a positive control.**
+
+### Why it reports observations and cannot report compliance
+
+Because the only enforcement action on the record settles it. The New York Attorney General's
+2026-01-08 letter to Maplebear/Instacart quotes a page carrying the mandated sentence **exactly as
+the statute prints it** and concludes that form of disclosure *"does not appear to comply with, among
+other things, the 'clear and conspicuous' requirements of the Act"* — it sat mid-sentence on a
+fine-print-linked policy page, and was absent from the pages that display prices. A page can carry
+the words and fail; a page with no words may simply not be personalizing, which the compliance
+guidance in the brief argues is the *likely* explanation in general retail. So the feature reports
+the words and stops.
+
+**The banned-phrase list is a test, not a style note.** `pricing.test.js` reads the copy between
+markers in `linkage.js`, `pricing.js`, `options.html` and `popup.html` and fails the build on
+*compliant*, *non-compliant*, *violation*, *illegal*, *required*, *you are protected*, *failed to
+disclose*, *missing disclosure*, *should have disclosed*, *breaking the law*, *unlawful* — and on any
+"N states" count, which has been wrong twice. One distinction is deliberate: **"requires" is allowed
+and "required" is not.** "New York law *requires* that sentence when a price was set by an algorithm
+using your personal data" is a statement about the statute and is true. "A disclosure was *required*
+here" is a statement about this merchant, and is the claim we cannot support.
+
+### What the matcher does, and the two specs it replaces
+
+Both written specs for this detector were defective, in opposite directions, and both were
+reproduced as failing behaviour before anything was built (review 2026-09-19, BLOCKER 2, 19 tests):
+
+- **Spec A** (`NY-349A-COMPLIANCE-SWEEP.md` §5) used a contiguous anchor plus
+  `/personalized algorithmic pricing/i` and an unbounded `/NEW YORK RESIDENTS:.*required to inform
+  you/i`. It fires on a page *denying* the practice, and the unbounded regex joins two unrelated
+  sentences on one flattened line.
+- **Spec B** (D16's substring list) used `using your personal data` — the one substring both live
+  sentences share. It also appears in *"the lawful bases for using your personal data"* and
+  *"withdraw consent to our using your personal data"*, i.e. the footer of nearly every commercial
+  page the extension will ever see.
+
+What shipped instead: **the FULL sentence, per regime, over normalized rendered text.** Normalization
+folds case, drops invisible characters (soft hyphen, zero-width space/joiner, word joiner, BOM, bidi
+marks), collapses every flavour of Unicode whitespace, and turns quotes/commas/brackets/dashes into
+spaces — while keeping a **map back to the original**, so the receipt quotes the sentence as the page
+displayed it rather than as we rewrote it.
+
+The interesting part is the **two** separator classes. A single newline becomes a space, because
+`innerText` puts exactly one between two `<div>`s and that is how a sentence split across elements
+reaches us. Sentence-ending punctuation (`. ! ? ; :`) and a **paragraph break** (two or more newlines,
+which is what `innerText` emits around a `<p>`) become a **barrier** the match may not cross. Without
+the barrier, *"…was set by an algorithm. Using your personal data, we then…"* assembles into a false
+match — and so does a headline reading *"This price was set by an algorithm"* above a paragraph
+starting *"Using your personal data…"*, which is the real Nieman Lab article shape.
+
+### The price gate, and why it is the guard rather than the matcher
+
+No text matcher can distinguish a price display from a newspaper quoting the statute; both contain
+the same sentence. What separates them is whether the page also publishes structured price data —
+JSON-LD `Offer`/`priceSpecification`, microdata `itemprop="price"`, `og:price:amount` /
+`product:price:amount`. The scan runs that check **first**, and the `innerText` read — the half that
+forces layout — runs **only** behind it. A test asserts the ordering *and* the guard
+(`price ? renderedText() : ''`), because ordering alone would let a refactor slip past it.
+
+⚠ **The residual false positive, stated rather than hidden:** a *publisher* article about the law, on
+a site whose article pages carry a subscription `Offer` in JSON-LD, would satisfy both halves. That
+is narrow — news article schema does not normally carry `offers.price` — and it is the honest cost of
+using structured price data as the gate. It is also the same category as the true positive: the
+publishers are the one observed group that *does* carry the disclosure, on renewal pricing.
+
+### Known misses, all deliberate
+
+| Shape | Result | Why |
+|---|---|---|
+| Sentence inside a **closed `<details>`** | **no notice** | The scan reads `innerText` — what the page rendered. A reader did not see it, so neither did we. Verified in Chrome 147 on a fixture. |
+| Sentence concatenated with **no whitespace** (`…SET BY ANALGORITHM…`, two inline elements) | **no notice** | That is not the mandated sentence as displayed. Inline elements introduce no space, so a reader sees `ANALGORITHM` too. |
+| Sentence split across a **paragraph break** | **no notice** | The barrier above. Accepting it would re-open the Nieman Lab headline. |
+| A **Connecticut** page using different-but-similar wording | **no notice** | Unmatchable by construction — the statute allows it. Said in the UI, not just here. |
+| Renewal **emails**, where the sweep found most real disclosures live | **out of reach** | A content script cannot read mail. Stated in D16 and unchanged. |
+
+### Measured cost
+
+Chrome for Testing 147.0.7727.15, a **430-element** fixture page, paired ABBA timing in the style of
+`harness/performance.html` (reps calibrated to clear the 0.1 ms clock clamp; per-round ratios, so the
+error bars are the measurement's own). Medians, relative standard deviation ≤ 3.5% throughout:
+
+| | median | p95 |
+|---|---|---|
+| Full scan, product page (price context present, clean layout) | **0.145 ms** | 0.151 ms |
+| Full scan, product page, layout dirtied first (pessimistic) | **0.164 ms** | 0.169 ms |
+| Page with **no** price context — the gate stops it | **0.033 ms** | 0.035 ms |
+| The price-context check alone | 0.034 ms | 0.035 ms |
+| `findDisclosure()` over 2,383 characters of rendered text | 0.089 ms | 0.094 ms |
+
+The gate costs the same whether or not it finds a price (ratio 1.04), and it is **4.4–5.0× cheaper**
+than a full scan — which is the whole point of running it first. Two passes per page load (idle, then
+~3 s later for client-routed flows) put the worst case around **0.33 ms per page**, against a 2 ms
+budget. A `MutationObserver` was rejected for exactly this reason: it would pay the scan per mutation
+burst on the heaviest pages in the catalogue.
+
+### Rendered, not asserted
+
+Chrome for Testing 147, the extension loaded unpacked from a scratch copy, nine fixture origins, the
+real popup read against a real site tab, **both colour schemes**, tab foregrounded before any
+computed style was read (D39). What fired and what did not:
+
+| Fixture | Notice |
+|---|---|
+| Product page, NY sentence **lower case, mid-sentence behind a colon** (Instacart's observed form) + JSON-LD `Offer` | **shown — NY** |
+| Connecticut canonical sentence + `product:price:amount` meta | **shown — CT** |
+| Sentence split across two `<div>`s, with `&nbsp;` and a **soft hyphen** inside "ALGORITHM" | **shown — NY** |
+| News article quoting the statute in full caps, **no price context** | nothing |
+| Privacy policy with all four FP4 anchors, **on a site with a price** | nothing |
+| The **struck Maryland string**, with a price | nothing |
+| Sentence inside a **closed `<details>`**, with a price | nothing |
+| JSON-LD price **commented out** of the markup | nothing |
+| Cookie banner naming personal data, with a price | nothing |
+
+`chrome.storage.local` held exactly three observations after all nine — `shop.test`, `ct.test`,
+`split.test` — and the full key list was `identity, pricingObservations, stats`.
+
+### The receipt
+
+One key, `pricingObservations`, capped at 200 entries, oldest dropped first, one writer. Per entry:
+site, URL **with the query string removed**, timestamp, which wording, the price and currency the
+page published, and ≤ 200 characters of the page's own text around the sentence. Re-observing the
+same URL, wording and price **replaces** rather than appends, so the 3-second second pass does not
+double the list; a *changed price* on the same URL is a new observation, which is the interesting
+case. The popup renders the exact text it would copy, before it is copied — the same promise the
+shareable site report makes. Nothing is ever sent anywhere; `manifest.test.js` fails the build if an
+egress API appears in the shipped tree, and `pricing.test.js` repeats the check against these two
+files specifically, because they are the ones that hold page text and a price at the same time.
+
+**Would change this:** a Second Circuit ruling in *NRF v. James* (fully briefed since 2026-02-24, no
+ruling as of 2026-09-19) striking § 349-a would make the New York branch dead text — treat the
+outcome as open; Rakoff dismissed the First Amendment challenge **with prejudice** under *Zauderer*.
+A third state mandating a fixed sentence adds a row to `SENTENCES` and a card to `NOTICE_COPY` and
+nothing else. A vendor convention for these disclosures — there is none today, every observed
+implementation is hand-written legal copy — would give a structural signal better than text.
+
+## D45 — The scan is a fourth content script, at `document_idle`, top frame only, in the ISOLATED world. 2026-09-20.
+
+**Decision:** `src/pricing.js` + `src/pricing-scan.js` are declared as one content-script entry in
+both manifests, `run_at: "document_idle"`, `all_frames: false`, `world: "ISOLATED"`,
+`matches: ["http://*/*", "https://*/*"]`, with no `match_origin_as_fallback` / `match_about_blank`.
+Every one of those differs from the three handshake scripts, and each difference is load-bearing.
+
+**`document_idle`, not `document_start`.** The other three run at `document_start` because the shim
+has to win a race against page script. This one has the opposite requirement: at `document_start`
+there is no rendered text to read. The manifest-order test in `protocol.test.js` now checks the
+handshake trio **by name** rather than by iterating the whole array, so adding a script with
+different timing cannot quietly relax the assertion that protects the handshake.
+
+**Top frame only.** A price in an ad iframe is not this page's price, and a disclosure in someone
+else's frame is not this page's disclosure. `all_frames: false`, plus a `globalThis.top !== globalThis`
+guard in the script, because the manifest and the code should agree without either being the only
+copy of the rule.
+
+**ISOLATED, and no DOM event channel.** The reverse channel D30 exists to authenticate is a MAIN↔
+ISOLATED bridge over DOM events, which a page can both forge and watch. This lane never enters the
+page realm: it speaks to the service worker over `chrome.runtime`, which a page cannot reach. So
+there is no token scheme here because there is nothing to authenticate — and the worker still takes
+the site and the URL from `sender`, never from the message body, the same rule `onGetPersona` and
+`onFpDetected` follow. A content script does not get to say which site it is.
+
+**Two timed passes, not an observer.** One at idle, one at ~3 s. See D44's cost table for why.
+
+**Silent.** No console call on any path in either file, asserted by a test (D33's rule, applied to a
+lane that never enters the page realm anyway — the belt is cheap). A storage failure in the worker
+goes to the worker's own `warn`, which no page can see, and it never carries the observed text or the
+price: a log line about a price is a log line about a person.
+
+**`pricing.js` has no `import`/`export`.** It is simultaneously a classic content script and an ES
+module imported for its side effect by `background.js`, the popup and the tests — the same dual shape
+`gpc.js` already uses, attaching one object to `globalThis`. The single literal `pricing-scan.js` has
+to inline is registered in `CONTENT_SCRIPT_LITERALS`, so `protocol.test.js` fails the build if the
+two spellings drift.
+
+**The `background.js` §3 block is at the END of the file, and its `import`s are with it.** Import
+declarations hoist, so they can sit inside the block rather than in a shared header — which keeps a
+third lane's whole footprint in one readable piece in a file two other lanes already write to, and
+means a concurrent edit to the header cannot collide with it. The block registers its **own**
+`onMessage` listener, synchronously at top level per this file's MV3 rule, and returns `false` for
+anything that is not one of its three message types; `handleShell` never sees them.

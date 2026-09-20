@@ -82,6 +82,18 @@ other browsers each need their own — and whether a given business is covered b
 state's opt-out duty, or acted on the signal, happens on their servers where a
 browser cannot see it.
 
+Nullecho also watches for something the page itself tells you. Two U.S. states
+name an exact sentence a business has to show when it sets a price from an
+algorithm that used your personal data: New York's is enforced today, and
+Connecticut's arrives on 1 July 2027 — though Connecticut also accepts a
+substantially similar sentence, so wording there can differ. When a page displays
+one of those sentences *and* publishes a machine-readable price, Nullecho says so
+in the popup and offers you a local record of what the page showed, which you can
+copy. It reports the words on the page and nothing beyond them: New York's
+Attorney General has already objected to a page that carried the exact sentence,
+so finding the words is not a finding about the business. The record never leaves
+your machine.
+
 Nullecho collects nothing about you: no account, no telemetry, no analytics, no
 crash reporting, nothing synced. And it will not be sold or transferred to a new
 owner — the most common way a trusted extension turns malicious is an acquisition
@@ -118,11 +130,22 @@ the description — a state-specific deletion workflow named up front reads as a
 second product, and *Quality Guidelines* says an extension must have one narrow
 purpose and must not bundle unrelated functionality.
 
+The **price disclosure notice** is placed the same way and for the same reason:
+it is not in the name, the summary, or the first paragraph, and it shows nothing
+at all on a page that has not displayed one of the two sentences. It belongs to
+the single purpose rather than sitting beside it — personalized pricing is what
+the cross-site profile is *for*, so telling a user when a page has said out loud
+that a price was set from their data is the same subject read from the other end.
+It adds no permission: the scan is a content script over text the page already
+rendered, and its record is one `chrome.storage.local` key.
+
 ## What's new in 0.1
 
 First release. Tracker blocking across four categories, Global Privacy Control,
-and per-origin device personas. Californians also get a walkthrough, on the
-options page, for the state's DROP data-broker deletion platform.
+per-origin device personas, and a notice when a shopping page displays one of the
+algorithmic-pricing sentences a U.S. state mandates. Californians also get a
+walkthrough, on the options page, for the state's DROP data-broker deletion
+platform.
 
 ## Permissions justification (for the store's permissions-review form)
 

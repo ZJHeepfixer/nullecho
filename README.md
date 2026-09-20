@@ -37,12 +37,17 @@ We can't see the result either.
   to where the site is; whether a given business is covered, and whether it complied, happens on
   their servers and is not observable from a browser. The signal covers **this browser profile
   only** — your phone and your other browsers each need their own.
+- **Price disclosure notice** — two U.S. states name an exact sentence a business has to show when
+  it sets a price from an algorithm that used your personal data: New York's is in force now,
+  Connecticut's arrives on 2027-07-01 and also accepts a substantially similar sentence. When a page
+  displays one of those sentences *and* publishes a machine-readable price, Nullecho says so and
+  offers you a local receipt of what the page showed. It reports the words on the page and nothing
+  more: New York's Attorney General has already objected to a page that carried the exact sentence,
+  so finding it is not a finding about the business — and Maryland and New Jersey legislated bans
+  with no wording at all, so there is nothing to look for there.
 - **DROP onboarding** (California) — walks you into the state platform that forces 600+ registered
   data brokers to delete, opt you out of sale, or record an exemption. The only feature here that
   *removes* data rather than obstructing collection.
-
-Planned, not built: an observation-only pricing-disclosure notice — see
-[`docs/review-2026-09-19/pricing.md`](docs/review-2026-09-19/pricing.md).
 
 ## What it does NOT do
 

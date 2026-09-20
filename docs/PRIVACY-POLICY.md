@@ -12,8 +12,9 @@ asserted from memory — see the grep citations.
 
 Nullecho blocks trackers (ads, analytics, social pixels, known fingerprinting
 vendors), sends the Global Privacy Control signal, shows each site a different but
-internally-consistent device profile, and offers a guided link to California's
-data-broker deletion platform (DROP).
+internally-consistent device profile, points out when a shopping page has
+displayed one of the algorithmic-pricing sentences a U.S. state mandates, and
+offers a guided link to California's data-broker deletion platform (DROP).
 
 Two qualifications belong here rather than in a footnote:
 
@@ -87,9 +88,23 @@ gives this exact list:
 | `nullecho:heuristics:v1` | Per-domain "strike" counts the passive tracker-detection observer has built (3 cross-site appearances → learned tracker) |
 | `nullecho:gpc:v1` | Sites where you've manually excepted the GPC signal because it broke something |
 | `nullecho.drop.residency`, `nullecho.drop.submittedAt` | Your California-residency answer and a date you typed, only if you use the DROP guide. Deliberately excludes name, birthdate, ZIP, or the state's deletion-request ID — those live only on California's own site, which Nullecho links to (`ext/options/drop.js`). |
+| `pricingObservations` | Pages that displayed one of the two algorithmic-pricing sentences a U.S. state mandates **and** published a machine-readable price. Per entry: the site, the page address **with its query string removed**, the time, which state's wording it was, the price and currency the page published, and up to 200 characters of the page's own text around the sentence. Capped at 200 entries, oldest dropped first. Written only by the block marked `§3` at the end of `ext/src/background.js`, which is the one writer of this key. |
 
 None of these keys contain your browsing history, page content, or anything
 identifying beyond a random salt and domains you've explicitly interacted with.
+
+**One key holds page text, so it gets its own paragraph.** `pricingObservations`
+stores a short excerpt of what a shopping page displayed — deliberately, because
+the point of the feature is to hand you a record you could give to a state
+Attorney General's office if you ever wanted to. It is still local-only in the
+same structural sense as everything above: there is no code in the shipped tree
+that could send it anywhere, and the build-failing test cited earlier is what
+holds that. Query strings are stripped before anything is written, because that
+is where carts, sessions and referral tokens live. The popup renders the exact
+text it would copy, before you copy it. Clearing it does not need an uninstall:
+the entries disappear with the extension, and "Copy receipt" is the only thing
+that ever moves one off the page it came from — into your own clipboard, by your
+own click.
 
 ## Data shared: none
 
