@@ -12,13 +12,15 @@
  *     rather than hiding them behind a link.
  */
 
-import { MSG, GPC_MSG, CATEGORY_LABELS } from '../src/protocol.js';
+import { MSG, GPC_MSG, PRICING_MSG, CATEGORY_LABELS } from '../src/protocol.js';
 import {
   siteReport,
   siteShareText,
+  priceNoticeCard,
   fpSurfaceLabel,
   FINDING,
 } from '../src/linkage.js';
+import '../src/pricing.js';
 
 const api = globalThis.chrome ?? globalThis.browser;
 /** True when running as a real extension popup; false when opened as a plain page. */
@@ -56,7 +58,18 @@ async function load() {
     url: tab?.url ?? '',
     tabId: tab?.id,
   });
-  return { ...res, tabId: tab?.id, tabUrl: tab?.url ?? '' };
+  // A second, small round trip rather than a field on the site report: the
+  // price-disclosure lane owns its own storage key and its own handler, and
+  // `null` is the answer for nearly every site (see background.js §3).
+  const pricing = res?.site
+    ? await sendMessage({ type: PRICING_MSG.GET_FOR_SITE, site: res.site })
+    : null;
+  return {
+    ...res,
+    pricing: pricing?.observation ?? null,
+    tabId: tab?.id,
+    tabUrl: tab?.url ?? '',
+  };
 }
 
 // ── formatting ──────────────────────────────────────────────────────────────
@@ -121,6 +134,7 @@ function render(s) {
   $('stat-blocked').textContent = nf.format(s.stats?.blocked ?? 0);
   $('stat-fp').textContent = nf.format(s.stats?.fp ?? 0);
 
+  renderPricingNotice(s);
   renderReport(s, enabled);
   renderGpcSite(s);
   renderPersona(s, enabled);
@@ -133,6 +147,42 @@ function render(s) {
   $('identity').textContent = id
     ? `identity ${id.tag} · rotated ${relTime(id.rotatedAt)}`
     : '';
+}
+
+// ── the price-disclosure notice ─────────────────────────────────────────────
+//
+// Shown only when this page displayed one of the two mandated sentences AND
+// published a machine-readable price. On every other site the panel stays
+// hidden and the popup is exactly what it was — a notice that fired everywhere
+// would be noise, and noise is how a notice stops being read.
+//
+// Nothing here decides anything about the law. The card's words come from
+// `priceNoticeCard()` in linkage.js, where a test reads them and fails the build
+// on a banned phrase.
+
+/** The receipt text currently on screen; the copy button never rebuilds it. */
+let receipt = '';
+
+function renderPricingNotice(s) {
+  const panel = $('pricing-panel');
+  const card = priceNoticeCard(s?.pricing ?? null);
+  if (!card) {
+    panel.hidden = true;
+    receipt = '';
+    return;
+  }
+
+  panel.hidden = false;
+  $('pricing-headline').textContent = card.headline;
+  $('pricing-body').textContent = card.body;
+  $('pricing-quote').textContent = card.displayed;
+  $('pricing-price').textContent = card.priceLabel;
+  $('pricing-caveat').textContent = card.caveat;
+
+  // Rendered in full, like the shareable site report above it: the user should
+  // be able to read exactly what they are about to hand to someone.
+  receipt = globalThis.NullechoPricing.receiptText(s.pricing);
+  $('pricing-receipt').textContent = receipt;
 }
 
 // ── the per-site report ─────────────────────────────────────────────────────
@@ -631,6 +681,33 @@ $('copy-report').addEventListener('click', async (e) => {
   }
   btn.textContent = ok ? 'Copied' : 'Select and press ⌘C';
   setTimeout(() => { btn.textContent = 'Copy report'; }, 2200);
+});
+
+$('copy-receipt').addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  // The text on screen, not a fresh build — same promise the site report makes.
+  const text = $('pricing-receipt').textContent || receipt;
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(text);
+    ok = true;
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents($('pricing-receipt'));
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    $('pricing-receipt-panel').open = true;
+  }
+  btn.textContent = ok ? 'Copied' : 'Select and press ⌘C';
+  setTimeout(() => { btn.textContent = 'Copy receipt'; }, 2200);
+});
+
+$('pricing-explain').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (!LIVE) { location.hash = '#pricing'; return; }
+  api.tabs.create({ url: api.runtime.getURL('options/options.html#pricing') });
+  window.close();
 });
 
 $('open-options').addEventListener('click', (e) => {

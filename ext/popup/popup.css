@@ -269,6 +269,74 @@ html, body {
   color: var(--text-3);
 }
 
+/* ── price-disclosure notice ────────────────────────────────────────────── */
+/* The one panel that is a statement rather than a counter, so it gets a real
+   headline instead of the small-caps label the other panels use. Still not an
+   alarm: the accent rule, not red — the page told the reader something true,
+   and rewarding that is the point (review NICE 1). Hidden on almost every page.
+
+   The quoted sentence is set in the mono face for one reason: it is EVIDENCE,
+   and it has to read as a transcription of the page rather than as our prose. */
+
+#pricing-panel {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-bg);
+}
+
+.pricing-h {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  font-weight: 640;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.pricing-body {
+  margin: 0 0 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.pricing-quote {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.pricing-price {
+  margin: 0 0 2px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.pricing-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 11px 0 0;
+}
+
+.pricing-actions .btn { width: auto; flex: 0 0 auto; }
+
+.pricing-link {
+  font-size: 11.5px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.pricing-link:hover { text-decoration: underline; }
+.pricing-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#pricing-receipt-panel { margin-top: 9px; }
+
 /* ── per-site report ────────────────────────────────────────────────────── */
 /* Describes the site, not the user. Same panel language as everything else —
    this is a finding list, not an alarm, so no red and no shields. */

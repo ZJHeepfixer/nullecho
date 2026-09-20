@@ -47,6 +47,34 @@ export const GPC_MSG = {
   SET_SITE_EXCEPTION: 'nullecho:gpc:setSiteException', // { host, excepted }
 };
 
+/**
+ * Price-disclosure observation messages.
+ *
+ * Deliberately NOT part of `MSG`, for the same reason `GPC_MSG` is not: these
+ * are answered by their own listener at the end of `background.js`, not by
+ * `handleShell`. Routing them through `SHELL_TYPES` would put a feature that
+ * holds page text and a price inside the shell's switch, where it does not
+ * belong.
+ *
+ * `OBSERVED` carries NO url and NO site: the worker takes both from `sender`,
+ * the browser's own account of where the content script is running, exactly as
+ * `onFpDetected` does. A content script never gets to say which site it is.
+ */
+export const PRICING_MSG = {
+  OBSERVED: 'nullecho:pricing:observed',        // { level, context, price, currency }
+  GET_FOR_SITE: 'nullecho:pricing:get-for-site', // { site } → { ok, observation }
+  FORGET: 'nullecho:pricing:forget',            // { site? }  omit site = all
+};
+
+/**
+ * The one `chrome.storage.local` key the price-disclosure feature writes.
+ *
+ * Its contents never leave the device — there is no egress API anywhere in the
+ * shipped tree and `manifest.test.js` fails the build if one appears. Declared
+ * in `docs/PRIVACY-POLICY.md` alongside the other keys.
+ */
+export const PRICING_STORAGE_KEY = 'pricingObservations';
+
 /** DOM CustomEvent names bridging ISOLATED ⇄ MAIN world. */
 export const EVENTS = {
   /**
@@ -425,6 +453,9 @@ export const CONTENT_SCRIPT_LITERALS = {
     EVENT_STATUS: EVENTS.STATUS,
     CHANNEL: HANDSHAKE.CHANNEL.GPC,
     BOOT_PHASE: HANDSHAKE.BOOT_PHASE,
+  },
+  'src/pricing-scan.js': {
+    MSG_PRICING_OBSERVED: PRICING_MSG.OBSERVED,
   },
 };
 

@@ -26,6 +26,7 @@
       <a href="#linkage">Across your sites</a>
       <a href="#sites">Sites</a>
       <a href="#pool">Profile pool</a>
+      <a href="#pricing">Pricing notices</a>
       <a href="#delete">Delete your data</a>
       <a href="#limits">Limits</a>
     </nav>
@@ -280,6 +281,105 @@
   </section>
 
   <!-- ── DROP ─────────────────────────────────────────────────────────── -->
+  <!-- ── price disclosure notices ──────────────────────────────────────── -->
+  <!-- Reached from the popup notice. Every sentence here is checked by a test
+       in ext/src/pricing.test.js against a banned-phrase list: this page
+       explains what words a page carried, and never whether a business is
+       doing what a statute asks. -->
+  <section class="card" id="pricing">
+    <h2>Pricing notices on shopping pages</h2>
+    <p class="lede">
+      Two U.S. states name an exact sentence a business has to show when it sets
+      a price from an algorithm that used your personal data. When Nullecho sees
+      one of those sentences on a page that also publishes a price, it tells you
+      in the popup. That is the whole feature: it reads what the page displayed.
+    </p>
+
+    <div class="limits">
+      <div class="limit">
+        <h3>New York — in force now</h3>
+        <p>
+          Gen. Bus. Law § 349-a has been enforced since 10 November 2025. Its
+          wording is fixed, word for word:
+          <strong>“THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL
+          DATA.”</strong> A business that personalizes a price from your data has
+          to put that sentence on, at or near the price, in the same medium.
+          Because the wording cannot vary, it is the one sentence a browser
+          extension can look for exactly.
+        </p>
+      </div>
+      <div class="limit">
+        <h3>Connecticut — from 1 July 2027</h3>
+        <p>
+          P.A. 26-130 § 11 names
+          <strong>“THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA”</strong>
+          — <em>or a substantially similar disclosure</em>. That last clause
+          matters more than it looks: a Connecticut page can say the same thing
+          in its own words and Nullecho will not recognise it. So a Connecticut
+          match means something; the absence of one means nothing at all.
+        </p>
+      </div>
+      <div class="limit">
+        <h3>Maryland and New Jersey chose bans, not sentences</h3>
+        <p>
+          Both states legislated in 2026, and neither prescribes any wording.
+          Maryland’s Com. Law § 13-321 bars dynamic pricing by large food
+          retailers and third-party delivery; New Jersey’s Fair Price Protection
+          Act bars personalized pricing on groceries. A draft Maryland section
+          that <em>would</em> have mandated a sentence was struck by amendment
+          before the bill passed, and it is quoted in a good deal of professional
+          commentary as though it survived. Nullecho has no branch for it.
+        </p>
+      </div>
+      <div class="limit">
+        <h3>Finding the sentence is not a finding about the business</h3>
+        <p>
+          In January 2026 New York’s Attorney General wrote to Instacart about a
+          page that carried the mandated sentence <em>exactly</em> as the statute
+          prints it, and said that form of disclosure “does not appear to comply
+          with, among other things, the ‘clear and conspicuous’ requirements of
+          the Act” — it sat mid-sentence on a policy page reached through fine
+          print, and was absent from the pages that actually show prices. So a
+          page can carry the words and still be in trouble, and a page with no
+          words at all may simply not be personalizing anything. Nullecho reports
+          the words. It does not grade anyone.
+        </p>
+      </div>
+      <div class="limit">
+        <h3>Why Nullecho watches for this at all</h3>
+        <p>
+          The Federal Trade Commission’s Proposed Enforcement Policy Statement on
+          Personalized Pricing (19 August 2026) describes consumers avoiding
+          personalized prices by “using a virtual private network or private
+          browsing functionality”. Per-site profiles and tracker blocking are the
+          browser-side half of that category. What Nullecho adds is the part
+          nobody else does: telling you when the page itself has said out loud
+          that a price was personalized.
+        </p>
+      </div>
+      <div class="limit">
+        <h3>It will not get you a lower price</h3>
+        <p>
+          We looked, and the evidence runs the other way. In the largest test of
+          it — 372 simultaneous searches, one browser full of tracking data and
+          one scrubbed — 88% of fares were identical, and of the pairs that
+          differed, 59% had the <em>higher</em> fare on the scrubbed browser.
+          Clearing your tracks raised prices more often than it lowered them.
+          Nullecho makes no claim about what you pay.
+        </p>
+      </div>
+    </div>
+
+    <p class="note">
+      The receipt the popup copies, and every observation behind it, stay on this
+      machine. Nullecho has no server, no account and no analytics, and a test
+      fails the build if any code that could send something is ever added. The
+      stored record holds the page address without its query string, the date,
+      the price the page published, and up to 200 characters of the text around
+      the sentence — nothing about you.
+    </p>
+  </section>
+
   <section class="card accent" id="delete">
     <h2>Delete data brokers already hold</h2>
     <p class="lede">

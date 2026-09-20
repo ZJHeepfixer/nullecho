@@ -53,6 +53,27 @@
       </div>
     </section>
 
+    <!-- The price-disclosure notice. Hidden on almost every page, and that is
+         the design: it appears only where this page displayed one of the two
+         sentences a state mandates AND published a machine-readable price. A
+         notice on every popup would be noise. Copy lives in linkage.js, where a
+         test reads it and fails the build on a banned phrase. -->
+    <section class="panel" id="pricing-panel" hidden>
+      <h2 class="pricing-h" id="pricing-headline">—</h2>
+      <p class="pricing-body" id="pricing-body"></p>
+      <p class="pricing-quote" id="pricing-quote"></p>
+      <p class="pricing-price" id="pricing-price"></p>
+      <p class="note" id="pricing-caveat"></p>
+      <div class="actions pricing-actions">
+        <button class="btn" id="copy-receipt" type="button">Copy receipt</button>
+        <a href="#" id="pricing-explain" class="pricing-link">What these sentences mean</a>
+      </div>
+      <details id="pricing-receipt-panel">
+        <summary>The receipt, exactly as it will be copied</summary>
+        <pre class="share-text" id="pricing-receipt"></pre>
+      </details>
+    </section>
+
     <!-- The per-site report. Describes the SITE, so sharing it discloses one
          origin the user chose to name and nothing else about them. See D10. -->
     <section class="panel report" id="report-panel" hidden>

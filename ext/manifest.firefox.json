@@ -180,6 +180,19 @@
       "all_frames": true,
       "match_about_blank": true,
       "world": "MAIN"
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "src/pricing.js",
+        "src/pricing-scan.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "ISOLATED"
     }
   ],
   "content_security_policy": {

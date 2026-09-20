@@ -531,6 +531,95 @@ export function siteShareText(report, opts = {}) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// THE PRICE-DISCLOSURE NOTICE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// The same honesty constraint that shapes the rest of this module, applied to a
+// harder case. `siteReport()` will not say "they tracked you" because the join
+// happens on someone else's server; this card will not say anything about
+// whether a merchant is doing what a statute asks, because the only enforcement
+// action on the record settles that it cannot be read off the page. The New
+// York Attorney General's 2026-01-08 letter to Maplebear/Instacart rejected a
+// disclosure that carried the mandated sentence **verbatim** — it failed on
+// where the sentence sat, not on what it said. So the vocabulary here is the
+// same as `couldLink` / `present` / `attempted`: the page *carries* wording, it
+// *displayed* a price. Never a verdict about the business.
+//
+// The banned-phrase list for this surface is not a style note — it is a test.
+// `pricing.test.js` reads the block between the two markers below and fails the
+// build on any of them, which is the mechanism the review asked for (NICE 4).
+//
+// Two more rules the copy has to keep:
+//   · **Name the page, never the user.** Nullecho has no geolocation by design,
+//     so it cannot know which state's law binds whoever is reading. "This page
+//     carries New York's wording" is observable; "you are entitled to…" is not.
+//   · **Ship the effective date with the Connecticut wording**, so the card
+//     cannot silently become wrong as dates pass — and say that Connecticut
+//     accepts a substantially similar sentence, because a Connecticut page
+//     whose wording differs is unmatchable by construction.
+
+// ── PRICE-DISCLOSURE NOTICE — copy begins ──────────────────────────────────
+
+const NOTICE_COPY = {
+  'ny-disclosure': {
+    headline: 'This page carries New York’s algorithmic-pricing disclosure',
+    body: 'That sentence is what New York law requires when a price was set by an '
+      + 'algorithm using your personal data. The price you were shown may be '
+      + 'personalized.',
+  },
+  'ct-style-language': {
+    headline: 'This page carries Connecticut’s algorithmic-pricing wording',
+    body: 'That sentence is the wording Connecticut names for a price increased '
+      + 'using your personal data. Connecticut’s rule takes effect on 1 July 2027, '
+      + 'and it also accepts a substantially similar disclosure — so a page can '
+      + 'say the same thing in different wording. The price you were shown may be '
+      + 'personalized.',
+  },
+};
+
+/** Shown under every notice, in both states’ cases. */
+const NOTICE_CAVEAT = 'Nullecho reports what this page displayed. Seeing the '
+  + 'sentence does not tell you whether a business is doing what the law asks — '
+  + 'New York’s Attorney General has objected to a page that carried this exact '
+  + 'sentence, over where on the page it sat.';
+
+/**
+ * The popup card for one stored observation, or `null` when this site has none.
+ *
+ * Returning `null` is the common case and it is deliberate: a notice on every
+ * popup would be noise, and noise is how a warning stops being read.
+ *
+ * @param {null|{level: string, price: ?string, currency: ?string, context: string,
+ *               url: string, timestamp: number}} observation
+ */
+export function priceNoticeCard(observation) {
+  const copy = observation && NOTICE_COPY[observation.level];
+  if (!copy) return null;
+
+  const price = observation.price
+    ? `${observation.price}${observation.currency ? ` ${observation.currency}` : ''}`
+    : null;
+
+  return {
+    level: observation.level,
+    headline: copy.headline,
+    body: copy.body,
+    caveat: NOTICE_CAVEAT,
+    /** The sentence as the page displayed it, with its surrounding text. */
+    displayed: observation.context ?? '',
+    /** What the page published as its price when the wording was seen. */
+    price,
+    priceLabel: price
+      ? `Price published on this page: ${price}`
+      : 'This page published no machine-readable price.',
+    url: observation.url ?? '',
+    seenAt: observation.timestamp ?? 0,
+  };
+}
+
+// ── PRICE-DISCLOSURE NOTICE — copy ends ────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SECONDARY — the cross-site aggregate. Local-only, private evidence.
 // ═══════════════════════════════════════════════════════════════════════════
 

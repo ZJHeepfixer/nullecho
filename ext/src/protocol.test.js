@@ -326,14 +326,22 @@ for (const manifestName of ['manifest.json', 'manifest.firefox.json']) {
     assert.ok(Array.isArray(scripts) && scripts.length >= 2);
 
     const files = scripts.map((s) => s.js[0]);
-    assert.deepEqual(files, ['src/shim-loader.js', 'src/shim.js', 'src/gpc.js']);
+    assert.deepEqual(files, [
+      'src/shim-loader.js', 'src/shim.js', 'src/gpc.js', 'src/pricing.js',
+    ]);
 
-    assert.equal(scripts[0].world, 'ISOLATED');
-    for (const s of scripts) {
+    // The handshake trio. The price-disclosure scan is a separate lane with the
+    // opposite timing requirement — it reads RENDERED text, which does not exist
+    // at `document_start` — so it is excluded here by name rather than by index,
+    // and `pricing.test.js` asserts its own (idle, top-frame-only) shape.
+    const handshake = scripts.slice(0, 3);
+
+    assert.equal(handshake[0].world, 'ISOLATED');
+    for (const s of handshake) {
       assert.equal(s.run_at, 'document_start', `${s.js[0]} must run at document_start`);
       assert.equal(s.all_frames, true, `${s.js[0]} must cover subframes`);
     }
-    for (const s of scripts.slice(1)) {
+    for (const s of handshake.slice(1)) {
       assert.equal(s.world, 'MAIN', `${s.js[0]} must run in the page realm`);
     }
   });

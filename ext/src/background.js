@@ -915,3 +915,105 @@ api.runtime.onStartup?.addListener(() => { ready().then(scheduleAutoRotate); });
 // Kick initialisation immediately so the first content-script message finds the
 // worker warm rather than paying a cold start on top of the handshake.
 ready();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §3 — price disclosure notice
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// A third lane, kept whole and at the end of the file rather than threaded
+// through §2, because it shares nothing with the shell: its own listener, its
+// own storage key, its own vocabulary. `handleShell` never sees these messages.
+//
+// The `import`s below are declarations, so they are hoisted and evaluated with
+// the rest of this module's imports; they sit here to keep the lane in one
+// readable piece. `pricing.js` has no exports — it is also a classic content
+// script — so it arrives on `globalThis`, exactly as `gpc.js` does.
+//
+// What this block may and may not do:
+//   · The site and the URL come from `sender` — the browser's own account of
+//     where the content script is running — and NEVER from the message body,
+//     the same rule `onGetPersona`/`onFpDetected` follow. A content script does
+//     not get to say which site it is.
+//   · One storage key, `PRICING_STORAGE_KEY`, listed in `docs/PRIVACY-POLICY.md`.
+//     Nothing here transmits anything; there is no egress API in the shipped
+//     tree and `manifest.test.js` fails the build if one appears.
+//   · Nothing reaches a PAGE console (D33). A storage failure goes to the
+//     worker's own `warn`, which no page can see, and it never carries the
+//     observed text or the price — a log line about a price is a log line about
+//     a person. The content script itself has no console call at all.
+
+import './pricing.js';
+import { PRICING_MSG, PRICING_STORAGE_KEY } from './protocol.js';
+
+/** Observations live on the device only. Read lazily; the popup is the only reader. */
+async function pricingList() {
+  try {
+    const got = await api.storage.local.get([PRICING_STORAGE_KEY]);
+    const list = got?.[PRICING_STORAGE_KEY];
+    return Array.isArray(list) ? list : [];
+  } catch { return []; }
+}
+
+/** The single writer. One key, one call site — so "one key" stays checkable. */
+async function savePricingList(list) {
+  try { await api.storage.local.set({ [PRICING_STORAGE_KEY]: list }); }
+  catch (e) { warn('pricing.store')(e); }
+}
+
+async function onPricingObserved(msg, sender) {
+  const site = senderSiteKey(sender);
+  if (!site) return { ok: false };
+
+  const P = globalThis.NullechoPricing;
+  const entry = P.observation({
+    siteKey: site,
+    url: sender?.url ?? '',
+    level: String(msg?.level ?? ''),
+    price: msg?.price ?? null,
+    currency: msg?.currency ?? null,
+    context: String(msg?.context ?? ''),
+  });
+  // A level this build does not know about is not stored. The content script and
+  // this worker ship together, so the only way to get one is tampering.
+  if (!Object.prototype.hasOwnProperty.call(P.SENTENCES, entry.level)) return { ok: false };
+  if (!entry.url) return { ok: false };
+
+  await savePricingList(P.pushReceipt(await pricingList(), entry));
+  return { ok: true };
+}
+
+/**
+ * The popup asks once per open. Returns the most recent observation for the
+ * site or `null` — and `null` is the answer for almost every site, which is the
+ * point: a notice that appeared on every page would be noise.
+ */
+async function onPricingForSite(msg) {
+  const site = String(msg?.site ?? '');
+  if (!site) return { ok: true, observation: null };
+  const list = await pricingList();
+  let best = null;
+  for (const e of list) {
+    if (e?.siteKey !== site) continue;
+    if (!best || (e.timestamp ?? 0) >= (best.timestamp ?? 0)) best = e;
+  }
+  return { ok: true, observation: best };
+}
+
+/** The user's own delete. Whole list, or one site. */
+async function onPricingForget(msg) {
+  const site = msg?.site ? String(msg.site) : null;
+  await savePricingList(site ? (await pricingList()).filter((e) => e?.siteKey !== site) : []);
+  return { ok: true };
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  let work = null;
+  switch (message?.type) {
+    case PRICING_MSG.OBSERVED:     work = onPricingObserved(message, sender); break;
+    case PRICING_MSG.GET_FOR_SITE: work = onPricingForSite(message); break;
+    case PRICING_MSG.FORGET:       work = onPricingForget(message); break;
+    default: return false;
+  }
+  work.then(sendResponse).catch(() => sendResponse({ ok: false }));
+  return true;
+});
