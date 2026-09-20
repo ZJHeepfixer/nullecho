@@ -1,6 +1,8 @@
 # Algorithmic and Personalized Pricing: A Four-State Compliance Brief
 
-**With the federal layer and the California enforcement theory. Status as of 2026-08-21; legislative facts refreshed 2026-09-16.**
+**With the federal layer and the California enforcement theory. Status as of 2026-08-21; legislative
+facts refreshed 2026-09-16; Maryland and New Jersey re-verified against the enacted and codified
+text 2026-09-19.**
 Prepared from primary statutory sources except where marked.
 
 > **This document is not legal advice and has not been reviewed by counsel.** It is a compliance
@@ -11,6 +13,51 @@ Prepared from primary statutory sources except where marked.
 > Jersey provisions, and the only appellate test of the New York provision is pending and
 > undecided. **Obtain an opinion from qualified counsel before relying on anything here to set
 > pricing policy.**
+
+> ### ⛔ Correction of record — Maryland, 2026-09-19
+>
+> **Maryland did not enact a disclosure duty. Earlier drafts of this brief said it did, and that was
+> wrong.** HB 895 as introduced contained a second section, proposed Com. Law **§ 13-322**, which
+> would have bound *every merchant* and mandated the string `THIS PRICE WAS SET BY AN ALGORITHM OR
+> BY USING YOUR PERSONAL DATA`. **That section was struck by amendment before passage.** Chapter 154
+> enacted **§ 13-321 only** — a narrow dynamic-pricing *ban* for large food retailers and
+> third-party food delivery, AG-enforced, with no mandated wording of any kind.
+>
+> **How the error entered, and how it was caught.** The chapter-law PDF prints struck text in
+> strike-through. Text *extraction* (`pdftotext` and equivalents) silently drops the strike-through
+> and returns deleted language as though it were live — so the struck § 13-322 read as enacted law.
+> The correction was made by (a) **rendering** the chapter pages as images and reading them, and
+> (b) querying Maryland's codified-statute endpoint with a positive control. See §8.0,
+> "Verification method."
+>
+> **Three independent proofs, each reproducible in a browser:**
+>
+> 1. `mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&section=13-322&enactments=true&archived=false`
+>    returns **"File Not Found."** The same endpoint with `section=13-321` returns statute text. The
+>    positive control is what makes the negative meaningful.
+> 2. The **codified** § 13-408(a) and § 13-411(a) each read *"This section does not apply to a
+>    violation of § 13-321 of this title"* — **no "or § 13-322."** A conforming amendment cannot
+>    cross-reference a section that does not exist.
+> 3. In the chapter print itself, the enacting clause *"BY adding to … Section 13-321 ~~and
+>    13-322~~"* carries "and 13-322" **struck**. A brief quoting *"Section 13–321 and 13–322"* as the
+>    enacting clause is quoting the deletion.
+>
+> ⚠️ **HB 1475** (2026 RS) is a different Maryland bill carrying a similar string without the "OR
+> BY". It **died in committee**. Neither string is Maryland law.
+>
+> **What this changes.** **Two** states mandate a disclosure string — New York (in force) and
+> Connecticut (2027-07-01) — not three. Maryland and New Jersey are **bans with no mandated
+> wording**. Maryland's 2026-10-01 date still matters, but what bites that day is a *ban on conduct*
+> in the food sector, not a labelling duty for every merchant. §1, §2.2, §2.5, §3, §4.1, §6, §7 and
+> §8 are corrected throughout, and §8.0 records the verification method that replaced the one that
+> failed.
+>
+> **This correction is also the brief's most useful single finding for a compliance reader.**
+> Several widely circulated law-firm and advocacy summaries — from firms and organisations that
+> practitioners rely on — describe § 13-322 and its mandated string as enacted Maryland law taking
+> effect 2026-10-01. On the primary sources above, they are describing a section that was struck
+> before passage. A business building an all-merchant Maryland disclosure banner for October 1 is
+> building to a statute that does not exist.
 
 > **Legislative changes since first draft (refreshed 2026-09-16 against primary sources).** Two
 > facts in the 2026-08-21 draft are no longer true, and both are corrected throughout:
@@ -33,10 +80,18 @@ Prepared from primary statutory sources except where marked.
 >
 > Re-verified and unchanged: N.Y. GBL § 349-a and the One Fair Price Act's posture (passed both
 > houses 2026-06-04, **not delivered to the Governor**, not signed — the official pages contradict a
-> trade-association claim that it was sent); Maryland Ch. 154, effective 2026-10-01; *NRF v. James*,
-> fully briefed since 2026-02-24 with no ruling and no recorded argument as of 2026-09-16. Dates
-> elsewhere that still read "as of 2026-08-21" were **not** re-checked in this refresh unless a
-> 2026-09-16 date is stated beside them.
+> trade-association claim that it was sent); Maryland Ch. 154's approval date (2026-04-28) and
+> effective date (2026-10-01) — but **not its contents**, which were re-read and corrected
+> 2026-09-19, see the correction of record above; *NRF v. James*, fully briefed since 2026-02-24
+> with no ruling and no recorded argument as of 2026-09-16. Dates elsewhere that still read "as of
+> 2026-08-21" were **not** re-checked in this refresh unless a 2026-09-16 or 2026-09-19 date is
+> stated beside them.
+>
+> **Also corrected 2026-09-19 (New Jersey).** The short title is the **"Fair Price Protection
+> Act"** — not the "New Jersey Fair Price Protection Act." The chapter is **P.L. 2026, c. 55**, not
+> c. 65; the c. 65 figure in earlier drafts came from law-firm alerts and is wrong. And "ban only"
+> was too flat: the Act mandates **no wording**, but its § 3(b) safe harbours **require disclosure**
+> — with no prescribed text — as a condition of the safe harbour. See §2.4.
 
 ---
 
@@ -44,45 +99,59 @@ Prepared from primary statutory sources except where marked.
 
 **What changed.** In the space of fourteen months, four states went from zero to four distinct
 statutory regimes governing the use of consumers' personal data to set prices. They do not agree
-with one another on the operative rule, the covered entity, the remedy, or — critically — on the
-words a business must display.
+with one another on the operative rule, the covered entity or the remedy — and, critically, they do
+not even agree on whether the answer is *words* or *conduct*. **Two of the four prescribe words a
+business must display. Two prohibit the pricing outright and prescribe no words at all.**
 
 | | Statute | Enacted | Operative from | Core mechanism |
 |---|---|---|---|---|
 | **NY** | GBL § 349-a | May 2025 | Enforced **2025-11-10** | Disclosure |
-| **MD** | Com. Law §§ 13-321, 13-322 | 2026-04-28 | **2026-10-01** | Ban (food) **+** disclosure (all merchants) |
+| **MD** | Com. Law § 13-321 *(proposed § 13-322 was struck before passage — see the correction of record)* | 2026-04-28 | **2026-10-01** | Ban (large food retail + 3P food delivery), **no disclosure** |
 | **CT** | P.A. 26-130 § 11 *(replaces P.A. 26-64 § 11 and P.A. 26-100 § 44, both repealed)* | 2026-06-04 *(first enacted 2026-05-27)* | **2027-07-01** | Disclosure (online) **+** ban (retail sellers) |
-| **NJ** | P.L. 2026, c. 65 | 2026-07-23 | **2027-08-01** (ESL moratorium 2027-02-01) | Ban (groceries), no disclosure |
+| **NJ** | P.L. 2026, c. 55 (A.4085/4523) | 2026-07-23 | **2027-08-01** (ESL moratorium 2027-02-01) | Ban (groceries), no mandated wording |
 
-**Three mandated strings, all different, none interchangeable:**
+**Two mandated strings, different from each other, not interchangeable:**
 
-- **New York:** `THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL DATA`
-- **Maryland:** `THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR PERSONAL DATA`
+- **New York:** `THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL DATA` — in force
 - **Connecticut:** `THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA` — *or a substantially
-  similar disclosure* (Connecticut is the only one of the three that does not fix the wording).
+  similar disclosure* (Connecticut does not fix the wording) — from 2027-07-01.
   *P.A. 26-130 § 11 text. The "…BY A PRICE SETTING DEVICE…" version still quoted in most client
   alerts is from the repealed P.A. 26-64.*
 
-A single national banner cannot satisfy all three. Maryland's differs from New York's by two
-inserted words — `OR BY` — which broaden the statement to cover pricing on personal data with no
-algorithm involved. Connecticut's is not a variant of the other two at all: it asserts that the
-price was *increased*, and it names no mechanism whatever — not an algorithm, and no longer a
-"price setting device" — only the use of personal data.
+**And two states that mandate none:** Maryland and New Jersey both regulate by **prohibiting
+conduct**, not by prescribing words. Maryland's proposed all-merchant disclosure (§ 13-322) was
+struck before passage; New Jersey's Act never contained one. ⚠️ Any matrix showing three or four
+mandated strings — several in circulation do — is counting Maryland's struck section.
 
-**Who is exposed.** Far more businesses than the "grocery surveillance pricing" framing suggests:
+A single national banner cannot satisfy both live strings, and in Maryland and New Jersey no banner
+is a defence at all. Connecticut's string is not a variant of New York's: it asserts that the price
+was *increased*, and it names no mechanism whatever — not an algorithm, and no longer a "price
+setting device" — only the use of personal data.
 
-- **Maryland § 13-322 binds every "merchant"**, not just food sellers, and is triggered by setting
-  a price using **dynamic pricing *or* personal data** and then advertising, labelling or
-  publishing that price. It is the broadest of the three disclosure duties.
+**Who is exposed.** Far more businesses than the "grocery surveillance pricing" framing suggests —
+though **not** as many as the circulating Maryland summaries imply:
+
+- **New York § 349-a binds any "entity" domiciled or doing business in New York**, in any sector
+  and in any medium, and it is the one duty that is live today. Its trigger is the narrowest of the
+  two: personalized *algorithmic* pricing, requiring an algorithm **and** personal data.
 - **Connecticut § 11(b) binds "any person doing business in the state"** who engages in
   surveillance pricing for any purpose other than granting a discount in an online transaction —
-  unless the published price is the seller's **bona fide market price** (P.A. 26-130).
-- **New Jersey is the first state to expose a defendant to private plaintiffs.** It declares
-  surveillance pricing an "unlawful practice" under the New Jersey Consumer Fraud Act, which
-  carries a private right of action with treble damages and fee-shifting. The other three states
-  are attorney-general-only — **Maryland and Connecticut expressly bar** private suits, and New
-  York simply creates none. *(The NJ private right attaches by operation of the CFA rather than by
-  express creation — see §2.4 and §8.3.)*
+  unless the published price is the seller's **bona fide market price** (P.A. 26-130). Also
+  sector-blind, but **online only**, and keyed to personal data collected *through technology*.
+- **Maryland § 13-321 is narrow, and that is the correction.** It binds food retailers operating an
+  establishment of **at least 15,000 square feet** that sells sales-tax-exempt food, plus
+  third-party food delivery. It is not a general-merchant obligation, and it imposes no disclosure.
+  *(The all-merchant § 13-322 that most summaries describe was struck before passage — see the
+  correction of record above.)*
+- **New Jersey is the state most likely to expose a defendant to private plaintiffs — but the
+  exposure is derivative, not express.** The enacted text creates **no private right of action**;
+  the introduced A.4523's $3,000-or-treble consumer suit did not survive. What it does is declare
+  surveillance pricing an "unlawful practice" under the New Jersey Consumer Fraud Act — and the
+  CFA's own private action, with treble damages and fee-shifting, then attaches by operation of
+  law. ⚠️ **Several law-firm alerts call this a "first-in-the-nation *express* private right of
+  action." It is not express**; do not repeat that phrasing. The other three states are
+  attorney-general-only — **Maryland and Connecticut expressly bar** private suits, and New York
+  simply creates none. *(See §2.4 and §8.3.)*
 - **"Groceries" in New Jersey is not just food.** The defined list reaches paper products,
   household cleaning items, health and beauty products, and pet foods and supplies.
 
@@ -91,7 +160,7 @@ price was *increased*, and it names no mechanism whatever — not an algorithm, 
 | By | Action |
 |---|---|
 | **Now** | Inventory every pricing input that is personal data. The definitional trigger in all four states is *use of personal data*, not use of AI. |
-| **Before 2026-10-01** | Maryland bites — **and only Maryland.** Decide, jurisdiction by jurisdiction, whether to **disclose** or to **stop triggering**. Counsel is telling most retailers to stop triggering. *(The first draft put Connecticut here too; its date moved to 2027-07-01 when the section was re-enacted.)* |
+| **Before 2026-10-01** | Maryland bites — **and only Maryland.** What bites is a **ban**, so for a covered Maryland food retailer there is nothing to decide: disclosure is not an available cure and no banner helps. **Stop triggering.** *(The first draft put Connecticut here too; its date moved to 2027-07-01 when the section was re-enacted. Earlier drafts also put an all-merchant Maryland disclosure duty here — that section was struck before passage and does not exist.)* |
 | **Before 2027-02-01** | New Jersey's electronic-shelf-label moratorium begins. New ESL deployments in NJ stop; repair and replacement of pre-existing units continue. |
 | **Before 2027-07-01** | Connecticut § 11 (P.A. 26-130) takes effect — online disclosure duty for everyone, ban for retail sellers and third-party delivery. Build to the 26-130 string and its companion § 42-518 rights disclosure, not to the repealed 26-64 text. |
 | **Before 2027-08-01** | New Jersey's grocery ban takes effect, with private-plaintiff exposure. |
@@ -106,8 +175,10 @@ inconsistent with consumers' reasonable expectations. Every state with a purpose
 statute now has the same hook available. See §5.
 
 **The two facts a general counsel should carry out of this document.** First, the compliance
-question is not "do we use AI to price" — it is "does any personal data reach a price, and do we
-then publish that price." Second, the four statutes' safe harbours are all built around *loyalty
+question is not "do we use AI to price" — it is "does any personal data reach a price." In New York
+and Connecticut the duty is then triggered by *publishing* that price; in Maryland's and New
+Jersey's covered sectors, **setting it is already the violation** and publication is irrelevant.
+Second, the four statutes' safe harbours are all built around *loyalty
 programs and publicly disclosed, uniformly available discounts*, and they impose different
 conditions on those programs. A loyalty program that satisfies New York's "bona fide custom
 discount" conditions may still fail Connecticut's posting requirement or New Jersey's
@@ -115,8 +186,9 @@ purpose-limitation clause.
 
 **And one thing not to spend money on.** The federal price-discrimination statute — Robinson-Patman
 — does not reach consumer-facing personalized pricing, for several independent reasons. The
-strongest evidence is that the FTC is **currently litigating** a Robinson-Patman case and, two days
-ago, addressed personalized pricing in a policy statement that **never mentions the Act**. Build
+strongest evidence is that the FTC is **currently litigating** a Robinson-Patman case and, on
+**2026-08-19**, addressed personalized pricing in a policy statement that **never mentions the
+Act**. Build
 your federal analysis around FTC Act § 5. See §4.2.
 
 ---
@@ -125,9 +197,24 @@ your federal analysis around FTC Act § 5. See §4.2.
 
 ### 2.1 New York — Gen. Bus. Law § 349-a
 
+> **⚠️ A citation landmine, and it catches careful readers.** **The § 349-a slot was already
+> occupied.** Part X, § 1 of Ch. 58 reads: *"Section 349-a of the general business law is
+> **renumbered 349-h** and a new section 349-a is added to read as follows: § 349-a. Pricing."*
+> The pre-existing § 349-a — the Observant Consumer Protection Law — now sits at **§ 349-h**.
+> **Any source predating May 2025 that cites "GBL § 349-a" is citing a different statute**, and a
+> reader who checks an older codification gets the wrong section and a confusing dead end. The
+> precise cite worth adopting: *N.Y. Gen. Bus. Law § 349-a ("Pricing"), added by L. 2025, ch. 58,
+> pt. X, § 1 (S.3008-C), eff. July 8, 2025.*
+>
+> **A related trap for anyone re-verifying:** the bill exhibit on the *NRF v. James* docket is the
+> **S.3008-B** print, which differs materially from the enacted **C** print — B used "consumer
+> data" / "person" and framed a violation as a deceptive act under § 349, **which would have
+> imported a private right of action**. The enacted version dropped that, which is precisely why
+> there is no private right today. Do not quote the B print as law.
+
 | | |
 |---|---|
-| **Citation** | N.Y. Gen. Bus. Law § 349-a, added by Part X of Ch. 58 of the Laws of 2025 (FY2026 budget) |
+| **Citation** | N.Y. Gen. Bus. Law § 349-a ("Pricing"), added by Part X, § 1 of Ch. 58 of the Laws of 2025 (FY2026 budget), which simultaneously **renumbered the former § 349-a to § 349-h** |
 | **Mechanism** | **Disclosure only.** No conduct is prohibited. |
 | **Mandated string** | `THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL DATA` |
 | **Effective** | Law took effect 2025-07-08; **enforcement began 2025-11-10** after the district court dismissed the NRF challenge |
@@ -138,53 +225,87 @@ your federal analysis around FTC Act § 5. See §4.2.
 | **Penalty** | Civil penalty **≤ $1,000 per violation** |
 | **Enforcement** | Attorney General only. **A cease-and-desist letter is a statutory prerequisite** — it must specify the alleged violations and the remedies to cure "within a designated timeline." Only if the entity continues to violate after that timeline may the AG bring a special proceeding for an injunction on ≥5 days' notice. An injunction may issue **without proof that any person was in fact injured** |
 | **Private right of action** | **None** |
-| **Litigation** | *National Retail Federation v. James*, No. 1:25-cv-05500 (S.D.N.Y.) — Rakoff, J., granted the motion to dismiss **2025-10-08**, holding the mandated statement "factual and uncontroversial" (i.e. reviewed under *Zauderer*), and denied the preliminary injunction as moot. On appeal: 2d Cir. **No. 25-2818**, docketed 2025-11-05. **Fully briefed since 2026-02-24; no ruling and no recorded argument as of 2026-09-16.** Amici on both sides (U.S. Chamber and Washington Legal Foundation for NRF; EPIC for the State) |
-| **Practical note** | The cure-first structure means the realistic first consequence of non-compliance is a letter, not a penalty. That materially lowers near-term risk in New York relative to Maryland and Connecticut, and it is the single most under-reported feature of the statute |
+| **Litigation** | *National Retail Federation v. James*, No. 1:25-cv-05500 (S.D.N.Y.) — Rakoff, J., granted the motion to dismiss **2025-10-08**, holding the mandated statement "factual and uncontroversial" (i.e. reviewed under *Zauderer*), and denied the preliminary injunction as moot. The dismissal was **with prejudice** — the opinion at p.28 reads "plaintiff's claims are DISMISSED with prejudice." On appeal: 2d Cir. **No. 25-2818**, docketed 2025-11-05. **Fully briefed since 2026-02-24; no ruling and no recorded argument as of 2026-09-16.** Amici on both sides (U.S. Chamber and Washington Legal Foundation for NRF; EPIC for the State) |
+| **Practical note** | The cure-first structure means the realistic first consequence of non-compliance is a letter, not a penalty. That materially lowers near-term risk in New York relative to **Connecticut and New Jersey**, neither of which has any notice-and-cure step. (Maryland's § 13-321 has a 45-day cure of its own, so New York and Maryland are alike on this point and unlike the other two.) It is the single most under-reported feature of the statute |
 
-### 2.2 Maryland — Com. Law §§ 13-321 and 13-322 (Protection From Predatory Pricing Act)
+### 2.2 Maryland — Com. Law § 13-321 (Protection From Predatory Pricing Act)
 
 Ch. 154, Laws of 2026 (HB 895), approved by Governor Wes Moore **2026-04-28**, effective
-**2026-10-01**. Maryland is the only state of the four that enacted **both** a ban and a
-general-merchant disclosure duty, in two separate sections with different scopes. Conflating them
-is the most common error in the secondary coverage.
+**2026-10-01**. Maryland enacted **one** operative section: a **ban**, limited to large food
+retailers and third-party food delivery. **It enacted no disclosure duty and mandates no wording.**
+Conflating the enacted ban with the *proposed* all-merchant disclosure that was struck before
+passage is the most common error in the secondary coverage — and in earlier drafts of this brief.
 
-#### § 13-321 — the ban (food only)
-
-| | |
-|---|---|
-| **Who it binds** | A **"food retailer"** — a merchant operating a business establishment that (i) has **a minimum of 15,000 square feet** and (ii) sells food exempt from sales and use tax under Tax-Gen. § 11-206(c) — and a **"third-party food delivery service provider"** (which excludes food retailers) |
-| **Prohibition** | May not (i) engage in **dynamic pricing to set a higher price** for sales-tax-exempt food **for a specific consumer**, or (ii) use **surveillance personal data** to set a higher price for such food **for a single consumer or a group of consumers** |
-| **Second prohibition** | May not use **protected class data** to offer, advertise or sell a good or service to the consumer it pertains to, where that use has the effect of withholding or denying an accommodation, advantage or privilege accorded to others |
-| **"Dynamic pricing"** | "Offering or setting a personalized price for a good or service that is specific to a consumer based on the consumer's personal data, **regardless of whether the seller collected or purchased the personal data**, including through the use of artificial intelligence or models that retrain or recalibrate based on received information in near real-time" |
-| **Carve-outs from "dynamic pricing"** | Promotional pricing, loyalty benefits, temporary discounts and retention pricing; price differences from **objective costs** (shipping, location-based taxes); differences from **costs or supply/demand in different locations or geographies**; differences from costs of availability or supply; prices offered through a **loyalty, membership or rewards program any consumer may voluntarily enrol in**; a price offered under a **subscription contract**; a price offered to a consumer **who consents to providing personal data in exchange for obtaining the price**; a **price correction** from a pricing error; **resetting a price** after a system or network outage |
-| **Enforcement** | Consumer Protection Division of the Maryland AG's office, under the Maryland Consumer Protection Act. **Mandatory notice of violation plus a fixed 45-day cure period** — if the violation is cured within 45 days the Division may not initiate an enforcement action |
-| **Private right of action** | **Expressly none.** § 13-321(e): "THIS SECTION MAY NOT BE CONSTRUED TO AUTHORIZE A PRIVATE RIGHT OF ACTION UNDER THIS SECTION OR ANY OTHER LAW." The Act separately amends § 13-408 so that the CPA's general private action does not reach §§ 13-321 or 13-322 |
-| **Criminal exposure** | **None.** The Act amends § 13-411 so the CPA's misdemeanour penalty does not apply to §§ 13-321 or 13-322 |
-
-#### § 13-322 — the disclosure (every merchant)
+#### § 13-321 — the ban (food only), and the whole of what Maryland enacted
 
 | | |
 |---|---|
-| **Who it binds** | Any **"merchant."** This is not limited to food, retail, or any size threshold |
-| **Trigger** | Setting the price of a consumer good or service **using dynamic pricing OR personal data**, and then directly or indirectly advertising or promoting, including on a label, or publishing any other communication containing that price |
-| **Mandated string** | `THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR PERSONAL DATA` |
-| **"Communication"** | "A display, an image, an offer, or an announcement" |
-| **"Clear and conspicuous"** | In the **same medium as, and provided on, at, or near and contemporaneous with, each** communication of a price for which notice is required; lettering and wording easily visible and understandable to a consumer |
-| **"Personal data"** | Com. Law § 14-4701(w): any information linked or reasonably linkable to an identified or identifiable consumer; **excludes de-identified data and publicly available information** |
-| **Exemptions** | (1) merchant conduct regulated under the Insurance Article; (2) food retailers and third-party food delivery service providers already subject to § 13-321; (3) financial institutions as defined in Md. Fin. Inst. § 1-101, and financial institutions or affiliates subject to GLBA Title V; (4) **a lower price offered to a consumer who is an employee of the merchant** |
-| **Enforcement** | Same as § 13-321 — Division, notice of violation, **45-day cure**, then MCPA enforcement |
-| **Penalty** | Violation is an unfair, abusive or deceptive trade practice under the MCPA. Under Com. Law § 13-410 the civil penalty is **up to $10,000 per violation and up to $25,000 for each repeat violation** *(§ 13-410 amount is from secondary sources; the chapter law does not restate it)* |
-| **Private right of action** | **None** (see § 13-408 amendment above) |
-| **Note on the "or"** | Maryland's disclosure trigger is disjunctive — **dynamic pricing *or* personal data**. A merchant that sets a price using personal data without any algorithm at all is inside § 13-322. This is broader than New York's trigger, which requires algorithmic *and* personal-data pricing |
+| **Who it binds** | A **"food retailer"** — a merchant operating a business establishment that (i) has **a minimum of 15,000 square feet** and (ii) sells food exempt from sales and use tax under Tax-Gen. § 11-206(c) — and a **third-party food delivery service provider** (which excludes food retailers) |
+| **Prohibition (§ 13-321(b)(2))** | May not **(i)** engage in **dynamic pricing** to set a **higher price** for sales-tax-exempt food **for a specific consumer**, or **(ii)** use **personal data** to set a **higher price** for such food **for a single consumer** |
+| **Second prohibition (§ 13-321(c))** | May not use **protected class data** to offer, advertise or sell a good or service to the consumer it pertains to, where that use has the effect of **withholding or denying an accommodation, advantage or privilege** accorded to others |
+| **"Dynamic pricing"** | The **discriminatory practice** of offering or setting a **personalized price** for a good or service that is specific to a consumer **based on the consumer's personal data** |
+| **Carve-outs from the prohibition (§ 13-321(b)(1)) — nine of them** | Promotional pricing, loyalty benefits, temporary discounts and retention pricing; price differences from **objective costs** (shipping, location-based taxes); differences from **costs or supply/demand in different locations or geographies**; differences from costs of **availability or supply**; prices offered through a **loyalty, membership or rewards program any consumer may voluntarily enrol in**; a price offered under a **subscription contract**; a price offered to a consumer **who consents to providing personal data in exchange for obtaining the price**; a **price correction** from a pricing error; **resetting a price** after a system or network outage |
+| **Enforcement** | Consumer Protection Division of the Maryland AG's office, and **only** the Division. The hook is title-wide: § 13-301(14)(i) makes a § 13-321 violation an unfair, abusive or deceptive trade practice under the Maryland Consumer Protection Act. **Mandatory notice of violation plus a fixed 45-day cure period** (§ 13-321(d)) — if the violation is cured within 45 days the Division may not initiate an enforcement action |
+| **Penalty** | Via the MCPA. Under Com. Law § 13-410 the civil penalty is **up to $10,000 per violation and up to $25,000 for each repeat violation** *(§ 13-410 amount is from secondary sources; the chapter law does not restate it)* |
+| **Private right of action** | **Expressly none.** § 13-321(e): "THIS SECTION MAY NOT BE CONSTRUED TO AUTHORIZE A PRIVATE RIGHT OF ACTION UNDER THIS SECTION OR ANY OTHER LAW." The Act separately amends § 13-408(a) so that the MCPA's general private action does not reach § 13-321 |
+| **Criminal exposure** | **None.** The Act amends § 13-411(a) so the MCPA's misdemeanour penalty does not apply to § 13-321 |
+| **Mandated disclosure** | **None. Maryland prescribes no wording of any kind.** |
+
+#### Also enacted by Ch. 154, and routinely missed: Labor & Employment § 4-406
+
+The same chapter adds a labour provision — **Md. Code, Lab. & Empl. § 4-406** — barring food
+retailers from using operational changes to impair rights under a collective bargaining agreement.
+Unlike § 13-321, **that section carries an express private right of action.** A reader who searches
+Ch. 154 for "private right of action," finds one, and attributes it to the pricing ban has the
+wrong section.
+
+#### ⛔ § 13-322 — the disclosure that was struck, and is not law
+
+This subsection exists so that a reader who has seen the § 13-322 summaries elsewhere can see
+exactly what happened to it.
+
+**As introduced**, HB 895 would have added a second section, § 13-322, binding any **"merchant"**
+with no sector or size threshold. It would have been triggered by setting a price using **dynamic
+pricing *or* personal data** and then advertising, labelling or publishing that price, and it would
+have required a **"clear and conspicuous disclosure"** — defined as being in the same medium as,
+and on, at, or near and contemporaneous with, each price communication — containing the statement:
+
+> `THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR PERSONAL DATA`
+
+It carried its own 45-day cure, its own exemptions, and conforming amendments removing it from
+§ 13-408 and § 13-411 alongside § 13-321.
+
+**None of that is Maryland law.** The section was struck by amendment before passage. The proofs
+are set out in the correction of record at the top of this brief and are reproducible in a browser:
+the state's codified-statute endpoint returns **"File Not Found"** for `section=13-322` while
+returning text for `section=13-321`; the codified § 13-408(a) and § 13-411(a) exclude **only**
+§ 13-321; and the chapter print's enacting clause carries "and 13-322" **struck through**.
+
+⚠️ **Two traps around this.**
+
+1. **The all-caps is not a statutory requirement anywhere in Maryland.** Maryland's chapter prints
+   set *new* statutory text in small caps as a drafting convention. Quoting a Maryland chapter law
+   and inferring that the legislature mandated capital letters is a misreading of the typography.
+   (It is moot here, since the string is not law — but the same misreading is made about live
+   Maryland sections.)
+2. **HB 1475** (2026 RS) is a different bill carrying a similar mandated string **without** the
+   "OR BY". It **died in committee**. Neither string is Maryland law, and a search that surfaces
+   HB 1475's text is not evidence that § 13-322 passed.
 
 #### The Maryland drafting artifact worth knowing about
 
-The enacted chapter law shows heavy amendment layering — earlier definitions of "dynamic pricing"
-(originally "varying prices within the same business day based on demand") and "surveillance
-personal data" (originally a long technological-collection definition) were struck and replaced.
-The bill also began as an emergency measure taking effect on enactment and ended with a
-**2026-10-01** effective date. Anyone reading the chapter PDF should read the strike-through
-carefully; several published summaries quote superseded language.
+The enacted chapter law shows heavy amendment layering. Earlier definitions were struck and
+rewritten — "dynamic pricing" began life as "varying prices within the same business day based on
+demand," and a long technological-collection definition of "surveillance personal data" appears in
+the layers as well — and the whole of § 13-322 was struck. **Quote the operative text only**, which
+for Maryland means the codified § 13-321 rather than any intermediate print; several published
+summaries quote superseded language. The bill also began as an emergency measure taking effect on
+enactment and ended with a **2026-10-01** effective date. **Anyone reading the chapter PDF must
+read the strike-through, and must not read it through a text extractor** — `pdftotext` and
+equivalents drop strike-through formatting and return deleted language as live text. That is
+precisely how the § 13-322 error entered this brief and, on the evidence of what they publish, how
+it entered several widely circulated summaries. Render the pages, or query the codified-statute
+endpoint. See §8.0.
 
 ### 2.3 Connecticut — P.A. 26-130 § 11 (H.B. 5563), replacing P.A. 26-64 § 11 and P.A. 26-100 § 44
 
@@ -201,10 +322,11 @@ carefully; several published summaries quote superseded language.
 | **P.A. 26-130 § 11** | H.B. 5563 | 2026-06-04 | **Operative.** "(NEW) (Effective July 1, 2027)." Diffed against § 44 on 2026-09-16: **identical except in two places** — the effective date, and the word "in-person" struck from the "retail seller" definition, restoring the ban to all retail sales of tangible personal property, online included | In force from **2027-07-01** |
 
 The approval dates are the "Governor's Action" lines printed on the acts. Greenberg Traurig's
-2026-09-03 state survey independently reports P.A. 26-130 and the 2027-07-01 date. Like Maryland,
-Connecticut has both a disclosure duty and a ban, and 26-130 splits them the same way 26-64 did:
-the **disclosure is online-only and applies to everyone**, while the **ban applies to retail
-sellers and third-party delivery services in any channel**.
+2026-09-03 state survey independently reports P.A. 26-130 and the 2027-07-01 date. **Connecticut is
+the only one of the four states that enacted both a disclosure duty and a ban** — Maryland enacted
+only a ban once § 13-322 was struck — and 26-130 splits the two the same way 26-64 did: the
+**disclosure is online-only and applies to everyone**, while the **ban applies to retail sellers
+and third-party delivery services in any channel**.
 
 **What changed between the repealed text and the operative one.** Read off the two acts against
 this brief's 2026-08-21 reading of 26-64; no located commentary reports the changes item by item.
@@ -277,62 +399,84 @@ any notice-and-cure step.
 | **Effective** | **2027-07-01** |
 | **Correction to circulating summaries** | Three versions of Connecticut's string circulate and two are wrong today: "THIS PRICE WAS INCREASED BY AN ALGORITHM USING YOUR PERSONAL DATA" was never in any Connecticut act; "…BY A PRICE SETTING DEVICE…" was P.A. 26-64's and is **repealed**; only `THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA` is law. Summaries saying § 11 bans **electronic pricing labels** for in-person transactions are also wrong — that is New Jersey's provision, and neither 26-64 nor 26-130 contains one *(26-64 by full-text search 2026-08-21; 26-130 § 11 read in full 2026-09-16)*. And any summary giving an October 1, 2026 date is quoting the repealed act |
 
-### 2.4 New Jersey — Fair Price Protection Act, P.L. 2026, c. 65
+### 2.4 New Jersey — Fair Price Protection Act, P.L. 2026, c. 55
 
-Assembly Committee Substitute for A.4085 and A.4523, **Third Reprint** (Assembly Budget Committee
+**The short title is the "Fair Price Protection Act."** It is not the "New Jersey Fair Price
+Protection Act" — the state's name is not in the title, and several alerts add it.
+
+**Assembly Committee Substitute for A.4085 and A.4523, Third Reprint** (Assembly Budget Committee
 amendments of 2026-06-28), signed by Governor Mikie Sherrill **2026-07-23**. Supplements the New
 Jersey Consumer Fraud Act, P.L. 1960, c. 39 (N.J.S.A. 56:8-1 *et seq.*).
 
+> **⚠️ Cite it as P.L. 2026, c. 55 (A.4085/4523) — not c. 65.** The chapter number is **c. 55**:
+> the Legislature's own bill-history record for A.4085 reads *"Approved P.L.2026, c.55."* The
+> "c. 65" figure that appears in earlier drafts of this brief and in a number of law-firm alerts is
+> wrong. The chapter-law document itself is **not yet posted** on njleg — the Pamphlet Laws series
+> stops at c. 30 and the Advance Laws at c. 50 — so cite the chapter number to the bill history and
+> the *text* to the Third Reprint, `pub.njleg.state.nj.us/Bills/2026/A4500/4085_R3.PDF`, and
+> re-verify the chapter number against the chapter law when it posts.
+
 | | |
 |---|---|
-| **Mechanism** | **Ban only. There is no mandated disclosure string.** |
+| **Mechanism** | **Ban. The Act mandates no disclosure wording** — but "ban only" is too flat: the § 3(b) safe harbours **require disclosure as a condition**, with no prescribed text. See the § 3(b) rows below |
 | **Prohibition (§ 3(a))** | It is an **unlawful practice** and a violation of the CFA for a **person** to use surveillance pricing "or any other pricing strategy that determines or varies the sale price of **groceries and other foodstuffs** based, in whole or in part, on personal data" |
 | **"Surveillance pricing"** | An action, including a pricing strategy, in which the price of groceries and other foodstuffs is, in whole or in part, determined, adjusted, optimized or recommended by an **algorithm or automated system** based in whole or in part on personal data — **including data derived or inferred from other data** — and that **results in price variation for individual consumers or groups of consumers**. Expressly includes pricing based on data collected through **electronic surveillance technology** (sensors, cameras, device tracking, biometric monitoring) |
 | **"Groceries and other foodstuffs" — read this carefully** | Dairy, meat and delicatessen, produce, seafood, carbonated beverages, coffee and other beverages, snack foods, candy, baked products, **paper products, household cleaning items, health and beauty products**, frozen foods, **pet foods and supplies**, and any other edible product not listed — **except** food or beverages prepared for immediate consumption on or off the premises of a food service establishment |
 | **Restaurant carve-out (§ 6)** | The Act does not apply to the pricing, advertisement, offer or sale of food or beverages by an establishment **primarily engaged in the preparation and sale of food or beverages for immediate consumption** |
 | **Permitted price differences (§ 3(b))** | (1) **reasonable costs** of providing the goods to different consumers — **provided a price is not changed more than once in a 24-hour period**; (2) a **bona fide discount** with publicly and conspicuously disclosed eligibility criteria, uniformly offered, open to any member of a broadly defined group (e.g. teachers, veterans); (3) a **bona fide discount under a loyalty program**, including point/credit accrual and purchase-based coupons and third-party pricing benefits, **provided** (a) consumers opt in voluntarily, (b) all members receive pricing benefits pursuant to uniform terms and conditions, (c) the program clearly and conspicuously discloses all pricing benefits, available discounts and data practices to participants **and, on request, to the Division of Consumer Affairs within 14 days**, and (d) the program discloses all terms and conditions and data practices to the public |
-| **Purpose limitation (§ 3(c))** | Where a person uses personal data to offer a permitted price difference, **"that personal data shall not be used for any other purpose without the consumer's consent."** This is a standalone data-governance obligation embedded in a pricing statute and is easy to miss |
+| **The safe harbours are disclosure obligations — with no prescribed wording** | This is why "ban only" understates the Act. § 3(b)(2) requires a bona fide discount's eligibility criteria be **"publicly and conspicuously disclosed."** § 3(b)(3)(c)–(d) require a loyalty program to make **"clear and conspicuous disclosures"** of its pricing benefits, available discounts and data practices to participants, to **produce them to the Division of Consumer Affairs within 14 days on request**, and to disclose its terms, conditions and data practices **to the public**. A business relying on a § 3(b) safe harbour has a disclosure programme to build — it just gets to write the words itself. Contrast New York and Connecticut, which prescribe the words and leave the conduct lawful |
+| **Purpose limitation (§ 3(c))** | Where a person uses personal data to offer a permitted price difference, **"that personal data shall not be used for any other purpose without the consumer's consent."** A standalone data-governance obligation embedded in a pricing statute, and easy to miss. Note the qualifier: the **"without the consumer's consent"** proviso was **added at the Third Reprint (2026-06-28)** — the pre-reprint version was an absolute bar. As enacted the limitation is **consent-defeasible** |
 | **Electronic shelf labels (§ 4)** | A **one-year moratorium on the *new use*** of electronic shelf labels in New Jersey. Purchasing, installing or deploying new ESLs **solely to repair or replace units already in operation at the same place of business** before the moratorium is permitted. After the moratorium, new use is permitted subject to the CFA and any Division rules, unless the Legislature acts |
 | **ESL study (§ 5)** | The New Jersey Innovation Authority, with the Division of Consumer Affairs, must study ESL effects and their impact on surveillance pricing, and report to the Governor and Legislature no later than six months before the moratorium ends |
 | **AG enforcement (§ 7)** | In addition to any other authority, the AG may bring a civil action to enjoin the practice, enforce compliance, obtain **actual monetary damages for each negligent or greater violation** in addition to any other penalty provided by law, and obtain any other restitution, penalty or relief the court deems appropriate |
 | **⚠️ The $50,000 figure is wrong** | Widely repeated reporting says the Act carries a **$50,000** statutory minimum per violation. It did — in the First Reprint. **The Third Reprint struck it** (`obtain for each negligent or greater violation … actual monetary damages incurred from the violation [or $50,000, whichever is greater]`). The enacted text provides actual damages plus other penalties provided by law, not a $50,000 floor |
 | **Penalty via the CFA** | Because a violation is a CFA "unlawful practice," the CFA's own penalties attach — reported as up to **$10,000 for a first offence and $20,000 for each subsequent offence** under N.J.S.A. 56:8-13 *(secondary)* |
-| **Private right of action** | **Yes — and this is the first in the nation.** The Act does not create one expressly. It attaches by operation of the CFA: N.J.S.A. 56:8-19 gives any person suffering an ascertainable loss from an unlawful practice a private action for **treble damages plus reasonable attorneys' fees and costs**. **This is an inference from the CFA's structure, not a holding**, but it is the reading every law-firm client alert reviewed has adopted, and it is the single largest change in the risk profile across the four states |
+| **Private right of action** | **Not express — but it attaches by operation of law, and that is the single largest change in the risk profile across the four states.** ⚠️ **The enacted text creates no private right of action.** One was proposed: introduced A.4523 § 6 gave a consumer a suit for the greater of $3,000 or treble actual damages. **It did not survive into the Assembly Committee Substitute.** What the Act does instead is declare a violation an "unlawful practice" under the CFA (§ 3(a)) — and N.J.S.A. 56:8-19 then gives any person suffering an ascertainable loss from an unlawful practice a private action for **treble damages plus reasonable attorneys' fees and costs**. **This is an inference from the CFA's structure, not a holding.** ⚠️ **Several law-firm alerts describe this as a "first-in-the-nation *express* private right of action." That is wrong on the face of the enacted text** — the derivative route is the right description, and the distinction matters to anyone briefing a motion to dismiss |
 | **Effective dates (§ 9)** | The Act takes effect on the first day of the **13th month** next following enactment = **2027-08-01**. Section 4 (**ESL moratorium**) takes effect on the first day of the **7th month** = **2027-02-01**. Section 5 (study) took effect immediately |
 | **Rulemaking** | The Director of the Division of Consumer Affairs may adopt implementing rules under the Administrative Procedure Act |
 
 ### 2.5 The comparison that matters most
 
-| | NY § 349-a | MD § 13-322 | MD § 13-321 | CT § 11(b) *(P.A. 26-130)* | CT § 11(c) *(P.A. 26-130)* | NJ c. 65 |
-|---|---|---|---|---|---|---|
-| **Type** | Disclose | Disclose | Ban | Disclose | Ban | Ban |
-| **Sector** | All | All merchants | Food retail ≥15k sq ft + 3P food delivery | All persons (**online only**) | Retail sellers of tangible personal property + 3P delivery | Groceries & foodstuffs (excl. prepared food) |
-| **Trigger** | Algorithm **and** personal data | Dynamic pricing **or** personal data | Dynamic pricing / surveillance personal data → **higher** price | Surveillance pricing (tech-collected personal data → customized price), except online discounts and bona fide market prices | Tech-collected personal data → customized price | Algorithm/automated system + personal data → price variation |
-| **Exact words fixed?** | **Yes** | **Yes** | n/a | **No** — "or substantially similar" | n/a | n/a |
-| **Notice-and-cure?** | **Yes**, AG-set timeline | **Yes, 45 days** | **Yes, 45 days** | **No** | **No** | **No** |
-| **Private action** | None created | **Expressly no** | **Expressly no** | **Expressly no** | **Expressly no** | **Yes, via CFA (inference)** |
-| **Max civil penalty** | $1,000/violation | $10,000 / $25,000 repeat *(sec.)* | same | $5,000/wilful *(sec.)* | same | Actual damages + CFA penalties; treble in private suits |
-| **Live from** | 2025-11-10 | 2026-10-01 | 2026-10-01 | **2027-07-01** | **2027-07-01** | 2027-08-01 |
+| | NY § 349-a | MD § 13-321 | CT § 11(b) *(P.A. 26-130)* | CT § 11(c) *(P.A. 26-130)* | NJ c. 55 |
+|---|---|---|---|---|---|
+| **Type** | Disclose | Ban | Disclose | Ban | Ban |
+| **Sector** | All | Food retail ≥15k sq ft + 3P food delivery | All persons (**online only**) | Retail sellers of tangible personal property + 3P delivery | Groceries & foodstuffs (excl. prepared food) |
+| **Trigger** | Algorithm **and** personal data | Dynamic pricing / personal data → **higher** price for a specific or single consumer | Surveillance pricing (tech-collected personal data → customized price), except online discounts and bona fide market prices | Tech-collected personal data → customized price | Algorithm/automated system + personal data → price variation |
+| **Mandated wording?** | **Yes**, fixed | **None** | **Yes**, but **not fixed** — "or substantially similar" | n/a | **None** — but § 3(b) safe harbours require *unspecified* disclosure |
+| **Notice-and-cure?** | **Yes**, AG-set timeline | **Yes, 45 days** | **No** | **No** | **No** |
+| **Private action** | None created | **Expressly no** | **Expressly no** | **Expressly no** | **Not express; attaches via CFA (inference)** |
+| **Max civil penalty** | $1,000/violation | $10,000 / $25,000 repeat *(sec.)* | $5,000/wilful *(sec.)* | same | Actual damages + CFA penalties; treble in private suits |
+| **Live from** | 2025-11-10 | 2026-10-01 | **2027-07-01** | **2027-07-01** | 2027-08-01 |
+
+⚠️ **A column that used to be here is gone on purpose.** Earlier drafts carried a "MD § 13-322"
+column showing an all-merchant Maryland disclosure duty live on 2026-10-01. That section was struck
+before passage. Any matrix — in this brief's earlier drafts or elsewhere — that shows it is
+counting a proposal as law.
 
 ---
 
 ## 3. Disclosure versus ban — the distinction most coverage conflates
 
 Trade and even law-firm coverage routinely describes all four states as "surveillance pricing
-disclosure laws." That is right for New York and wrong for the other three, and the error has a
-practical cost: **a business that responds to Maryland, Connecticut or New Jersey by adding a
-banner has, in the banned sectors, disclosed its way into an admission rather than out of a
-violation.**
+disclosure laws." **Only two of the four mandate a disclosure at all** — New York, and Connecticut
+from 2027 — and Connecticut pairs its disclosure with a ban. Maryland and New Jersey mandate no
+wording whatever. The error has a practical cost: **a business that responds to Maryland,
+Connecticut or New Jersey by adding a banner has, in the banned sectors, disclosed its way into an
+admission rather than out of a violation.**
 
 **New York is pure disclosure.** § 349-a prohibits no pricing conduct at all. Personalized
 algorithmic pricing remains lawful in New York; only publishing such a price without the mandated
 statement is unlawful. Compliance is achievable by adding words.
 
-**Maryland is both, in two sections with different scopes.** § 13-322 is a disclosure duty binding
-every merchant. § 13-321 is a flat ban binding large food retailers and third-party food delivery
-providers — and § 13-322 **expressly does not apply** to conduct covered by § 13-321. So for a
-15,000-square-foot grocer selling tax-exempt food in Maryland, the disclosure is not available as a
-cure. The conduct is prohibited outright, and no banner fixes it.
+**Maryland is pure ban, and narrow.** § 13-321 is a flat prohibition binding food retailers whose
+establishment is at least 15,000 square feet and sells sales-tax-exempt food, plus third-party food
+delivery. **There is no Maryland disclosure duty for anyone** — the proposed all-merchant § 13-322
+was struck before passage. Two consequences follow, and they point in opposite directions. For a
+covered Maryland grocer, disclosure is not available as a cure: the conduct is prohibited outright
+and no banner fixes it. For **every other Maryland merchant**, the October 1 date imposes nothing —
+and a merchant that builds and displays an "algorithm set this price" banner in Maryland on the
+strength of the circulating summaries is volunteering an admission that no Maryland statute asked
+for.
 
 **Connecticut is both, split by channel and by actor.** § 11(b)'s disclosure reaches any person,
 but only online. § 11(c)'s ban reaches retail sellers of tangible personal property and third-party
@@ -344,10 +488,15 @@ surveillance pricing used **solely to grant a discount online** is outside the d
 entirely, as is a price that is the seller's **bona fide market price** — which is why
 Connecticut's mandated string says "INCREASED."
 
-**New Jersey is pure ban.** There is no disclosure path in the Fair Price Protection Act.
-Personalized pricing of groceries and other foodstuffs based on personal data is an unlawful
-practice, full stop, subject only to the enumerated permitted price differences. Adding a banner in
-New Jersey accomplishes nothing except to evidence the practice.
+**New Jersey is a ban with no disclosure *path*, but real disclosure *obligations*.** There is no
+way to cure a violation of the Fair Price Protection Act by disclosing: personalized pricing of
+groceries and other foodstuffs based on personal data is an unlawful practice, full stop, subject
+only to the enumerated permitted price differences, and adding a banner accomplishes nothing except
+to evidence the practice. But the enumerated exceptions in § 3(b) are themselves **conditioned on
+disclosure** — publicly and conspicuously disclosed discount criteria, clear and conspicuous
+loyalty-program disclosures of pricing benefits and data practices, public disclosure of terms, and
+production to the Division of Consumer Affairs within 14 days on request. New Jersey does not tell
+you what to write; it tells you that you must write it, and to whom.
 
 **The consequence for a national retailer.** The four regimes cannot be satisfied by a single
 global change. The realistic architectures are:
@@ -357,18 +506,21 @@ global change. The realistic architectures are:
    personalization to the enumerated loyalty and publicly disclosed discount safe harbours. This is
    the approach compliance counsel is broadly recommending, and it is why the observed disclosure
    rate in general retail is near zero (§6).
-2. **Geo-fence the rules.** Ban-comply in MD/CT/NJ and disclose in NY, with per-state string
-   selection. Operationally heavy, and it requires reliable state-of-consumer determination —
+2. **Geo-fence the rules.** Ban-comply in MD/CT/NJ; disclose in NY, and in CT from 2027-07-01 —
+   two strings, not one, and none in Maryland or New Jersey, where a banner is evidence rather than
+   compliance. Operationally heavy, and it requires reliable state-of-consumer determination —
    itself a use of location data that interacts awkwardly with New Jersey's "location" definition
    and New York's device-linked "personal data."
-3. **Disclose everywhere with the broadest string.** Does not work. Maryland's string does not
-   satisfy New York's, Connecticut's asserts a different fact, and in the banned sectors no string
-   is a defence.
+3. **Disclose everywhere with the broadest string.** Does not work. Connecticut's string asserts a
+   different fact from New York's; in the banned sectors no string is a defence; and there is no
+   third string to be "broadest" — the Maryland string that circulating matrices show was struck
+   before passage.
 
 Only (1) is simple, and (1) is a business decision about pricing capability, not a legal-copy
 decision. **That is the real content of these statutes: three of the four states have effectively
 made personalized consumer pricing unavailable in their covered sectors rather than merely
-labelled.**
+labelled — and the fourth, New York, is the only one where a business can comply by adding
+words.**
 
 ---
 
@@ -440,13 +592,16 @@ misleading because it omits important information," and gives a worked example o
 disclosure: that the price is based on estimated willingness to pay derived from the consumer's
 previous purchases from the same retailer through the same login account.
 
-> **Compliance consequence, and it is a real one.** **None of the three state-mandated strings
-> satisfies the FTC's stated standard.** New York's, Maryland's and Connecticut's strings disclose
-> the *fact* of personalization but not the *basis* or the *data types*. A business that displays
-> the New York string and nothing else is compliant with New York and, on the face of this proposed
-> statement, still exposed under § 5. That gap between state-mandated minimum wording and the
-> FTC's proposed standard is, in this author's view, the most actionable single finding in this
-> brief — and it is inference from the two texts, not anything either regulator has said.
+> **Compliance consequence, and it is a real one.** **Neither state-mandated string satisfies the
+> FTC's stated standard.** New York's and Connecticut's strings disclose the *fact* of
+> personalization but not the *basis* or the *data types*. A business that displays the New York
+> string and nothing else is compliant with New York and, on the face of this proposed statement,
+> still exposed under § 5. That gap between state-mandated minimum wording and the FTC's proposed
+> standard is, in this author's view, the most actionable single finding in this brief — and it is
+> inference from the two texts, not anything either regulator has said. *(The gap is wider still in
+> Maryland and New Jersey, which mandate no wording at all: a business there has nothing to start
+> from, and a state-string banner borrowed from New York discloses the fact without the basis or
+> the data types while volunteering the conduct.)*
 
 **What the FTC says prices may lawfully vary on.** Supply and demand affecting everyone in the same
 market, including "intensely local" variation such as rideshare pricing across adjacent
@@ -992,10 +1147,13 @@ product pages**, which is where prices are actually displayed. The link labels t
 were "View pricing policy" (Stop & Shop), "Higher than in-store prices" (Wegmans) and "Pricing &
 fees" (Costco). Instacart ended its item price tests on 2025-12-22.
 
-> **The lesson for compliance teams: having the string somewhere is not compliance.** All three
-> disclosure statutes tie the disclosure to *each* price communication — New York and Maryland both use "on,
-> at, or near and contemporaneous with," and Connecticut requires it be "readily visible to the
-> average consumer." A linked policy page is the pattern the AG has already rejected once.
+> **The lesson for compliance teams: having the string somewhere is not compliance.** The page the
+> AG rejected **contained the mandated string, exactly as the statute prints it.** It failed anyway,
+> on placement. Both disclosure statutes tie the disclosure to *each* price communication — New
+> York uses "on, at, or near and contemporaneous with," and Connecticut requires it be "readily
+> visible to the average consumer." A linked policy page is the pattern the AG has already rejected
+> once. **Anyone building a monitor for these laws should note the corollary: a text search that
+> finds the string proves the string is present, and proves nothing about compliance.**
 
 **General retail, travel and ticketing: no hits.** Reverse-searching the mandated string across the
 web index surfaced only the publishers, Instacart, and law-firm explainers. Direct page fetches
@@ -1028,16 +1186,31 @@ fingerprint to detect or audit against, and there is an unserved market. As of t
 team implementing these four regimes is building from scratch.
 
 **A note on detection.** Because there is no vendor convention, text matching is the only viable
-detection method — and it is sufficient, because the strings are statutorily fixed and
-distinctive. Any detector must match a **family** of strings case-insensitively, not one literal:
-real implementations re-case and embed them. Practical anchors: `set by an algorithm` (NY, MD),
-`using your personal data` (NY, MD, CT — the one substring that survives all three strings,
-including Connecticut's re-enacted one), `increased using your personal data` (CT only),
-`personalized algorithmic pricing`, and the `NEW YORK RESIDENTS:` preamble. **`price setting
-device` is a dead anchor** — it was Connecticut's term under the repealed P.A. 26-64 and appears in
-no operative statute; a detector built to the June 2026 text would match nothing compliant in
-Connecticut. Connecticut's "or a substantially similar disclosure" means a Connecticut detector
-cannot be exact-match by construction.
+detection method. It is **necessary but not sufficient**, for two reasons set out above: the string
+is mandated in only two states, and the New York AG has already held that a page carrying the exact
+string can still fail. Treat a match as "the words are present," never as "this business complies."
+
+Any detector must match a **family** of strings case-insensitively, not one literal — real
+implementations re-case and embed them — and it must be built per regime, because the two live
+strings share no distinctive full phrase:
+
+- **New York:** `set by an algorithm using your personal data` is the full-phrase anchor, plus the
+  `NEW YORK RESIDENTS:` preamble and `personalized algorithmic pricing`.
+- **Connecticut (from 2027-07-01):** `increased using your personal data`. Connecticut's "or a
+  substantially similar disclosure" means a Connecticut detector **cannot be exact-match by
+  construction** — a substantially similar disclosure is compliant and unmatchable.
+- **Maryland and New Jersey: nothing to detect.** Neither mandates wording. A detector with a
+  Maryland branch is matching a section that was struck before passage.
+
+⚠️ **Two dead anchors, for opposite reasons.** **`price setting device`** was Connecticut's term
+under the repealed P.A. 26-64 and appears in no operative statute — a detector built to the June
+2026 text matches nothing compliant in Connecticut. **`set by an algorithm or by using your
+personal data`** was the struck Maryland § 13-322 string and is likewise in no statute anywhere.
+
+⚠️ **And one anchor to use only in combination.** The bare substring `using your personal data`
+looks attractive because it survives both live strings — but it appears in ordinary privacy-policy
+prose on a large share of commercial sites, so **standalone it is a false-positive generator**.
+Use it only as a secondary filter behind a full-phrase match, never on its own.
 
 ---
 
@@ -1059,40 +1232,52 @@ Ordered by deadline. This is a starting framework for counsel to adapt, not a co
    personal data, but a bucket assigned from a user identifier arguably is.
 3. **Identify every channel in which a price is communicated**: web PDP, category page, cart,
    checkout, mobile app, email, push notification, physical shelf label, electronic shelf label,
-   printed circular, third-party marketplace listing. The disclosure duties attach **per
-   communication**, in **the same medium**.
+   printed circular, third-party marketplace listing. New York's and Connecticut's disclosure
+   duties attach **per communication**, in **the same medium**. *(Maryland's and New Jersey's bans
+   attach to the price-setting itself, so the channel inventory is evidence there, not compliance.)*
 4. **Inventory third-party pricing and personalization vendors** and determine, contractually, what
    consumer data each receives and whether it is used to set price. Connecticut and New York both
    reach **service providers**; New Jersey's definition of "person" reaches agents and employees.
 
 ### Phase 2 — decide the architecture (before 2026-10-01 for Maryland; Connecticut follows on 2027-07-01)
 
-5. **Decide, per state and per sector, whether you are stopping or disclosing.** In Maryland's
-   food sector, Connecticut's retail sector and New Jersey's grocery sector, **disclosure is not an
-   option** — the conduct is banned.
+5. **Decide, per state and per sector, whether you are stopping or disclosing.** There is a choice
+   to make in only two states. In Maryland's food sector, Connecticut's retail sector and New
+   Jersey's grocery sector, **disclosure is not an option** — the conduct is banned. And **outside
+   its food sector Maryland asks for nothing at all**: do not build a Maryland banner. Several
+   circulating summaries describe an all-merchant Maryland disclosure duty; the section they
+   describe was struck before passage.
 6. **If stopping: re-derive prices from permitted inputs only.** Objective costs, shipping, taxes,
    location-based cost differences, supply and demand, inventory, availability, price-error
    correction, post-outage resets. Note **New Jersey's 24-hour rule** — a cost-based price
    difference is permitted only if the price is not changed more than once in a 24-hour period.
-7. **If disclosing: implement per-state strings, not one string.** Verify the mandated text
-   character-for-character against the enacted statute, not against a summary — and against the
-   *current* enacted statute: Connecticut's was rewritten twice in June 2026, and every circulating
-   version that says "price setting device" is quoting repealed P.A. 26-64. Build to P.A. 26-130
-   § 11. Connecticut's online duty also now has a second element — a person displaying the string
-   must also disclose consumers' rights under Conn. Gen. Stat. § 42-518 — so the string alone is
-   not the whole Connecticut disclosure.
-8. **Add the FTC's three elements to the state string.** The state strings disclose the fact of
-   personalization only. Adding the *basis* and the *data types* is what the FTC's proposed
+7. **If disclosing: two strings, New York's and Connecticut's — and nothing in Maryland or New
+   Jersey.** Verify the mandated text character-for-character against the enacted statute, not
+   against a summary — and against the *current* enacted statute. Connecticut's was rewritten twice
+   in June 2026, and every circulating version that says "price setting device" is quoting repealed
+   P.A. 26-64; build to P.A. 26-130 § 11. Connecticut's online duty also now has a second element —
+   a person displaying the string must also disclose consumers' rights under Conn. Gen. Stat.
+   § 42-518 — so the string alone is not the whole Connecticut disclosure. **Do not deploy the
+   `…OR BY USING YOUR PERSONAL DATA` variant anywhere**: it is the struck Maryland § 13-322 text,
+   it satisfies no state, and it does not satisfy New York, whose string is fixed.
+   *(Method note, because this is exactly how the error propagates: verify against a rendered page
+   or a codified-statute lookup, never against text extracted from a chapter-law PDF — extraction
+   drops strike-through. See §8.0.)*
+8. **Add the FTC's three elements to whatever you display.** The two state strings disclose the
+   fact of personalization only. Adding the *basis* and the *data types* is what the FTC's proposed
    standard asks for, and doing so does not jeopardise the state disclosure so long as the mandated
-   text itself remains intact, clear and conspicuous. *(Inference — no regulator has blessed a
-   combined disclosure.)*
+   text itself remains intact, clear and conspicuous. **This cuts differently in the ban states:**
+   in Maryland's and New Jersey's covered sectors the FTC-standard disclosure describes conduct
+   that is prohibited outright, so the answer there is to stop the conduct, not to describe it
+   better. *(Inference — no regulator has blessed a combined disclosure.)*
 
 ### Phase 3 — audit the safe harbours (before 2026-10-01 for Maryland; Connecticut follows on 2027-07-01)
 
 Every one of these statutes protects loyalty programs and publicly disclosed discounts — **on
 conditions that differ**. Audit each program against all four:
 
-9. **Voluntary, affirmative opt-in.** Required in MD, CT and NJ. Enrolment by default fails.
+9. **Voluntary, affirmative opt-in.** Required in MD (§ 13-321(b)(1)'s loyalty exclusion reaches
+    only programs "any consumer may voluntarily enrol in"), CT and NJ. Enrolment by default fails.
 10. **Uniform terms.** NJ requires all members receive pricing benefits "pursuant to uniform terms
     and conditions." CT's safe harbour is for publicly disclosed discounts on uniform terms "that
     may be satisfied by any consumer" (P.A. 26-130 expressly includes mailing-list sign-ups and
@@ -1121,8 +1306,11 @@ conditions that differ**. Audit each program against all four:
     moratorium starts, not after.
 16. **Prepare for private plaintiffs, not just an AG.** New Jersey CFA claims carry treble damages
     and fee-shifting and are attractive to the class bar. That changes what "acceptable residual
-    risk" means: an AG can be negotiated with and, in three of the four states, must give notice
-    first. A class action gives no notice.
+    risk" means: an AG can be negotiated with and, in **two** of the four states — New York's
+    cease-and-desist prerequisite and Maryland's 45-day cure — must give notice first. Connecticut
+    and New Jersey have no cure step, and a class action gives no notice at all. Note also that the
+    New Jersey exposure is **derivative of the CFA, not express in the Act** (§2.4) — which is a
+    point a defendant will make, not a reason to discount the risk.
 17. **Check whether your non-food SKUs are in scope.** Paper goods, cleaning products, health and
     beauty, and pet supplies are inside New Jersey's "groceries and other foodstuffs."
 
@@ -1141,9 +1329,9 @@ Do this regardless of whether you operate in the four states above.
     statute limits processing to disclosed, compatible purposes.
 17d. **Verify consent provenance for pricing inputs.** The FTC's data-side theory targets pricing
     on personal data "without sufficiently verifying that consumers consented to the collection of
-    those data for that purpose." Purchased and inferred data is the exposed category — Maryland's
-    definition reaches personal data "regardless of whether the seller collected or purchased" it,
-    and New Jersey's expressly includes derived and inferred data.
+    those data for that purpose." Purchased and inferred data is the exposed category — New
+    Jersey's definition expressly includes **derived and inferred** data, and New York's reaches
+    data linkable to a **device**.
 
 ### Phase 5 — standing posture
 
@@ -1151,14 +1339,17 @@ Do this regardless of whether you operate in the four states above.
     price on personal data," the artifact that proves it is a documented pricing-input inventory
     with change control — not an assertion. Under Maryland's and New York's notice-and-cure
     regimes, being able to answer a letter quickly and completely is most of the defence.
-19. **Watch four things, in this order:** (i) whether **New York's One Fair Price Act** is
+19. **Watch five things, in this order:** (i) whether **New York's One Fair Price Act** is
     delivered to and signed by the Governor — it deletes the mandated string and converts New York
     to a ban (passed 2026-06-04; not delivered as of 2026-09-16); (ii) the Second Circuit in
     ***NRF v. James*** — fully briefed since 2026-02-24, no ruling or recorded argument as of
     2026-09-16; a reversal would unsettle every mandated string in the country on compelled-speech
     grounds; (iii) **Connecticut's 2027 session** — § 11 was enacted, repealed and re-enacted twice
     between 2026-05-27 and 2026-06-04 and does not take effect until 2027-07-01, so build to P.A.
-    26-130 and expect the possibility of a further revision; (iv) the FTC comment docket and
+    26-130 and expect the possibility of a further revision; (iv) **Maryland's 2027 session** — the
+    all-merchant disclosure (§ 13-322) was drafted, amended out of HB 895 and left on the table; a
+    reintroduction is the single most likely way a third mandated string appears in this country,
+    and it would arrive with a short runway; (v) the FTC comment docket and
     whether the policy statement is finalised. **California AB 2564 comes off the list**: it died
     on Assembly concurrence at the 2026-08-31 deadline (§5.5); a 2027 reintroduction is the thing to
     watch for, not the 2026 bill.
@@ -1171,15 +1362,55 @@ Do this regardless of whether you operate in the four states above.
 
 ## 8. Sources and verification status
 
+### 8.0 Verification method — and why an earlier draft of this brief was wrong
+
+**Chapter laws were verified by rendering the PDF pages and reading them as images, and by querying
+the state's codified-statute endpoint with a positive control. Text extraction was not relied on,
+because it is unreliable for chapter laws.**
+
+This is not a stylistic preference. A chapter law prints amendments in place: new text in one
+typographic convention, deleted text struck through. **`pdftotext` and every extractor of its kind
+drop the strike-through and return deleted text as ordinary characters.** The output is a document
+in which *struck language is indistinguishable from enacted language*. It reads perfectly. It is
+wrong in exactly the places that matter most, because the places that matter most are the places
+the legislature changed its mind.
+
+That is how an earlier draft of this brief reported Maryland's struck § 13-322 as enacted law,
+complete with a mandated string and an all-merchant scope. The same mechanism is the most likely
+explanation for the same error in several widely circulated summaries.
+
+**The method that replaced it, in the order it should be run:**
+
+1. **Query the state's codified-statute endpoint for the section, and run a positive control.** For
+   Maryland: `…/StatuteText?article=gcl&section=13-322&enactments=true&archived=false` returns
+   "File Not Found"; the same URL with `section=13-321` returns text. **Without the control the
+   negative proves nothing** — a "File Not Found" is equally consistent with a typo, a changed
+   parameter name or a site outage.
+2. **Check the conforming amendments.** A struck section leaves fingerprints. A conforming
+   amendment that still names the section is strong evidence the section survived; one that names
+   only its neighbour is strong evidence it did not. Here the codified § 13-408(a) and § 13-411(a)
+   exclude § 13-321 alone.
+3. **Render the chapter pages** (`pdftoppm` or any PDF viewer) and read the strike-through with
+   your eyes, including the enacting clause, which names the sections being added.
+4. **Only then quote.** And when quoting an all-caps passage from a Maryland chapter print, note
+   that the small-caps convention marks *new text* — it is not a statutory requirement that a
+   business use capital letters.
+
+Applied on **2026-09-19** to Maryland (Ch. 154) and New Jersey (P.L. 2026, c. 55). Connecticut's
+P.A. 26-130 § 11 is a "(NEW)" section with no strike-through layering and was read in full from the
+act PDF on 2026-09-16; it was re-checked line by line against `cga.ct.gov` and every claim held.
+
 ### 8.1 Read in full from a primary source
 
 | Source | What was taken from it |
 |---|---|
-| **Md. Ch. 154, Laws of 2026 (HB 895)** — `mgaleg.maryland.gov/2026RS/Chapters_noln/CH_154_hb0895e.pdf` | Full text of Com. Law §§ 13-321, 13-322; the mandated string; all definitions, carve-outs and exemptions; the 45-day cure; the express no-private-right provision; the § 13-408 and § 13-411 amendments; "Approved by the Governor, April 28, 2026"; effective 2026-10-01 |
+| **Md. Ch. 154, Laws of 2026 (HB 895)** — `mgaleg.maryland.gov/2026RS/Chapters_noln/CH_154_hb0895e.pdf`, **read as rendered pages, 2026-09-19** | Full text of Com. Law **§ 13-321 — the only pricing section enacted**: the "food retailer" and third-party-delivery definitions, the § 13-321(b)(2) prohibition, the § 13-321(c) protected-class prohibition, the "dynamic pricing" definition, all nine (b)(1) carve-outs, the 45-day cure at (d), the express no-private-right at (e); the § 13-408(a) and § 13-411(a) amendments, **which reference § 13-321 alone**; the enacting clause with **"and 13-322" struck**; Lab. & Empl. § 4-406 and its express private right; "Approved by the Governor, April 28, 2026"; effective 2026-10-01. ⛔ **Proposed § 13-322 and its mandated string were struck before passage and are not law** — see §8.0 and the correction of record |
+| **Md. codified-statute endpoint** — `mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&section=13-321` (and `=13-322`, `=13-408`, `=13-411`), queried **2026-09-19 with a positive control** | § 13-321 returns statute text; **§ 13-322 returns "File Not Found"**; codified § 13-408(a) and § 13-411(a) each read "This section does not apply to a violation of § 13-321 of this title" — **no "or § 13-322."** This is the independent confirmation that the chapter print's strike-through says what it appears to say |
 | **Conn. P.A. 26-130 (H.B. 5563), §§ 11 and 19** — `cga.ct.gov/2026/ACT/PA/PDF/2026PA-00130-R00HB-05563-PA.PDF` — **cite this act for Connecticut** | Read in full 2026-09-16. § 19 repeals P.A. 26-100 § 44; § 11 "(NEW) (Effective July 1, 2027)" is the operative provision: all definitions in § 11(a) including "bona fide market price," "discounted price," "surveillance pricing," "retail seller" and "third-party delivery service"; the mandated string `THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA` and its "substantially similar" qualifier; the § 42-518 companion duty; the bona-fide-market-price exception; "readily visible"; the ban and all four carve-outs; both exemptions (including the printed "15 USC 1681" cite for ECOA); CUTPA § 42-110b(a) hook; "enforced solely by the Attorney General"; the § 42-110g bar. **"Price setting device" does not appear anywhere in § 11.** "Approved June 4, 2026" |
 | **Conn. P.A. 26-100 (Substitute H.B. 5222), §§ 44 and 66** — `cga.ct.gov/2026/ACT/PA/PDF/2026PA-00100-R00HB-05222-PA.PDF` | Read for the chain of repeal only, 2026-09-16: § 66 "Sections 11 and 16 of public act 26-64 are repealed"; § 44 "(NEW) (Effective February 1, 2027)" was the interim replacement, itself repealed by P.A. 26-130 § 19. "Approved June 2, 2026." § 44 was then diffed in full against 26-130 § 11 (2026-09-16): identical except for the effective date and the words "in-person" in the "retail seller" definition — see §2.3, item 8 |
 | **Conn. P.A. 26-64 (Substitute S.B. 4), § 11** — `cga.ct.gov/2026/ACT/PA/PDF/2026PA-00064-R00SB-00004-PA.PDF` — **REPEALED; do not cite as current law** | Read in full for the 2026-08-21 draft: the original string ("…INCREASED BY A PRICE SETTING DEVICE…"), the "price setting device" / "surveillance pricing" / "retail seller" definitions, carve-outs, the GLBA and Banking-Commissioner exemptions, CUTPA hook, AG-only enforcement, no private right, effective 2026-10-01; full-text search confirmed no electronic-shelf-label provision. Retained here because it is the text most secondary summaries still quote, and because §2.3's change list is a comparison against it |
-| **N.J. ACS for A.4085/A.4523, Third Reprint** — `pub.njleg.gov/bills/2026/A4500/4085_R3.PDF` | Full text as reported by the Assembly Budget Committee 2026-06-28; all definitions; the § 3 prohibition and permitted price differences; § 3(c) purpose limitation; § 4 ESL moratorium and repair carve-out; § 6 restaurant exclusion; § 7 AG remedies **with the $50,000 minimum struck**; § 9 staggered effective dates |
+| **N.J. ACS for A.4085/A.4523, Third Reprint** — `pub.njleg.state.nj.us/Bills/2026/A4500/4085_R3.PDF` *(also served as `pub.njleg.gov/bills/…`)*, re-read **2026-09-19** | Full text as reported by the Assembly Budget Committee 2026-06-28; the short title **"Fair Price Protection Act"** (no "New Jersey"); all definitions; the § 3(a) prohibition, reaching surveillance pricing "or any other pricing strategy that determines or varies the sale price … based, in whole or in part, on personal data"; the § 3(b) permitted price differences **and the disclosure conditions attached to them** — (b)(2) "publicly and conspicuously disclosed" criteria, (b)(3)(c)–(d) "clear and conspicuous disclosures," the 14-day production duty to Consumer Affairs and the public disclosure of terms and data practices; § 3(c) purpose limitation **with the "without the consumer's consent" proviso added at the Third Reprint**; § 4 ESL moratorium and repair carve-out; § 6 restaurant exclusion; § 7 AG remedies **with the "$50,000, whichever is greater" floor struck**; § 9 staggered effective dates. **No mandated disclosure string anywhere in the Act**, and **no express private right of action** — the introduced A.4523 § 6 consumer suit did not survive into the Committee Substitute |
+| **N.J. Legislature bill-history record for A.4085** — `pub.njleg.state.nj.us`, queried **2026-09-19** | **"Approved P.L.2026, c.55."** This is the source for the chapter number, which the reprint itself does not carry. ⚠️ The chapter-law document is **not yet posted**: the Pamphlet Laws series stops at c. 30 and the Advance Laws at c. 50. Cite as **P.L. 2026, c. 55 (A.4085/4523)** and re-verify against the chapter law when it posts |
 | **FTC Proposed Enforcement Policy Statement Regarding Personalized Pricing, P034101, 2026-08-19** — `ftc.gov/system/files/ftc_gov/pdf/p034101-…pdf` | All quoted passages; both § 5 theories; the data-practices theory; the three-element disclosure standard; all seven illustrative scenarios verbatim in order; the non-binding disclaimer; the "Congress has not given the Commission the authority" and "not well understood" concessions; ROSCA and Fees Rule cross-references |
 | **N.Y. A.9349-B (One Fair Price Act), as passed** — `legislation.nysenate.gov/pdf/bills/2025/A9349B` | Full amendatory text; confirms the bill **deletes** the mandated string and rewrites § 349-a into a prohibition; new exceptions; new penalty tier ($5,000 first / $20,000 subsequent); 180-day effective date; severability |
 | **N.Y. Senate/Assembly bill status pages for S.8623 and A.9349** | Action histories. A.9349-B **passed Assembly and Senate 2026-06-04**; no delivery, signature, veto or chapter number recorded as of 2026-08-21; **re-checked 2026-09-16 — still no delivery to the Governor.** A trade-association (ICSC) report that the bill went to the Governor is contradicted by the official pages; do not repeat it |
@@ -1206,7 +1437,7 @@ Do this regardless of whether you operate in the four states above.
 | **N.Y. GBL § 349-a codified text** | FindLaw and NY Senate codified-law pages, triangulated; the NY AG's Instacart letter quotes the section verbatim | The Senate site is behind a bot wall for direct fetch. Substance cross-checked three ways and against the A.9349-B strike-through, which reproduces the current text in brackets — **this is a strong check**, since the amendatory bill must quote existing law exactly |
 | **CT approval dates** — 2026-05-27 (P.A. 26-64), 2026-06-02 (P.A. 26-100), 2026-06-04 (P.A. 26-130) | Printed "Governor's Action" lines on the acts (26-100 and 26-130 read directly 2026-09-16); 26-64's from its act header and law-firm alerts | The act texts are primary; the 26-64 date was not re-read for this refresh |
 | **Greenberg Traurig, state surveillance-pricing survey, 2026-09-03** | Law-firm survey | Concurs that the operative Connecticut act is P.A. 26-130 with a 2027-07-01 effective date. Corroboration only; the act text is primary |
-| **NJ signing date 2026-07-23 (Gov. Sherrill), P.L. 2026, c. 65** | **NJ Governor's office press release, `nj.gov/governor/news/2026/20260723a.shtml`** (fetched) plus Morgan Lewis, Skadden, Crowell, DLA Piper | The press release confirms the date and the substance but **does not state the chapter number, bill number, effective date, penalties or private right of action**. The chapter designation "P.L. 2026, c. 65" rests on law-firm alerts. **This closes the gap flagged in the earlier research, but only partly — the chapter number itself remains secondary** |
+| **NJ signing date 2026-07-23 (Gov. Sherrill)** | **NJ Governor's office press release, `nj.gov/governor/news/2026/20260723a.shtml`** (fetched) plus Morgan Lewis, Skadden, Crowell, DLA Piper | The press release confirms the date and the substance but **does not state the chapter number, bill number, effective date, penalties or private right of action.** ✅ **The chapter number is no longer secondary:** the Legislature's own bill-history record for A.4085 reads "Approved P.L.2026, **c.55**" (queried 2026-09-19, see §8.1). ⛔ **The "c. 65" designation carried by earlier drafts of this brief and by a number of law-firm alerts is wrong.** The chapter-law *document* is still unposted, so the number rests on the official bill history rather than on the chapter law itself |
 | **MD CPA civil penalty $10,000 / $25,000 (Com. Law § 13-410)** | Justia codified text via search summary | Not read in the original |
 | **CUTPA penalties $5,000 wilful / $25,000 order violation (§ 42-110o)** | Justia and CGA OLR reports via search summary | Not read in the original |
 | **NJ CFA penalties $10,000 / $20,000 (N.J.S.A. 56:8-13)** | Law-firm alerts | Not read in the original |
@@ -1216,10 +1447,14 @@ Do this regardless of whether you operate in the four states above.
 
 ### 8.3 Inference, clearly labelled — not holdings
 
-1. **New Jersey's private right of action.** The Act does not create one. It attaches, if it
-   attaches, because a violation is an "unlawful practice" under the CFA and N.J.S.A. 56:8-19 gives
-   a private action for ascertainable loss. Every law-firm alert reviewed reads it this way. **No
-   court has so held**, and no court could have — the section is not effective until 2027-08-01.
+1. **New Jersey's private right of action.** The Act does not create one, and an express one was
+   proposed and dropped: introduced A.4523 § 6 gave a consumer a suit for the greater of $3,000 or
+   treble actual damages, and it did not survive into the Assembly Committee Substitute. The right
+   attaches, if it attaches, because a violation is an "unlawful practice" under the CFA and
+   N.J.S.A. 56:8-19 gives a private action for ascertainable loss. Every law-firm alert reviewed
+   reads it this way, though **several describe it as "express," which the enacted text does not
+   support**. **No court has so held**, and no court could have — the section is not effective
+   until 2027-08-01.
 2. **That no state string satisfies the FTC's proposed disclosure standard.** This is a comparison
    of two texts, not a regulator's statement. It is the brief's own conclusion.
 3. **That combining a state string with additional FTC-style detail preserves state compliance.**
@@ -1248,6 +1483,13 @@ Do this regardless of whether you operate in the four states above.
    (Sundays excepted) to act on a bill delivered while the Legislature is in session and 30 days
    when it is not, and bills passed in a session must be delivered before the year ends.
    **No delivery record for A.9349-B was located**, so no specific deadline date is asserted here.
+11. **Why other summaries report Maryland's struck § 13-322 as enacted.** That the section was
+   struck is **established**, three independent ways (§8.0). That **strike-through-dropping text
+   extraction is the mechanism** behind other publishers' versions of the error is **inference** —
+   a well-supported one, since it is demonstrably how the error entered this brief, but nobody
+   else's method is observable from outside. Say "the most likely explanation." **And the *reason*
+   the legislature struck the section is not established at all** — no committee report, floor
+   statement or fiscal note explaining the amendment was located. Do not supply a motive.
 
 ### 8.4 Could not verify — open items
 
@@ -1266,8 +1508,16 @@ Do this regardless of whether you operate in the four states above.
   prerequisite removed.
 - **The FTC's Federal Register publication date**, and therefore the actual comment deadline.
 - **The Commission vote count** on P034101.
-- **The MD, CT and NJ chapter/session-law texts as codified**, as opposed to as enacted. Codified
-  section numbering for CT P.A. 26-130 § 11 and the NJ Act was not confirmed.
+- **The CT and NJ session-law texts as codified**, as opposed to as enacted. Codified section
+  numbering for CT P.A. 26-130 § 11 and the NJ Act was not confirmed. *(Maryland is now closed:
+  Com. Law § 13-321 was read on the state's codified-statute endpoint on 2026-09-19, along with the
+  codified § 13-408 and § 13-411 — see §8.0.)*
+- **The New Jersey chapter law itself.** P.L. 2026, c. 55 is not yet posted (Pamphlet Laws stop at
+  c. 30, Advance Laws at c. 50). The chapter number comes from the official bill history; the text
+  comes from the Third Reprint. Re-verify the number against the chapter law when it appears.
+- **Why the Maryland Senate or House struck § 13-322.** The fact of the strike is established three
+  ways (§8.0). The *reason* is not: no committee report, floor statement or fiscal note was located
+  explaining the amendment, and none is asserted here.
 - **Whether any of the four AGs has opened an investigation** under the Maryland, Connecticut or New
   Jersey provisions. None had, as far as this pass could determine — all three are pre-effective.
 - **Whether general retailers are complying in logged-in, geolocated checkout flows.** Structurally
@@ -1319,8 +1569,21 @@ Do this regardless of whether you operate in the four states above.
 - Any description of California AB 2564 as pending, live, or a fifth state. It died on concurrence
   2026-08-31 (§5.5).
 - The widely repeated **$50,000** New Jersey penalty figure. It was struck before enactment.
+- ⛔ **Proposed Md. Com. Law § 13-322 and its string `THIS PRICE WAS SET BY AN ALGORITHM OR BY
+  USING YOUR PERSONAL DATA`.** Struck by amendment before passage; not law; not detectable; not a
+  compliance obligation for any merchant. **Every summary describing an all-merchant Maryland
+  disclosure duty effective 2026-10-01 is describing this struck section**, and earlier drafts of
+  this brief did the same. See §8.0 for how the error propagates and how to check it in a browser.
+- **Md. HB 1475 (2026 RS)**, which carries a similar mandated string without the "OR BY". It died
+  in committee. A search hit on its text is not evidence that Maryland mandates a disclosure.
 - Any characterization of the Maryland definitions drawn from the bill's superseded language. The
   chapter law carries visible amendment layering and several summaries quote text that was struck.
+- **Any legislative text read through a text extractor.** `pdftotext` and its equivalents drop
+  strike-through, which makes struck language indistinguishable from enacted language. §8.0.
+- The **"P.L. 2026, c. 65"** designation for the New Jersey Act, and the short title **"New Jersey
+  Fair Price Protection Act."** The chapter is **c. 55** and the short title carries no state name.
+- The characterization of New Jersey's private right of action as **"express"** or
+  **"first-in-the-nation express."** It is derivative of the Consumer Fraud Act. §2.4, §8.3.
 - The *American Prospect* piece of 2026-08-21 on FTC enforcement — could not be fetched (403),
   unread, not cited.
 - A claim circulating in search summaries that the FTC issued an **"April 2026 ANPR on personalized
@@ -1334,6 +1597,9 @@ Do this regardless of whether you operate in the four states above.
 ---
 
 *Prepared 2026-08-21. Connecticut (P.A. 26-130 § 11 read in full), California AB 2564, New York's
-One Fair Price Act and* NRF v. James *re-verified 2026-09-16 — see the note at the top. All other
-statutory positions stated as of 2026-08-21. Nothing here is legal advice; have counsel review
-before acting.*
+One Fair Price Act and* NRF v. James *re-verified 2026-09-16. **Maryland (Ch. 154 / Com. Law
+§ 13-321, and the struck § 13-322) and New Jersey (P.L. 2026, c. 55) re-verified 2026-09-19 by
+rendered chapter pages and by the states' own codified-statute and bill-history endpoints with a
+positive control — see §8.0 and the correction of record at the top.** All other statutory
+positions stated as of 2026-08-21. Nothing here is legal advice; have counsel review before
+acting.*
