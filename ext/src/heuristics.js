@@ -17,8 +17,9 @@
  * return `{cancel: true}`. So this module is split in two, and must stay split:
  *
  *   OBSERVE  non-blocking `webRequest` listeners. They see headers and URLs
- *            and can do nothing about them. `extraHeaders` is required to see
- *            Cookie / Set-Cookie at all.
+ *            and can do nothing about them. On Chrome, `extraHeaders` is
+ *            required to see Cookie / Set-Cookie at all; Firefox has no such
+ *            option and no such gate (see `addObserver`).
  *   BLOCK    `chrome.declarativeNetRequest.updateDynamicRules()`. Promotion
  *            writes a dynamic rule; the block takes effect on the *next*
  *            request, not the one that triggered it. That one-request lag is
@@ -574,23 +575,67 @@ export function handleContentReport() {
 // ── public surface ────────────────────────────────────────────────────────
 
 /**
+ * Register one observer with the widest `extraInfoSpec` the engine accepts.
+ *
+ * `'extraHeaders'` is a Chrome enum member (Chrome ≥ 72). Without it Chrome
+ * hides Cookie, Set-Cookie, Referer, Origin and Accept-Language from the
+ * listener, so on Chrome the cookie lane is blind without it, and it is always
+ * asked for first. Firefox's enum has no such member — Firefox 156 publishes
+ * `OnBeforeSendHeadersOptions` as `{REQUESTHEADERS, BLOCKING}` — and the schema
+ * check throws synchronously out of `addListener` (`Invalid enumeration value
+ * "extraHeaders"`). It also needs none: `requestHeaders` carries Cookie and
+ * `responseHeaders` carries Set-Cookie there without opting in. Measured
+ * 2026-09-19 (docs/DECISIONS.md D42): with `['requestHeaders']` and
+ * `['responseHeaders']` alone, Firefox 156 fed the lane both COOKIE and
+ * SET_COOKIE from a third party on three sites, and it promoted. So a rejection
+ * is retried without the member, and losing it on Firefox costs the lane
+ * nothing. The detection is by rejection rather than by reading the enum object
+ * because the two engines spell its keys differently (`REQUEST_HEADERS` on
+ * Chrome) and only the thrown error is a contract.
+ *
+ * Never throws. `install()` is the first statement at the top level of
+ * background.js, and for as long as `extraHeaders` was in the source the throw
+ * above took the whole module down on Firefox — message surface included, so
+ * every GET_PERSONA went unanswered and every page ran on the fallback persona
+ * (D42). A registration that fails both ways is logged, and the other observer
+ * still comes up.
+ *
+ * @returns {string[]|null} the spec the engine accepted, or null if it accepted none.
+ */
+function addObserver(name, listener, filter, spec) {
+  const attempt = (s) => { chrome.webRequest[name].addListener(listener, filter, s); return s; };
+  try {
+    return attempt(spec);
+  } catch (first) {
+    let err = first;
+    if (spec.includes('extraHeaders')) {
+      try { return attempt(spec.filter((s) => s !== 'extraHeaders')); } catch (second) { err = second; }
+    }
+    console.error(
+      `[nullecho] heuristics: webRequest.${name} observer not registered; that side of the cookie lane is blind:`,
+      err,
+    );
+    return null;
+  }
+}
+
+/**
  * Wire up the observers.
  *
  * MUST be called synchronously from the service worker's top level.
  * `webRequest` listeners registered inside a promise callback are missed when
  * the worker is respawned for an event, and the failure is silent — the
  * extension simply stops learning.
+ *
+ * Never throws — see `addObserver`. Whatever an engine rejects, the rest of
+ * background.js must still evaluate.
  */
 export function install() {
   const filter = { urls: ['http://*/*', 'https://*/*'] };
 
   // No `onBeforeRequest`: see the note above `onBeforeSendHeaders`.
-  chrome.webRequest.onBeforeSendHeaders.addListener(
-    onBeforeSendHeaders, filter, ['requestHeaders', 'extraHeaders'],
-  );
-  chrome.webRequest.onHeadersReceived.addListener(
-    onHeadersReceived, filter, ['responseHeaders', 'extraHeaders'],
-  );
+  addObserver('onBeforeSendHeaders', onBeforeSendHeaders, filter, ['requestHeaders', 'extraHeaders']);
+  addObserver('onHeadersReceived', onHeadersReceived, filter, ['responseHeaders', 'extraHeaders']);
 
   // Reconcile in the background; nothing above depends on it finishing.
   void reconcile().catch((e) => console.error('[nullecho] reconcile failed:', e));

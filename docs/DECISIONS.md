@@ -2273,3 +2273,74 @@ gap is the JS property only, which is why "the worker gap breaks GPC" would be t
 **Guard:** `review-2026-09-19.test.js` fails if the quoted normative line, or the sentence naming A8
 as open, leaves `gpc.js` — and if worker scope is ever installed into, so that the comment is updated
 in the same change rather than becoming a lie.
+
+## D42 — The Firefox build evaluates its background module: `extraHeaders` is asked for, not assumed. 2026-09-19.
+
+**Decision:** `heuristics.install()` registers each `webRequest` observer through one guard,
+`addObserver`, which asks for the widest `extraInfoSpec` first, retries without `'extraHeaders'`
+when the engine rejects it, and logs rather than throws when the engine accepts neither. `install()`
+never throws. `background.js` is unchanged.
+
+**What was broken, and for how long.** `'extraHeaders'` is a Chrome enum member. Firefox's schema
+check rejects it synchronously out of `addListener`, and `heuristics.install()` is the first statement
+of §1 in `background.js` — ahead of `chrome.runtime.onMessage`. The throw ended the top-level
+evaluation of the module, so the message surface never existed on Firefox: every `GET_PERSONA` from
+`shim-loader.js` went unanswered, the shim ran on its coherent FALLBACK persona for the life of every
+document, the per-site allowlist never reached a page, and the GPC toggle could not take
+`navigator.globalPrivacyControl` down. Blocking kept working, because DNR is declarative and needs no
+background script — which, together with a fallback persona that looks spoofed on a casual read of
+`navigator.userAgent`, is why this was invisible for as long as `extraHeaders` has been in the source.
+D37 recorded it as pre-existing on 2026-09-19 and measured its own Firefox rows with the line patched
+out of the rig copy; this entry fixes it.
+
+✅ **Measured 2026-09-19**, Firefox **156.0** headless, macOS, throwaway profile, the extension installed
+from a scratch copy over WebDriver BiDi `webExtension.install` — the method of
+`docs/review-2026-09-19/gpc.md`, with one addition: Firefox launched with `--remote-allow-system-access`,
+without which BiDi in 156 answers `unsupported operation` to a `moz-extension:` navigation and the
+extension's own options page cannot be reached. Fixture: `a.test` / `b.test` / `c.test` resolved to
+loopback by `network.dns.localDomains`, each chaining three pixel loads from `tracker.test`, which sets
+one `SameSite=None` cookie (the response-side signal) and one plain cookie the browser stores and sends
+back (the request-side signal). Nothing in the copy was instrumented; the extension was asked through its
+own message surface from its own options page. "Before" is `b70a16d`, "after" is this commit.
+
+| | before | after |
+|---|---|---|
+| Firefox stderr at install | `heuristics.js, line 588: … Invalid enumeration value "extraHeaders"` ×1, then `uncaught exception` ×24 | nothing from the extension |
+| options tab opened by `onInstalled` | no | yes |
+| `GET_SITE_REPORT` for `a.test`, asked from the options page | rejected: `Could not establish connection. Receiving end does not exist.` | `ok:true`, `enabled:true`, `lastShimStatus` `{upgraded:true, lockedToFallback:false}` |
+| cookie lane after the three sites | no state, no dynamic rule, all 9 pixels served | `tracker.test` **blocked**: strikes 3, sites a/b/c, signals `COOKIE` + `SET_COOKIE`; dynamic rule 1000000 `block`, third-party; the 9th pixel already blocked |
+| GPC off through the real `#gpc` checkbox, then a fresh navigation | `navigator.globalPrivacyControl` **`true`**, `Sec-GPC: 1` on all four requests | **`false`** (boolean, the native getter), `Sec-GPC` absent |
+| `navigator.userAgent` on the page | `Chrome/151 … MacIntel` | `Chrome/151 … MacIntel` |
+
+The last row is the disguise: fallback and salted persona are both a coherent Chrome-on-Mac, so the
+page looks patched either way. `lastShimStatus.upgraded` is the shim's own authenticated report that it
+received a persona from a live worker, and it is the row that proves `GET_PERSONA` answered `ok:true`.
+
+**What losing `extraHeaders` costs on Firefox: nothing.** Firefox 156's own enum objects, read from the
+options page: `OnBeforeSendHeadersOptions = {REQUESTHEADERS, BLOCKING}`, `OnHeadersReceivedOptions =
+{BLOCKING, RESPONSEHEADERS}` — no member to ask for, and no gate behind it. With `['requestHeaders']`
+and `['responseHeaders']` alone the lane recorded both the request-side `COOKIE` and the response-side
+`SET_COOKIE` and promoted on the third site. On Chrome ≥ 72 the same two headers are hidden from a
+listener that did not ask for `extraHeaders`, so Chrome must keep asking, and `heuristics.test.js` now
+fails if it stops. Detection is by rejection rather than by reading the enum object, because Firefox
+spells the keys `REQUESTHEADERS` where Chrome spells `REQUEST_HEADERS`; only the thrown error is a
+contract.
+
+**Audit — is anything else in `ext/` Chrome-only at startup?** No. Static: the only other top-level API
+use in `background.js` is `onRuleMatchedDebug`, behind `?.`; `alarms`, `onStartup` and
+`openOptionsPage` are optional-chained; `getMatchedRules`, which Firefox lacks, is inside
+`matchedRulesForTab`'s try/catch and degrades to `live: null`; `updateStaticRules` and
+`getDisabledRuleIds` need Firefox 128 and `strict_min_version` is 140; `userAgentData` reads are guarded
+in `personas.js` and `shim.js`; `chrome.storage.session`, `scripting` and `userScripts` appear only in
+the comments explaining why they are not used; the two manifests differ only in the pairs
+`PERMISSIONS.md` already tabulates. Empirical: the fixed build's stderr across install, three page loads,
+the options page, the popup and the DROP page carries no extension-originated error, and both UI pages
+render. The three `Realm.sys.mjs … argument is not a global object` lines in every run are Firefox's
+remote agent, present before and after alike.
+
+**Guard:** `firefox-startup.test.js` imports `background.js` under a Firefox-shaped `chrome` (rejection
+message verbatim) and fails if the import throws, if the message surface is not registered, if
+`GET_PERSONA` does not answer `ok:true` with a persona, or if either observer is missing or carries
+`extraHeaders`. `heuristics.test.js` pins the Chrome side — both observers ask for `extraHeaders` — and
+the isolation: one observer failing to register is logged once and does not stop the other. Rig:
+`…/scratchpad/ff/` — `server.mjs` (fixture), `lib.mjs` (launch + BiDi), `run3.mjs` (the run above).

@@ -25,7 +25,39 @@ import assert from 'node:assert/strict';
 const store = {};
 const dynamicRules = new Map();
 const webRequestListeners = {};
-const evt = (name) => ({ addListener(fn) { webRequestListeners[name] = fn; } });
+const webRequestSpecs = {};
+const evt = (name) => ({
+  addListener(fn, _filter, spec) { webRequestListeners[name] = fn; webRequestSpecs[name] = spec; },
+});
+
+/**
+ * Firefox 156's `webRequest`: `extraInfoSpec` is a schema enum with no
+ * `extraHeaders` member, and the check throws synchronously out of
+ * `addListener`. Message verbatim from Firefox's stderr, 2026-09-19
+ * (docs/DECISIONS.md D42).
+ */
+const firefoxEvt = (name) => ({
+  addListener(fn, _filter, spec) {
+    const i = (spec ?? []).indexOf('extraHeaders');
+    if (i >= 0) {
+      throw new Error(
+        `Type error for parameter extraInfoSpec (Error processing ${i}: ` +
+        `Invalid enumeration value "extraHeaders") for webRequest.${name}.`,
+      );
+    }
+    webRequestListeners[name] = fn;
+    webRequestSpecs[name] = spec;
+  },
+});
+
+/** Run `fn` with `chrome.webRequest` swapped out and the records cleared; put the stock stub back after. */
+function withWebRequest(webRequest, fn) {
+  const stock = globalThis.chrome.webRequest;
+  for (const k of Object.keys(webRequestListeners)) delete webRequestListeners[k];
+  for (const k of Object.keys(webRequestSpecs)) delete webRequestSpecs[k];
+  globalThis.chrome.webRequest = webRequest;
+  try { fn(); } finally { globalThis.chrome.webRequest = stock; }
+}
 
 globalThis.chrome = {
   storage: {
@@ -368,6 +400,55 @@ test('install() registers cookie observers only — nothing derived from the req
   assert.equal(webRequestListeners.onBeforeRequest, undefined, 'a URL-only observer is the A5 hole');
   assert.equal(typeof webRequestListeners.onBeforeSendHeaders, 'function');
   assert.equal(typeof webRequestListeners.onHeadersReceived, 'function');
+});
+
+// ── engine-aware registration (D42) ───────────────────────────────────────
+//
+// Firefox's build died here for as long as `extraHeaders` has been in the
+// source: the throw below killed the top-level evaluation of background.js,
+// so `chrome.runtime.onMessage` never registered and every page ran on the
+// fallback persona. Three properties, each its own test.
+
+test('Chrome: both observers ask for extraHeaders — Chrome hides Cookie and Set-Cookie without it', () => {
+  H.install();
+  assert.ok(webRequestSpecs.onBeforeSendHeaders.includes('extraHeaders'));
+  assert.ok(webRequestSpecs.onHeadersReceived.includes('extraHeaders'));
+});
+
+test('Firefox: an engine that rejects extraHeaders still gets both observers, and install() does not throw', () => {
+  withWebRequest({
+    onBeforeRequest: firefoxEvt('onBeforeRequest'),
+    onBeforeSendHeaders: firefoxEvt('onBeforeSendHeaders'),
+    onHeadersReceived: firefoxEvt('onHeadersReceived'),
+  }, () => {
+    assert.doesNotThrow(() => H.install());
+    assert.equal(typeof webRequestListeners.onBeforeSendHeaders, 'function');
+    assert.equal(typeof webRequestListeners.onHeadersReceived, 'function');
+    assert.deepEqual(webRequestSpecs.onBeforeSendHeaders, ['requestHeaders']);
+    assert.deepEqual(webRequestSpecs.onHeadersReceived, ['responseHeaders']);
+  });
+});
+
+test('one observer failing to register is logged and does not abort install(): the other still comes up', () => {
+  const errors = [];
+  const stockError = console.error;
+  console.error = (...args) => errors.push(args.map(String).join(' '));
+  try {
+    withWebRequest({
+      onBeforeRequest: evt('onBeforeRequest'),
+      onBeforeSendHeaders: { addListener() { throw new TypeError('simulated engine rejection'); } },
+      onHeadersReceived: evt('onHeadersReceived'),
+    }, () => {
+      assert.doesNotThrow(() => H.install());
+      assert.equal(webRequestListeners.onBeforeSendHeaders, undefined);
+      assert.equal(typeof webRequestListeners.onHeadersReceived, 'function');
+    });
+  } finally {
+    console.error = stockError;
+  }
+  assert.equal(errors.length, 1, 'the failure is logged once, not swallowed');
+  assert.match(errors[0], /onBeforeSendHeaders/);
+  assert.match(errors[0], /simulated engine rejection/);
 });
 
 test('an identifier-bearing URL from three sites earns nothing, through every observer that exists', async () => {
