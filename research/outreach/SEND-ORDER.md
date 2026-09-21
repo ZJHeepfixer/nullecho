@@ -3,6 +3,9 @@
 **Built 2026-09-20.** Companion to `TARGETS.md`, `../BRIEF-PITCH.md`, and the four drafts in this
 folder. **Nothing here has been sent. Jason sends every one of these himself from
 `jason@nullecho.org`.** No attachments on first contact — offer the brief, send it on a yes.
+**The brief is described at <https://nullecho.org/research/> (live 2026-09-21): the four-state table, the
+three-step Maryland check, the Instacart point, and how to ask for the brief. That is the one link a signature
+may carry; the body keeps its single statute link.**
 
 ---
 

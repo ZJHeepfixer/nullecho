@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algorithmic pricing disclosure law, read from the statutes — Nullecho Research</title>
+<meta name="description" content="Which states require a personalized-pricing disclosure, the exact words, what is in force, and what is not law. A working brief for counsel and compliance teams, with every claim tied to enacted text and a three-step check anyone can run.">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#0b0e13; --panel:#141922; --raise:#1b2230; --line:#242c3a;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#66738a;
+    --accent:#5eead4; --accent2:#2dd4bf; --warn:#fbbf24; --bad:#f87171; --ok:#3fb950;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;
+    --serif:ui-serif,Georgia,"Times New Roman",serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{--bg:#fbfcfd;--panel:#fff;--raise:#f1f5f9;--line:#e2e8f0;
+          --text:#0f172a;--dim:#475569;--faint:#94a3b8;--accent:#0d9488;--accent2:#0f766e;--ok:#15803d;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:800px;margin:0 auto;padding:0 22px}
+  nav{padding:18px 0;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--faint)}
+  nav .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  nav a{color:var(--dim);text-decoration:none}
+  nav a:hover{color:var(--text)}
+  nav .brand{color:var(--text);font-weight:700;letter-spacing:.02em}
+  nav .brand span{color:var(--faint);font-weight:400}
+  header{padding:56px 0 30px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:16px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+  h1{font:600 clamp(30px,5vw,44px)/1.12 var(--serif);margin:0 0 18px;letter-spacing:-.02em}
+  .lede{font-size:19px;color:var(--dim);margin:0 0 10px}
+  .lede b{color:var(--text);font-weight:600}
+  .stamp{margin-top:20px;font-size:13.5px;color:var(--faint)}
+  .stamp b{color:var(--dim);font-weight:600}
+
+  section{padding:34px 0;border-top:1px solid var(--line)}
+  h2{font:600 24px/1.3 var(--serif);margin:0 0 8px}
+  h3{font:600 16px/1.4 var(--sans);margin:22px 0 6px}
+  p{color:var(--dim);margin:0 0 14px}
+  p b, li b{color:var(--text);font-weight:600}
+  ul,ol{color:var(--dim);padding-left:22px;margin:0 0 14px}
+  li{margin-bottom:8px}
+  a{color:var(--accent);text-underline-offset:3px}
+  code{font-family:var(--mono);font-size:.88em;background:var(--raise);padding:1px 6px;border-radius:4px;color:var(--text)}
+  .words{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.02em;background:var(--raise);
+    border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px;margin:8px 0 14px;color:var(--text)}
+
+  .tbl{overflow-x:auto;margin-top:14px}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px;table-layout:fixed}
+  th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:650;white-space:nowrap}
+  col.c-state{width:17%} col.c-what{width:29%} col.c-when{width:12%} col.c-words{width:22%} col.c-enf{width:20%}
+  td.k{font-weight:600}
+  td.k .small{font-weight:400;display:block;margin-top:2px}
+  td .m{font-family:var(--mono);font-size:12px;color:var(--text)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+  .pill.dis{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+  .pill.ban{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+  .box h3{margin-top:0}
+  .box.warn{border-left:3px solid var(--warn)}
+  .check{list-style:none;padding:0;margin:0}
+  .check li{display:grid;grid-template-columns:22px 1fr;gap:10px;margin-bottom:12px}
+  .check .n{width:22px;height:22px;border-radius:50%;background:var(--raise);border:1px solid var(--line);
+    font:700 12px/20px var(--mono);text-align:center;color:var(--dim)}
+  .check .u{font-family:var(--mono);font-size:12.5px;word-break:break-all;color:var(--text)}
+  .check .e{font-size:13.5px;color:var(--dim);margin-top:3px}
+  .check .e b{color:var(--ok)}
+  .check .e b.no{color:var(--bad)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:14.5px}
+  .card p{font-size:13.5px;margin:0}
+
+  .contact{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-top:18px}
+  .contact .mail{font:600 20px/1.3 var(--serif);margin:4px 0 10px}
+  .contact .mail a{text-decoration:none}
+  .contact .mail a:hover{text-decoration:underline}
+  .small{font-size:13.5px;color:var(--faint)}
+  footer{padding:34px 0 70px;font-size:13.5px;color:var(--faint);border-top:1px solid var(--line)}
+  footer a{color:var(--dim)}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="/">Nullecho <span>/ Research</span></a>
+  <a href="/">Measure it yourself</a>
+  <a href="/drop/">The price notice</a>
+  <a href="/privacy/">Privacy</a>
+  <a href="https://github.com/ZJHeepfixer/nullecho">Source</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="eyebrow"><span class="dot"></span>For counsel and compliance teams</div>
+  <h1>Algorithmic pricing disclosure law, read from the statutes.</h1>
+  <p class="lede">
+    Which states require a personalized-pricing disclosure, <b>the exact words</b>, what is in force,
+    and <b>what is not law</b>. Every claim below is tied to enacted text you can open yourself, and
+    one of them corrects an error that is circulating in client alerts and in the AI answers of the
+    major search engines.
+  </p>
+  <div class="stamp"><b>Verified against enacted and codified text as of September 20, 2026.</b>
+    Written by the developer of a free, open-source browser extension, not by a law firm. Nothing here is legal advice; it tells you where the statutes are.</div>
+</div></header>
+
+<section><div class="wrap">
+  <h2>Two states require a sentence. Two more ban a practice.</h2>
+  <p>Commentary often describes three or four states as mandating an algorithmic-pricing disclosure. On the enacted text, two do, and their sentences differ. Two others chose a prohibition instead, with no wording at all.</p>
+  <div class="tbl"><table>
+    <colgroup><col class="c-state"><col class="c-what"><col class="c-when"><col class="c-words"><col class="c-enf"></colgroup>
+    <thead><tr><th>State</th><th>What it does</th><th>In force</th><th>Required words</th><th>Enforcement</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="k">New York<span class="small">Gen. Bus. Law § 349-a</span></td>
+        <td><span class="pill dis">Disclosure</span><br>No conduct is prohibited. Notice must appear on, at or near, and contemporaneous with, every price display it covers.</td>
+        <td>Enforced since <b>Nov 10, 2025</b></td>
+        <td><span class="m">THIS PRICE WAS SET BY AN ALGORITHM USING YOUR PERSONAL DATA</span></td>
+        <td>Attorney General only. A cease-and-desist letter with a cure period is a statutory prerequisite. Up to $1,000 per violation. No private action.</td>
+      </tr>
+      <tr>
+        <td class="k">Connecticut<span class="small">Public Act 26-130 § 11</span></td>
+        <td><span class="pill dis">Disclosure</span><br>Two earlier versions of this section were repealed before taking effect; summaries quoting a "price setting device" quote repealed text.</td>
+        <td><b>July 1, 2027</b></td>
+        <td><span class="m">THIS PRICE WAS INCREASED USING YOUR PERSONAL DATA</span><br><span class="small">or a "substantially similar" disclosure</span></td>
+        <td>No notice-and-cure structure.</td>
+      </tr>
+      <tr>
+        <td class="k">Maryland<span class="small">Ch. 154 of 2026 (HB 895), Com. Law § 13-321</span></td>
+        <td><span class="pill ban">Ban</span><br>Large food retailers (15,000 sq ft and up) and third-party delivery services may not set a higher personalized price on sales-tax-exempt food. Nine carve-outs.</td>
+        <td><b>Oct 1, 2026</b></td>
+        <td><b>None.</b> Maryland prescribes no wording of any kind. The disclosure section in the introduced bill was struck before passage. <a href="#maryland">See below.</a></td>
+        <td>Consumer Protection Division of the AG's office, through the Consumer Protection Act. Private action expressly excluded.</td>
+      </tr>
+      <tr>
+        <td class="k">New Jersey<span class="small">P.L. 2026, c. 55 (Fair Price Protection Act)</span></td>
+        <td><span class="pill ban">Ban</span><br>Personal data may not be used to set the price of groceries.</td>
+        <td><b>Aug 1, 2027</b></td>
+        <td><b>None.</b></td>
+        <td>Consumer Fraud Act attaches; no express private right in the Act itself.</td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p class="small" style="margin-top:12px">New York's sentence survived a First Amendment challenge in the district court (<i>National Retail Federation v. James</i>, No. 1:25-cv-05500, S.D.N.Y., Oct. 8, 2025). The appeal, 2d Cir. No. 25-2818, is briefed and undecided.</p>
+</div></section>
+
+<section id="maryland"><div class="wrap">
+  <h2>One widely repeated error, and how to check it in three clicks</h2>
+  <p>Maryland HB 895 as introduced carried a second section, Com. Law § 13-322, that would have required <b>every merchant</b> pricing on personal data to display <span class="m" style="font-family:var(--mono);font-size:13px;color:var(--text)">THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR PERSONAL DATA</span>. That section was struck by amendment before the bill passed. It is not law. At least one published law-firm alert describes it as enacted, and so do the AI-generated answers of the major search engines; most firm alerts got it right.</p>
+  <p>The error is easy to make. The chapter law prints the struck section in strikethrough, and text extraction from the PDF silently drops the strikethrough, so the deleted section reads like enacted text. The State's own codified-statute service settles it:</p>
+  <div class="box">
+    <h3>Run the check yourself. In a browser, not a script: the service renders only with JavaScript.</h3>
+    <ol class="check">
+      <li><span class="n">1</span><div>
+        <div class="u"><a href="https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&amp;section=13-321&amp;enactments=true&amp;archived=false">mgaleg.maryland.gov/…/StatuteText?article=gcl&amp;section=13-321&amp;enactments=true</a></div>
+        <div class="e">Expect the <b>full text of § 13-321</b>. This is the positive control. If it does not render, stop; the other two results mean nothing.</div>
+      </div></li>
+      <li><span class="n">2</span><div>
+        <div class="u"><a href="https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&amp;section=13-322&amp;enactments=true&amp;archived=false">…StatuteText?article=gcl&amp;section=13-322&amp;enactments=true</a></div>
+        <div class="e">Expect <b class="no">"File Not Found."</b> There is no § 13-322.</div>
+      </div></li>
+      <li><span class="n">3</span><div>
+        <div class="u"><a href="https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&amp;section=13-408&amp;enactments=true&amp;archived=false">…StatuteText?article=gcl&amp;section=13-408&amp;enactments=true</a></div>
+        <div class="e">Expect subsection (a) to name <b>"a violation of § 13-321 of this title"</b> and no § 13-322. The codified cross-references were amended for one new section, not two.</div>
+      </div></li>
+    </ol>
+    <p class="small" style="margin:6px 0 0">Under <code>curl</code> or any non-JavaScript fetch, every section returns "File not Found", including § 13-321. A check without the positive control proves nothing.</p>
+  </div>
+  <p>Why it matters in practice: a merchant relying on a circulating summary may be building a disclosure for a Maryland section that does not exist while missing the New York section that does.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Presence is not adequacy</h2>
+  <p>The New York Attorney General's letter to Maplebear Inc. (Instacart), dated January 8, 2026, addressed a page that <b>contained the exact statutory sentence</b> and concluded that the disclosure nonetheless failed to be clear and conspicuous, because of where and how it appeared. A compliance program that checks for the presence of a string is checking the wrong thing. The statute's standard is placement and prominence relative to the price.</p>
+  <p>The same letter is the reason a disclosure rendered as an image, placed inside a collapsed element, or split across markup so the sentence never appears as text should be treated as a risk, not as compliance.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The federal layer</h2>
+  <p>On August 19, 2026 the Federal Trade Commission published a Proposed Enforcement Policy Statement Regarding Personalized Pricing (File No. P034101; docket FTC-2026-1057). Its premise is that a consumer who cannot tell a price was set from their data cannot avoid it, and that concealment is what makes the practice unavoidable. The comment period closed September 25, 2026.</p>
+  <p>A comment on the Statement was filed from this project on September 20, 2026, making the points on this page: that two states, not three or four, mandate a sentence; that the sentences differ; and that the presence of a sentence should not be mistaken for an adequate disclosure. It will be linked here once the Commission posts it.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What compliance looks like in the wild</h2>
+  <p>A sweep in August 2026 searched for real-world instances of New York's mandated sentence. It is observation with its coverage limits stated, not a statistical sample. Two findings hold up:</p>
+  <ul>
+    <li><b>One category complies: digital-subscription publishers.</b> The Wall Street Journal, Wired, The New Yorker, the Albany Times Union and NJ.com carry the sentence on renewal pricing, sometimes with a "New York residents: please note…" preamble. Renewal and win-back pricing keyed to an account is textbook personalized algorithmic pricing, and these publishers chose to disclose rather than stop.</li>
+    <li><b>The disclosures live in renewal email, not on web pages.</b> That matters for anyone measuring compliance from outside, and for any compliance team whose own review looks only at the website.</li>
+  </ul>
+  <p>General retail, in the same sweep, was close to zero.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What Nullecho is, and what it is not</h2>
+  <p>Nullecho is a free, open-source browser extension (MIT license) that blocks trackers, sends the Global Privacy Control signal, and shows each website a different, internally consistent device profile. It collects no data and has no accounts. The pricing research exists because building the tool required reading these statutes closely enough to find that the summaries disagree with the text.</p>
+  <div class="cards">
+    <div class="card"><h3>It recognizes New York's sentence</h3><p>On a page that also carries a machine-readable price, the extension recognizes the mandated sentence and lets the user keep a local, plain-text receipt: the page, the time, the price shown, and the sentence as displayed.</p></div>
+    <div class="card"><h3>It draws no legal conclusion</h3><p>It never labels a page "compliant" or "in violation." It records what the page displayed. Whether that display is clear and conspicuous is a question for counsel, and the Instacart letter shows why.</p></div>
+    <div class="card"><h3>It is measurable</h3><p>The extension collects nothing, so it cannot report on itself. Instead it lets anyone <a href="/">measure it on their own machine</a>, and its test results are published with the source.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The brief</h2>
+  <p><i>Algorithmic and Personalized Pricing: A Four-State Compliance Brief</i> puts the four enacted regimes side by side, read from the enacted and codified text rather than from summaries. Its sections:</p>
+  <ol>
+    <li>Executive summary</li>
+    <li>The four-state matrix: citation, mechanism, mandated string, effective date, who is bound, trigger definitions, placement standard, exemptions, penalty, enforcement, private right of action, litigation</li>
+    <li>Disclosure versus ban: the distinction most coverage conflates</li>
+    <li>The federal layer</li>
+    <li>The California angle: a privacy statute pressed into pricing service</li>
+    <li>Observed compliance reality</li>
+    <li>A practical compliance checklist</li>
+    <li>Sources and verification status, including why an earlier draft of the brief was itself wrong about Maryland, and the method that caught it</li>
+  </ol>
+  <p><b>The brief is free to anyone who asks for it by email.</b> It is more useful read than sold. What costs money is the work after it: keeping it current as Connecticut, New Jersey and the FTC move, and checking what a specific page actually displays to a specific reader, every day, with receipts. If either of those is a problem you have, ask.</p>
+  <div class="contact">
+    <div class="small">Write to</div>
+    <div class="mail"><a href="mailto:jason@nullecho.org?subject=Algorithmic%20pricing%20brief">jason@nullecho.org</a></div>
+    <p class="small" style="margin:0">Jason Luker, Ridgecrest, California. Independent developer of Nullecho. No commercial relationship with any retailer, pricing vendor, or data broker, and not a lawyer. Replies come from a person, not a list; there is no mailing list to join and nothing on this page records your visit.</p>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  Not legal advice. Statutory text verified as of September 20, 2026; effective dates and the appeal in <i>NRF v. James</i> may have moved since. Check the primary sources linked above before relying on anything here.
+  <br>No analytics on this page. No cookies set. <a href="/">Home</a> · <a href="/privacy/">Privacy</a> · <a href="https://github.com/ZJHeepfixer/nullecho">Source on GitHub</a>
+</div></footer>
+
+</body>
+</html>
