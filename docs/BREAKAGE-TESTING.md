@@ -48,6 +48,12 @@ fingerprint* — the exact failure the whole design exists to prevent. Do not sh
 - **Never run two agents against the same browser when timing matters.** Concurrent drivers made the
   timing side-channel unmeasurable (1.2–3.7 ms/op, wildly variable). Timing ratios from a shared
   session are noise.
+- **A hidden tab is not a test environment (2026-09-20).** YouTube fetches no media for a hidden document and
+  Google Maps' zoom is an rAF animation that never completes without paint, so both "failed" under every
+  extension variant while the OFF control passed — the extension's own first-run options tab had opened in
+  front of the test tab (fresh profile = first install), and in a driven real Chrome the agent's tab lived in an
+  occluded window. Assert `document.visibilityState === 'visible'` before measuring; `harness/site-bisect.mjs`
+  closes extension pages and fronts the test page. Same lesson as the 9/09 hidden Browser pane.
 
 ---
 
@@ -274,3 +280,14 @@ went **up**, because nothing previously proved that blocking blocks.
 strings (hard release blocker #1 — see `RELEASE-CHECKLIST.md` for the three options). The Linux
 *font* list was fixed from measured ground truth on 2026-09-16 (203/203 tests); that leaves the
 renderer strings as the whole of blocker #1, still open.
+
+### 2026-09-20 — first unpacked run in the owner's Chrome + site bisect (docs/breakage-runs/2026-09-20-unpacked-chrome-run1.md)
+
+Agent-driven ON-only pass over 14 logged-out sites in Jason's everyday Chrome (0.9.0 unpacked): 12 PASS, 2 FAIL
+(YouTube playback, Google Maps interaction), 1 driver-blocked. Both FAILs were then bisected in Chrome for
+Testing with `harness/site-bisect.mjs` and **both were the hidden-tab artifact above, not the extension**: the
+complete extension plays YouTube (19 s buffered, persona active) and zooms Maps (12 → 14.42, same as OFF) once the
+test tab is in front. Tier C.15 verified by rendering in real Chrome: `open.spotify.com` GPC undefined + persona
+present; control true. Real follow-ups are protection misses, not breakage: `offscreenCanvas.getImageData`
+runtime failure on Maps; the D30 boot-check timeout on cold-worker first loads. Owner-only Tier A items (bank,
+Google SSO, real checkout) still owed.
