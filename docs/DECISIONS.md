@@ -2931,3 +2931,39 @@ wrapper leaks. **Decisive:** the same extension with `src/gpc.js` dropped from t
 toString wrapper. The fix belongs to D38's owner and the rule is one toString mask per realm:
 install the GPC getters from `shim.js` through `markNative`, or give `gpc.js` a way into
 `NATIVE_SRC`. `unpacked-chrome.mjs claim` expecting 2 / false / 0 on both origins is the gate.
+
+## D48 — The never-booted alarm skips frames that cannot run script, and its console line is the top document's alone. 2026-09-20.
+
+**Context.** The first breakage run in a user's Chrome (docs/breakage-runs/2026-09-20-unpacked-chrome-run1.md)
+printed `[Nullecho] The page-world shim did not answer on this document … please report it` on every
+YouTube watch page, six seconds after load, and on the first load of Chart.js, Squoosh and IRS. A
+per-frame timeline (`handshake-timeline.mjs`, Chrome for Testing, tab in front) showed the top document
+booting at ~300 ms and authenticating in the same millisecond its persona landed. The alarm came from a
+child `about:blank` frame with `sandbox="allow-same-origin"`: no `allow-scripts`, so no page script runs
+there and Chrome injects no MAIN-world content script into it. The ISOLATED-world loader still runs,
+waits `BOOT_CHECK_MS`, hears nothing, and raises the loudest thing the extension can say — for a realm
+in which nothing can fingerprint.
+
+**Decision.** (1) `checkHealth()` returns without reporting when the frame's own `sandbox` attribute
+forbids script (`scriptBlockedBySandbox()`, read in the isolated world; `frameElement` is null at the
+top and behind a cross-origin parent, and both read as "not blocked", so every frame we cannot see into
+keeps its alarm). (2) The console line is printed only by the top document, as the R3b `nonce-exposed`
+warning already is and for the same reason: a warning that fires on every page with an ad frame
+teaches the user to ignore the warning. (3) A sub-frame miss still reaches the service worker as a
+`shim-never-booted` status carrying `top: false`; the worker counts it per site (`subFrameMisses`,
+keyed on `sender.frameId`, the browser's own word) and does not write it into `lastShimStatus`, which
+drives the popup's "did not start on this page" line and must describe the document the user is
+looking at.
+
+**Not decided.** Whether a sub-frame miss in a frame that CAN run script (an ad frame the shim really
+did not reach) should surface in the popup as its own line. It is counted now; showing it waits for a
+measured case. `loader-frames-2026-09-20.test.js` holds the five cases; `unpacked-chrome.mjs` and
+`site-bisect.mjs` front the test page so the alarm is measured on a visible document.
+
+**Found alongside, same run (a bug, not a decision):** `offscreenCanvas.getImageData` failed at run
+time on every call since it was written — `patchGetImageData` reached for the context's canvas through
+the accessor captured from `CanvasRenderingContext2D`, which throws `Illegal invocation` on an
+`OffscreenCanvasRenderingContext2D`. The page saw native bytes; the API was unprotected wherever an
+OffscreenCanvas is read on the main thread (Google Maps, visibly). Fixed by passing the context's own
+`canvas` accessor; `offscreen-getimagedata-2026-09-20.test.js` fails on the old shim through the rig's
+`NULLECHO_SHIM_SRC` override and passes now. The shared rig itself moved to `src/test-realm-rig.js`.

@@ -167,6 +167,10 @@ A flow that is already broken with the extension off is not our bug — that che
 
 - **Two profiles, not two runs.** Cross-origin persona differences only show with a real profile
   boundary.
+- **A driven real browser: signed out, and a visible tab, before anything is measured.** An agent run on
+  2026-09-20 assumed a logged-out profile and put a real item in the owner's real Amazon cart (removed
+  again); the same run measured two "breaks" in an occluded window. Check `document.visibilityState`
+  and the sign-in state of every account-bearing site first, and say in the report which held.
 - **Watch the console, not just the page.** Our shims are instrumented to fail loud; a silent
   console with a broken page means the breakage is *not* ours and the triage should say so.
 - **Record the persona.** Bugs will be persona-specific — a Windows persona on a Mac breaks

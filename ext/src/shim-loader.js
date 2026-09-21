@@ -389,6 +389,24 @@
   }
 
   /**
+   * True when this document's frame carries a `sandbox` attribute without
+   * `allow-scripts`: no page script runs here, Chrome injects no MAIN-world
+   * script here, and there is nothing to patch or to alarm about (D48). Read in
+   * the ISOLATED world. `frameElement` is null at the top and behind a
+   * cross-origin parent; both read as "not blocked", which keeps the alarm for
+   * every frame we cannot see into.
+   */
+  function scriptBlockedBySandbox() {
+    try {
+      const fe = globalThis.frameElement;
+      if (!fe || typeof fe.getAttribute !== 'function') return false;
+      const sb = fe.getAttribute('sandbox');
+      if (sb === null || sb === undefined) return false;
+      return !/(?:^|\s)allow-scripts(?:\s|$)/i.test(String(sb));
+    } catch { return false; }
+  }
+
+  /**
    * A boot event is the one reverse message that CANNOT carry a token — it is what
    * we mint the tokens in reply to. So it is treated as UNAUTHENTICATED and is
    * allowed to change exactly two things: the fact that something announced itself,
@@ -642,13 +660,25 @@
   function checkHealth() {
     if (healthReported || !bootCheckElapsed || !bootstrapFinished || authedSeen) return;
     healthReported = true;
+    // A frame whose sandbox forbids script runs no page script at all: nothing in
+    // it can fingerprint and the MAIN-world shim is not injected there. Reporting
+    // "never booted" for it was a false alarm on every YouTube watch page (an
+    // `about:blank sandbox="allow-same-origin"` child) and on the first load of
+    // any page carrying such a frame — 2026-09-20, first breakage run (D48).
+    if (scriptBlockedBySandbox()) return;
+    const top = isTopFrame();
     send({
       type: MSG_SHIM_STATUS,
       upgraded: false,
       lockedToFallback: false,
       reason: 'shim-never-booted',
+      top,
     });
-    if (loud) {
+    // The console line belongs to the top document, as R3b's warning already
+    // does (D48). A sub-frame miss still reaches the service worker as a status
+    // and is counted there per site; it does not tell the user to file a bug on
+    // every page that carries an ad frame.
+    if (loud && top) {
       console.error(
         '[Nullecho] The page-world shim did not answer on this document. ' +
         'Fingerprinting APIs are NOT patched here. If you see this on a normal ' +

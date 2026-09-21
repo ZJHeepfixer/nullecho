@@ -1948,6 +1948,9 @@
     const offHeight = propReader(win.OffscreenCanvas, 'height');
     const offGetContext = methodCaller(win.OffscreenCanvas, 'getContext');
     const ctxCanvas = propReader(Ctx2D, 'canvas');
+    // The offscreen context has its OWN `canvas` accessor; the on-screen one
+    // applied to it throws `Illegal invocation` (found 2026-09-20, Google Maps).
+    const offCtxCanvas = propReader(OffCtx2D, 'canvas');
     const ctxFont = propReader(Ctx2D, 'font');
     const setCtxFont = propWriter(Ctx2D, 'font');
     const offCtxFont = propReader(OffCtx2D, 'font');
@@ -2235,19 +2238,24 @@
     }
 
     /**
-     * `widthOf`/`heightOf` are the captured readers for the context's OWN canvas
-     * type — an HTMLCanvasElement getter applied to an OffscreenCanvas throws.
+     * `canvasOf`/`widthOf`/`heightOf` are the captured readers for the context's
+     * OWN canvas type — an HTMLCanvasElement getter applied to an OffscreenCanvas
+     * throws. (Until 2026-09-20 the on-screen `canvas` getter was applied to every
+     * offscreen context here, so every `offscreenCanvas.getImageData` failed at
+     * run time and handed back the un-noised bytes. Found on Google Maps in the
+     * first breakage run in a user's Chrome; the unit rig brand-checks like
+     * Chrome and now covers it.)
      * The whole canvas is read (through the native original) whenever the request
      * is a sub-rectangle, so the ink gate and the content digest describe the
      * canvas, not the rectangle (B5). One extra native read per partial read.
      */
-    function patchGetImageData(proto, label, widthOf, heightOf) {
+    function patchGetImageData(proto, label, canvasOf, widthOf, heightOf) {
       replaceMethod(proto, 'getImageData', (orig) => function getImageData(sx, sy) {
         const img = apply(orig, this, arguments);
         if (state.standingDown) return img;
         touch('canvas');
         try {
-          const cv = ctxCanvas(this);
+          const cv = canvasOf(this);
           const iw = imgWidth(img) | 0, ih = imgHeight(img) | 0;
           const cw = cv ? widthOf(cv) | 0 : iw;
           const ch = cv ? heightOf(cv) | 0 : ih;
@@ -2267,10 +2275,10 @@
       });
     }
 
-    safe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', canvasWidth, canvasHeight));
+    safe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', ctxCanvas, canvasWidth, canvasHeight));
     safe('offscreenCanvas.getImageData', () => {
       if (!OffCtx2D || !OffCtx2D.prototype) return;
-      patchGetImageData(OffCtx2D.prototype, 'offscreenCanvas.getImageData', offWidth, offHeight);
+      patchGetImageData(OffCtx2D.prototype, 'offscreenCanvas.getImageData', offCtxCanvas, offWidth, offHeight);
     });
 
     safe('canvas.toDataURL', () => {

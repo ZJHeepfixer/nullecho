@@ -111,6 +111,20 @@ async function launch({ withExtension, exposeGc }) {
   if (!env.realChrome) console.error('⚠ not real Chrome by UA — numbers are not authoritative');
   return browser;
 }
+/**
+ * Put a fresh test page IN FRONT and close the extension's own pages first. A fresh profile is a
+ * first install, and the extension opens its options page on install — over the test tab. A
+ * hidden tab gets no rAF and YouTube fetches no media for it, so every extension variant "failed"
+ * on 2026-09-20 while OFF passed. Measure only a visible page (BREAKAGE-TESTING.md, hygiene).
+ */
+async function frontPage(browser) {
+  for (const p of await browser.pages()) {
+    if (/^chrome-extension:\/\//.test(p.url())) await p.close().catch(() => {});
+  }
+  const page = await browser.newPage();
+  await page.bringToFront();
+  return page;
+}
 async function teardown(browser, withExtension) {
   try { await browser.close(); } catch (_) { /* already gone */ }
   if (withExtension) fs.rmSync(path.join(EXT, '_metadata'), { recursive: true, force: true });   // trap 1
@@ -142,7 +156,7 @@ const modes = {
     const browser = await launch({ withExtension: true });
     try {
       console.log('serviceWorker ' + JSON.stringify(await serviceWorker(browser)));
-      const page = await browser.newPage();
+      const page = await frontPage(browser);
       await page.goto(`${ORIGIN}/harness/claim-verification.html?shim=off&creep=off&${cb()}`, { waitUntil: 'load' });
       const r = await page.evaluate(() => ({
         coresAtFirstPageScript: window.__ENV.realCores,          // stage 0 runs before any other page script
@@ -162,7 +176,7 @@ const modes = {
     const browser = await launch({ withExtension: true });
     try {
       console.log('serviceWorker ' + JSON.stringify(await serviceWorker(browser)));
-      const page = await browser.newPage();
+      const page = await frontPage(browser);
       await page.goto(`${ORIGIN}/harness/realm-timing.html?shim=off&${cb()}`, { waitUntil: 'load' });
       const T = await page.evaluate(() => window.__timingDone);
       console.log(`top window: ${T.topAtStage0} at stage 0, ${T.topAfterBoot} after boot (the persona)`);
@@ -186,7 +200,7 @@ const modes = {
       console.log('serviceWorker ' + JSON.stringify(await serviceWorker(browser)));
       const ids = [];
       for (const origin of [ORIGIN, otherHost(ORIGIN)]) {
-        const page = await browser.newPage();
+        const page = await frontPage(browser);
         const t0 = Date.now();
         await page.goto(`${origin}/harness/claim-verification.html?shim=off&label=unpacked&${cb()}`, { waitUntil: 'load' });
         const r = await page.evaluate(() => window.__claimDone);
@@ -216,7 +230,7 @@ const modes = {
   async retain() {
     const browser = await launch({ withExtension: false, exposeGc: true });
     try {
-      const page = await browser.newPage();
+      const page = await frontPage(browser);
       await page.goto(`${ORIGIN}/harness/claim-verification.html?creep=off&${cb()}`, { waitUntil: 'load' });
       await page.evaluate(() => window.__claimDone);
       await page.evaluate(() => { gc(); gc(); });

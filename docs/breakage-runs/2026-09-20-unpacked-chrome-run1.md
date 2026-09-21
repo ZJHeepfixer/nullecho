@@ -148,3 +148,16 @@ DOM synchronously on wheel input; it is not a valid control for an rAF-driven ap
   breakage measurement, in the harness and in a driven real browser alike.
 - The extension's first-run options page hides the test tab in any fresh-profile harness. `site-bisect.mjs`
   closes extension pages and fronts the test page; `unpacked-chrome.mjs` should do the same.
+
+### Resolution of the follow-ups (same night)
+
+1. **`offscreenCanvas.getImageData` on Maps** — root cause found and fixed: the wrapper applied the
+   on-screen context's `canvas` getter to offscreen contexts (`Illegal invocation` on every call, since the
+   wrapper was written). Unprotected on every page that reads an OffscreenCanvas on the main thread, not
+   only Maps. Fix + regression test (`offscreen-getimagedata-2026-09-20.test.js`).
+2. **"shim did not answer"** — not a cold worker. A per-frame timeline shows the top document booting at
+   ~300 ms and authenticating immediately; the alarm came from YouTube's `about:blank`
+   `sandbox="allow-same-origin"` child, where no script can run. D48: such frames neither report nor
+   print; the console line is top-frame only; sub-frame misses are counted per site by the worker.
+4. **Amazon `Failed to fetch` ×9** — `amazon-adsystem.com` is in `rules/ads.json`; the failing script is
+   Amazon's ad-serving SafeFrame. Intended, page fully functional; no change.

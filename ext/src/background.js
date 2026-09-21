@@ -165,7 +165,7 @@ let settings = null;
 let allowlist = null;
 /**
  * site → { blocked, fp, fpByApi, trackers, byCategory, lastSeen, personaId,
- *          lastShimStatus, nonceExposedAt }
+ *          lastShimStatus, nonceExposedAt, subFrameMisses }
  * @type {Record<string, any> | null}
  */
 let stats = null;
@@ -317,6 +317,7 @@ function blankSite() {
      * otherwise overwrite it. 0 = never seen on this site.
      */
     nonceExposedAt: 0,
+    subFrameMisses: 0,
   };
 }
 
@@ -646,6 +647,19 @@ function onShimStatus(msg, sender) {
   // lost the fingerprint race on this page too. One race governs both.
   if (msg.reason === 'nonce-exposed') {
     s.nonceExposedAt = Date.now();
+    scheduleFlush();
+    return { ok: true };
+  }
+
+  // A sub-frame that never booted is COUNTED, not shown as the page's status (D48).
+  // `lastShimStatus` drives the popup's "did not start on this page" line, which
+  // must describe the document the user is looking at; an ad frame that failed
+  // to answer is a different fact. `sender.frameId` is the browser's own word on
+  // which frame sent this (0 = top); the message's `top` is the fallback for a
+  // sender that carries none.
+  const fromSubFrame = typeof sender?.frameId === 'number' ? sender.frameId !== 0 : msg.top === false;
+  if (msg.reason === 'shim-never-booted' && fromSubFrame) {
+    s.subFrameMisses = (s.subFrameMisses | 0) + 1;
     scheduleFlush();
     return { ok: true };
   }
