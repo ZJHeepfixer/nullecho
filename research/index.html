@@ -8,17 +8,16 @@
 <meta name="robots" content="index,follow">
 <link rel="icon" href="data:,">
 <style>
+  /* Light only, on purpose: this page is read like a document, by people who print things.
+     Warm off-white ground, white panels, ink-dark text. The rest of the site keeps its dark-first theme. */
   :root{
-    --bg:#0b0e13; --panel:#141922; --raise:#1b2230; --line:#242c3a;
-    --text:#e8edf5; --dim:#93a0b5; --faint:#66738a;
-    --accent:#5eead4; --accent2:#2dd4bf; --warn:#fbbf24; --bad:#f87171; --ok:#3fb950;
+    color-scheme: light;
+    --bg:#f6f3ec; --panel:#fffdf8; --raise:#eeeae0; --line:#e0dbcf;
+    --text:#1b1f2a; --dim:#4a5261; --faint:#8a9099;
+    --accent:#0c7a72; --accent2:#095e58; --warn:#a86a10; --bad:#b3261e; --ok:#1a7f3c;
     --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;
     --serif:ui-serif,Georgia,"Times New Roman",serif;
-  }
-  @media (prefers-color-scheme: light){
-    :root{--bg:#fbfcfd;--panel:#fff;--raise:#f1f5f9;--line:#e2e8f0;
-          --text:#0f172a;--dim:#475569;--faint:#94a3b8;--accent:#0d9488;--accent2:#0f766e;--ok:#15803d;}
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
