@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prove it yourself — Nullecho</title>
+<meta name="description" content="See your own browser fingerprint. Nullecho collects nothing, so instead of asking you to trust it, it lets you measure it. Everything on this page runs locally and is never sent anywhere.">
+<style>
+  :root{
+    --bg:#0b0e13; --panel:#141922; --raise:#1b2230; --line:#242c3a;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#66738a;
+    --accent:#5eead4; --accent2:#2dd4bf; --warn:#fbbf24; --bad:#f87171;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;
+    --serif:ui-serif,Georgia,serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{--bg:#fbfcfd;--panel:#fff;--raise:#f1f5f9;--line:#e2e8f0;
+          --text:#0f172a;--dim:#475569;--faint:#94a3b8;--accent:#0d9488;--accent2:#0f766e;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px}
+  header{padding:64px 0 32px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:16px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+  h1{font:600 clamp(30px,5vw,46px)/1.12 var(--serif);margin:0 0 18px;letter-spacing:-.02em}
+  .lede{font-size:19px;color:var(--dim);margin:0 0 8px}
+  .lede b{color:var(--text);font-weight:600}
+  .local{margin-top:22px;padding:12px 16px;border-left:3px solid var(--accent);
+    background:var(--panel);border-radius:0 8px 8px 0;font-size:14px;color:var(--dim)}
+  .local b{color:var(--text)}
+
+  section{padding:36px 0;border-top:1px solid var(--line)}
+  h2{font:600 24px/1.3 var(--serif);margin:0 0 6px}
+  p{color:var(--dim);margin:0 0 14px}
+
+  button{background:var(--accent);color:#04211c;border:0;padding:13px 22px;border-radius:9px;
+    font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+  @media (prefers-color-scheme: light){button{color:#fff}}
+  button:hover{background:var(--accent2)}
+  button:disabled{opacity:.5;cursor:default}
+  button.alt{background:var(--raise);color:var(--text);border:1px solid var(--line)}
+
+  .hero-num{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin:20px 0}
+  .hero-num .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint)}
+  .hero-num .val{font:700 40px/1.1 var(--mono);color:var(--accent);margin-top:6px;word-break:break-all}
+  .hero-num .sub{font-size:13.5px;color:var(--dim);margin-top:10px}
+
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);font-weight:650}
+  td.k{font-weight:600;white-space:nowrap}
+  td.v{font-family:var(--mono);font-size:12.5px;color:var(--dim);word-break:break-word}
+  .bits{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;
+    background:rgba(248,81,73,.15);color:var(--bad)}
+  .bits.low{background:rgba(63,185,80,.15);color:#3fb950}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:14.5px}
+  .card p{font-size:13.5px;margin:0}
+
+  .no{border-left:3px solid var(--warn)}
+  ul{color:var(--dim);padding-left:20px}
+  li{margin-bottom:8px}
+  a{color:var(--accent);text-underline-offset:3px}
+  footer{padding:36px 0 70px;font-size:13.5px;color:var(--faint);border-top:1px solid var(--line)}
+  code{font-family:var(--mono);font-size:.9em;background:var(--raise);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div style="background:var(--raise);border-bottom:1px solid var(--line);padding:10px 0;font-size:13.5px;color:var(--dim);text-align:center">
+  <div class="wrap">
+    <b style="color:var(--warn)">Pre-release.</b> Nullecho isn't published to any store yet and
+    breakage testing is incomplete. This page is a live demo of the measurement idea — the
+    fingerprint reading below is real. <a href="https://github.com/ZJHeepfixer/nullecho">Status &amp; open blockers &rarr;</a>
+  </div>
+</div>
+
+<header><div class="wrap">
+  <div class="eyebrow"><span class="dot"></span>Nullecho</div>
+  <h1>Don't trust us. Measure us.</h1>
+  <p class="lede">
+    Nullecho <b>collects nothing about you</b> — no telemetry, no account, no analytics. Which means
+    we genuinely cannot tell you whether it's working. So instead, it measures itself
+    <b>on your machine, where we can't see the result.</b>
+  </p>
+  <div class="local">
+    <b>Everything on this page runs locally in your browser.</b> Nothing you see below is sent
+    anywhere — not to us, not to anyone. There is no analytics script on this page. You can read
+    the source, or disconnect from the internet and it still works.
+  </div>
+</div></header>
+
+<section><div class="wrap">
+  <h2>First: this is what any website already knows about you</h2>
+  <p>No cookies needed. No login. This survives incognito and clearing your history.</p>
+  <button id="run">Show me my fingerprint</button>
+  <div id="out" hidden>
+    <div class="hero-num">
+      <div class="lbl">Your browser fingerprint</div>
+      <div class="val" id="fp">—</div>
+      <div class="sub" id="fpsub"></div>
+    </div>
+    <table><thead><tr><th>What they read</th><th>What your browser told them</th></tr></thead>
+      <tbody id="rows"></tbody></table>
+    <p style="margin-top:14px;font-size:14px" id="verdict"></p>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What Nullecho does about it</h2>
+  <p>
+    The naive fix is to randomize everything. That's worse than nothing — randomize each value
+    independently and you produce a machine that doesn't exist (a Windows browser with an Apple GPU
+    and 3 CPU cores). That isn't anonymous, it's <em>flagged as evasive</em>, which is a smaller and
+    more suspicious crowd than just being yourself.
+  </p>
+  <div class="cards">
+    <div class="card"><h3>One consistent machine per site</h3>
+      <p>Each site sees a different — but internally coherent — real-world configuration that millions
+      of people actually run.</p></div>
+    <div class="card"><h3>Stable within a site</h3>
+      <p>Nothing flickers between page loads, so nothing breaks and you don't stand out.</p></div>
+    <div class="card"><h3>The join breaks — for most trackers</h3>
+      <p>Site A and Site B see different machines, so a tracker that hashes the signals we cover
+      can't connect one visit to the other — verified against FingerprintJS and ClientJS. A tracker
+      that <em>detects</em> spoofed values, discards them and keys on what's left still can; CreepJS
+      does exactly that.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2 style="color:var(--warn)">And here's what it doesn't do</h2>
+  <p>A privacy tool that oversells is worse than none — you make real decisions based on what it implies.</p>
+  <div class="card no">
+    <ul style="margin:0">
+      <li><b>It is detectable, by design.</b> Measured with CreepJS — a free third-party library,
+        not our own test suite — our build produces 2 lying API records, and both are the canvas and
+        audio noise that <em>is</em> the defense. The same library recorded 199 and a <b>bot</b>
+        verdict before 2026-09-19. We publish the number we don't control rather than the one we
+        scored ourselves.</li>
+      <li><b>Nothing about your IP address or TLS fingerprint.</b> Those sit below the layer any
+        browser extension can reach. If that's your threat model, you want a VPN or Tor.</li>
+      <li><b>Firefox's built-in protection and Brave are stronger</b> at anti-fingerprinting — they
+        work below the JavaScript layer. If you use one, you may not need this. Nullecho's honest
+        niche is Chrome, where neither exists.</li>
+      <li><b>It will not get you lower prices.</b> The best controlled study found clearing your
+        tracks gives the <em>worse</em> price more often than the better one.</li>
+      <li><b>It does nothing against government surveillance.</b> Different threat model entirely.</li>
+    </ul>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Check our work</h2>
+  <p>
+    It's open source, and the docs include our own threat model, the limitations above, and the
+    decisions we got wrong and corrected.
+  </p>
+  <p>
+    <a href="https://github.com/ZJHeepfixer/nullecho">github.com/ZJHeepfixer/nullecho</a> —
+    try to break it. If you find a fingerprinting method we miss or a way to detect us we haven't
+    documented, that's a security bug and we want the issue.
+  </p>
+</div></section>
+
+<footer><div class="wrap">
+  No analytics on this page. No cookies set. Nothing measured here leaves your device.
+  <br>Pre-release software — see the repo for current status and open release blockers.
+</div></footer>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const hash=s=>{let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);
+    h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
+    h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+    h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+    return (4294967296*(2097151&h2)+(h1>>>0)).toString(16).padStart(14,'0');};
+
+  $('run').onclick=async function(){
+    this.disabled=true; this.textContent='Reading…';
+    const R=[];
+    const push=(k,v,note)=>R.push({k,v:String(v),note});
+
+    // canvas
+    let canvasHash='(blocked)';
+    try{const c=document.createElement('canvas');c.width=280;c.height=60;const x=c.getContext('2d');
+      x.textBaseline='alphabetic';x.fillStyle='#f60';x.fillRect(125,1,62,20);
+      x.fillStyle='#069';x.font='14px Arial';x.fillText('Nullecho ✦ 1.0',2,15);
+      x.fillStyle='rgba(102,204,0,.7)';x.fillText('Nullecho ✦ 1.0',4,17);
+      canvasHash=hash(c.toDataURL()).slice(0,12);}catch(e){}
+    push('Canvas rendering',canvasHash,'how your GPU+fonts draw text');
+
+    // webgl
+    let gpu='(unavailable)';
+    try{const gl=document.createElement('canvas').getContext('webgl');
+      const d=gl.getExtension('WEBGL_debug_renderer_info');
+      gpu=d?gl.getParameter(d.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);}catch(e){}
+    push('Graphics card',gpu,'often names your exact GPU model');
+
+    push('Operating system',navigator.userAgentData?.platform||navigator.platform,'');
+    push('CPU cores',navigator.hardwareConcurrency??'n/a','');
+    if(navigator.deviceMemory) push('Memory',navigator.deviceMemory+' GB','');
+    push('Screen',`${screen.width}×${screen.height} @${window.devicePixelRatio}x, ${screen.colorDepth}-bit`,'');
+    push('Time zone',Intl.DateTimeFormat().resolvedOptions().timeZone,'approximate location');
+    push('Languages',(navigator.languages||[]).join(', '),'');
+
+    // fonts
+    let fontCount=0;
+    try{const base=['monospace','sans-serif','serif'],span=document.createElement('span');
+      span.style.cssText='position:absolute;left:-9999px;font-size:72px';span.textContent='mmmmmmmmmmlli';
+      document.body.appendChild(span);
+      const bl={};for(const b of base){span.style.fontFamily=b;bl[b]=span.offsetWidth;}
+      const cand=['Arial','Helvetica Neue','Segoe UI','Calibri','Menlo','Consolas','Georgia','Optima',
+        'Zapfino','Papyrus','Futura','Tahoma','Verdana','Monaco','Cambria','Skia','Didot','Impact'];
+      for(const f of cand){let hit=false;for(const b of base){span.style.fontFamily=`"${f}",${b}`;
+        if(span.offsetWidth!==bl[b]){hit=true;break;}} if(hit)fontCount++;}
+      document.body.removeChild(span);}catch(e){}
+    push('Installed fonts',fontCount+' of 18 tested','the set you have is unusually revealing');
+
+    // audio
+    let audio='(blocked)';
+    try{const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+      const ac=new OC(1,44100,44100),o=ac.createOscillator(),cp=ac.createDynamicsCompressor();
+      o.type='triangle';o.frequency.value=10000;o.connect(cp);cp.connect(ac.destination);o.start(0);
+      const buf=await ac.startRendering();const ch=buf.getChannelData(0);
+      let s=0;for(let i=4500;i<5000;i++)s+=Math.abs(ch[i]);audio=hash(s.toFixed(8)).slice(0,12);}catch(e){}
+    push('Audio stack',audio,'how your sound hardware rounds numbers');
+
+    const composite=hash(R.map(r=>r.k+':'+r.v).join('|'));
+    $('fp').textContent=composite;
+    $('fpsub').textContent='Computed from '+R.length+' signals, locally. This value never left your device.';
+    $('rows').innerHTML=R.map(r=>`<tr><td class="k">${r.k}</td><td class="v"></td></tr>`).join('');
+    [...document.querySelectorAll('#rows .v')].forEach((td,i)=>{
+      td.textContent=R[i].v+(R[i].note?'  — '+R[i].note:'');});
+    $('verdict').innerHTML='Reload this page and the value stays the same. Open it in a private '+
+      'window and it <b>still</b> stays the same. That is the point: this identifies your device '+
+      'without a single cookie, and clearing your history does nothing to it.';
+    $('out').hidden=false;
+    this.textContent='Read again';this.disabled=false;
+  };
+})();
+</script>
+</body>
+</html>
