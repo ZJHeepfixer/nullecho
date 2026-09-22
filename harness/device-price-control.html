@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nullecho — device-price probe positive control</title>
+<!--
+  POSITIVE CONTROL for harness/device-price-probe.mjs.
+
+  A fixed, declared price that no device profile can change. If the four profiles do not all
+  read 123.45 USD from this page via json-ld, the probe is broken and no site result means
+  anything. The same figure is repeated in microdata and Open Graph meta so a regression in
+  the fallback paths would also show (the extractor must still report `json-ld` as the
+  source, because that is first in priority).
+
+  Served by the local repo-root server: http://localhost:4886/harness/device-price-control.html
+-->
+<meta property="og:type" content="product">
+<meta property="product:price:amount" content="123.45">
+<meta property="product:price:currency" content="USD">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "Nullecho probe control"
+    },
+    {
+      "@type": "Product",
+      "name": "Control item — the price never changes",
+      "sku": "CONTROL-123-45",
+      "offers": {
+        "@type": "Offer",
+        "price": "123.45",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+  ]
+}
+</script>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; color: #222; background: #fff; }
+  code { background: #f3f3f3; padding: 0 .3em; }
+</style>
+</head>
+<body>
+<h1>Device-price probe — positive control</h1>
+<p>This page declares one fixed price three ways. Every device profile must read the same number.</p>
+<div itemscope itemtype="https://schema.org/Product">
+  <span itemprop="name">Control item</span>
+  <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+    <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" content="123.45">123.45</span>
+  </div>
+</div>
+<p id="env"></p>
+<script>
+  document.getElementById('env').textContent =
+    'clientWidth=' + document.documentElement.clientWidth +
+    ' dpr=' + devicePixelRatio +
+    ' touch=' + navigator.maxTouchPoints +
+    ' ua=' + navigator.userAgent;
+</script>
+</body>
+</html>

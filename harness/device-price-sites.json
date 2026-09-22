@@ -1,0 +1,120 @@
+{
+  "_about": "Site list for harness/device-price-probe.mjs. Every URL was loaded once as mac-chrome on the date below and returned a declared price before it was admitted; the ones that did not are listed in research/device-pricing/METHOD.md §3. `visibleSelector` is the last-resort extractor and is set only where the page declares no usable price in markup; those loads are flagged `visible` in the results. No login, no Amazon.",
+  "vetted": "2026-09-22",
+  "method": "4 device profiles × 3 interleaved rounds per site, fresh incognito context per load, 3–6 s between loads; extraction json-ld → microdata → meta → visible (zeros fall through); see research/device-pricing/METHOD.md",
+  "sites": [
+    {
+      "id": "agoda-the-jane-nyc",
+      "url": "https://www.agoda.com/the-jane-hotel/hotel/new-york-ny-us.html?checkIn=2026-11-10&los=2&adults=2&rooms=1&currencyCode=USD",
+      "category": "travel / hotel (OTA, dated search)",
+      "why": "A hotel page with dates and occupancy in the URL on an OTA that renders a 'from USD n' rate to an anonymous visitor. No usable price in markup, so rendered text is read; the pattern anchors on 'from USD n' (desktop) / 'Final price: USD n' (phone), because the phone template lists a struck-through 'Original Price' first. In vetting the phone templates often rendered no price within 20 s headless — expect inconclusive there.",
+      "visibleSelector": "[data-selenium*=\"price\" i], [class*=\"PriceDisplay\" i], [class*=\"price\" i]",
+      "visiblePattern": "(?:from|final price:)\\s*USD\\s*(\\d[\\d,]*(?:\\.\\d\\d)?)",
+      "settleMs": 18000
+    },
+    {
+      "id": "airbnb-room-sfo",
+      "url": "https://www.airbnb.com/rooms/32924989?adults=2&check_in=2026-11-10&check_out=2026-11-12",
+      "category": "travel / lodging (marketplace, dated)",
+      "why": "A single listing with dates in the URL; the platform is frequently named in device-pricing discussion, so it belongs on the list. Price renders only in the booking panel (desktop sidebar / phone footer) and the phone page lists 'similar listings' prices first, so the pattern anchors on '$n for 2 nights'. Rendering of the panel was intermittent in vetting (one desktop load in four showed none within 26 s) — expect inconclusive.",
+      "visibleSelector": "[data-section-id^=\"BOOK_IT\"] span, span.pze35hn, span.vkhxe59, [data-testid*=\"price\" i]",
+      "visiblePattern": "\\$(\\d[\\d,]*(?:\\.\\d\\d)?)\\s*(?:show price breakdown\\s*)?for 2 nights",
+      "settleMs": 18000
+    },
+    {
+      "id": "skiplagged-lax-jfk",
+      "url": "https://skiplagged.com/flights/LAX/JFK/2026-11-10",
+      "category": "travel / flights (OTA)",
+      "why": "The one flight-search page among those tried that declares a fare in markup (JSON-LD: the lowest fare for the route/date). Fares move over minutes; the same-device control decides whether the site can be read at all."
+    },
+    {
+      "id": "google-flights-lax-jfk",
+      "url": "https://www.google.com/travel/flights?q=Flights%20to%20JFK%20from%20LAX%20on%202026-11-10%20one%20way&curr=USD",
+      "category": "travel / flights (metasearch)",
+      "why": "The most-used flight metasearch; no markup price, fares are rendered client-side with an accessible label ('n US dollars'). The first labelled fare is the top result.",
+      "visibleSelector": "span[aria-label$=\"US dollars\"], [aria-label*=\"US dollars\"]"
+    },
+    {
+      "id": "kayak-cars-lax-2day",
+      "url": "https://www.kayak.com/cars/LAX/2026-11-10-10h/2026-11-12-10h?sort=price_a",
+      "category": "travel / car rental (metasearch)",
+      "why": "The only car-rental search among those tried that rendered a rate to an anonymous headless visitor (Turo: Cloudflare challenge; Sixt/Discover/Economy Bookings: no rate on the landing page). LAX, two days, sorted by price. Client-rendered list; the pattern anchors on the 2-day TOTAL because the phone template renders the per-day rate first ('$26 $52 total') while desktop renders '$52 Total for 2 days'. The first result is a sponsored slot that changed between vetting loads, so the same-device control is expected to rule this inconclusive; it is kept to show that.",
+      "visibleSelector": "[class*=\"price-text\"], [class*=\"price\" i]",
+      "visiblePattern": "\\$(\\d[\\d,]*(?:\\.\\d\\d)?)\\s*total",
+      "settleMs": 20000
+    },
+    {
+      "id": "ikea-lack-table",
+      "url": "https://www.ikea.com/us/en/p/lack-side-table-white-30449908/",
+      "category": "retail / home goods",
+      "why": "Large home-goods retailer with a clean single-product JSON-LD Offer; a cheap, stable, high-volume SKU."
+    },
+    {
+      "id": "walmart-airpods-pro-2",
+      "url": "https://www.walmart.com/ip/AirPods-Pro-2nd-generation-with-MagSafe-Case-USB-C/5689919121",
+      "category": "retail / mass merchant",
+      "why": "Largest US brick-and-mortar retailer; declares the price only in microdata (itemprop=price), which exercises the second extractor path. The page IP-geolocates a store (Ridgecrest, CA)."
+    },
+    {
+      "id": "bestbuy-airpods-pro-2",
+      "url": "https://www.bestbuy.com/product/apple-airpods-pro-2-wireless-active-noise-cancelling-earbuds-with-hearing-aid-feature-white/JJGCQ88C8X",
+      "category": "retail / electronics",
+      "why": "Electronics big-box; same SKU as the Walmart entry so the two mass retailers can be read side by side. JSON-LD Offer."
+    },
+    {
+      "id": "dell-xps-13",
+      "url": "https://www.dell.com/en-us/shop/laptop-computers/spd/xps13dx13260",
+      "category": "retail / electronics (manufacturer store)",
+      "why": "Manufacturer's own store on an enterprise platform with heavy segment-based pricing infrastructure (consumer / business / education); several configurations declared in JSON-LD, the first is the base."
+    },
+    {
+      "id": "apple-ipad",
+      "url": "https://www.apple.com/shop/buy-ipad/ipad",
+      "category": "retail / electronics (manufacturer store)",
+      "why": "A retailer with a public reputation for uniform pricing — a plausible negative control among the retailers. Several Offers (configurations) are declared; the extractor takes the first (699), not the headline 'from $449'."
+    },
+    {
+      "id": "nike-air-force-1",
+      "url": "https://www.nike.com/t/air-force-1-07-mens-shoes-jBrhbr/CW2288-111",
+      "category": "retail / apparel (brand store)",
+      "why": "Apparel brand store with heavy client-side personalisation infrastructure; JSON-LD lists one Offer per size."
+    },
+    {
+      "id": "zappos-chuck-taylor",
+      "url": "https://www.zappos.com/p/converse-chuck-taylor-all-star-high-top-sneaker-black/product/107999/color/3",
+      "category": "retail / apparel (marketplace, Amazon-owned)",
+      "why": "Footwear marketplace owned by the retailer deliberately excluded from this list; a long-lived SKU with a JSON-LD Offer per size."
+    },
+    {
+      "id": "away-bigger-carry-on",
+      "url": "https://www.awaytravel.com/suitcases/bigger-carry-on",
+      "category": "retail / travel gear (direct-to-consumer)",
+      "why": "Direct-to-consumer luggage brand; JSON-LD Offer plus product:price meta, so two extractor paths can be cross-checked in the raw data."
+    },
+    {
+      "id": "brooklinen-sheet-set",
+      "url": "https://www.brooklinen.com/products/classic-core-sheet-set",
+      "category": "retail / home textiles (Shopify)",
+      "why": "A Shopify storefront — the platform behind a large share of independent retail — with a non-round sale price (135.15) that would expose rounding differences between device templates."
+    },
+    {
+      "id": "eventbrite-ira-glass-la",
+      "url": "https://www.eventbrite.com/e/a-night-of-stories-and-improv-from-ira-glass-vic-michaelis-and-friends-tickets-2000662433194",
+      "category": "ticketing / primary (event page)",
+      "why": "A single ticketed event on the largest self-serve ticketing platform; JSON-LD Offer (lowest tier). Chosen for a fixed face value rather than a resale floor."
+    },
+    {
+      "id": "getyourguide-wb-studio-tour",
+      "url": "https://www.getyourguide.com/los-angeles-l179/los-angeles-warner-bros-studio-tour-hollywood-t55864/",
+      "category": "ticketing / experiences (OTA)",
+      "why": "Experience OTA; a dated-availability product with a from-price in both JSON-LD and meta. Viator, the other large experiences OTA, returned HTTP 403."
+    },
+    {
+      "id": "seatgeek-lakers",
+      "url": "https://seatgeek.com/los-angeles-lakers-tickets",
+      "category": "ticketing / resale marketplace",
+      "why": "Secondary-market ticketing; declares a lowPrice per listed event in JSON-LD (24 scripts). Resale floors move fast, so this mainly tests whether a fast-moving price is correctly ruled inconclusive."
+    }
+  ],
+  "_cut_for_budget": "citypass-new-york (fixed-price attraction pass, declared 149.00 USD in JSON-LD + meta on vetting) was cut to keep the run under an hour; apple-ipad already serves as the fixed-price negative control."
+}
