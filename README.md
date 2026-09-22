@@ -4,7 +4,7 @@
 nothing about you — which is exactly why it ships a button that lets you measure whether it's
 working.**
 
-> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 328 tests passing, but breakage testing is
+> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 477 tests passing, but breakage testing is
 > incomplete and there are open release blockers (see [Status](#status)). Not yet published to any
 > store. Don't rely on it as your only protection yet.
 
@@ -85,7 +85,7 @@ Full reasoning: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/DECISIO
 
 ```bash
 git clone <repo> && cd nullecho/ext
-npm test          # 328 tests
+npm test          # 477 tests
 ```
 
 Chrome: `chrome://extensions` → Developer mode → **Load unpacked** → select `ext/`.
@@ -108,7 +108,7 @@ cd nullecho && python3 -m http.server 4886
 
 | | |
 |---|---|
-| Tests | 328 passing |
+| Tests | 477 passing |
 | Loads in Chrome 151 | ✅ verified |
 | reCAPTCHA / Google SSO | ✅ verified unbroken |
 | Shim breakage battery | ✅ 0 failures |
