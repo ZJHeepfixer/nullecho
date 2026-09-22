@@ -12867,8 +12867,8 @@
      "round": 3
     }
    ],
-   "verdict": "differs by device",
-   "reason": "mac-chrome=699 USD, win-chrome=699 USD, iphone-safari=549 USD, android-budget=549 USD",
+   "verdict": "inconclusive",
+   "reason": "multi-offer page: first JSON-LD candidate differs by template (mac-chrome=699 USD, win-chrome=699 USD, iphone-safari=549 USD, android-budget=549 USD), but the recorded offers attack (2026-09-22T21:43:58.825Z) found 24 distinct (name|sku) offers priced identically on every device — an ordering difference, not a price difference; no device claim",
    "perDevice": {
     "mac-chrome": {
      "loads": 3,
@@ -12932,7 +12932,7 @@
     }
    },
    "notes": [
-    "multi-offer page and the declared price SETS also differ by device: mac-chrome=[\"449 USD\",\"549 USD\",\"699 USD\",\"749 USD\",\"899 USD\"] ; win-chrome=[\"449 USD\",\"549 USD\",\"699 USD\",\"749 USD\",\"899 USD\"] ; iphone-safari=[\"449 USD\",\"549 USD\",\"599 USD\",\"699 USD\",\"749 USD\",\"899 USD\"] ; android-budget=[\"449 USD\",\"549 USD\",\"599 USD\",\"699 USD\",\"749 USD\",\"899 USD\"]"
+    "per-load candidate lists were capped (12 kept of 24 offers) and differ by truncation only; the recorded offers attack is authoritative"
    ],
    "finishedAt": "2026-09-22T21:39:36.588Z",
    "verdictAtRun": {
@@ -12942,7 +12942,732 @@
   }
  ],
  "verdictRecomputed": {
-  "at": "2026-09-22T21:42:12.405Z",
-  "note": "multi-offer rule added after the apple-ipad finding: identical declared-price sets across devices → inconclusive (ordering, not price)"
+  "at": "2026-09-22T21:44:45.973Z",
+  "note": "multi-offer rule + recorded offers attack for apple-ipad; per-load data unchanged"
+ },
+ "attacks": {
+  "apple-ipad": {
+   "at": "2026-09-22T21:43:58.825Z",
+   "url": "https://www.apple.com/shop/buy-ipad/ipad",
+   "tool": "device-price-probe.mjs offers",
+   "distinctOffers": 24,
+   "mismatches": [],
+   "priceSets": {
+    "mac-chrome": [
+     "449 USD",
+     "549 USD",
+     "599 USD",
+     "699 USD",
+     "749 USD",
+     "899 USD"
+    ],
+    "win-chrome": [
+     "449 USD",
+     "549 USD",
+     "599 USD",
+     "699 USD",
+     "749 USD",
+     "899 USD"
+    ],
+    "iphone-safari": [
+     "449 USD",
+     "549 USD",
+     "599 USD",
+     "699 USD",
+     "749 USD",
+     "899 USD"
+    ],
+    "android-budget": [
+     "449 USD",
+     "549 USD",
+     "599 USD",
+     "699 USD",
+     "749 USD",
+     "899 USD"
+    ]
+   },
+   "perDevice": {
+    "mac-chrome": [
+     {
+      "name": "iPad (A16)",
+      "sku": "MD3Y4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7F4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7K4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4P4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7G4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5C4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7M4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7J4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Q4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4G4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4H4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7L4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7T4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5A4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4J4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7N4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4E4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7P4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4A4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4D4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7Q4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Y4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7H4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7R4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     }
+    ],
+    "win-chrome": [
+     {
+      "name": "iPad (A16)",
+      "sku": "MD3Y4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7F4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7K4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4P4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7G4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5C4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7M4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7J4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Q4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4G4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4H4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7L4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7T4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5A4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4J4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7N4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4E4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7P4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4A4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4D4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7Q4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Y4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7H4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7R4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     }
+    ],
+    "iphone-safari": [
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4D4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4H4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4J4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Y4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5C4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7K4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7T4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4A4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4P4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD3Y4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7G4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7F4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7J4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7M4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7R4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7Q4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4E4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Q4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7H4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7P4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5A4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7L4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7N4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4G4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     }
+    ],
+    "android-budget": [
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4D4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4H4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4J4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Y4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5C4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7K4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7T4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4A4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4P4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD3Y4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7G4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7F4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7J4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7M4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7R4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7Q4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4E4LL/A",
+      "price": "449",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4Q4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7H4LL/A",
+      "price": "599",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7P4LL/A",
+      "price": "899",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD5A4LL/A",
+      "price": "749",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7L4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD7N4LL/A",
+      "price": "699",
+      "currency": "USD",
+      "type": "Offer"
+     },
+     {
+      "name": "iPad (A16)",
+      "sku": "MD4G4LL/A",
+      "price": "549",
+      "currency": "USD",
+      "type": "Offer"
+     }
+    ]
+   }
+  }
  }
 }

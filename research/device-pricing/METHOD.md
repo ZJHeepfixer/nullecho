@@ -133,11 +133,23 @@ difference.
 | verdict | when |
 |---|---|
 | `same` | every device returned a price on at least two loads, no device disagreed with itself, and all four read the same number (a load that errored or timed out is tolerated and named in the reason) |
-| `differs by device` | no device disagreed with itself, and at least two devices read different numbers; any device that returned nothing is named in the reason, not ignored |
+| `differs by device` | no device disagreed with itself, at least two devices read different numbers, **and** the difference survives the multi-offer check below; any device that returned nothing is named in the reason, not ignored |
 | `inconclusive` | a device disagreed with itself (the same-device control); or fewer than two devices returned a price on ≥2 loads; or the devices that answered agreed but at least one device returned no usable price on ≥2 loads — "same" would overstate that, and "differs" would too |
 | `no declared price` | no JSON-LD / microdata / meta price and the visible selector (if any) matched nothing, on a page that was not a wall |
 | `blocked` | a bot wall, a consent wall that hides the price, a login redirect, or HTTP 401/403/429/503 — the wall's text is recorded verbatim |
 | `error` | navigation failed or exceeded the load budget on most loads |
+
+**The multi-offer check (added after this run's first finding).** A page that declares one JSON-LD `Offer`
+per configuration — apple.com's iPad page declares 24 — can order them differently in its phone and
+desktop templates. "First candidate in document order" is then a *different configuration* on a phone
+than on a desktop, and the two numbers differ while every configuration is priced identically. So when
+the devices' first candidates differ on a page that declares more than one offer, the verdict looks at
+the **set** of declared prices per device: identical sets → `inconclusive` ("an ordering difference,
+not a price difference"), and the RUN file says so. Because the per-load record keeps at most 40
+candidates, the run also has an `offers` mode — one load per device, every offer with its `sku`,
+compared as (name|sku → price) — whose result can be recorded into the raw file (`--record`) and is
+then consulted by `reverdict`. A recorded full-offer comparison outranks the per-load candidate list.
+This is exactly what happened on 2026-09-22 (RUN file, "Attacking the finding").
 
 The verdict compares the *string* the extractor produced (`"115" USD`), not a parsed number, so
 `115` and `115.00` would count as different. If a site produces that shape the reviewer should say so
@@ -152,7 +164,10 @@ an otherwise empty page. The matched phrase and the first 300 characters of the 
 ### 1.7 Bail-outs and politeness
 
 45 s per load. Three consecutive `blocked`/`error` loads abandon the site (recorded as abandoned).
-One load in flight at a time, 3–6 s between loads, one run. Read-only GETs: no logins, no forms, no
+One load in flight at a time, 3–6 s between loads, one run. Total volume on 2026-09-22: about 50 single
+desktop loads during vetting, 5 × 4 four-device checks of the visible-selector pages, 190 run loads,
+12 re-check loads and 4 `offers` loads — roughly 280 page loads across some 45 hostnames in one afternoon,
+never more than two in flight (vetting) and one in flight (the run). Read-only GETs: no logins, no forms, no
 purchases, no captcha interaction, no attempt to get past any wall. A wall is quoted and the probe moves
 on. **No extension is loaded** — puppeteer's default `--disable-extensions` is left in place. This
 measures sites, not Nullecho.
@@ -162,6 +177,11 @@ measures sites, not Nullecho.
 - The positive control runs first, every run.
 - Any site read as `differs by device` is loaded again, all 12 loads, **ten minutes later**. A split that
   does not hold across the gap is reported as not holding.
+- Any site read as `differs by device` on a page declaring several offers gets the `offers` attack
+  (above): does each *configuration* carry the same price on every device, or only the *first listed*
+  one? Only the former would be a device difference.
+- `reverdict` recomputes every verdict from the per-load data with the current rules and keeps the
+  run-time verdict as `verdictAtRun`, so a rule that changed after the run is visible, not silent.
 - For the two phone profiles, every load records `document.documentElement.clientWidth`,
   `window.innerWidth`, `devicePixelRatio`, `navigator.maxTouchPoints`, `(pointer: coarse)`,
   `navigator.userAgentData.mobile`, whether the page has a `<meta name="viewport">`, whether it
@@ -173,10 +193,13 @@ measures sites, not Nullecho.
 
 ## 2. What would make a result here wrong
 
-- **A price that is not the product's.** JSON-LD on a product page can list recommendations, bundles or
-  variants; the extractor takes the first usable candidate in document order. Every candidate is
-  recorded so this can be checked; the RUN file notes where the first candidate was not obviously the
-  headline item.
+- **A price that is not the product's — observed, not hypothetical.** JSON-LD on a product page can
+  list recommendations, bundles or variants; the extractor takes the first usable candidate in document
+  order. On 2026-09-22 apple.com's iPad page read 599 (then 699) on the desktop profiles and 549 on
+  the phone profiles, three rounds running and again ten minutes later — and the reason was that the
+  phone template lists the 24 configurations in a different order. Every configuration carried the same
+  price on every device. The multi-offer check and the `offers` attack (§1.6, §1.8) exist because of
+  that case; every candidate is recorded so a reviewer can re-check it.
 - **A site that serves a different *page* to phones** (a mobile template with different markup) can
   declare the same price through a different source, or declare none. A `no declared price` on one
   device and a price on another is reported as `inconclusive`, never as a difference.
@@ -240,7 +263,6 @@ the same connection the run used. Wall texts are quoted as the page rendered the
 | kayak.com hotels SF, dated | hotel | client-rendered list; my city code (`c14290`) resolved to Sammamish, WA; no price element found within 10 s | not verified |
 | airbnb.com SF search, dated | lodging | client-rendered list, no price within 9 s; a *listing* page did render (admitted) | list dropped, listing kept |
 | google.com/travel/search hotels SF, dated | hotel | client-rendered; no priced element within 16 s | no declared price |
-| google.com/travel/flights LAX–JFK | flights | admitted, via the accessible fare label | — |
 | kayak.com flights LAX–JFK | flights | rendered fares in text (`$191`, `$166`, `$237`), but the first priced element under the sort is the "best" flight and the list re-sorts; two flight pages were enough | dropped for budget |
 | expedia.com flights LAX–JFK | flights | no fare rendered within 22 s ("Unlock instant savings with Member Prices — Sign in") | no declared price |
 | priceline.com flights LAX–JFK | flights | 2 JSON-LD blocks, no price; no fare in text within 21 s | no declared price |
@@ -248,14 +270,14 @@ the same connection the run used. Wall texts are quoted as the page rendered the
 | sixt.com LA landing | car rental | 3 JSON-LD blocks, no price; no rate in text within 20 s | no declared price |
 | discovercars.com LA | car rental | "Page not found" | no page |
 | economybookings.com LA | car rental | redirected to `/car-rental/all`, a search form | no page |
-| kayak.com cars **LAX** airport code | car rental | rendered no priced element within 22 s on two tries; the city-code URL did (admitted, see the sites file for the caveat) | not verified |
+| kayak.com cars, city code `c14017` | car rental | rendered totals, but the code resolved to West Henrietta, NY rather than Los Angeles; replaced by the LAX airport-code URL with `?sort=price_a`, which rendered on all four devices and was admitted | replaced |
 | ticketmaster.com Lakers | ticketing | 5 JSON-LD blocks (events), no `price`/`lowPrice`; prices are client-rendered per event | no declared price |
 | universalstudioshollywood.com GA tickets | ticketing | redirected to `/oops-sorry` | no page |
 | metmuseum.org tickets | ticketing | "Page Not Found" | no page |
 | tiqets.com LA attractions | ticketing | redirected to a Japan page under a consent dialog | wrong page |
 | wayfair.com loveseat | home goods | 2 JSON-LD blocks, no Offer price within 12 s | no declared price |
 | newegg.com Samsung 990 Pro | electronics | 4 JSON-LD blocks, no Offer price within 12 s (price is client-rendered) | no declared price |
-| peakdesign.com, tortugabackpacks.com, sony.com, logitech.com, bigbustours.com, gocity.com | retail / ticketing | all declared a JSON-LD price and would have qualified; left out to keep the run inside an hour (duplicates of categories already covered) | cut for budget |
+| peakdesign.com, tortugabackpacks.com, sony.com, logitech.com, bigbustours.com, gocity.com, citypass.com | retail / ticketing | all declared a JSON-LD price and would have qualified; left out to keep the run inside an hour (duplicates of categories already covered) | cut for budget |
 
 Amazon was excluded by instruction (its bot walls, and it is on a separate list of the owner's). No site
 requiring login was tried.

@@ -71,7 +71,7 @@
       "id": "apple-ipad",
       "url": "https://www.apple.com/shop/buy-ipad/ipad",
       "category": "retail / electronics (manufacturer store)",
-      "why": "A retailer with a public reputation for uniform pricing — a plausible negative control among the retailers. Several Offers (configurations) are declared; the extractor takes the first (699), not the headline 'from $449'."
+      "why": "A retailer with a public reputation for uniform pricing — a plausible negative control among the retailers. The page declares 24 Offers (one per iPad configuration); the first candidate in document order is a DIFFERENT configuration on the phone template than on desktop, which is the case that produced the multi-offer check (METHOD.md §1.6). The headline 'from $449' is never the first candidate."
     },
     {
       "id": "nike-air-force-1",

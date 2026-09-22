@@ -525,6 +525,9 @@ async function main() {
           // Recorded full-offer evidence outranks the truncated per-load candidate list.
           v.verdict = 'inconclusive';
           v.reason = `multi-offer page: first JSON-LD candidate differs by template (${v.reason}), but the recorded offers attack (${atk.at}) found ${atk.distinctOffers} distinct (name|sku) offers priced identically on every device — an ordering difference, not a price difference; no device claim`;
+          // The per-load candidate list is capped; a "sets also differ" note computed from it is truncation, not evidence.
+          v.notes = v.notes.filter((n) => !n.startsWith('multi-offer page and the declared price SETS also differ'));
+          v.notes.push(`per-load candidate lists were capped (${Math.max(...s.loads.map((l) => (l.allJsonLdPrices ?? []).length))} kept of ${atk.distinctOffers} offers) and differ by truncation only; the recorded offers attack is authoritative`);
         }
         if (s.abandoned) { v.notes.push('abandoned after 3 consecutive blocked/error loads'); if (v.verdict !== 'blocked' && v.verdict !== 'error') v.verdict = s.loads.some((l) => l.status === 'blocked') ? 'blocked' : 'error'; }
         if (!s.verdictAtRun) s.verdictAtRun = { verdict: s.verdict, reason: s.reason };
