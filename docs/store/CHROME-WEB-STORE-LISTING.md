@@ -305,7 +305,7 @@ yourself, (2) the Tier A breakage pass is clean, and (3) a store submission has 
 packaged zip — so **this store submission is itself gate 3 of 3 for 1.0**, not a step taken after 1.0.
 Do not bump the manifest version before submitting; submit 0.9.0 and let the gate decide 1.0.
 
-### Packaging — there is no `ext/tools/package.mjs` yet; it is a planned follow-up
+### Packaging — `ext/tools/package.mjs` (built 2026-09-22; `npm run package` from ext/)
 
 `ext/tools/` today holds only `gen-suffix-mirror.mjs` (a generator, not a packager).
 `docs/RELEASE-CHECKLIST.md` §3b already names the intended location —

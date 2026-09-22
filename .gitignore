@@ -5,3 +5,6 @@ ext/node_modules/
 
 # Chrome for Testing writes this into an unpacked extension dir (harness/unpacked-chrome.mjs)
 ext/_metadata/
+
+# store packages (ext/tools/package.mjs)
+dist/

@@ -5,6 +5,9 @@
   "description": "Marks ext/src as ES modules so Node tooling (ext/rules/validate.mjs) can import the same files the service worker does.",
   "scripts": {
     "validate": "node rules/validate.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "package": "node tools/package.mjs",
+    "package:firefox": "node tools/package.mjs --firefox",
+    "package:list": "node tools/package.mjs --list"
   }
 }
