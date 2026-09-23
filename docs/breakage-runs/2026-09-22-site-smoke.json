@@ -1,0 +1,870 @@
+{
+  "meta": {
+    "date": "2026-09-22",
+    "package": {
+      "version": "0.9.0",
+      "zipName": "nullecho-0.9.0-chrome.zip",
+      "sha256": "626fc544ecd1fb061b4cad069c2d0af7485ec456edd39e00a44cdd11591760d2",
+      "size": 247525
+    },
+    "chromeVersion": "Chrome/149.0.7827.22",
+    "puppeteerVersion": "25.1.0",
+    "node": "v22.22.3",
+    "runtimeMs": 201723,
+    "metadataLeaked": false,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+    "offOnly": false,
+    "selfTest": {
+      "youtube": {
+        "expectedFail": true,
+        "actuallyFailed": true,
+        "detail": {
+          "from": 0,
+          "currentTime": 0,
+          "readyState": 0,
+          "buffered": 0,
+          "paused": false,
+          "skipPlay": false
+        },
+        "method": "invalid video id (watch?v=00000000000)",
+        "consoleSample": []
+      },
+      "maps": {
+        "expectedFail": true,
+        "actuallyFailed": true,
+        "detail": {
+          "ok": false,
+          "error": "timeout after 15000ms: maps self-test"
+        }
+      }
+    }
+  },
+  "results": [
+    {
+      "site": {
+        "key": "example.com",
+        "n": 1,
+        "label": "example.com",
+        "url": "https://example.com/",
+        "settleMs": 2000
+      },
+      "on": {
+        "site": "example.com",
+        "withExtension": true,
+        "url": "https://example.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "title": "Example Domain"
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "example.com",
+        "withExtension": false,
+        "url": "https://example.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "title": "Example Domain"
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "spotify",
+        "n": 2,
+        "label": "open.spotify.com",
+        "url": "https://open.spotify.com/",
+        "settleMs": 3500
+      },
+      "on": {
+        "site": "spotify",
+        "withExtension": true,
+        "url": "https://open.spotify.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "bodyLen": 2314
+        },
+        "probes": {
+          "cores": 8,
+          "mem": 8
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "spotify",
+        "withExtension": false,
+        "url": "https://open.spotify.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "bodyLen": 2314
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "recaptcha",
+        "n": 3,
+        "label": "google.com/recaptcha/api2/demo",
+        "url": "https://www.google.com/recaptcha/api2/demo",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "recaptcha",
+        "withExtension": true,
+        "url": "https://www.google.com/recaptcha/api2/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 304,
+            "h": 78
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8
+        },
+        "visibility": "visible",
+        "consoleLines": [
+          "[Nullecho] This page read a fingerprinting API before the salted persona arrived, so it is seeing the un-rotated fallback persona. Cross-site linkage is still broken; \"New identity\" will not change what THIS page saw."
+        ],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "recaptcha",
+        "withExtension": false,
+        "url": "https://www.google.com/recaptcha/api2/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 304,
+            "h": 78
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "hcaptcha",
+        "n": 4,
+        "label": "accounts.hcaptcha.com/demo",
+        "url": "https://accounts.hcaptcha.com/demo",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "hcaptcha",
+        "withExtension": true,
+        "url": "https://accounts.hcaptcha.com/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 302,
+            "h": 76
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "hcaptcha",
+        "withExtension": false,
+        "url": "https://accounts.hcaptcha.com/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 302,
+            "h": 76
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "turnstile",
+        "n": 5,
+        "label": "demo.turnstile.workers.dev",
+        "url": "https://demo.turnstile.workers.dev/",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "turnstile",
+        "withExtension": true,
+        "url": "https://demo.turnstile.workers.dev/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 300,
+            "h": 71,
+            "via": "widget-children"
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 10,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "turnstile",
+        "withExtension": false,
+        "url": "https://demo.turnstile.workers.dev/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 300,
+            "h": 71,
+            "via": "widget-children"
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "amazon",
+        "n": 6,
+        "label": "amazon.com (search \"usb c cable\")",
+        "url": "https://www.amazon.com/s?k=usb+c+cable",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "amazon",
+        "withExtension": true,
+        "url": "https://www.amazon.com/s?k=usb+c+cable",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "resultCount": 16
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8
+        },
+        "visibility": "visible",
+        "consoleLines": [
+          "[Nullecho] This page read a fingerprinting API before the salted persona arrived, so it is seeing the un-rotated fallback persona. Cross-site linkage is still broken; \"New identity\" will not change what THIS page saw."
+        ],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "amazon",
+        "withExtension": false,
+        "url": "https://www.amazon.com/s?k=usb+c+cable",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "resultCount": 16
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "maps",
+        "n": 7,
+        "label": "google.com/maps",
+        "url": "https://www.google.com/maps/@35.6225,-117.6709,12z",
+        "settleMs": 0
+      },
+      "on": {
+        "site": "maps",
+        "withExtension": true,
+        "url": "https://www.google.com/maps/@35.6225,-117.6709,12z",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "zoomBefore": 12,
+          "zoomAfter": 14.42,
+          "canvases": 3
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "maps",
+        "withExtension": false,
+        "url": "https://www.google.com/maps/@35.6225,-117.6709,12z",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": "timeout after 45000ms: maps"
+      },
+      "verdict": "PASS",
+      "reason": "note: OFF failed but ON passed (not a regression) — timeout after 45000ms: maps"
+    },
+    {
+      "site": {
+        "key": "osm",
+        "n": 8,
+        "label": "openstreetmap.org",
+        "url": "https://www.openstreetmap.org/#map=12/35.6225/-117.6709",
+        "settleMs": 4000
+      },
+      "on": {
+        "site": "osm",
+        "withExtension": true,
+        "url": "https://www.openstreetmap.org/#map=12/35.6225/-117.6709",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "total": 24,
+          "loaded": 24
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "osm",
+        "withExtension": false,
+        "url": "https://www.openstreetmap.org/#map=12/35.6225/-117.6709",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "total": 24,
+          "loaded": 24
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "youtube",
+        "n": 9,
+        "label": "youtube.com/watch?v=jNQXAC9IVRw",
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "settleMs": 0
+      },
+      "on": {
+        "site": "youtube",
+        "withExtension": true,
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "from": 0,
+          "currentTime": 8.921803,
+          "readyState": 4,
+          "buffered": 19,
+          "paused": false,
+          "skipPlay": false
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": "visible",
+        "consoleLines": [
+          "[Nullecho] This page read a fingerprinting API before the salted persona arrived, so it is seeing the un-rotated fallback persona. Cross-site linkage is still broken; \"New identity\" will not change what THIS page saw.",
+          "[Nullecho] This page read a fingerprinting API before the salted persona arrived, so it is seeing the un-rotated fallback persona. Cross-site linkage is still broken; \"New identity\" will not change what THIS page saw."
+        ],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "youtube",
+        "withExtension": false,
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "from": 1.383295,
+          "currentTime": 10.386128,
+          "readyState": 4,
+          "buffered": 19,
+          "paused": false,
+          "skipPlay": false
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "chartjs",
+        "n": 10,
+        "label": "chartjs.org vertical bar sample",
+        "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html",
+        "settleMs": 1500
+      },
+      "on": {
+        "site": "chartjs",
+        "withExtension": true,
+        "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "w": 800,
+          "h": 400,
+          "nonTransparentPixels": 55669
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "chartjs",
+        "withExtension": false,
+        "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "w": 800,
+          "h": 400,
+          "nonTransparentPixels": 0
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": "note: OFF failed but ON passed (not a regression) — "
+    },
+    {
+      "site": {
+        "key": "nytimes",
+        "n": 11,
+        "label": "nytimes.com",
+        "url": "https://www.nytimes.com/",
+        "settleMs": 2500
+      },
+      "on": {
+        "site": "nytimes",
+        "withExtension": true,
+        "url": "https://www.nytimes.com/",
+        "ok": false,
+        "blocked": true,
+        "blockedEvidence": "HTTP 403 — nytimes.com —",
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": null,
+        "consoleLines": [],
+        "httpStatus": 403,
+        "error": null
+      },
+      "off": {
+        "site": "nytimes",
+        "withExtension": false,
+        "url": "https://www.nytimes.com/",
+        "ok": false,
+        "blocked": true,
+        "blockedEvidence": "HTTP 403 — nytimes.com —",
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": null,
+        "consoleLines": [],
+        "httpStatus": 403,
+        "error": null
+      },
+      "verdict": "BLOCKED",
+      "reason": "HTTP 403 — nytimes.com —"
+    },
+    {
+      "site": {
+        "key": "squoosh",
+        "n": 12,
+        "label": "squoosh.app",
+        "url": "https://squoosh.app/",
+        "settleMs": 2000
+      },
+      "on": {
+        "site": "squoosh",
+        "withExtension": true,
+        "url": "https://squoosh.app/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "textSample": "Drop OR Paste\n\nOr try one of these:\n\n2.8MB\n2.9MB\n1.6MB\n13KB\nSmall\n\nSmaller images mean faster load times. Squoosh can re"
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "squoosh",
+        "withExtension": false,
+        "url": "https://squoosh.app/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "textSample": "Drop OR Paste\n\nOr try one of these:\n\n2.8MB\n2.9MB\n1.6MB\n13KB\nSmall\n\nSmaller images mean faster load times. Squoosh can re"
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "irs",
+        "n": 13,
+        "label": "irs.gov site search \"form 1040\"",
+        "url": "https://www.irs.gov/",
+        "settleMs": 1500
+      },
+      "on": {
+        "site": "irs",
+        "withExtension": true,
+        "url": "https://www.irs.gov/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "url": "https://www.irs.gov/site-index-search?search=form+1040&field_pup_historical_1=1&field_pup_historical=1",
+          "resultCount": 10,
+          "has1040": true
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "irs",
+        "withExtension": false,
+        "url": "https://www.irs.gov/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "url": "https://www.irs.gov/site-index-search?search=form+1040&field_pup_historical_1=1&field_pup_historical=1",
+          "resultCount": 10,
+          "has1040": true
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    },
+    {
+      "site": {
+        "key": "reddit",
+        "n": 14,
+        "label": "reddit.com/r/technology",
+        "url": "https://www.reddit.com/r/technology/",
+        "settleMs": 5000
+      },
+      "on": {
+        "site": "reddit",
+        "withExtension": true,
+        "url": "https://www.reddit.com/r/technology/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "postCount": 56
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 10,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "off": {
+        "site": "reddit",
+        "withExtension": false,
+        "url": "https://www.reddit.com/r/technology/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "reasons": [],
+        "detail": {
+          "postCount": 8
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null
+      },
+      "verdict": "PASS",
+      "reason": ""
+    }
+  ]
+}

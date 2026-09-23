@@ -8,6 +8,7 @@
     "test": "node --test",
     "package": "node tools/package.mjs",
     "package:firefox": "node tools/package.mjs --firefox",
-    "package:list": "node tools/package.mjs --list"
+    "package:list": "node tools/package.mjs --list",
+    "smoke": "node ../harness/site-smoke.mjs"
   }
 }

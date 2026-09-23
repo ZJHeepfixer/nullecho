@@ -125,6 +125,22 @@ generators produce files that ship — `rules/gen-ua.mjs` → `rules/ua-{win,mac
 
 ---
 
+## 3c. Pre-release site smoke — run before every store upload
+
+`harness/site-smoke.mjs` (`npm run smoke` from `ext/`) builds the store package
+(`ext/tools/package.mjs`), loads THAT zip — not the source tree — into Chrome for Testing, and
+runs 14 real sites (CAPTCHA renders, Amazon search, Maps zoom, YouTube playback, a paywalled
+NYT article, IRS search, Reddit, and the GPC-exception control on `open.spotify.com`) with the
+extension OFF and then ON, side by side. It reuses `site-bisect.mjs`'s hidden-tab handling
+(close extension pages, front the tab, assert `visibilityState === 'visible'` before measuring)
+and reports PASS / FAIL / NOT-OURS / BLOCKED per site, plus every `Nullecho`/`Illegal invocation`
+console line verbatim. Run it — and read the resulting `docs/breakage-runs/<date>-site-smoke.md`
+— before every Chrome Web Store or AMO upload; a FAIL there on a site that PASSED under `--off`
+is a real regression in the exact package about to ship, not a source-tree finding that may or
+may not have made it into the zip.
+
+---
+
 ## 4. Launch — after the gate, not before
 
 Ordered by dependency. Everything here is gated on §3 passing.
