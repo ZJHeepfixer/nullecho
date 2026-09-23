@@ -96,8 +96,19 @@ function prettyGpu(renderer = '') {
   return renderer;
 }
 
-function prettyScreen(s = {}) {
-  return `${s.width}×${s.height} · ${s.dpr}x · ${s.colorDepth}-bit`;
+/**
+ * The Display row of "What this site sees". The shim does NOT spoof the display layer
+ * (shim.js "DISPLAY LAYER — DELIBERATELY NOT SPOOFED"; CSS @media mirrors it below
+ * JavaScript), so the site sees the real screen, and this row says so. The persona's
+ * `screen` field is unused by the shim and must never be shown here: until 2026-09-22
+ * this row printed it, telling the user a site saw a screen it never saw.
+ * The popup's own `screen` is the display the browser window is on.
+ */
+function realDisplay() {
+  const s = globalThis.screen;
+  const dpr = globalThis.devicePixelRatio;
+  if (!s || !s.width) return 'your real display — not changed';
+  return `${s.width}×${s.height} · ${dpr}x · ${s.colorDepth}-bit — your real display, not changed`;
 }
 
 /** Single source of truth lives in linkage.js, so the report and this list agree. */
@@ -389,7 +400,7 @@ function renderPersona(s, enabled) {
   $('p-system').textContent = prettySystem(p);
   $('p-gpu').textContent = prettyGpu(p.gpu?.renderer);
   $('p-cpu').textContent = `${p.cores} cores · ${p.memory} GB`;
-  $('p-screen').textContent = prettyScreen(p.screen);
+  $('p-screen').textContent = realDisplay();
 
   $('persona').style.opacity = enabled ? '' : '.5';
   const note = document.querySelector('.persona + .note');
