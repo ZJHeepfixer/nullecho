@@ -32,17 +32,45 @@
  * shortcut that reintroduces the bug it warns about.
  *
  * COMPOSITING. The real popup surface is a fixed 360px-wide column, and its "What this site
- * sees" persona card sits far enough below the stats that no single 1280×800-safe crop
- * contains both without also containing several hundred pixels of the report panel between
- * them. Chrome also caps a real action-popup window's own height (well under the ~1800px this
- * page's full content needs), so unlike an ordinary tab, `page.screenshot({fullPage:true})` on
- * a popup target cannot actually grow the window to fit — verified directly: it comes back
- * tiling the same capped-height view two or three times top to bottom instead. So each popup
- * shot is built from TWO ordinary (viewport-only) screenshots taken at two real scroll
- * positions of the one popup surface — exactly what a person scrolling and taking two
- * screenshots would produce — and harness/tools/compose.py pastes verbatim crops of both onto
- * a flat-color canvas. It crops and repositions real pixels; it never draws over or alters any
- * of them. See that file's header for the exact contract.
+ * sees" persona card sits far enough below the stats (~1150px of real document, even at the
+ * enlarged 1440×900 screen) that no single viewport-sized crop contains both without also
+ * containing the report panel between them. Chrome also caps a real action-popup window's own
+ * height at 600px regardless of screen size (measured directly at three different screen
+ * heights, incl. 3200px tall — still 600) — so unlike an ordinary tab,
+ * `page.screenshot({fullPage:true})` on a popup target cannot actually grow the window to fit;
+ * it comes back tiling the same capped-height view two or three times top to bottom instead
+ * (verified directly). Screenshot 1 is instead built by captureContinuousPopup(): scroll the
+ * real popup to `window.scrollTo(0, 0)`, `(0, 600)`, `(0, 1200)`, … — each an EXACT multiple of
+ * the popup's own real viewport height, never an approximate `scrollIntoView` — screenshotting
+ * the full real viewport at each stop, and cropping only the LAST slice short (to stop exactly
+ * at the target element's bottom edge). Because each slice starts exactly where the previous
+ * one's captured rows ended, stacking them with harness/tools/compose.py at zero gap
+ * reconstructs the popup's real, continuous document — pixel-for-pixel — from the top of the
+ * header down through the bottom of the persona card, including the real report-panel content
+ * in between (never hidden, never skipped: skipping it would reintroduce exactly the seam this
+ * replaces). compose.py crops and repositions real pixels; it never draws over or alters any of
+ * them, and the only flat color used is the canvas's own outer letterboxing outside the popup's
+ * real bounding box. See that file's header for the exact contract, and see
+ * composePopupShot() (screenshot 2, unchanged, approved — still just two crops with a real
+ * white-on-white gap, invisible because its canvas IS the popup's own white, #ffffff) vs.
+ * composeContinuousPopupOnPlainBackground() (screenshot 1, below — a plain, non-white #f6f3ec
+ * canvas, where any gap would show, so the fix is zero-gap real-content stitching instead).
+ *
+ * SCREEN. Chrome for Testing's headless "new" mode gives every target (ordinary tabs AND the
+ * extension popup surface) a virtual screen fixed at 800×600 @1x, independent of
+ * `--window-size` or `page.setViewport()` — verified directly, and it made both the popup's
+ * honest Display row and the prove-it page's honest Screen row read "800×600", which looks
+ * broken in a store screenshot even though it's a true reading. `page.setViewport()`/CDP
+ * `Emulation.setDeviceMetricsOverride` can restyle an ORDINARY page's screen (used for
+ * screenshot 5), but the popup target refuses that CDP call outright ("Target does not support
+ * metrics override" — verified directly), so screenshot 1 needs the fix at the BROWSER level
+ * instead: the launch flag `SCREEN_INFO_FLAG` below (`--screen-info=...`), which every target
+ * inherits at creation, including the popup. Chrome's `--screen-info` syntax takes PHYSICAL
+ * pixels plus a devicePixelRatio, and JS's `screen.width/height` reports the LOGICAL (physical
+ * ÷ dpr) size — verified empirically (asking for logical 1440×900 directly under-reports as
+ * 720×450 @2x; doubling to 2880×1800 physical @2x correctly reads back as 1440×900 @2x). The
+ * popup, opened with this flag active, is verified (openRealPopup()) to report exactly
+ * screen.width=1440, screen.height=900, devicePixelRatio=2 before any capture proceeds.
  *
  * TRAPS carried over from unpacked-chrome.mjs / site-bisect.mjs:
  *   - Chrome writes `ext/_metadata/` into an unpacked directory when it loads it. This script
@@ -70,6 +98,15 @@ const OUT_DIR = path.join(REPO, 'docs/store/screenshots');
 const SCRATCH = fs.mkdtempSync(path.join(os.tmpdir(), 'nullecho-store-shots-'));
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
+
+// Gives EVERY target in the browser (ordinary tabs and the extension popup surface alike) a
+// realistic screen instead of headless Chrome for Testing's fixed 800x600 default — see the
+// file header's "SCREEN" section for the physical-vs-logical-pixel reasoning and how this was
+// verified. Logical (JS-visible) result: screen.width=1440, screen.height=900,
+// devicePixelRatio=2 — a real MacBook-class Retina panel. openRealPopup() asserts this exactly
+// on the popup target before any shot-1 capture proceeds.
+const SCREEN_INFO_FLAG = '--screen-info={0,0 2880x1800 devicePixelRatio=2}';
+const EXPECTED_SCREEN = { w: 1440, h: 900, dpr: 2 };
 
 // ── arguments ────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -152,6 +189,7 @@ async function launch(extDir) {
       '--no-first-run', '--no-default-browser-check',
       `--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`,
       '--window-size=1280,900',
+      SCREEN_INFO_FLAG,
     ],
     userDataDir: profile,
   });
@@ -180,6 +218,17 @@ async function openRealPopup(browser, sw) {
   await popupPage.waitForFunction(() => document.getElementById('wrap') && !document.getElementById('wrap').hidden, { timeout: 8000 });
   await popupPage.waitForFunction(() => document.getElementById('site')?.textContent && document.getElementById('site').textContent !== '—', { timeout: 8000 }).catch(() => {});
   await new Promise((r) => setTimeout(r, 300));
+
+  // Director review (2026-09-24): verify the SCREEN_INFO_FLAG launch flag actually reached this
+  // popup target — required before any capture, not just hoped for, since the popup target
+  // rejects a later per-target CDP override outright, so this is the only point the value can
+  // still be caught wrong.
+  const screen = await popupPage.evaluate(() => ({ w: screen.width, h: screen.height, dpr: devicePixelRatio }));
+  if (screen.w !== EXPECTED_SCREEN.w || screen.h !== EXPECTED_SCREEN.h || screen.dpr !== EXPECTED_SCREEN.dpr) {
+    throw new Error(`popup screen is ${screen.w}x${screen.h} @${screen.dpr}x, expected ${EXPECTED_SCREEN.w}x${EXPECTED_SCREEN.h} @${EXPECTED_SCREEN.dpr}x — SCREEN_INFO_FLAG did not take effect on the popup target`);
+  }
+  log(`  popup screen verified: ${screen.w}×${screen.h} @${screen.dpr}x`);
+
   return popupPage;
 }
 
@@ -210,6 +259,13 @@ async function getRect(page, sel) {
  * screenshots — see the file header for why `fullPage` cannot be used here.
  */
 async function capturePopupCrops(popupPage, elExpr, tag) {
+  // The popup's own devicePixelRatio (2, since SCREEN_INFO_FLAG — see the file header's
+  // "SCREEN" section) means popupPage.screenshot() captures at PHYSICAL pixel resolution
+  // (e.g. 720px wide, not the 360 CSS/logical px getBoundingClientRect() reports). Every crop
+  // bound below is measured in logical px and returned in logical px (unchanged contract); the
+  // caller (composePopupShot) is responsible for multiplying by `dpr` before handing bounds to
+  // compose.py, which crops the real (physical-resolution) source file.
+  const dpr = await popupPage.evaluate(() => devicePixelRatio);
   const statsRect = await getRect(popupPage, '.stats');
   if (!statsRect) throw new Error(`${tag}: could not locate .stats`);
   const pathA = path.join(SCRATCH, `${tag}-popup-A.png`);
@@ -233,6 +289,7 @@ async function capturePopupCrops(popupPage, elExpr, tag) {
     pathB,
     cropBTop: Math.max(0, lowerRect.top),
     cropBBottom: Math.max(Math.max(0, lowerRect.top) + 10, lowerRect.bottom),
+    dpr,
   };
 }
 
@@ -241,8 +298,13 @@ async function capturePopupCrops(popupPage, elExpr, tag) {
  * screenshots, see capturePopupCrops) into the right-hand panel of a 1280x800 canvas, next to a
  * real screenshot of the site tab on the left. Every pixel is untouched; only crop bounds, a
  * uniform scale-to-fit, and paste position are computed.
+ *
+ * `dpr` (default 1): the popup's devicePixelRatio at capture time. Crop bounds passed in here
+ * (cropABottom etc.) are logical px, matching getBoundingClientRect(); compose.py crops the
+ * REAL screenshot file, which is `dpr`x that size, so bounds are scaled up by `dpr` and the
+ * paste scale is divided by it before reaching compose.py. At dpr=1 this is a no-op.
  */
-function composePopupShot({ sitePng, popupPngA, cropABottom, popupPngB, cropBTop, cropBBottom, outPng, label }) {
+function composePopupShot({ sitePng, popupPngA, cropABottom, popupPngB, cropBTop, cropBBottom, outPng, label, dpr = 1 }) {
   const PANEL_X = 820, PANEL_W = 460, GAP = 16, MARGIN = 32;
   const aH = cropABottom; // crop A is always [0, cropABottom]
   const bH = cropBBottom - cropBTop;
@@ -253,6 +315,7 @@ function composePopupShot({ sitePng, popupPngA, cropABottom, popupPngB, cropBTop
   const x = Math.round(PANEL_X + (PANEL_W - contentW) / 2);
   const totalHScaled = naturalTotalH * scale;
   const startY = Math.round((800 - totalHScaled) / 2);
+  const pasteScale = scale / dpr;
 
   compose({
     canvas: [1280, 800],
@@ -260,8 +323,8 @@ function composePopupShot({ sitePng, popupPngA, cropABottom, popupPngB, cropBTop
     out: outPng,
     paste: [
       { src: sitePng, x: 0, y: 0 }, // left context panel: real site-tab screenshot, cropped to 820 wide
-      { src: popupPngA, cropTop: 0, cropBottom: cropABottom, x, y: startY, scale },
-      { src: popupPngB, cropTop: cropBTop, cropBottom: cropBBottom, x, y: Math.round(startY + aH * scale + GAP * scale), scale },
+      { src: popupPngA, cropTop: 0, cropBottom: cropABottom * dpr, x, y: startY, scale: pasteScale },
+      { src: popupPngB, cropTop: cropBTop * dpr, cropBottom: cropBBottom * dpr, x, y: Math.round(startY + aH * scale + GAP * scale), scale: pasteScale },
     ],
   });
   log(`composed ${label} -> ${outPng} (scale ${scale.toFixed(3)})`);
@@ -284,33 +347,103 @@ function composePopupShot({ sitePng, popupPngA, cropABottom, popupPngB, cropBTop
  * frame entirely: the popup stack is centered on a plain neutral canvas instead of a site
  * screenshot. The popup's own small site-name label (e.g. "si.com") still shows — that's a
  * factual attribution of what was measured, not editorial content, and the review approved it.
+ *
+ * Director review (2026-09-24), second pass: the first version of this composited TWO separate
+ * crops (header+stats, then the persona panel) with a gap between them filled in the canvas's
+ * own #f6f3ec — a color that does not match the popup's own white, so the gap read as a visible
+ * band of foreign background, "cut and pasted." captureContinuousPopup() below replaces the
+ * two-crop approach: it walks the popup's OWN scrollbar in exact, non-overlapping,
+ * viewport-height steps (`window.scrollTo(0, 0)`, `(0, 600)`, …) so consecutive slices' captured
+ * rows are contiguous by construction — no seam-finding, no overlap math, because there is
+ * nothing to reconcile: slice N's last captured row and slice N+1's first captured row are
+ * adjacent rows of the same real, static document. Stacking the slices at zero gap reconstructs
+ * the true continuous popup — including the real report-panel content between the stats and the
+ * persona card, which is never hidden or skipped (skipping it would just reintroduce a seam).
  */
-function composePopupOnPlainBackground({ popupPngA, cropABottom, popupPngB, cropBTop, cropBBottom, outPng, label, bg = '#f6f3ec' }) {
-  const MARGIN_X = 260, MARGIN_Y = 80, GAP = 16; // generous margins: a centered card, not edge-to-edge
-  const aH = cropABottom;
-  const bH = cropBBottom - cropBTop;
-  const naturalTotalH = aH + GAP + bH;
+async function captureContinuousPopup(popupPage, endSelExpr, tag) {
+  // See capturePopupCrops's comment: the popup's devicePixelRatio is 2 (SCREEN_INFO_FLAG), so
+  // popupPage.screenshot() captures at PHYSICAL resolution (e.g. 720px wide slices), while every
+  // measurement below (getBoundingClientRect, innerHeight, scrollY) is logical/CSS px. Slices
+  // are recorded in logical px here (unchanged, simple math); composeContinuousPopupOnPlainBackground
+  // is responsible for multiplying by `dpr` before handing crop bounds to compose.py.
+  const dpr = await popupPage.evaluate(() => devicePixelRatio);
+  const endY = await popupPage.evaluate(`(() => {
+    const e = ${endSelExpr};
+    if (!e) return null;
+    const r = e.getBoundingClientRect();
+    return Math.ceil(r.bottom + window.scrollY);
+  })()`);
+  if (endY == null) throw new Error(`${tag}: could not locate element for ${endSelExpr}`);
+  const viewportH = await popupPage.evaluate(() => innerHeight);
+  // Measured now (scroll is still 0) so a caller (the promo tile) can crop just the
+  // header+stats lead-in of the reconstructed image without re-deriving it.
+  const statsBottom = await popupPage.evaluate(() => {
+    const r = document.querySelector('.stats')?.getBoundingClientRect();
+    return r ? Math.ceil(r.bottom) : null;
+  });
+
+  const slices = [];
+  let docY = 0;
+  let i = 0;
+  while (docY < endY) {
+    await popupPage.evaluate((y) => window.scrollTo(0, y), docY);
+    await new Promise((r) => setTimeout(r, 200));
+    const actualY = await popupPage.evaluate(() => Math.round(window.scrollY));
+    // A clamp (actualY < docY, at the bottom of the scrollable area) would leave a gap this
+    // scheme can't bridge — fail loudly rather than silently produce a seam.
+    if (actualY < docY) throw new Error(`${tag}: scrollTo(${docY}) clamped to ${actualY} — popup content shorter than expected`);
+    const need = Math.min(viewportH, endY - actualY);
+    const p = path.join(SCRATCH, `${tag}-slice-${i}.png`);
+    await popupPage.screenshot({ path: p });
+    slices.push({ path: p, cropTop: 0, cropBottom: need, height: need });
+    docY = actualY + need;
+    i += 1;
+    if (i > 8) throw new Error(`${tag}: ${i} slices and still short of endY=${endY} — aborting`);
+  }
+  log(`  ${tag}: ${slices.length} slice(s), viewport ${viewportH}px, reconstructed 0..${endY} (${endY}px), dpr ${dpr}`);
+  return { slices, totalHeight: endY, statsBottom, dpr };
+}
+
+/**
+ * Stacks ALL of captureContinuousPopup()'s slices at zero gap, scaled uniformly to fit a
+ * centered card on a plain neutral canvas. Every pixel placed comes from a real popup
+ * screenshot; only crop bounds (the last slice's short crop), a uniform scale, and paste
+ * position are computed. No two slices ever touch at anything but a real, contiguous document
+ * row, so there is no seam to hide and nothing to blend.
+ *
+ * `dpr` (default 1, pass captureContinuousPopup's returned value): each slice's `cropBottom`/
+ * `height` are logical px; the real screenshot file is `dpr`x that size (see
+ * captureContinuousPopup's comment), so crop bounds sent to compose.py are scaled up by `dpr`
+ * and its paste scale divided by `dpr`. The `scale`/`y` LAYOUT math below stays entirely in
+ * logical px throughout — only the two values actually handed to compose.py need the
+ * conversion, which is why a bug here previously cropped off the bottom of the reconstruction
+ * (found and fixed 2026-09-24: slices came back at 720px-plus native width/height, not 360,
+ * once the screen fix made the popup's own dpr 2, and the un-adjusted logical-px crop bounds
+ * only reached the top half of each real capture).
+ */
+function composeContinuousPopupOnPlainBackground({ slices, totalHeight, outPng, label, bg = '#f6f3ec', dpr = 1 }) {
+  const MARGIN_X = 260, MARGIN_Y = 60;
   const availW = 1280 - 2 * MARGIN_X;
   const availH = 800 - 2 * MARGIN_Y;
-  const scale = Math.min(1.6, availH / naturalTotalH, availW / 360); // 1.6x cap: stay a real screenshot, not a zoomed crop
+  const scale = Math.min(1, availH / totalHeight, availW / 360);
   const contentW = 360 * scale;
   const x = Math.round((1280 - contentW) / 2);
-  const totalHScaled = naturalTotalH * scale;
+  const totalHScaled = totalHeight * scale;
   const startY = Math.round((800 - totalHScaled) / 2);
+  const pasteScale = scale / dpr;
 
-  compose({
-    canvas: [1280, 800],
-    bg,
-    out: outPng,
-    paste: [
-      { src: popupPngA, cropTop: 0, cropBottom: cropABottom, x, y: startY, scale },
-      { src: popupPngB, cropTop: cropBTop, cropBottom: cropBBottom, x, y: Math.round(startY + aH * scale + GAP * scale), scale },
-    ],
-  });
-  log(`composed ${label} on plain background -> ${outPng} (scale ${scale.toFixed(3)})`);
-  return {
-    stackX: x, stackY: startY, stackW: Math.round(contentW), stackH: Math.round(totalHScaled), bg,
-  };
+  let y = startY;
+  const paste = [];
+  for (const s of slices) {
+    paste.push({ src: s.path, cropTop: 0, cropBottom: s.cropBottom * dpr, x, y: Math.round(y), scale: pasteScale });
+    y += s.height * scale;
+  }
+
+  compose({ canvas: [1280, 800], bg, out: outPng, paste });
+  log(`composed ${label} on plain background -> ${outPng} (${slices.length} slice(s), scale ${scale.toFixed(3)})`);
+  // `scale`/`stackY` let a caller (the promo tile) convert a document-space Y (e.g.
+  // captureContinuousPopup's `statsBottom`) into this finished image's own pixel coordinates.
+  return { stackX: x, stackY: startY, stackW: Math.round(contentW), stackH: Math.round(totalHScaled), bg, scale };
 }
 
 // ── main ─────────────────────────────────────────────────────────────────
@@ -334,7 +467,7 @@ async function main() {
       // see git history). Which real site loads no longer affects what appears IN THE FRAME
       // (director review, 2026-09-23: the host page itself — its branding, article photos of
       // real people — must never be in a store screenshot, so it's captured for real data only
-      // and then dropped; see composePopupOnPlainBackground's header comment). It's still a real
+      // and then dropped; see captureContinuousPopup's header comment). It's still a real
       // load with real trackers firing, not a fixture, because the counts must be real.
       const url = process.env.NULLECHO_SHOT1_URL || 'https://www.si.com/nba';
       const page = await browser.newPage();
@@ -357,25 +490,24 @@ async function main() {
       }));
       log('  real popup stats', stats);
       // persona's own panel (heading + kv + note) is the enclosing <section class="panel">
-      const crops = await capturePopupCrops(popupPage, "document.getElementById('persona')?.closest('.panel')", 'shot1');
+      const continuous = await captureContinuousPopup(popupPage, "document.getElementById('persona')?.closest('.panel')", 'shot1');
       await popupPage.close();
       await page.close();
 
       const out1 = path.join(OUT_DIR, '01-popup-blocking-persona.png');
-      shot1HeaderLayout = composePopupOnPlainBackground({
-        popupPngA: crops.pathA,
-        cropABottom: crops.cropABottom,
-        popupPngB: crops.pathB,
-        cropBTop: crops.cropBTop,
-        cropBBottom: crops.cropBBottom,
+      shot1HeaderLayout = composeContinuousPopupOnPlainBackground({
+        slices: continuous.slices,
+        totalHeight: continuous.totalHeight,
+        dpr: continuous.dpr,
         outPng: out1,
         label: 'shot 1',
       });
+      shot1HeaderLayout.statsBottomDocY = continuous.statsBottom; // for the promo tile's crop
       checkDims(out1, 1280, 800);
       readme.push({
         file: '01-popup-blocking-persona.png',
-        what: `Toolbar popup — ${stats.blocked} requests blocked, ${stats.fp} fingerprint reads seen, and the "What this site sees" device persona (system, graphics, CPU/RAM, display), on a plain ${shot1HeaderLayout.bg} background (no third-party page content in frame; the popup's own small label still names the real site measured, ${stats.site}).`,
-        state: `Real load of ${url} in Chrome for Testing with the unpacked extension, settled/scrolled for several seconds so trackers actually fired; popup opened via chrome.action.openPopup(). The host page's own screenshot was discarded — only the popup (two real, unedited crops of it) was composited onto the plain background.`,
+        what: `Toolbar popup — ${stats.blocked} requests blocked, ${stats.fp} fingerprint reads seen, and the "What this site sees" device persona (system, graphics, CPU/RAM, display, now reading the REAL screen — see below), on a plain ${shot1HeaderLayout.bg} background (no third-party page content in frame; the popup's own small label still names the real site measured, ${stats.site}). Appears as one continuous panel: reconstructed from ${continuous.slices.length} real, exact-viewport-height scroll captures of the popup (\`window.scrollTo(0,0)\`, \`(0,${continuous.slices[0]?.height ?? '?'})\`, …) stacked at zero gap, never an approximate scroll — each slice's last captured row is the document row directly before the next slice's first, so there is no seam and nothing between them but real popup content (including the real "What this site does to visitors" report panel, not hidden).`,
+        state: `Real load of ${url} in Chrome for Testing with the unpacked extension, settled/scrolled for several seconds so trackers actually fired; popup opened via chrome.action.openPopup(). The host page's own screenshot was discarded — only the popup (${continuous.slices.length} real, unedited scroll-position captures of it, stitched with zero gap) was composited onto the plain background. Browser launched with \`${SCREEN_INFO_FLAG}\` so every target — including the popup, which refuses a later per-target CDP metrics override — reports a real screen (verified before capture: screen.width=${EXPECTED_SCREEN.w}, screen.height=${EXPECTED_SCREEN.h}, devicePixelRatio=${EXPECTED_SCREEN.dpr}), which is why the Display row no longer reads the headless default of 800×600.`,
         cmd: 'node harness/store-screenshots.mjs 1',
       });
     }
@@ -417,6 +549,7 @@ async function main() {
         popupPngB: crops.pathB,
         cropBTop: crops.cropBTop,
         cropBBottom: crops.cropBBottom,
+        dpr: crops.dpr,
         outPng: out2,
         label: 'shot 2',
       });
@@ -518,25 +651,27 @@ async function main() {
       if (!fs.existsSync(src1) || !shot1HeaderLayout) {
         log('promo: skipped — needs a fresh shot 1 in the SAME run (its header position must be known exactly); run: node harness/store-screenshots.mjs 1 promo');
       } else {
-        log('promo: 440x280 tile cropped from screenshot 1\'s popup stack');
-        // Crop the WHOLE header+stats+persona stack composePopupShot placed in the finished
-        // image (returned as shot1HeaderLayout.stack*) — header and lower panel sit directly
-        // adjacent there, same as in the real popup, so this is one contiguous rectangle, not a
-        // stitch. Scaled down further only if it doesn't already fit 440x280; the two numbers
-        // stay legible even shrunk, matching SCREENSHOT-PLAN.md's own recommendation for this
-        // tile. A fixed guess at the crop rectangle would miss whenever the stack's height (and
-        // so its vertical centering) shifts with real content, so this uses the exact rectangle
-        // that run actually drew.
-        const { stackX, stackY, stackW, stackH, bg } = shot1HeaderLayout;
+        log('promo: 440x280 tile cropped from screenshot 1\'s header+stats');
+        // Screenshot 1's full reconstructed stack now runs header through the persona card,
+        // ~3x taller than before (it includes the real report panel in between — see
+        // captureContinuousPopup's header comment) — cropping the WHOLE thing into a 440x280
+        // tile would shrink the blocked/fingerprint numbers past legible. SCREENSHOT-PLAN.md's
+        // own recommendation for this tile is just the numbers, so this crops header+stats only
+        // (document rows 0..statsBottomDocY, converted into the finished image's own pixel
+        // coordinates via stackY/scale) — the exact rectangle that run actually drew, not a
+        // fixed guess.
+        const { stackX, stackY, stackW, bg, scale, statsBottomDocY } = shot1HeaderLayout;
+        const cropW = stackW;
+        const cropH = Math.round(statsBottomDocY * scale) + Math.round(10 * scale); // + the same small pad capturePopupCrops used elsewhere
         const out = path.join(OUT_DIR, 'promo-440x280.png');
-        const fitScale = Math.min(1, 440 / stackW, 280 / stackH);
-        const finalW = Math.round(stackW * fitScale);
-        const finalH = Math.round(stackH * fitScale);
+        const fitScale = Math.min(1, 440 / cropW, 280 / cropH);
+        const finalW = Math.round(cropW * fitScale);
+        const finalH = Math.round(cropH * fitScale);
         compose({
           canvas: [440, 280], bg, out,
           paste: [{
             src: src1,
-            cropLeft: stackX, cropTop: stackY, cropRight: stackX + stackW, cropBottom: stackY + stackH,
+            cropLeft: stackX, cropTop: stackY, cropRight: stackX + cropW, cropBottom: stackY + cropH,
             scale: fitScale,
             x: Math.round((440 - finalW) / 2), y: Math.round((280 - finalH) / 2),
           }],
