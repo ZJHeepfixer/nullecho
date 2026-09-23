@@ -11,8 +11,10 @@ may carry; the body keeps its single statute link.**
 
 ## The order
 
-**One at a time. Wait for a reply or three business days before the next.** These are different
-audiences and a simultaneous blast reads as a press release.
+**One at a time, one per business day (revised 2026-09-23).** These are different audiences and a simultaneous
+blast reads as a press release. The original "wait three business days" rule protected Ballard Spahr from
+reading about their own error in the trade press first; none of the three press emails names any firm, so
+that risk is gone, and the October 1 hook argues for sending before it passes.
 
 | # | Send | To | Draft | Gate before sending |
 |---|---|---|---|---|

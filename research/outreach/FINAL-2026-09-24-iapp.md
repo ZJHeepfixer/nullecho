@@ -12,7 +12,8 @@
 ```
 Hi,
 
-Maryland's HB 895 (Ch. 154) is widely summarised as requiring every merchant that prices
+Maryland's HB 895 (Ch. 154) is summarised in at least one law-firm alert, and in the AI
+answers of the major search engines, as requiring every merchant that prices
 on personal data to display "THIS PRICE WAS SET BY AN ALGORITHM OR BY USING YOUR
 PERSONAL DATA" from October 1 (seven days from now), under Com. Law § 13-322.
 
