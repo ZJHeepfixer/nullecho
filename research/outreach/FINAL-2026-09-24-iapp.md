@@ -1,3 +1,5 @@
+**STAGED 2026-09-23 as a Gmail DRAFT in rockpros** (draft id r5190961910518363938): countdown removed ("from October 1" — correct on any send day), subject reworded, the stray "; swap in" line fixed, signature for a Gmail send (research URL kept, no nullecho address). The draft is the text to send; this file's fenced body is the pre-edit version.
+
 # FINAL — IAPP (Privacy Advisor / Daily Dashboard) — send 2026-09-24
 
 **Gate status:** using the 140-word short version, as SEND-ORDER requires (IAPP asks for a
