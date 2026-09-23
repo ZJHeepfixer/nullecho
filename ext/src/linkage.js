@@ -395,7 +395,8 @@ function buildFindings(report, ctx) {
       const top = alsoElsewhere[0];
       push(
         FINDING.REACH,
-        `${alsoElsewhere.length} of these ${plural(alsoElsewhere.length, 'company', 'companies')} was also present on other sites you visited`,
+        // "N of these companies" — the noun is always plural; the verb follows N.
+        `${alsoElsewhere.length} of these companies ${plural(alsoElsewhere.length, 'was', 'were')} also present on other sites you visited`,
         `${top.owner} was present on ${top.reach} of them — enough to be positioned to connect those visits. Nullecho sees presence, not whether the connection was made.`,
         { local: true, companies: alsoElsewhere.slice(0, 5) },
       );
