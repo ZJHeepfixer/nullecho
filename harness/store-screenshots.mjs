@@ -275,6 +275,44 @@ function composePopupShot({ sitePng, popupPngA, cropABottom, popupPngB, cropBTop
   };
 }
 
+/**
+ * Director review (2026-09-23): screenshot 1 originally paired the real popup with a real
+ * screenshot of the host page behind it (si.com's own branding and photos of real players/an
+ * actor) — third-party editorial content that a store screenshot must not carry. The fix keeps
+ * the popup capture exactly as real (same site load, same counts, same persona — only the DATA
+ * matters, not which page happened to be open), but drops the host-page screenshot from the
+ * frame entirely: the popup stack is centered on a plain neutral canvas instead of a site
+ * screenshot. The popup's own small site-name label (e.g. "si.com") still shows — that's a
+ * factual attribution of what was measured, not editorial content, and the review approved it.
+ */
+function composePopupOnPlainBackground({ popupPngA, cropABottom, popupPngB, cropBTop, cropBBottom, outPng, label, bg = '#f6f3ec' }) {
+  const MARGIN_X = 260, MARGIN_Y = 80, GAP = 16; // generous margins: a centered card, not edge-to-edge
+  const aH = cropABottom;
+  const bH = cropBBottom - cropBTop;
+  const naturalTotalH = aH + GAP + bH;
+  const availW = 1280 - 2 * MARGIN_X;
+  const availH = 800 - 2 * MARGIN_Y;
+  const scale = Math.min(1.6, availH / naturalTotalH, availW / 360); // 1.6x cap: stay a real screenshot, not a zoomed crop
+  const contentW = 360 * scale;
+  const x = Math.round((1280 - contentW) / 2);
+  const totalHScaled = naturalTotalH * scale;
+  const startY = Math.round((800 - totalHScaled) / 2);
+
+  compose({
+    canvas: [1280, 800],
+    bg,
+    out: outPng,
+    paste: [
+      { src: popupPngA, cropTop: 0, cropBottom: cropABottom, x, y: startY, scale },
+      { src: popupPngB, cropTop: cropBTop, cropBottom: cropBBottom, x, y: Math.round(startY + aH * scale + GAP * scale), scale },
+    ],
+  });
+  log(`composed ${label} on plain background -> ${outPng} (scale ${scale.toFixed(3)})`);
+  return {
+    stackX: x, stackY: startY, stackW: Math.round(contentW), stackH: Math.round(totalHScaled), bg,
+  };
+}
+
 // ── main ─────────────────────────────────────────────────────────────────
 async function main() {
   fs.rmSync(path.join(EXT_SRC, '_metadata'), { recursive: true, force: true }); // defensive, before
@@ -290,13 +328,14 @@ async function main() {
   try {
     // ── Screenshots 1 & 2: real popup, real per-tab data ──────────────────
     if (SHOTS.includes('1')) {
-      log('shot 1: popup on a real news site (blocking + persona)');
-      // si.com/nba: real trials against several US outlets (usatoday.com, billboard.com,
-      // apnews.com, weather.com — see harness/store-screenshots.mjs git history / dev notes)
-      // found this one gives strong, honest blocked/fingerprint counts with no anti-adblock
-      // interstitial covering the page and no IP-geolocated content (weather.com's local
-      // forecast page resolves to the crawling machine's real-world location, which has no
-      // business in a public store screenshot).
+      log('shot 1: popup on a real news site (blocking + persona), composed on a plain background');
+      // si.com/nba gives strong, honest blocked/fingerprint counts with no anti-adblock
+      // interstitial (tried against usatoday.com, billboard.com, apnews.com, weather.com first —
+      // see git history). Which real site loads no longer affects what appears IN THE FRAME
+      // (director review, 2026-09-23: the host page itself — its branding, article photos of
+      // real people — must never be in a store screenshot, so it's captured for real data only
+      // and then dropped; see composePopupOnPlainBackground's header comment). It's still a real
+      // load with real trackers firing, not a fixture, because the counts must be real.
       const url = process.env.NULLECHO_SHOT1_URL || 'https://www.si.com/nba';
       const page = await browser.newPage();
       await page.setViewport({ width: 1280, height: 800 });
@@ -306,9 +345,9 @@ async function main() {
       const vis1 = await page.evaluate(() => document.visibilityState);
       if (vis1 !== 'visible') throw new Error('site tab not visible before capture: ' + vis1);
       await settlePage(page);
-
-      const sitePngRaw = path.join(SCRATCH, 'shot1-site-raw.png');
-      await page.screenshot({ path: sitePngRaw });
+      // No screenshot of the site tab is taken — its content (SI branding, article photos of
+      // real people) must never appear in a store screenshot. Only the popup, which describes
+      // that page in numbers and a persona, is captured below.
 
       const popupPage = await openRealPopup(browser, sw);
       const stats = await popupPage.evaluate(() => ({
@@ -320,14 +359,10 @@ async function main() {
       // persona's own panel (heading + kv + note) is the enclosing <section class="panel">
       const crops = await capturePopupCrops(popupPage, "document.getElementById('persona')?.closest('.panel')", 'shot1');
       await popupPage.close();
-
-      // left context panel: the real site screenshot, windowed to 820x800
-      const siteCroppedSpec = path.join(SCRATCH, 'shot1-site-cropped.png');
-      compose({ canvas: [820, 800], bg: '#ffffff', out: siteCroppedSpec, paste: [{ src: sitePngRaw, x: 0, y: 0 }] });
+      await page.close();
 
       const out1 = path.join(OUT_DIR, '01-popup-blocking-persona.png');
-      shot1HeaderLayout = composePopupShot({
-        sitePng: siteCroppedSpec,
+      shot1HeaderLayout = composePopupOnPlainBackground({
         popupPngA: crops.pathA,
         cropABottom: crops.cropABottom,
         popupPngB: crops.pathB,
@@ -339,11 +374,10 @@ async function main() {
       checkDims(out1, 1280, 800);
       readme.push({
         file: '01-popup-blocking-persona.png',
-        what: `Toolbar popup on ${stats.site} — ${stats.blocked} requests blocked, ${stats.fp} fingerprint reads seen, and the "What this site sees" device persona (system, graphics, CPU/RAM, display).`,
-        state: `Real load of ${url} in Chrome for Testing with the unpacked extension; popup opened via chrome.action.openPopup() after settling/scrolling the page for several seconds so trackers actually fired.`,
+        what: `Toolbar popup — ${stats.blocked} requests blocked, ${stats.fp} fingerprint reads seen, and the "What this site sees" device persona (system, graphics, CPU/RAM, display), on a plain ${shot1HeaderLayout.bg} background (no third-party page content in frame; the popup's own small label still names the real site measured, ${stats.site}).`,
+        state: `Real load of ${url} in Chrome for Testing with the unpacked extension, settled/scrolled for several seconds so trackers actually fired; popup opened via chrome.action.openPopup(). The host page's own screenshot was discarded — only the popup (two real, unedited crops of it) was composited onto the plain background.`,
         cmd: 'node harness/store-screenshots.mjs 1',
       });
-      await page.close();
     }
 
     if (SHOTS.includes('2')) {
@@ -431,7 +465,25 @@ async function main() {
     if (SHOTS.includes('5')) {
       log('shot 5: nullecho.org/prove-it, fingerprint check run');
       const page = await browser.newPage();
-      await page.setViewport({ width: 1280, height: 800 });
+      await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+      // Headless Chrome for Testing's virtual "screen" defaults to 800x600 regardless of
+      // --window-size or setViewport — that's a property of the TEST BROWSER, not of Nullecho,
+      // but the prove-it page reads and displays window.screen honestly, so the store screenshot
+      // showed "Screen 800×600 @1x", which looks broken to a visitor. Director review
+      // (2026-09-23): give this one capture a realistic screen. A raw CDP
+      // Emulation.setDeviceMetricsOverride call sets `screenWidth`/`screenHeight` — which
+      // Puppeteer's own setViewport() does not expose — to a real 1440x900 MacBook-class panel
+      // at 2x (Retina), while width/height/scale stay 1280x800 @1x so the CAPTURED PNG is still
+      // exactly 1280x800 (verified: page.screenshot() keeps using the dimensions from the
+      // preceding setViewport() call, not the raw override, so the two combine safely).
+      const cdp = await page.createCDPSession();
+      await cdp.send('Emulation.setDeviceMetricsOverride', {
+        width: 1280, height: 800, deviceScaleFactor: 2, mobile: false,
+        screenWidth: 1440, screenHeight: 900,
+      });
+      const screenCheck = await page.evaluate(() => ({ w: screen.width, h: screen.height, dpr: devicePixelRatio, colorDepth: screen.colorDepth }));
+      log('  screen override in effect:', screenCheck);
+      if (screenCheck.w !== 1440 || screenCheck.h !== 900) throw new Error('shot 5: screen override did not take effect: ' + JSON.stringify(screenCheck));
       await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
       await page.goto('https://nullecho.org/prove-it/', { waitUntil: 'load', timeout: 30000 });
       await page.bringToFront();
@@ -454,7 +506,7 @@ async function main() {
       readme.push({
         file: '05-prove-it-fingerprint-check.png',
         what: 'nullecho.org/prove-it after clicking "Show me my fingerprint" — the hero fingerprint value and the per-API results table, measured live with the extension installed and on.',
-        state: 'https://nullecho.org/prove-it/ (the live site named in this listing’s "Notes to reviewer"), #run clicked, waited for #out/#rows/#verdict to populate.',
+        state: `https://nullecho.org/prove-it/ (the live site named in this listing's "Notes to reviewer"), #run clicked, waited for #out/#rows/#verdict to populate. Screen row reads ${screenCheck.w}×${screenCheck.h} · ${screenCheck.dpr}x, ${screenCheck.colorDepth}-bit: this test browser's window was given a realistic screen via a raw CDP \`Emulation.setDeviceMetricsOverride\` call (screenWidth/screenHeight 1440×900, deviceScaleFactor 2 — a real MacBook-class Retina panel) instead of Chrome for Testing's headless default of 800×600 @1x, which looked broken. This is the TEST BROWSER's configuration; Nullecho itself reports the screen honestly either way (ext/options/options.html#limits: "Screen dimensions... are reported honestly"). The capture stayed at 1280×800 @1x for the output PNG.`,
         cmd: 'node harness/store-screenshots.mjs 5',
       });
       await page.close();
@@ -475,13 +527,13 @@ async function main() {
         // tile. A fixed guess at the crop rectangle would miss whenever the stack's height (and
         // so its vertical centering) shifts with real content, so this uses the exact rectangle
         // that run actually drew.
-        const { stackX, stackY, stackW, stackH } = shot1HeaderLayout;
+        const { stackX, stackY, stackW, stackH, bg } = shot1HeaderLayout;
         const out = path.join(OUT_DIR, 'promo-440x280.png');
         const fitScale = Math.min(1, 440 / stackW, 280 / stackH);
         const finalW = Math.round(stackW * fitScale);
         const finalH = Math.round(stackH * fitScale);
         compose({
-          canvas: [440, 280], bg: '#ffffff', out,
+          canvas: [440, 280], bg, out,
           paste: [{
             src: src1,
             cropLeft: stackX, cropTop: stackY, cropRight: stackX + stackW, cropBottom: stackY + stackH,
