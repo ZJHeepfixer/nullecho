@@ -8,3 +8,6 @@ ext/_metadata/
 
 # store packages (ext/tools/package.mjs)
 dist/
+
+# harness/tools/compose.py is invoked directly (python3 harness/tools/compose.py ...)
+__pycache__/

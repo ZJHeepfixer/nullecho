@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trailhead Pack — $128.00</title>
+<!--
+  Nullecho screenshot fixture — not a real store, not served to real users.
+  Built for docs/store/SCREENSHOT-PLAN.md's Screenshot 2 ("popup with the
+  price-disclosure panel"). SCREENSHOT-PLAN.md explains why: a live retailer
+  page carrying both the exact NY Gen. Bus. Law § 349-a sentence and a
+  machine-readable price, reachable without a login, was not reliably
+  findable (research/NY-349A-COMPLIANCE-SWEEP.md), so this local fixture
+  stands in rather than misrepresenting a real business. The disclosure
+  sentence below is quoted exactly as ext/src/pricing.js matches it
+  (case-insensitive, but reproduced here in the statute's own wording), and
+  the price is published in a schema.org Product/Offer block so the
+  extension's own price-context reader (collectPriceContext() in
+  ext/src/pricing-scan.js) can find it the same way it would on a real page.
+-->
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; background: #f7f5f1; color: #1c1a16;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .fixture-banner {
+    background: #1c1a16; color: #f0ece2; font-size: 12.5px; text-align: center;
+    padding: 6px 12px;
+  }
+  header.site {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px; border-bottom: 1px solid #e3ddd0; background: #fffdf9;
+  }
+  .brand { font-weight: 700; font-size: 19px; letter-spacing: .01em; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 32px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  .shot { background: #e9e4d8; border-radius: 12px; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; color: #9c9484; font-size: 14px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .sku { color: #7a7468; font-size: 13px; margin: 0 0 20px; }
+  .price-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .price { font-size: 32px; font-weight: 700; }
+  .was { color: #9c9484; text-decoration: line-through; font-size: 16px; }
+  .price-note {
+    font-size: 13.5px; color: #5b5648; margin: 6px 0 22px; max-width: 46ch; line-height: 1.5;
+  }
+  .buy { background: #1c1a16; color: #fff; border: 0; padding: 13px 26px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+  .desc { color: #3c382f; line-height: 1.6; font-size: 14.5px; margin-top: 22px; }
+  footer { text-align: center; padding: 24px; font-size: 12px; color: #9c9484; }
+</style>
+</head>
+<body>
+
+<div class="fixture-banner">Nullecho screenshot fixture — a local test page, not a real store</div>
+
+<header class="site">
+  <span class="brand">Trailhead Supply Co.</span>
+  <span style="font-size:13px;color:#7a7468">Cart (0)</span>
+</header>
+
+<main class="wrap">
+  <div class="shot">Product photo</div>
+  <div>
+    <h1>Trail Runner 2 Jacket</h1>
+    <p class="sku">Item #TR-2-JKT · Moss</p>
+
+    <div class="price-row">
+      <span class="price" id="price">$128.00</span>
+      <span class="was">$160.00</span>
+    </div>
+
+    <!-- The exact statutory sentence, N.Y. Gen. Bus. Law § 349-a(2), as its
+         own sentence so pricing-scan.js's findDisclosure() matches it the
+         way it would on a real checkout or product page. -->
+    <p class="price-note">
+      This price was set by an algorithm using your personal data. Your price
+      may differ from what another shopper sees for the same item.
+    </p>
+
+    <button class="buy" type="button" disabled>Add to bag</button>
+
+    <p class="desc">
+      A packable shell for shoulder-season trail miles. Two-layer weave,
+      taped seams, chest pocket sized for a folded map. Machine washable.
+    </p>
+  </div>
+</main>
+
+<footer>Trailhead Supply Co. is a fictional brand used only to test Nullecho's price-disclosure detector.</footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Trail Runner 2 Jacket",
+  "sku": "TR-2-JKT",
+  "offers": {
+    "@type": "Offer",
+    "price": "128.00",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+
+</body>
+</html>
