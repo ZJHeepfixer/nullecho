@@ -1,3 +1,5 @@
+> ⛔ SUPERSEDED 2026-09-24 — this draft overstates how widespread the Maryland error is ("a lot of the guidance" / "widely summarised" / "across client alerts"). We can source ONE law-firm alert of fourteen read, plus search-engine AI answers. Use the FINAL-* file for this recipient.
+
 # DRAFT — Retail Dive
 
 **Type:** editorial tip note (<150 words)
