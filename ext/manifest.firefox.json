@@ -3,7 +3,7 @@
   "name": "Nullecho",
   "version": "0.9.0",
   "homepage_url": "https://nullecho.org",
-  "description": "Degrades commercial ad-tech profiling: tracker blocking, Global Privacy Control, and per-origin fingerprint personas.",
+  "description": "Blocks trackers, sends Global Privacy Control, and shows each site a different device profile so most trackers can't link you.",
   "browser_specific_settings": {
     "gecko": {
       "id": "nullecho@nullecho.app",
