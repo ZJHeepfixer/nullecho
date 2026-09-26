@@ -202,8 +202,16 @@ Chrome MV3)
 
 ## Data usage disclosures (Privacy practices tab)
 
-Tick **nothing collected** — every data-type checkbox in the Chrome dashboard's data-collection
-disclosure left unchecked. Nullecho reads request/response headers and page-displayed price text
+**REVISED 2026-09-26 at submission — tick Web history, User activity, Website content.** Google's User Data FAQ
+(developer.chrome.com/docs/webstore/program-policies/user-data-faq): "Extensions are required to disclose how they
+handle user data, even when data is processed or stored locally on a user's device and is not transmitted to external
+servers or third parties," and it names "the domains or URLs the browser interacts with" as handling. Nullecho handles
+exactly three kinds locally: a per-site stats list (Web history), network-request observation for the tracker
+heuristics (User activity), and page text read for the price-disclosure sentence (Website content). Under-disclosure
+is the removal risk; over-disclosure is not. The original advice below (tick nothing) is superseded.
+
+~~Tick **nothing collected** — every data-type checkbox in the Chrome dashboard's data-collection
+disclosure left unchecked.~~ Nullecho reads request/response headers and page-displayed price text
 locally to do its job, but nothing is collected in the dashboard's sense of leaving the device; there
 is no server for it to reach.
 
