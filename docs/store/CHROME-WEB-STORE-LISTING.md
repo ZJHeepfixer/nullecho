@@ -35,8 +35,8 @@ shortest true form of it that fits the field.
 ## Detailed description (≤16,000 characters; aim was 1,200–2,000)
 
 > Nullecho blocks the ad networks, analytics scripts, social pixels, and known fingerprinting vendors
-> that follow you across sites, using 182 static rules from DuckDuckGo Tracker Radar, EasyPrivacy, and
-> AdGuard, evaluated by the browser's own declarativeNetRequest engine. It sends Global Privacy
+> that follow you across sites, using static rule lists built from DuckDuckGo Tracker Radar,
+> EasyPrivacy, and AdGuard, evaluated by the browser's own declarativeNetRequest engine. It sends Global Privacy
 > Control, a do-not-sell/share signal legally recognized in California, Colorado, and several other
 > states if you live there — the duty attaches to your residency, not the site's location.
 >
@@ -425,8 +425,8 @@ would emit — the diff-to-zero property a source-code reviewer checks for.
 > Nullecho blocks trackers and shows a synthetic-but-consistent device profile per site. To see it
 > work in under a minute: install the extension, open any ordinary news or shopping site, and click
 > the toolbar icon — the popup shows a live blocked-request count for that page and the device profile
-> (OS, GPU, CPU/RAM, display) the site is currently being shown, both computed on-device from the
-> page you're already on. Then open https://nullecho.org in a new tab and run the fingerprint check on
+> (OS, GPU, CPU/RAM) the site is currently being shown, both computed on-device from the page you're
+> already on. The display (screen size, pixel density) is deliberately left real, and the popup says so. Then open https://nullecho.org in a new tab and run the fingerprint check on
 > that page — it reads your browser's own APIs live and shows the same profile the popup just
 > reported, so the extension's claim and the page's independent measurement can be compared side by
 > side, with no account and no data leaving the browser either way.
@@ -434,7 +434,7 @@ would emit — the diff-to-zero property a source-code reviewer checks for.
 > The extension has no login, no server, and no network endpoint beyond two `fetch()` calls that read
 > bundled JSON files out of the package itself (`chrome.runtime.getURL(...)`) — there is nothing to
 > configure or sign into to see it work. Source is public and MIT licensed at
-> github.com/ZJHeepfixer/nullecho, including the test suite (477 tests) and the DNR rulesets the
+> github.com/ZJHeepfixer/nullecho, including the test suite (481 tests) and the DNR rulesets the
 > extension ships; nothing in the submitted package differs from what's in the repository at the
 > corresponding commit. The privacy policy at nullecho.org/privacy/ documents, with file/line
 > citations into the source, exactly what is stored locally and why; nothing described there is
