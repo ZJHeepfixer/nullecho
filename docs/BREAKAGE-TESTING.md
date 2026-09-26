@@ -295,3 +295,12 @@ test tab is in front. Tier C.15 verified by rendering in real Chrome: `open.spot
 present; control true. Real follow-ups are protection misses, not breakage: `offscreenCanvas.getImageData`
 runtime failure on Maps; the D30 boot-check timeout on cold-worker first loads. Owner-only Tier A items (bank,
 Google SSO, real checkout) still owed.
+
+### 2026-09-26 — owner's Tier A in his everyday Chrome (0.9.0 unpacked, extension ON)
+
+Reported by Jason: **bank login — works; a real B2B checkout (ordered beer for the bar from his supplier) —
+works; a real Amazon order placed — works.** No breakage noticed. Tier A.4 (bank, with the fraud-vendor
+tier off by default) and A.6 (Amazon checkout, taken through to a real order) are cleared by the owner.
+**Still owed:** A.1 Google SSO on the current code (last cleared 2026-08-21, before D35/D46/D47/D48 changed
+child-realm and popup handling, which SSO exercises) — to be tried during the store review window, since the
+submission goes in with automatic publishing off. A.2 Stripe test-mode and A.3 PayPal popup not run.
