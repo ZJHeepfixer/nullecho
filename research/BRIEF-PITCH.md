@@ -362,7 +362,8 @@ Written down because these are the specific ways this pitch could go wrong.
    Legislature's bill history for A.4085 and the text to the Third Reprint.
 7. **Check the Southern Glazer's docket** before repeating any posture language. Verified
    2026-09-19: MOU executed 2026-08-28 (Dkt 226), administratively closed 2026-09-01 (Dkt 228), next
-   joint status report due 2026-09-25. If you send after September 25, re-read the docket first; the
+   joint status report due 2026-09-25 — filed on time (Dkt 230, re-read 2026-09-26; contents PACER-only,
+   so posture after it is unknown). Re-read the docket before citing posture; the
    argument — the FTC pursuing Robinson-Patman while writing about personalized pricing without
    mentioning it — does not depend on the posture, so drop the parenthetical rather than guess.
 8. **Recompute the countdown in the subject line.** It is written for a September 19 send. If it is

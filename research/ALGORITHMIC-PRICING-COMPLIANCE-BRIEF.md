@@ -659,7 +659,7 @@ The most persuasive evidence is not doctrinal. It is what the FTC did with its o
   a memorandum of understanding that, once finalized with additional terms in a final order, will resolve
   all claims in this action," pending "the necessary Commission vote"; the clerk **administratively closed**
   the case on 2026-09-01 (Dkt 228) as a statistical closure tied to the stay — **not a judgment, consent
-  decree or dismissal**; no stipulated final order is entered; next joint status report due **2026-09-25**.
+  decree or dismissal**; no stipulated final order is entered. The joint status report due 2026-09-25 **was filed that day (Dkt 230)**; its contents are not in the public RECAP archive (PACER only), so the posture after it is **unknown** — nothing on the docket through 2026-09-26 shows a judgment, consent decree or dismissal.
   The FTC's own matter page (2110155) still shows nothing after 2025-04-17 and is not a reliable status source.
 - **On 2026-08-19 — two days before this brief — that same Commission confronted consumer
   personalized pricing directly** and said: *"Congress has not given the Commission the authority to
@@ -1562,8 +1562,8 @@ act PDF on 2026-09-16; it was re-checked line by line against `cga.ct.gov` and e
   controlling case located. Treated as secondary throughout.
 - **Southern Glazer's posture after 2026-08-21** and the reported PepsiCo 3-0 dismissal vote of
   2025-05-22 are secondary. Southern Glazer's posture was read from the docket on **2026-09-19**
-  (MOU 2026-08-28, administrative closure 2026-09-01); the next joint status report is due
-  **2026-09-25**, so re-check after that date before citing.
+  (MOU 2026-08-28, administrative closure 2026-09-01) and re-read on **2026-09-26**: the status report
+  due 2026-09-25 was filed on time (Dkt 230, contents PACER-only). Re-check the docket before citing any posture.
 
 ### 8.5 Explicitly not relied on
 
