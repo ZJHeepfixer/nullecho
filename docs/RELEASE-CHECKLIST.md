@@ -191,3 +191,16 @@ claim measured by a third-party library or a loaded browser, legal surfaces revi
 3. **Store submission filed** (Chrome Web Store and/or AMO) with the packaged zip from `ext/tools/package.mjs`.
 
 Until then the number stays `0.9.x`; patch releases bump the third digit. The version is a claim like any other.
+
+## 2026-09-26 — submitted to the Chrome Web Store
+
+- Item ID `ngolhoibjdchbbidglcfpljnabjfkfbn`, publisher "Nullecho" (Core Capital Investments LLC, trader, verified).
+- Package 0.9.0 built by `ext/tools/package.mjs` from commit `4f048c0` (tag `v0.9.0-cws-submitted`), zip sha256 `b12246d478c1feaec960a0c3a769c5431f0157231e8af3f87162cdf40e6c8814`.
+- Listing: description, Privacy & Security, English (US), icon, 5 screenshots, official URL nullecho.org (Search
+  Console-verified), homepage, support = GitHub issues. Privacy tab: single purpose, six justifications, remote code
+  **No**, data usage **Web history + User activity + Website content** (local-only handling must be disclosed per
+  Google's User Data FAQ), three certifications, privacy policy nullecho.org/privacy/. Test instructions ≤500 chars.
+- **"Publish automatically after review" unchecked** — approval stages it; Jason publishes after the Google SSO check.
+- Lessons at submission: the store summary comes from the manifest `description` (rewritten in plain words);
+  `version_name` displays publicly (removed); the reviewer-notes box is 500 characters, not 16,000; `pbcopy` needs a
+  UTF-8 locale or em dashes paste as "‚Äî".
