@@ -182,7 +182,7 @@ Ordered by dependency. Everything here is gated on §3 passing.
 
 `0.9.0` (2026-09-20) means **release candidate**: feature-complete for the claims in `THREAT-MODEL.md`, every
 claim measured by a third-party library or a loaded browser, legal surfaces reviewed 2026-09-19. Chrome's
-`version_name` carries that sentence; Firefox shows the bare number.
+`version_name` carried that sentence until 2026-09-26, when it was removed at store submission: the Chrome Web Store displays `version_name` publicly as the version, and "release candidate — every claim independently measured" read as unfinished and as a slogan in a version field. Both stores now show the bare number.
 
 **`1.0.0` may be set only when all three are true, in this order, and each is recorded in this file with a date:**
 1. Loaded **unpacked in stable Chrome by the owner** (not Chrome for Testing) and the popup, options, per-site

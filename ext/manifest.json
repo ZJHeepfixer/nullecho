@@ -2,7 +2,6 @@
   "manifest_version": 3,
   "name": "Nullecho",
   "version": "0.9.0",
-  "version_name": "0.9.0 · release candidate — every claim independently measured",
   "homepage_url": "https://nullecho.org",
   "description": "Blocks trackers, sends Global Privacy Control, and shows each site a different device profile so most trackers can't link you.",
   "minimum_chrome_version": "121",
