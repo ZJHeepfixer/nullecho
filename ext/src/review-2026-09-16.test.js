@@ -1136,6 +1136,7 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
 
   const WANT = ['User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform', 'Sec-CH-UA-Full-Version-List',
     'Sec-CH-UA-Full-Version', 'Sec-CH-UA-Platform-Version', 'Sec-CH-UA-Arch', 'Sec-CH-UA-Bitness', 'Sec-CH-UA-Model', 'Sec-CH-UA-WoW64'];
+  const ALWAYS = ['User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform'];
   const families = { win: 'ua-win.json', mac: 'ua-mac.json', linux: 'ua-linux.json' };
   const familyOfPlatform = { Win32: 'win', MacIntel: 'mac', 'Linux x86_64': 'linux' };
   // Chrome's wire form (RFC 8941), written out here rather than imported so this
@@ -1160,12 +1161,19 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
   for (const [fam, file] of Object.entries(families)) {
     const rules = JSON.parse(fs.readFileSync(path.join(EXT, 'rules', file), 'utf8'));
     const wire = {};
+    const removed = new Set();
     for (const r of rules) {
       assert.equal(r.action.type, 'modifyHeaders');
       assert.ok(r.condition.resourceTypes.includes('main_frame'), 'the navigation is the first request the server sees');
-      for (const h of r.action.requestHeaders) { assert.equal(h.operation, 'set'); wire[h.header] = h.value; }
+      // D49 (2026-09-28): the four always-sent headers are SET to the persona; the seven Accept-CH
+      // hints are REMOVED (never added — adding them broke reCAPTCHA in a real signed-in Chrome).
+      for (const h of r.action.requestHeaders) {
+        if (ALWAYS.includes(h.header)) { assert.equal(h.operation, 'set'); wire[h.header] = h.value; }
+        else { assert.equal(h.operation, 'remove', `${file}: ${h.header} must be removed, not set`); removed.add(h.header); }
+      }
     }
-    assert.deepEqual(Object.keys(wire).sort(), [...WANT].sort(), `${file} rewrites exactly these headers`);
+    assert.deepEqual(Object.keys(wire).sort(), [...ALWAYS].sort(), `${file} rewrites exactly the always-sent headers`);
+    assert.deepEqual([...removed].sort(), WANT.filter((n) => !ALWAYS.includes(n)).sort(), `${file} removes exactly the Accept-CH hints`);
 
     for (const p of PERSONAS.filter((p) => familyOfPlatform[p.platform] === fam)) {
       const s = bootRealm();
@@ -1185,13 +1193,13 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
         'Sec-CH-UA-Model': q(hi.model),
         'Sec-CH-UA-WoW64': bool(hi.wow64),
       };
-      for (const name of WANT) {
+      for (const name of ALWAYS) {
         checked += 1;
         if (js[name] !== wire[name]) mismatches.push({ persona: p.id, header: name, js: js[name], wire: wire[name] });
       }
     }
   }
-  assert.equal(checked, PERSONAS.length * WANT.length, 'every persona × every header was compared');
+  assert.equal(checked, PERSONAS.length * ALWAYS.length, 'every persona × every always-sent header was compared');
   assert.deepEqual(mismatches, [],
     'GUARD (D24): no persona disagrees with its family\'s header ruleset on any header. Anything here is B2 back — or a pool change that needs D19 revisited');
 });

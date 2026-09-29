@@ -2967,3 +2967,28 @@ the accessor captured from `CanvasRenderingContext2D`, which throws `Illegal inv
 OffscreenCanvas is read on the main thread (Google Maps, visibly). Fixed by passing the context's own
 `canvas` accessor; `offscreen-getimagedata-2026-09-20.test.js` fails on the old shim through the rig's
 `NULLECHO_SHIM_SRC` override and passes now. The shared rig itself moved to `src/test-realm-rig.js`.
+
+## D49 — The Accept-CH client hints are REMOVED, never added; only the four always-sent identity headers are rewritten. 2026-09-28. (Provisional until the owner's real-Chrome retest.)
+
+**Evidence that reversed D19's choice.** D19 chose `set` for all eleven UA/Client-Hint headers and accepted that `set`
+ADDS the seven high-entropy hints (`-Full-Version-List`, `-Full-Version`, `-Platform-Version`, `-Arch`, `-Bitness`,
+`-Model`, `-WoW64`) to every secure request as "a behavioural tell, not a contradiction", judging `remove` the rarer
+behaviour. On 2026-09-28 (field report from the Director session, reproduced here) Google answered
+`www.google.com/recaptcha/api.js` with **HTTP 503** on every THIRD-PARTY page in the owner's signed-in, branded Chrome
+(ascendpartner.com signup; patrickhlauke.github.io/recaptcha), so the reCAPTCHA box never rendered — a CAPTCHA you
+cannot pass is S0. google.com's own demo (first-party) was fine. **Turning Nullecho off for the site brought the box
+back** (owner, same day). Not reproducible in Chrome for Testing with the same build, nor by curl with Nullecho's exact
+header set: the difference is what only branded, signed-in Chrome carries to Google (X-Client-Data, account cookies),
+beside volunteered hints Chrome never sends unrequested — including a Full-Version of "151.0.0.0", a value real Chrome
+never reports.
+
+**Decision.** `gen-ua.mjs` emits `set` for `User-Agent`, `Sec-CH-UA`, `-Mobile`, `-Platform` (Chrome sends these on
+every request) and `remove` for the seven Accept-CH hints. A server that asked for hints gets none — Chrome itself
+sends none on the first request, and a Chrome whose hints are absent is common (blocked delegation, first request);
+volunteered hints with impossible values were the tell that cost a CAPTCHA. The JS `getHighEntropyValues()` persona is
+unchanged; header absence is not a value contradiction. `ua.test.js` and `review-2026-09-16.test.js` pin the new shape;
+481/481; the store zip still loads reCAPTCHA in a clean profile.
+
+**Open until confirmed:** the owner reloads the unpacked extension and retests the third-party reCAPTCHA page with
+Nullecho ON. If the box renders, D49 stands and 0.9.1 replaces the 0.9.0 submission (cancel review, resubmit). If not,
+bisect further in the owner's Chrome (User-Agent / Sec-CH-UA low-entropy / Sec-GPC) — CfT cannot reproduce this.

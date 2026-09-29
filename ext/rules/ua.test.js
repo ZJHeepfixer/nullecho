@@ -138,7 +138,20 @@ test('each family ships two rules: User-Agent everywhere, the hints on secure tr
       assert.deepEqual(r.condition.resourceTypes, UA_RESOURCE_TYPES);
       assert.deepEqual(r.condition.excludedRequestDomains, UA_EXCLUDED_DOMAINS);
       assert.deepEqual(r.condition.excludedInitiatorDomains, UA_EXCLUDED_DOMAINS);
-      for (const h of r.action.requestHeaders) assert.equal(h.operation, 'set');
+      for (const h of r.action.requestHeaders) {
+        // D49 (2026-09-28): the headers Chrome always sends are rewritten to the persona; the
+        // Accept-CH hints are REMOVED, never added. `set` volunteered seven high-entropy hints —
+        // including an impossible Full-Version "151.0.0.0" — on every secure request, and in the
+        // owner's signed-in Chrome Google answered reCAPTCHA's api.js with 503 on every
+        // third-party page (the box vanished; Nullecho off for the site brought it back).
+        if (ALWAYS_SENT.has(h.header)) {
+          assert.equal(h.operation, 'set', `${family}: ${h.header} is always sent, so it is rewritten`);
+          assert.equal(typeof h.value, 'string');
+        } else {
+          assert.equal(h.operation, 'remove', `${family}: ${h.header} is an Accept-CH hint; it must never be ADDED`);
+          assert.equal(h.value, undefined, 'a remove carries no value');
+        }
+      }
     }
     assert.deepEqual(ua.action.requestHeaders.map((h) => h.header), ['User-Agent']);
     assert.equal(ua.condition.regexFilter, undefined, 'User-Agent goes on every request, http included');

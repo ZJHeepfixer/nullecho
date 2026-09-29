@@ -185,7 +185,13 @@ export function rulesForFamily(family, grease = shimGrease()) {
     excludedInitiatorDomains: UA_EXCLUDED_DOMAINS,
     resourceTypes: UA_RESOURCE_TYPES,
   };
-  const entry = (name) => ({ header: name, operation: 'set', value: headers[name] });
+  // D49 (2026-09-28): rewrite what Chrome always sends; REMOVE the Accept-CH hints, never add
+  // them. `set` on an absent header adds it, so the old rule volunteered seven high-entropy
+  // hints (Full-Version "151.0.0.0" among them) on every secure request; in a real signed-in
+  // Chrome, Google then answered reCAPTCHA's api.js with 503 on every third-party page.
+  const entry = (name) => (ALWAYS_SENT.has(name)
+    ? { header: name, operation: 'set', value: headers[name] }
+    : { header: name, operation: 'remove' });
   return [
     {
       id: range[0],
