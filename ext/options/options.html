@@ -439,6 +439,10 @@
         <p>Screen dimensions, pixel density and colour depth are reported honestly. CSS style rules can read all of them independently of JavaScript, so faking them produced a profile that contradicted itself — which is worse than the leak, because it is both identifying and looks evasive. A consistent honest answer beats an inconsistent fake.</p>
       </div>
       <div class="limit">
+        <h3>Your browser and its version</h3>
+        <p>Sites see the browser you actually run — its name, version and brand list — exactly as it reports them. Your browser's network connection and its background workers state the real version anyway, so claiming a different one only added a contradiction a site could check, and went out of date with every browser update. What differs per site is the device underneath: processor, memory, graphics, fonts and operating-system version.</p>
+      </div>
+      <div class="limit">
         <h3>Your IP address</h3>
         <p>Every site you visit still sees it, and it is a stable identifier on its own. That needs a VPN or Tor — no browser extension can reach it.</p>
       </div>

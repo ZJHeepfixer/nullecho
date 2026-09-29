@@ -1,21 +1,21 @@
 /**
- * Nullecho — the per-family User-Agent / Client-Hint rulesets
- * ───────────────────────────────────────────────────────────
+ * Nullecho — the per-family Client-Hint rulesets
+ * ───────────────────────────────────────────────
  * `ua-win.json`, `ua-mac.json`, `ua-linux.json` are the only rulesets that are
  * generated rather than written (see gen-ua.mjs). These tests pin:
  *
- *   1. the shipped bytes equal the generator's output (drift = a header that no
- *      longer matches the JS persona, which is REVIEW-2026-09-16 B2 come back);
- *   2. the residual contradictions are exactly the ones DECISIONS.md D19
- *      documents — one persona, one header — so a pool change that adds a
- *      second one fails here instead of shipping;
- *   3. the wire format is Chrome's (RFC 8941 structured fields), byte for byte;
- *   4. the rule shape: the navigation itself is covered, hints go only over
- *      secure transports, the store origins are excluded on both sides.
+ *   1. the shipped bytes equal the generator's output;
+ *   2. D51 (2026-09-28): nothing the browser writes about itself is rewritten —
+ *      no `set`, no User-Agent, no Sec-CH-UA / -Mobile / -Platform — because the
+ *      shim now reports the REAL browser to the page, and a rewritten header would
+ *      contradict it; and no version string of any kind is in the files;
+ *   3. D49: the seven Accept-CH hints are REMOVED, never added;
+ *   4. the rule shape: the navigation itself is covered, every transport (Chrome
+ *      sends hints to http://localhost — measured), the store origins excluded.
  *
- * The JS-side half of the comparison — the real shim booted per persona, its
- * `navigator` read back and compared to these bytes — lives in
- * `src/review-2026-09-16.test.js` (B2), because that file owns the page realm.
+ * The JS-side half — the real shim booted per persona in a realm whose browser is
+ * NOT 151, its `navigator` read back and compared to what goes on the wire — lives
+ * in `src/review-2026-09-16.test.js` (B2), because that file owns the page realm.
  *
  * Run: `node --test` from `ext/`.
  */
@@ -27,24 +27,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-  UA_RULESETS, UA_EXCLUDED_DOMAINS, UA_RESOURCE_TYPES, SECURE_ONLY, ALWAYS_SENT,
-  shimGrease, brandsFor, sfString, sfBoolean, sfBrandList,
-  headersForPersona, familyHeaderPlan, rulesForFamily, buildUaRulesets, serialise,
+  UA_RULESETS, UA_EXCLUDED_DOMAINS, UA_RESOURCE_TYPES, REMOVED_HINTS, NEVER_REWRITTEN,
+  rulesForFamily, buildUaRulesets, serialise,
 } from './gen-ua.mjs';
-import { PERSONAS, FAMILIES, familyOf } from '../src/personas.js';
+import { FAMILIES } from '../src/personas.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const read = (f) => fs.readFileSync(path.join(HERE, f), 'utf8');
 
-const HEADERS = [
-  'User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform',
-  'Sec-CH-UA-Full-Version-List', 'Sec-CH-UA-Full-Version', 'Sec-CH-UA-Platform-Version',
-  'Sec-CH-UA-Arch', 'Sec-CH-UA-Bitness', 'Sec-CH-UA-Model', 'Sec-CH-UA-WoW64',
-];
-
 // ── 1. shipped == generated ───────────────────────────────────────────────
 
-test('the shipped ua-*.json files are exactly what gen-ua.mjs derives from personas.js + shim.js', () => {
+test('the shipped ua-*.json files are exactly what gen-ua.mjs emits', () => {
   const expected = buildUaRulesets();
   assert.deepEqual(Object.keys(expected).sort(), FAMILIES.map((f) => UA_RULESETS[f].file).sort());
   for (const [file, rules] of Object.entries(expected)) {
@@ -56,120 +49,75 @@ test('the generator is deterministic', () => {
   assert.deepEqual(buildUaRulesets(), buildUaRulesets());
 });
 
-test('the GREASE brand is read from the real shim, not assumed', () => {
-  const g = shimGrease();
-  assert.ok(g.brand.length > 0 && g.version.length > 0);
-  assert.ok(g.brand.includes('Brand'), `GREASE brand "${g.brand}" does not look like a Chrome grease entry`);
-  assert.throws(() => shimGrease('// no grease here'), /could not find/);
-});
+// ── 2. D51: nothing the browser says about itself is rewritten ────────────
 
-// ── 2. residuals are exactly the documented ones ──────────────────────────
-
-test('every persona in the pool is covered by exactly one family ruleset', () => {
-  const seen = new Map();
+test('D51: no ruleset rewrites User-Agent, Sec-CH-UA, -Mobile or -Platform, and none SETS anything', () => {
+  assert.deepEqual(NEVER_REWRITTEN, ['User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform']);
   for (const family of FAMILIES) {
-    for (const p of PERSONAS.filter((p) => familyOf(p) === family)) {
-      assert.ok(!seen.has(p.id), `${p.id} in two families`);
-      seen.set(p.id, family);
+    const file = UA_RULESETS[family].file;
+    const rules = JSON.parse(read(file));
+    for (const r of rules) {
+      assert.equal(r.action.responseHeaders, undefined, `${file}: rewrites a response header`);
+      for (const h of r.action.requestHeaders) {
+        assert.equal(h.operation, 'remove', `${file}: "${h.operation}" on ${h.header} — the page is shown the real browser; the wire must say the same`);
+        assert.ok(!NEVER_REWRITTEN.map((n) => n.toLowerCase()).includes(h.header.toLowerCase()), `${file}: touches ${h.header}`);
+      }
     }
   }
-  assert.equal(seen.size, PERSONAS.length);
 });
 
-test('no persona in the pool disagrees with its family ruleset on any header (D19 residual retired by D24)', () => {
-  const residuals = FAMILIES.flatMap((f) => familyHeaderPlan(f).residuals.map((r) => ({ family: f, ...r })));
-  assert.deepEqual(residuals, [], 'a pool change added a residual — a persona whose JS value cannot be put on the wire. Fix the pool, or record a new decision');
+test('D51: the rulesets carry no browser name, version or GREASE entry at all — nothing that can go stale', () => {
+  for (const family of FAMILIES) {
+    const text = read(UA_RULESETS[family].file);
+    assert.doesNotMatch(text, /Chrome\/|Mozilla|Brand|\b1[0-9]{2}\b/, `${family}: a version or brand string is back`);
+    assert.doesNotMatch(text, /"value"/, `${family}: a header value is back`);
+  }
 });
 
-test('the majority value wins by persona WEIGHT, so the residual is the rare persona, not the common one', () => {
-  const mac = PERSONAS.filter((p) => familyOf(p) === 'mac');
-  const armWeight = mac.filter((p) => p.uaData.architecture === 'arm').reduce((a, p) => a + p.weight, 0);
-  const x86Weight = mac.filter((p) => p.uaData.architecture === 'x86').reduce((a, p) => a + p.weight, 0);
-  assert.ok(armWeight > x86Weight, `arm ${armWeight} vs x86 ${x86Weight}`);
-  assert.equal(familyHeaderPlan('mac').headers['Sec-CH-UA-Arch'], '"arm"');
+test('D51: the three families emit the same rule — the family no longer changes anything but the id', () => {
+  const strip = (rules) => rules.map(({ id, ...rest }) => rest);
+  const [first, ...rest] = FAMILIES.map((f) => strip(rulesForFamily(f)));
+  for (const r of rest) assert.deepEqual(r, first);
 });
 
-// ── 3. wire format ────────────────────────────────────────────────────────
+// ── 3. D49: the seven Accept-CH hints are removed ─────────────────────────
 
-test('structured-field serialisation matches what Chrome puts on the wire', () => {
-  assert.equal(sfString('macOS'), '"macOS"');
-  assert.equal(sfString(''), '""', 'Sec-CH-UA-Model on desktop is an empty sf-string, not an absent header');
-  assert.equal(sfString('a"b\\c'), '"a\\"b\\\\c"');
-  assert.equal(sfBoolean(false), '?0');
-  assert.equal(sfBoolean(true), '?1');
-  const g = { brand: 'Not;A=Brand', version: '99' };
-  const b = brandsFor('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36', g);
-  assert.equal(sfBrandList(b.brands), '"Not;A=Brand";v="99", "Chromium";v="151", "Google Chrome";v="151"');
-  assert.equal(sfBrandList(b.fullVersionList), '"Not;A=Brand";v="99.0.0.0", "Chromium";v="151.0.0.0", "Google Chrome";v="151.0.0.0"');
-  assert.equal(b.full, '151.0.0.0');
-});
-
-test('per-persona headers are the persona\'s own ua / uaData fields, field by field', () => {
-  const g = shimGrease();
-  for (const p of PERSONAS) {
-    const h = headersForPersona(p, g);
-    assert.deepEqual(Object.keys(h), HEADERS, p.id);
-    assert.equal(h['User-Agent'], p.ua);
-    assert.equal(h['Sec-CH-UA-Platform'], sfString(p.uaData.platform));
-    assert.equal(h['Sec-CH-UA-Platform-Version'], sfString(p.uaData.platformVersion));
-    assert.equal(h['Sec-CH-UA-Arch'], sfString(p.uaData.architecture));
-    assert.equal(h['Sec-CH-UA-Bitness'], sfString(p.uaData.bitness));
-    assert.equal(h['Sec-CH-UA-Model'], sfString(p.uaData.model));
-    assert.equal(h['Sec-CH-UA-WoW64'], sfBoolean(p.uaData.wow64));
-    assert.equal(h['Sec-CH-UA-Mobile'], '?0', 'every persona is a desktop');
-    const major = /Chrome\/(\d+)/.exec(p.ua)[1];
-    assert.ok(h['Sec-CH-UA'].includes(`"Google Chrome";v="${major}"`));
-    assert.ok(h['Sec-CH-UA-Full-Version-List'].includes(`"Google Chrome";v="${major}.0.0.0"`));
-    assert.equal(h['Sec-CH-UA-Full-Version'], sfString(`${major}.0.0.0`));
+test('D49: each family removes exactly the seven Accept-CH hints, and adds none', () => {
+  assert.deepEqual(REMOVED_HINTS, [
+    'Sec-CH-UA-Full-Version-List', 'Sec-CH-UA-Full-Version', 'Sec-CH-UA-Platform-Version',
+    'Sec-CH-UA-Arch', 'Sec-CH-UA-Bitness', 'Sec-CH-UA-Model', 'Sec-CH-UA-WoW64',
+  ]);
+  for (const family of FAMILIES) {
+    const headers = rulesForFamily(family).flatMap((r) => r.action.requestHeaders);
+    assert.deepEqual(headers.map((h) => h.header), REMOVED_HINTS, family);
+    for (const h of headers) {
+      assert.equal(h.operation, 'remove');
+      assert.equal(h.value, undefined, 'a remove carries no value');
+    }
   }
 });
 
 // ── 4. rule shape ─────────────────────────────────────────────────────────
 
-test('each family ships two rules: User-Agent everywhere, the hints on secure transports only', () => {
+test('each family ships one rule: the hint removal, on every transport, covering the navigation, below the allowlist', () => {
   for (const family of FAMILIES) {
-    const [ua, ch] = rulesForFamily(family);
+    const rules = rulesForFamily(family);
+    assert.equal(rules.length, 1, `${family}: the User-Agent rule is retired (D51)`);
+    const [r] = rules;
     const [lo, hi] = UA_RULESETS[family].range;
-    for (const r of [ua, ch]) {
-      assert.ok(r.id >= lo && r.id <= hi, `${family}: id ${r.id} outside ${lo}-${hi}`);
-      assert.equal(r.priority, 1, 'below the allowlist\'s allowAllRequests (100000), so an allowlisted site keeps its REAL headers next to its real navigator');
-      assert.equal(r.action.type, 'modifyHeaders');
-      assert.ok(r.condition.resourceTypes.includes('main_frame'), 'the navigation is the first request the server sees');
-      assert.deepEqual(r.condition.resourceTypes, UA_RESOURCE_TYPES);
-      assert.deepEqual(r.condition.excludedRequestDomains, UA_EXCLUDED_DOMAINS);
-      assert.deepEqual(r.condition.excludedInitiatorDomains, UA_EXCLUDED_DOMAINS);
-      for (const h of r.action.requestHeaders) {
-        // D49 (2026-09-28): the headers Chrome always sends are rewritten to the persona; the
-        // Accept-CH hints are REMOVED, never added. `set` volunteered seven high-entropy hints —
-        // including an impossible Full-Version "151.0.0.0" — on every secure request, and in the
-        // owner's signed-in Chrome Google answered reCAPTCHA's api.js with 503 on every
-        // third-party page (the box vanished; Nullecho off for the site brought it back).
-        if (ALWAYS_SENT.has(h.header)) {
-          assert.equal(h.operation, 'set', `${family}: ${h.header} is always sent, so it is rewritten`);
-          assert.equal(typeof h.value, 'string');
-        } else {
-          assert.equal(h.operation, 'remove', `${family}: ${h.header} is an Accept-CH hint; it must never be ADDED`);
-          assert.equal(h.value, undefined, 'a remove carries no value');
-        }
-      }
-    }
-    assert.deepEqual(ua.action.requestHeaders.map((h) => h.header), ['User-Agent']);
-    assert.equal(ua.condition.regexFilter, undefined, 'User-Agent goes on every request, http included');
-    assert.equal(ch.condition.regexFilter, SECURE_ONLY, 'Chrome never sends Client Hints over plain http');
-    assert.deepEqual(ch.action.requestHeaders.map((h) => h.header), HEADERS.filter((h) => h !== 'User-Agent'));
-    // The ones Chrome sends unconditionally are all covered; the rest are the
-    // Accept-CH hints, which `set` sends regardless — the documented D19 tell.
-    for (const name of ALWAYS_SENT) assert.ok(HEADERS.includes(name));
+    assert.equal(r.id, lo + 1, `${family}: the hint rule keeps its pre-D51 id`);
+    assert.ok(r.id >= lo && r.id <= hi);
+    assert.equal(r.priority, 1, 'below the allowlist\'s allowAllRequests (100000), so an allowlisted site keeps its real hints next to its real navigator');
+    assert.equal(r.action.type, 'modifyHeaders');
+    // Not https-only (D51): measured in CfT 149, Chrome sends every requested hint to
+    // http://localhost (a secure context), and the old ^(https|wss):// filter let them through.
+    assert.equal(r.condition.regexFilter, undefined, 'the removal covers http too');
+    assert.equal(r.condition.urlFilter, undefined);
+    assert.ok(r.condition.resourceTypes.includes('main_frame'), 'the navigation is the first request the server sees');
+    assert.deepEqual(r.condition.resourceTypes, UA_RESOURCE_TYPES);
+    assert.deepEqual(r.condition.excludedRequestDomains, UA_EXCLUDED_DOMAINS);
+    assert.deepEqual(r.condition.excludedInitiatorDomains, UA_EXCLUDED_DOMAINS);
   }
-});
-
-test('the secure-only filter is a valid RE2 pattern that matches https/wss and nothing else', () => {
-  const re = new RegExp(SECURE_ONLY);
-  assert.ok(re.test('https://a.example/x'));
-  assert.ok(re.test('wss://a.example/socket'));
-  assert.ok(!re.test('http://a.example/x'));
-  assert.ok(!re.test('ws://a.example/socket'));
-  assert.ok(!SECURE_ONLY.includes('(?'), 'RE2 has no lookaround / backreferences');
 });
 
 test('the excluded origins are the ones where content scripts cannot run (so the JS there is real)', () => {

@@ -457,7 +457,6 @@
   const PERSONAS = [
     {
       id: "win11-chrome-uhd620", weight: 23, platform: "Win32", os: "windows-11",
-      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Windows","platformVersion":"15.0.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Intel)",
@@ -470,7 +469,6 @@
     },
     {
       id: "win11-chrome-iris-xe", weight: 31, platform: "Win32", os: "windows-11",
-      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Windows","platformVersion":"15.0.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Intel)",
@@ -483,7 +481,6 @@
     },
     {
       id: "win11-chrome-rtx3060", weight: 19, platform: "Win32", os: "windows-11",
-      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Windows","platformVersion":"15.0.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (NVIDIA)",
@@ -496,7 +493,6 @@
     },
     {
       id: "win11-chrome-rtx4060", weight: 16, platform: "Win32", os: "windows-11",
-      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Windows","platformVersion":"15.0.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (NVIDIA)",
@@ -509,7 +505,6 @@
     },
     {
       id: "win11-chrome-amd-vega", weight: 11, platform: "Win32", os: "windows-11",
-      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Windows","platformVersion":"15.0.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (AMD)",
@@ -522,7 +517,6 @@
     },
     {
       id: "macos-chrome-m1", weight: 24, platform: "MacIntel", os: "macos-14",
-      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Apple)",
@@ -535,7 +529,6 @@
     },
     {
       id: "macos-chrome-m2-air", weight: 26, platform: "MacIntel", os: "macos-14",
-      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Apple)",
@@ -548,7 +541,6 @@
     },
     {
       id: "macos-chrome-mini-m2", weight: 16, platform: "MacIntel", os: "macos-14",
-      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Apple)",
@@ -561,7 +553,6 @@
     },
     {
       id: "macos-chrome-m3-4k", weight: 20, platform: "MacIntel", os: "macos-14",
-      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Apple)",
@@ -574,7 +565,6 @@
     },
     {
       id: "macos-chrome-m1-pro", weight: 14, platform: "MacIntel", os: "macos-14",
-      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"macOS","platformVersion":"14.6.0","architecture":"arm","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Apple)",
@@ -587,7 +577,6 @@
     },
     {
       id: "linux-chrome-mesa", weight: 24, platform: "Linux x86_64", os: "ubuntu-22",
-      ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Linux","platformVersion":"6.8.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Intel)",
@@ -600,7 +589,6 @@
     },
     {
       id: "linux-chrome-mesa-xe", weight: 22, platform: "Linux x86_64", os: "ubuntu-22",
-      ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Linux","platformVersion":"6.8.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Intel)",
@@ -613,7 +601,6 @@
     },
     {
       id: "linux-chrome-amd-renoir", weight: 20, platform: "Linux x86_64", os: "ubuntu-22",
-      ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Linux","platformVersion":"6.8.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (AMD)",
@@ -626,7 +613,6 @@
     },
     {
       id: "linux-chrome-nvidia-rtx3060", weight: 20, platform: "Linux x86_64", os: "ubuntu-22",
-      ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Linux","platformVersion":"6.8.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (NVIDIA Corporation)",
@@ -639,7 +625,6 @@
     },
     {
       id: "linux-chrome-mesa-uhd630", weight: 14, platform: "Linux x86_64", os: "ubuntu-22",
-      ua: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       uaData: {"platform":"Linux","platformVersion":"6.8.0","architecture":"x86","bitness":"64","model":"","wow64":false},
       gpu: {
         vendor: "Google Inc. (Intel)",
@@ -651,10 +636,83 @@
       fonts: "ubuntu-22",
     },
   ];
+
+  const FAMILY_UA_PLATFORM = {
+    win: 'Windows NT 10.0; Win64; x64',
+    mac: 'Macintosh; Intel Mac OS X 10_15_7',
+    linux: 'X11; Linux x86_64',
+  };
+  const FAMILY_UAD_PLATFORM = { win: 'Windows', mac: 'macOS', linux: 'Linux' };
   // ─── END GENERATED MIRROR ─────────────────────────────────────────────────
   // (A run-time "delivered id is not in the mirror" check used to live here and
   // print to the page console; the mirror is pinned by `personas.test.js`
   // instead, and this file writes to no console the page can reach — D33.)
+
+  /**
+   * THE REAL BROWSER'S OWN IDENTITY — DECISIONS.md D51.
+   *
+   * The page is shown the browser's REAL `navigator.userAgent` (and `appVersion`,
+   * `vendor`), its REAL `userAgentData.brands` / `mobile` / `platform` / `toJSON()`,
+   * and the REAL `uaFullVersion` / `fullVersionList` / `formFactors`. None of those
+   * is patched any more. Until 2026-09-28 every persona pinned "Chrome/151.0.0.0"
+   * and this file synthesised a brand list with a fixed GREASE entry
+   * (`Not;A=Brand`/99) in a fixed order; the owner's Chrome was 153 and sends
+   * `[Google Chrome/153, Not_A Brand/8, Chromium/153]`. Inside a family every
+   * persona's UA was the real reduced UA except for that version, so the rewrite
+   * hid nothing and added one claim the browser contradicts everywhere this file
+   * cannot reach: TLS, the feature set, Google's X-Client-Data, every Worker (G1),
+   * and — every four weeks — the next Chrome release. On Edge, Brave and Opera it
+   * also renamed the browser. On Firefox it claimed Chrome outright.
+   *
+   * What a persona still supplies is what sits BELOW the UA: `navigator.platform`
+   * and the uaData platformVersion / architecture / bitness / model / wow64 (plus
+   * everything that is not the UA at all). Those are only truthful under the real
+   * UA when the real UA already names the persona family's frozen platform token
+   * (FAMILY_UA_PLATFORM) and, where readable, the real `userAgentData.platform` is
+   * the persona's. `personaUaFits()` is that test; where it fails — ChromeOS, an
+   * Android host, Firefox (whose UA carries "rv:" and, on Linux, the real arch) —
+   * those fields are the real ones as well, never a persona value the real UA
+   * would contradict.
+   *
+   * Read HERE, at module evaluation, before `installInto()` exists to patch
+   * anything and before any page script can have run (G9), through the
+   * prototype getters rather than `navigator.x`, so a same-named own property on
+   * the instance could not answer for the engine. `null` = not readable in this
+   * realm (no `userAgentData` on Firefox, or in an insecure context).
+   */
+  const REAL_UA = (() => {
+    const nav = globalThis.navigator;
+    const read = (Ctor, obj, prop) => {
+      try {
+        const g = getterOf(Ctor && Ctor.prototype, prop);
+        const v = g ? apply(g, obj, []) : (obj ? obj[prop] : undefined);
+        return v;
+      } catch (_) { return undefined; }
+    };
+    const ua = read(globalThis.Navigator, nav, 'userAgent');
+    const uad = read(globalThis.Navigator, nav, 'userAgentData');
+    const uadPlatform = uad ? read(globalThis.NavigatorUAData, uad, 'platform') : undefined;
+    return {
+      userAgent: typeof ua === 'string' ? ua : '',
+      uadPlatform: typeof uadPlatform === 'string' ? uadPlatform : null,
+    };
+  })();
+
+  /**
+   * Do this persona's platform-level fields sit truthfully under the REAL UA?
+   * (D51 — see REAL_UA.) True for Chrome/Edge/Brave/Opera on Windows, macOS and
+   * desktop Linux (x86_64 or aarch64 — the reduced UA says x86_64 on both), which
+   * is the population the pool models. False for ChromeOS, Android, Firefox, an
+   * unreduced Linux-on-ARM UA, and a persona from a foreign family (test rigs).
+   */
+  function personaUaFits(persona) {
+    const platform = ownField(persona, 'platform');
+    const fam = typeof platform === 'string' ? familyFromPlatformString(platform) : null;
+    const token = fam ? FAMILY_UA_PLATFORM[fam] : null;
+    if (!token || strIndexOf(REAL_UA.userAgent, '(' + token + ')') < 0) return false;
+    if (ownField(ownField(persona, 'uaData'), 'platform') !== FAMILY_UAD_PLATFORM[fam]) return false;
+    return REAL_UA.uadPlatform === null || REAL_UA.uadPlatform === FAMILY_UAD_PLATFORM[fam];
+  }
 
   /**
    * HOST OS FAMILY — DECISIONS.md D12. Mirrors `familyFromPlatformString()` and
@@ -1472,42 +1530,32 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   /**
-   * GREASE brand. Chrome emits a randomised "not a brand" entry whose exact form is
-   * pinned to the *build*, not the user — so a single constant here is the correct
-   * choice (everyone in the crowd looks the same).
-   *
-   * ⚠ MUST be re-pinned to whatever real Chrome N actually emits whenever the pool's
-   * claimed Chrome version moves. A stale grease string is a version tell.
+   * The five `getHighEntropyValues()` hints a persona answers (D51). Everything
+   * else the method returns — brands, mobile, platform, uaFullVersion,
+   * fullVersionList, formFactors, any hint a later Chrome adds — is the engine's
+   * own answer. There used to be a GREASE constant and a `brandsFor()` here that
+   * synthesised `[Not;A=Brand/99, Chromium/151, Google Chrome/151]`: a fixed
+   * GREASE entry in a fixed order for a version the browser was not, on every
+   * browser including Edge, Brave, Opera and Firefox.
    */
-  const GREASE = { brand: 'Not;A=Brand', version: '99' };
+  const PERSONA_HINTS = setOf(['architecture', 'bitness', 'model', 'platformVersion', 'wow64']);
 
   /**
-   * `uaData` in personas.js carries no brands/fullVersionList, and an *empty*
-   * `navigator.userAgentData.brands` on a Chrome UA is itself a strong anomaly —
-   * every real Chrome populates it. So we synthesise the list from the Chrome
-   * version already present in the persona's UA string, which keeps Client Hints
-   * agreeing with the UA field-by-field (the personas.js invariant).
+   * The persona's `uaData`, copied field by field as OWN reads into a
+   * null-prototype object with literal defaults (D29): a delivered persona that
+   * omitted a field must not have it supplied by `Object.prototype`.
    */
-  const CHROME_VERSION_RE = /Chrome\/([\d.]+)/;
-  function brandsFor(ua) {
-    const m = reExec(CHROME_VERSION_RE, ua || '');
-    const full = (m && m[1]) || '151.0.0.0';
-    const dot = strIndexOf(full, '.');
-    const major = dot < 0 ? full : strSlice(full, 0, dot);
-    return {
-      full,
-      major,
-      brands: [
-        { brand: GREASE.brand, version: GREASE.version },
-        { brand: 'Chromium', version: major },
-        { brand: 'Google Chrome', version: major },
-      ],
-      fullVersionList: [
-        { brand: GREASE.brand, version: GREASE.version + '.0.0.0' },
-        { brand: 'Chromium', version: full },
-        { brand: 'Google Chrome', version: full },
-      ],
-    };
+  function personaUaData(persona) {
+    const u = ownField(persona, 'uaData');
+    const out = objCreate(null);
+    const str = (k) => { const v = ownField(u, k); return typeof v === 'string' ? v : ''; };
+    out.platform = str('platform');
+    out.platformVersion = str('platformVersion');
+    out.architecture = str('architecture');
+    out.bitness = str('bitness');
+    out.model = str('model');
+    out.wow64 = ownField(u, 'wow64') === true;
+    return out;
   }
 
   // WebGL enum values, spelled out so we never need a live context to read them.
@@ -1647,23 +1695,20 @@
     'revert-layer|default', '|'));
 
   function derive(persona) {
-    const b = brandsFor(persona.ua);
     const scr = persona.screen || {};
     const noise = persona.noise || {};
     const gpu = persona.gpu || {};
-    const ua = RawString(persona.ua || '');
     const fontList = persona.fontList || FONT_SETS[persona.fonts] || [];
     return {
       persona,
-      ua: persona.ua,
-      appVersion: strIndexOf(ua, 'Mozilla/') === 0 ? strSlice(ua, 8) : ua,
+      // No `ua`, `appVersion`, `brands`, `fullVersionList` or `uaFullVersion` any
+      // more: those are the real browser's, read from the engine (D51).
       platform: persona.platform,
       cores: persona.cores,
       memory: persona.memory,
-      brands: b.brands,
-      fullVersionList: b.fullVersionList,
-      uaFullVersion: b.full,
-      uaData: persona.uaData || {},
+      uaData: personaUaData(persona),
+      /** The persona's platform-level fields apply under the real UA (D51, `personaUaFits`). */
+      uaFits: personaUaFits(persona),
       // NOT APPLIED. The persona's screen block is carried here for the popup and
       // for tests, but the shim no longer reports it — CSS `@media` mirrors every
       // one of these values below the JS layer and cannot be intercepted, so
@@ -1848,25 +1893,13 @@
 
   /**
    * `navigator.userAgentData.brands` — review B7, DECISIONS.md D27 as REWRITTEN
-   * against a measurement, and D31 for the realm.
-   *
-   * The review said Chrome caches this FrozenArray attribute and hands out the
-   * same object on every read, and the first fix cached it on the derived persona.
-   * Measured in real Chrome 151.0.0.0 on macOS with the shim off, that is wrong:
-   *
-   *     brands === brands            // FALSE — a new array per read
-   *     Object.isFrozen(brands)      // true
-   *     Object.isFrozen(brands[0])   // false, and `brand` is writable
-   *     navigator.languages === navigator.languages   // true (so the engine CAN
-   *                                                   //  cache; it just doesn't
-   *                                                   //  cache this one)
-   *
-   * So: a fresh array per read, frozen, with ordinary entries. Caching it was the
-   * detector. `toJSON()` and `getHighEntropyValues()` hand back an IDL DICTIONARY
-   * whose `sequence<NavigatorUABrandVersion>` member is converted anew per call —
-   * fresh and UNfrozen there, which the same measurement confirmed for
-   * `fullVersionList`. The builders (`realmBrands`, `realmFreeze`) live inside
-   * `installInto` because they have to belong to the realm being patched.
+   * against a measurement, and D31 for the realm — is no longer patched at all
+   * (D51): the engine's own getter answers, so its per-read freshness (a new
+   * frozen array of ordinary entries each time, measured in Chrome 151 and again
+   * in Chrome for Testing 146/149 on 2026-09-28) and its realm are the engine's by
+   * construction rather than by imitation. The same goes for `mobile`, `platform`
+   * and `toJSON()`. Only `getHighEntropyValues()` is still wrapped, and it
+   * delegates to the engine for everything but the five persona hints.
    */
 
   function installInto(win) {
@@ -1887,7 +1920,6 @@
     //    fed the noise kernel a decoy buffer and kept the real one; a hook on
     //    `HTMLCanvasElement.prototype.width` returning 0 made `noisedCopy()` bail
     //    and `toDataURL` fall open to the native, un-noised call.
-    const RealmTypeError = win.TypeError;
     // ── Per-realm Array / Object, for values we hand BACK to this realm.
     //
     // Review B3, and the realm residual D27 recorded: everything this file builds
@@ -1896,31 +1928,15 @@
     // .userAgentData.brands instanceof frames[0].Array` was `false` where Chrome
     // says `true` — a one-line "this child realm was patched from outside"
     // detector, the same shape as B3 itself. Captured here, at the first touch of
-    // the realm, like the DOM natives below. (D31)
+    // the realm, like the DOM natives below. (D31) — `brands` itself is the
+    // engine's own since D51; the filtered WebGL extension list still needs this.
     // (Held through locals, never spelled `win.Object.freeze` — the D21 lint reads
     // this file as text and a bare `Object.` is exactly what it is there to catch.)
     const RealmArray = typeof win.Array === 'function' ? win.Array : Array;
-    const realmObjectCtor = win.Object;
-    const realmFreeze = (realmObjectCtor && typeof realmObjectCtor.freeze === 'function')
-      ? realmObjectCtor.freeze : objFreeze;
-    const realmObjProto = (realmObjectCtor && realmObjectCtor.prototype) || null;
-    /** An object belonging to the realm being patched. */
-    const realmObject = () => (realmObjProto ? objCreate(realmObjProto) : {});
     /** `obj[key] = value` by DEFINITION, so no setter on that realm's Object.prototype sees it. */
     const put = (obj, key, value) => {
       objDefineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
       return obj;
-    };
-    /** `copyBrands`, into this realm's Array and Objects. */
-    const realmBrands = (list) => {
-      const out = new RealmArray();
-      for (let i = 0; i < list.length; i++) {
-        const e = realmObject();
-        put(e, 'brand', list[i].brand);
-        put(e, 'version', list[i].version);
-        pushOwn(out, e);
-      }
-      return out;
     };
     /** A copy of a native list into this realm's Array, keeping only what `keep` allows. */
     const realmList = (values, length, keep) => {
@@ -1930,8 +1946,6 @@
     };
     const RealmInt32Array = win.Int32Array;
     const RealmFloat32Array = win.Float32Array;
-    const RealmPromise = win.Promise;
-    const realmPromiseResolve = RealmPromise && RealmPromise.resolve;
     const RealmDOMRect = win.DOMRect;
     const RealmHTMLElement = win.HTMLElement;
     const RealmMutationObserver = win.MutationObserver;
@@ -2013,17 +2027,30 @@
     // fingerprinting read and must not `touch()` — GPC exists to be read.
     safe('navigator.globalPrivacyControl', () => installGpc(win));
 
-    safe('navigator.userAgent', () => {
-      const N = ownerOf(win.navigator, 'userAgent');
-      spoofGetter(N, 'userAgent', 'navigator', () => D().ua);
-    });
-    safe('navigator.appVersion', () => {
-      const N = ownerOf(win.navigator, 'appVersion');
-      spoofGetter(N, 'appVersion', 'navigator', () => D().appVersion);
-    });
+    // ────────────────────────────────────────────────────────────────────────
+    // THE BROWSER'S IDENTITY — DELIBERATELY NOT SPOOFED  (D51, 2026-09-28)
+    //
+    // `userAgent`, `appVersion` and `vendor` are the engine's own getters, and so
+    // are `userAgentData.brands` / `mobile` / `platform` / `toJSON()` below. They
+    // were pinned to "Chrome/151.0.0.0", a synthesised brand list with a fixed
+    // GREASE entry, and "Google Inc.": a version the browser was not (153 on the
+    // owner's Mac, 146/149 in the test harness), a brand list in an order and a
+    // GREASE form no real build sends, and on Firefox a Chrome that has an
+    // `oscpu`. Within an OS family the UA string and the low-entropy hints are the
+    // same for every persona except that version, so the rewrite hid nothing; it
+    // added one claim that TLS, the feature set, Google's X-Client-Data, every
+    // Worker (G1) and the next Chrome release all contradict. The request headers
+    // stopped rewriting them in the same change (rules/gen-ua.mjs), so JS and the
+    // wire say the same thing: what the browser says.
+    // ────────────────────────────────────────────────────────────────────────
     safe('navigator.platform', () => {
       const N = ownerOf(win.navigator, 'platform');
-      spoofGetter(N, 'platform', 'navigator', () => D().platform);
+      // The persona's value only where the real UA already carries the persona
+      // family's frozen platform token (D51, `personaUaFits`) — on a Linux-on-ARM
+      // Chrome that is the disguise "Linux x86_64", which the reduced UA agrees
+      // with; on ChromeOS or a Firefox whose UA names "aarch64" it would be a
+      // contradiction, so the real value stands there.
+      spoofGetter(N, 'platform', 'navigator', (origGet, real) => (D().uaFits ? D().platform : real));
     });
     safe('navigator.hardwareConcurrency', () => {
       const N = ownerOf(win.navigator, 'hardwareConcurrency');
@@ -2038,11 +2065,9 @@
       // contradicting the documented clamp of 8; we simply present the persona's value.
       spoofGetter(N, 'deviceMemory', 'navigator', () => D().memory);
     });
-    safe('navigator.vendor', () => {
-      const N = ownerOf(win.navigator, 'vendor');
-      // Every persona is a Chrome build; 'Google Inc.' is the crowd value.
-      spoofGetter(N, 'vendor', 'navigator', () => 'Google Inc.');
-    });
+    // `navigator.vendor` is not patched either (D51): every Chromium says
+    // "Google Inc." on its own, and on Firefox the old pin put "Google Inc." next
+    // to a Firefox engine.
     // ────────────────────────────────────────────────────────────────────────
     // TOUCH — DELIBERATELY NOT SPOOFED  (reverted 2026-09-16, review B8, D26)
     //
@@ -2081,65 +2106,137 @@
     // consistent leak to an inconsistent fake.
     // ────────────────────────────────────────────────────────────────────────
 
-    // navigator.userAgentData — patch NavigatorUAData.prototype rather than
-    // substituting a fake object, so the object keeps its real class and passes
-    // `Object.prototype.toString.call()` / instanceof checks.
+    // navigator.userAgentData — ONLY `getHighEntropyValues()` is wrapped (D51).
+    // `brands`, `mobile`, `platform` and `toJSON()` are the engine's: they carry
+    // the browser's real identity, which is what the page is shown now.
     safe('navigator.userAgentData', () => {
       const UAD = win.NavigatorUAData;
-      if (!UAD || !UAD.prototype) return; // not a Chromium build
+      if (!UAD || !UAD.prototype) return; // not a Chromium build, or an insecure context
       const P = UAD.prototype;
 
-      // A fresh frozen array per read — measured, D27. Built with THIS realm's
-      // Array/Object/freeze (D31), so a child frame's `brands instanceof
-      // frames[0].Array` is true, as it is in Chrome.
-      spoofGetter(P, 'brands', 'navigator', () => realmFreeze(realmBrands(D().brands)));
-      spoofGetter(P, 'mobile', 'navigator', () => false);
-      spoofGetter(P, 'platform', 'navigator', () => D().uaData.platform || '');
-
-      // `instanceof` stands in for the native brand check on these two: unlike an
-      // accessor we cannot cheaply delegate (getHighEntropyValues does real async
-      // work), but a replacement that answers for `{}` is a free shim detector.
-      // Through the captured `Function.prototype[Symbol.hasInstance]`, so a page
-      // cannot redefine the check.
-      const brandCheck = (self) => {
-        if (!fnHasInstance(UAD, self)) throw new RealmTypeError('Illegal invocation');
+      // The engine's own brand check, captured before anything is patched. The
+      // native `brands` getter throws `Illegal invocation` for anything that is not
+      // a NavigatorUAData — and accepts one from ANY realm, as the method does. The
+      // old `instanceof` stand-in threw where the engine rejects, and refused a
+      // sibling realm's object the engine accepts.
+      const nativeBrands = getterOf(P, 'brands');
+      const isUAData = (self) => {
+        if (!nativeBrands) return fnHasInstance(UAD, self);
+        try { apply(nativeBrands, self, []); return true; } catch (_) { return false; }
       };
 
-      replaceMethod(P, 'toJSON', (orig) => function toJSON() {
-        brandCheck(this);
-        if (state.standingDown) return apply(orig, this, arguments);
-        touch('navigator');
-        const d = D();
-        const out = realmObject();
-        put(out, 'brands', realmBrands(d.brands));
-        put(out, 'mobile', false);
-        put(out, 'platform', d.uaData.platform || '');
+      /**
+       * The page's `hints`, re-presented to the ENGINE as a sealed sequence that
+       * never contains one of the five persona hints (D51).
+       *
+       * Why the engine must never be asked for them: `getHighEntropyValues()`
+       * resolves its promise with a plain dictionary, and resolution looks `then`
+       * up on it — so a page getter on `Object.prototype.then` is handed the real
+       * dictionary as `this` (measured: Chrome for Testing 149, keys
+       * "brands,mobile,platform,platformVersion"). Asking the engine for
+       * `platformVersion` would hand the page the real macOS/Windows version this
+       * persona exists to cover. And the sequence cannot be an array of ours: the
+       * engine converts it through `Array.prototype[Symbol.iterator]`, which the
+       * page can replace to append the hints back.
+       *
+       * So the engine iterates THIS object, whose every step is our own code and
+       * whose every result is a null-prototype object, and it pulls the page's
+       * iterator lazily, one element per step, exactly as the engine would have:
+       * `@@iterator` read once, `next` read once, `done` then `value` per step,
+       * `toString` once per hint. A persona hint is recorded in `want` and skipped
+       * over; everything else — including hints a later Chrome adds — is handed
+       * on. A failure at any step is REPLAYED to the engine rather than thrown by
+       * us (the getter throws the page's error; a non-callable or non-object is
+       * passed through for the engine to reject in its own words), so every error
+       * the caller sees is the engine's rejection, not ours.
+       */
+      const sealedHints = (hints, want) => {
+        const seq = objCreate(null);
+        objDefineProperty(seq, symIterator, {
+          configurable: true,
+          get() {
+            const method = hints[symIterator];                 // once, as GetMethod does
+            if (typeof method !== 'function') return method;   // the engine rejects it, in its words
+            return function iterate() {
+              const pageIter = apply(method, hints, []);
+              if (pageIter === null || (typeof pageIter !== 'object' && typeof pageIter !== 'function')) return pageIter;
+              const pageNext = pageIter.next;                  // once, as GetIterator does
+              const it = objCreate(null);
+              objDefineProperty(it, 'return', {
+                configurable: true,
+                get() {
+                  const f = pageIter.return;
+                  return typeof f === 'function' ? function close() { return apply(f, pageIter, []); } : f;
+                },
+              });
+              if (typeof pageNext !== 'function') { it.next = pageNext; return it; }
+              it.next = function step() {
+                for (;;) {
+                  const r = apply(pageNext, pageIter, []);
+                  if (r === null || (typeof r !== 'object' && typeof r !== 'function')) return r;
+                  const out = objCreate(null);
+                  if (r.done) { out.done = true; out.value = undefined; return out; }
+                  const v = r.value;
+                  // A Symbol goes through untouched so the engine's own ToString rejects it.
+                  const name = typeof v === 'symbol' ? null : (typeof v === 'string' ? v : `${v}`);
+                  if (name !== null && setHas(PERSONA_HINTS, name)) { setAdd(want, name); continue; }
+                  out.done = false; out.value = name === null ? v : name;
+                  return out;
+                }
+              };
+              return it;
+            };
+          },
+        });
+        return seq;
+      };
+
+      /** The five persona hints, in the engine's (lexicographic) key order. */
+      const PERSONA_ORDER = ['architecture', 'bitness', 'model', 'platformVersion', 'wow64'];
+
+      /**
+       * The engine's dictionary with the persona's five fields merged in at their
+       * lexicographic places — the order the engine itself emits (measured, CfT
+       * 146/149; the old builder put brands/mobile/platform first). Built on the
+       * engine dictionary's own prototype, i.e. in the RECEIVER's realm, which is
+       * where the engine builds it (measured: a sibling realm's receiver gets that
+       * realm's objects), by definition so no setter on that `Object.prototype`
+       * sees a field.
+       */
+      const merge = (real, want, u) => {
+        if (real === null || typeof real !== 'object') return real;
+        const out = objCreate(objGetPrototypeOf(real));
+        const add = [];
+        for (let i = 0; i < PERSONA_ORDER.length; i++) if (setHas(want, PERSONA_ORDER[i])) pushOwn(add, PERSONA_ORDER[i]);
+        const personaValue = (k) => (k === 'wow64' ? u.wow64 === true : u[k]);
+        const keys = objGetOwnPropertyNames(real);
+        let j = 0;
+        for (let i = 0; i < keys.length; i++) {
+          const k = keys[i];
+          if (setHas(PERSONA_HINTS, k)) continue;              // never the engine's value for these
+          while (j < add.length && add[j] < k) { put(out, add[j], personaValue(add[j])); j++; }
+          put(out, k, real[k]);
+        }
+        while (j < add.length) { put(out, add[j], personaValue(add[j])); j++; }
         return out;
-      });
+      };
 
       replaceMethod(P, 'getHighEntropyValues', (orig) => function getHighEntropyValues(hints) {
-        brandCheck(this);
-        if (state.standingDown) return apply(orig, this, arguments);
-        touch('navigator');
         const d = D();
-        // Chrome always includes the low-entropy trio, then whatever was asked for.
-        // This realm's Array/Object throughout (D31), and every field DEFINED
-        // rather than assigned, so no setter on that realm's `Object.prototype`
-        // can intercept or swallow one.
-        const out = realmObject();
-        put(out, 'brands', realmBrands(d.brands));
-        put(out, 'mobile', false);
-        put(out, 'platform', d.uaData.platform || '');
-        const want = setOf(arrayIsArray(hints) ? hints : []);
-        if (setHas(want, 'architecture')) put(out, 'architecture', d.uaData.architecture || '');
-        if (setHas(want, 'bitness')) put(out, 'bitness', d.uaData.bitness || '');
-        if (setHas(want, 'model')) put(out, 'model', d.uaData.model || '');
-        if (setHas(want, 'platformVersion')) put(out, 'platformVersion', d.uaData.platformVersion || '');
-        if (setHas(want, 'uaFullVersion')) put(out, 'uaFullVersion', d.uaFullVersion);
-        if (setHas(want, 'fullVersionList')) put(out, 'fullVersionList', realmBrands(d.fullVersionList));
-        if (setHas(want, 'wow64')) put(out, 'wow64', !!d.uaData.wow64);
-        if (setHas(want, 'formFactors')) put(out, 'formFactors', realmList(['Desktop'], 1, null));
-        return apply(realmPromiseResolve, RealmPromise, [out]);
+        // The engine answers alone — every field real — when we are standing down,
+        // when the persona's platform fields would contradict the real UA (D51:
+        // ChromeOS, Android), and wherever it is going to REJECT anyway: a wrong
+        // receiver, no argument, or one that is not an object. None of those can
+        // resolve, so none of them can hand a real value to a `then` getter.
+        if (state.standingDown || !d.uaFits || !isUAData(this) || arguments.length < 1 ||
+            hints === null || (typeof hints !== 'object' && typeof hints !== 'function')) {
+          return apply(orig, this, arguments);
+        }
+        touch('navigator');
+        const want = setOf([]);
+        const pending = apply(orig, this, [sealedHints(hints, want)]);
+        const u = d.uaData;
+        return promiseThen(pending, (real) => merge(real, want, u));
       });
     });
 
@@ -3799,7 +3896,10 @@
   function validPersona(p) {
     if (!p || typeof p !== 'object') return false;
     const noise = ownField(p, 'noise');
-    return !!(typeof ownField(p, 'ua') === 'string' && ownField(p, 'platform') &&
+    const uaData = ownField(p, 'uaData');
+    // No `ua` any more (D51): a persona names no browser or version. `uaData` is
+    // required instead — it carries the platform fields a persona still supplies.
+    return !!(uaData && typeof uaData === 'object' && typeof ownField(p, 'platform') === 'string' &&
       ownField(p, 'gpu') && ownField(p, 'screen') && arrayIsArray(ownField(p, 'fontList')) &&
       noise && typeof ownField(noise, 'canvas') === 'number');
   }

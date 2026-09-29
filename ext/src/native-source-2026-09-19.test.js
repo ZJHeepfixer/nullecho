@@ -187,8 +187,8 @@ function bootRealm(engine) {
 }
 
 /** The ten-plus functions the shim installs in this realm, with their kind. */
+// (userAgent left this list with D51: the engine's own getter answers it now.)
 const MASKED = [
-  ['get', 'Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get'],
   ['get', 'Object.getOwnPropertyDescriptor(Navigator.prototype, "platform").get'],
   ['get', 'Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get'],
   ['method', 'HTMLCanvasElement.prototype.toDataURL'],
@@ -227,8 +227,8 @@ for (const engine of ['chrome', 'firefox']) {
     // touches, same interface, same kind — do they agree on spelling?
     const pairs = [
       ['HTMLCanvasElement.prototype.toDataURL', 'HTMLCanvasElement.prototype.getContext', 'toDataURL', 'getContext'],
-      ['Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get',
-        'Object.getOwnPropertyDescriptor(Navigator.prototype, "webdriver").get', 'userAgent', 'webdriver'],
+      ['Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get',
+        'Object.getOwnPropertyDescriptor(Navigator.prototype, "webdriver").get', 'hardwareConcurrency', 'webdriver'],
     ];
     for (const [patchedExpr, controlExpr, patchedName, controlName] of pairs) {
       const control = s.src(controlExpr);
@@ -299,7 +299,7 @@ test('LAST RESORT: an engine that will not stringify anything still yields `[nat
   });`, ctx, { filename: 'engine.js' });
   vm.runInContext(SHIM_SRC, ctx, { filename: 'shim.js' });
   const got = vm.runInContext(
-    'Function.prototype.toString.call(Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get)',
+    'Function.prototype.toString.call(Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get)',
     ctx, { filename: 'page.js' });
-  assert.equal(got, 'function get userAgent() { [native code] }');
+  assert.equal(got, 'function get hardwareConcurrency() { [native code] }');
 });

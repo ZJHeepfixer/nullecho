@@ -222,61 +222,53 @@ on what GPC actually achieves.
 
 ---
 
-## `ua-*.json` — the host family's request headers (generated; D19)
+## `ua-*.json` — the Client-Hint removal (generated; D19 → D49 → D51)
 
-The fingerprint shim pins `navigator.userAgent` and `navigator.userAgentData` to
-the persona (Chrome/151, the persona's platform, architecture, …). Until
-2026-09-16 the browser then sent its **real** `User-Agent` and `Sec-CH-UA-*`
-headers on every request — a JS-vs-header contradiction on every page, and the
-"standard spoof check" fingerprinting vendors run server-side
-(REVIEW-2026-09-16 B2). These three rulesets close it.
+**What each file does, since D51 (2026-09-28): one `modifyHeaders` rule that
+REMOVES seven hints and rewrites nothing.** The hints are the ones a server can
+ask for with `Accept-CH` — `Sec-CH-UA-Full-Version-List`, `-Full-Version`,
+`-Platform-Version`, `-Arch`, `-Bitness`, `-Model`, `-WoW64` — removed on every
+transport (not just `https`/`wss` as before: measured 2026-09-28, Chrome sends
+requested hints to `http://localhost`, a secure context), every resource type
+including `main_frame`, excluding `chromewebstore.google.com` /
+`addons.mozilla.org`, where content scripts cannot run and the page's JS is
+therefore always real. The JS persona still answers platformVersion /
+architecture / bitness / model / wow64 with its own values, so a request header
+carrying the machine's would contradict it; DNR cannot express "send the
+persona's value only when asked", and `set` volunteered all seven on every
+request (D49).
 
-**Why one per OS family, and not one per origin.** Personas are per-origin (D2),
-but an origin's persona is derived only after that origin's handshake — and the
-`main_frame` navigation, the first request a server sees, is sent before any
-content script exists. A per-origin rule therefore cannot cover the request that
-matters most. The host's OS family, on the other hand, is known before any
-request, and D12 pins every persona this machine can be shown — the
-pre-handshake fallback included — to it. Within a family the pool's `ua` /
-`uaData` fields are constant except for one (below). So: one static ruleset per
-family, all three registered `"enabled": false`, and `background.js` enables the
-host family's one at every worker start (`applyUaRuleset()`).
+**What they no longer do.** Until D51 they also `set` `User-Agent`,
+`Sec-CH-UA`, `-Mobile` and `-Platform` to the persona family's values (D19, the
+fix for REVIEW-2026-09-16 B2, "the JS says one browser and the wire another").
+Those values pinned "Chrome/151.0.0.0" and a synthesised brand list with a fixed
+GREASE entry in a fixed order — while the owner's Chrome was 153 and Chrome for
+Testing 146/149. Inside a family every persona's UA was the real reduced UA
+except for that version, so the rewrite hid nothing and added a claim the TLS
+stack, the feature set, Google's X-Client-Data, every Worker and every Chrome
+release contradicted. Since D51 the shim shows the page the browser's own UA,
+brands and full version, and the wire says the same thing because nothing
+touches it. `validate.mjs` and `rules/ua.test.js` fail if any of those four
+headers is named, or any operation other than `remove` appears.
 
-**What each file does.** Two `modifyHeaders` rules at priority 1: one sets
-`User-Agent` on every request; one sets the ten `Sec-CH-UA*` headers
-(`Sec-CH-UA`, `-Mobile`, `-Platform`, `-Full-Version-List`, `-Full-Version`,
-`-Platform-Version`, `-Arch`, `-Bitness`, `-Model`, `-WoW64`) on `https`/`wss`
-requests only, because Chrome never sends Client Hints over plain HTTP. Both
-cover `main_frame` and exclude `chromewebstore.google.com` / `addons.mozilla.org`,
-where content scripts cannot run and the page's JS is therefore always real.
+**Why still three files.** The rule no longer depends on the family, so the
+three files are identical but for their rule ids (5101, 5201, 5301; the x100
+ids were the retired User-Agent rules). They are kept — all three registered
+`"enabled": false`, `background.js` enabling the host family's one at every
+worker start (`applyUaRuleset()`) — so the manifests and the enable logic did
+not have to move in the same change. Folding them into one always-enabled
+ruleset is a later simplification.
 
 **Priority 1 is load-bearing.** DNR applies a `modifyHeaders` rule only when it
 outranks every matching `allow` / `allowAllRequests` rule. The per-site
 allowlist writes `allowAllRequests` at priority 100000, so on a site where the
 user switched Nullecho off — where the shim stands down and `navigator` is
-real — these rules are suppressed too and the real headers go out. GPC's
-per-site exceptions are `modifyHeaders remove`, not `allow`, so they do not
-interact.
+real — the hints go out as the browser writes them. GPC's per-site exceptions
+are `modifyHeaders remove`, not `allow`, so they do not interact.
 
-**They are generated. Never edit them by hand.** The values are
-`src/personas.js` (`ua`, `uaData`) and the GREASE brand constant in
-`src/shim.js`; `node rules/gen-ua.mjs` rewrites the files, and `validate.mjs`
-fails if the shipped bytes differ from what the generator emits. A hand edit is
-the exact defect the files exist to close. When the pool's Chrome version or
-`uaData` moves, regenerate; `rules/ua.test.js` and the B2 guard in
-`src/review-2026-09-16.test.js` (which boots the real shim per persona and
-compares its `navigator` to these bytes) will tell you if you forgot.
-
-**The residual, stated exactly: there is none.** The header is the family's
-weight-majority value, and since 2026-09-16 every persona agrees with its family
-on every header. There was one disagreement — `macos-chrome-intel-iris` said
-`architecture: "x86"` in JS while the macOS ruleset sends `Sec-CH-UA-Arch: "arm"`
-— and the clean fix this paragraph used to recommend was taken: the persona was
-retired (DECISIONS.md D24; the family still clears `MIN_PERSONAS_PER_FAMILY`).
-The generator prints residuals when they exist; `rules/ua.test.js` pins the list
-to empty, so a pool change that adds one fails a test. The structural residuals
-— hints sent without an `Accept-CH` request, worker scope, Firefox — are in
-DECISIONS.md D19.
+**They are generated. Never edit them by hand.** `node rules/gen-ua.mjs`
+rewrites the files, and `validate.mjs` fails if the shipped bytes differ from
+what the generator emits.
 
 ---
 

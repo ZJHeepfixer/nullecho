@@ -17,7 +17,7 @@
 
 import {
   FONT_SETS, PERSONAS, FAMILIES, OS_FAMILY, PLATFORM_FAMILY, familyOf,
-  MIN_PERSONAS_PER_FAMILY,
+  MIN_PERSONAS_PER_FAMILY, FAMILY_UAD_PLATFORM,
 } from './personas.js';
 import { LINUX_FONT_GROUND_TRUTH } from './linux-ground-truth.js';
 
@@ -187,11 +187,6 @@ function reportedVendorToken(vendor) {
   return m ? m[1].trim() : null;
 }
 
-function chromeMajorFrom(ua) {
-  const m = /Chrome\/(\d+)\./.exec(ua || '');
-  return m ? Number(m[1]) : null;
-}
-
 // ── the validator ──────────────────────────────────────────────────────────
 
 /**
@@ -235,59 +230,27 @@ export function validatePersona(persona) {
          `${JSON.stringify(persona.platform)} (${family})`);
     }
 
-    // ── UA string ↔ Client Hints ─────────────────────────────────────────
-    const ua = persona.ua;
+    // ── Client Hints ↔ platform; NO browser version (D51) ────────────────
+    //
+    // A persona used to carry a `ua` string with a pinned "Chrome/151". Inside a
+    // family that string was the real reduced UA except for the version, so it
+    // hid nothing and went stale with every Chrome release; since D51 the page is
+    // shown the browser's REAL userAgent, brands and full version, and a persona
+    // that still carries one is a regression — whoever reads it next will claim it.
     const uaData = (persona.uaData && typeof persona.uaData === 'object') ? persona.uaData : null;
 
-    if (!isStr(ua)) {
-      at('missing `ua` string');
+    if ('ua' in persona) {
+      at('carries a `ua` — personas name no browser or version; the real one is reported (D51)');
+    }
+    for (const k of ['brands', 'fullVersionList', 'uaFullVersion']) {
+      if (uaData && k in uaData) at(`uaData.${k} is the real browser's, never the persona's (D51)`);
     }
     if (!uaData) {
       at('missing `uaData` (Client Hints) object');
-    }
-
-    if (isStr(ua) && uaData) {
-      const markers = [
-        { re: /Windows NT/, hint: 'Windows', platform: 'Win32', fam: 'win' },
-        { re: /Macintosh/, hint: 'macOS', platform: 'MacIntel', fam: 'mac' },
-        { re: /X11; Linux/, hint: 'Linux', platform: null, fam: 'linux' },
-      ];
-      const hit = markers.filter((m) => m.re.test(ua));
-
-      if (hit.length === 0) {
-        at(`UA string names no recognised OS (expected "Windows NT", "Macintosh" or ` +
-           `"X11; Linux"): ${JSON.stringify(ua)}`);
-      } else if (hit.length > 1) {
-        at(`UA string names more than one OS (${hit.map((h) => h.hint).join(' + ')}) — ` +
-           'that is not a real user agent');
-      } else {
-        const m = hit[0];
-        if (uaData.platform !== m.hint) {
-          at(`UA claims ${m.hint} but uaData.platform is ${JSON.stringify(uaData.platform)} — ` +
-             `Client Hints must agree with the UA string (expected ${JSON.stringify(m.hint)})`);
-        }
-        if (m.platform && persona.platform !== m.platform) {
-          at(`UA claims ${m.hint} but navigator.platform is ${JSON.stringify(persona.platform)} ` +
-             `(expected ${JSON.stringify(m.platform)})`);
-        }
-        if (family && m.fam !== family) {
-          at(`UA claims ${m.hint} but navigator.platform ${JSON.stringify(persona.platform)} ` +
-             `is a ${family} value`);
-        }
-      }
-
-      // Chrome pins these two literals; a mismatch is a self-inflicted tell.
-      if (!/AppleWebKit\/537\.36/.test(ua) || !/Safari\/537\.36/.test(ua)) {
-        at('Chrome UA must contain "AppleWebKit/537.36" and "Safari/537.36"');
-      }
-      if (chromeMajorFrom(ua) === null) {
-        at('UA does not contain a parseable "Chrome/<major>." version');
-      }
-      // Windows UA is frozen at NT 10.0 — an "NT 11.0" would be instantly fake.
-      if (/Windows NT/.test(ua) && !/Windows NT 10\.0/.test(ua)) {
-        at('Chrome freezes the Windows UA token at "Windows NT 10.0"; ' +
-           `got ${JSON.stringify(/Windows NT [\d.]+/.exec(ua)?.[0])}`);
-      }
+    } else if (family && uaData.platform !== FAMILY_UAD_PLATFORM[family]) {
+      at(`navigator.platform ${JSON.stringify(persona.platform)} is a ${family} value but ` +
+         `uaData.platform is ${JSON.stringify(uaData.platform)} (expected ` +
+         `${JSON.stringify(FAMILY_UAD_PLATFORM[family])})`);
     }
 
     if (uaData) {
@@ -347,13 +310,13 @@ export function validatePersona(persona) {
            `Mesa is the Linux/BSD userspace GL stack: ${JSON.stringify(renderer)}`);
       }
 
-      // Chrome has defaulted to the ANGLE Metal backend on macOS since Chrome 100.
-      // A Chrome 151 persona reporting an OpenGL backend on macOS contradicts its
-      // own UA version.
-      const chromeMajor = chromeMajorFrom(ua);
-      if (renderer && family === 'mac' && chromeMajor !== null && chromeMajor >= 100) {
+      // Chrome has defaulted to the ANGLE Metal backend on macOS since Chrome 100,
+      // and the manifest's minimum_chrome_version is 121: an OpenGL backend on a
+      // macOS persona contradicts the real browser's version (which the page now
+      // sees, D51) on every install that can run this extension.
+      if (renderer && family === 'mac') {
         if (!/ANGLE Metal Renderer/i.test(renderer)) {
-          at(`Chrome ${chromeMajor} on macOS uses the ANGLE Metal backend by default, ` +
+          at('Chrome 100+ on macOS uses the ANGLE Metal backend by default, ' +
              `so the renderer should read "ANGLE Metal Renderer: …"; got ${JSON.stringify(renderer)}`);
         }
       }

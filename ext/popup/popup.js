@@ -80,10 +80,36 @@ const OS_LABEL = {
   'ubuntu-22': 'Ubuntu 22.04',
 };
 
-function prettySystem(p) {
+/**
+ * The browser a site sees. Since D51 that is the REAL one: the shim reports the
+ * browser's own `userAgent`, brands and full version, and the request headers carry
+ * them unchanged — a persona names no browser or version any more. Until then this
+ * row printed the persona's pinned "Chrome 151" while the owner's Chrome was 153.
+ * The popup is an extension page, which the shim never touches, so its own
+ * `navigator` is the truth: the first brand that is neither a GREASE entry nor the
+ * generic "Chromium" (Google Chrome, Microsoft Edge, Brave, Opera …), else the
+ * product token in the UA string (Firefox has no userAgentData).
+ */
+function realBrowser(nav = globalThis.navigator) {
+  try {
+    const brands = nav?.userAgentData?.brands;
+    if (brands && brands.length) {
+      const named = Array.from(brands).filter((b) => b && b.brand && !/^not.?a.?brand$/i.test(b.brand));
+      const pick = named.find((b) => b.brand !== 'Chromium') ?? named[0];
+      if (pick) return `${pick.brand} ${pick.version}`;
+    }
+    const ua = String(nav?.userAgent ?? '');
+    for (const [re, name] of [[/Firefox\/(\d+)/, 'Firefox'], [/Edg\/(\d+)/, 'Microsoft Edge'], [/OPR\/(\d+)/, 'Opera'], [/Chrome\/(\d+)/, 'Chrome']]) {
+      const m = re.exec(ua);
+      if (m) return `${name} ${m[1]}`;
+    }
+  } catch (_) { /* fall through */ }
+  return 'your browser';
+}
+
+function prettySystem(p, nav) {
   const os = OS_LABEL[p.os] ?? p.os;
-  const chrome = /Chrome\/(\d+)/.exec(p.ua ?? '')?.[1];
-  return chrome ? `${os} · Chrome ${chrome}` : os;
+  return `${os} · ${realBrowser(nav)} (your real browser, not changed)`;
 }
 
 /** ANGLE renderer strings are long and mostly boilerplate. Keep the part a human reads. */
@@ -747,7 +773,6 @@ const randTag = () =>
 const DEMO_ALT_PERSONA = {
   id: 'macos-chrome-m1',
   os: 'macos-14',
-  ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
   gpu: { renderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)' },
   cores: 8,
   memory: 8,
@@ -781,7 +806,6 @@ const DEMO = {
   persona: {
     id: 'win11-chrome-rtx3060',
     os: 'windows-11',
-    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     gpu: { renderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)' },
     cores: 12,
     memory: 8,

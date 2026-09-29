@@ -16,8 +16,12 @@
  *   · A service worker that answers `nullecho:get-persona` asynchronously, which is
  *     the reason the handshake exists at all.
  *
- * `navigator.userAgent` is the observable. It returns REAL_UA only when the shim
- * has stood down, so each scenario's expected value says plainly what happened.
+ * `navigator.hardwareConcurrency` is the observable. It returns REAL_CORES only
+ * when the shim has stood down, SALTED.cores only when the salted persona
+ * arrived, and a fallback persona's value otherwise, so each scenario's expected
+ * value says plainly what happened. (It was `navigator.userAgent` until D51; the
+ * UA is now the real browser's in every one of those states, which the happy
+ * path asserts too.)
  *
  * Run: `node --test` from `ext/`.
  */
@@ -32,13 +36,19 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const source = (f) => fs.readFileSync(path.join(HERE, f), 'utf8');
+const { personasForFamily, DEFAULT_FAMILY } = await import('./personas.js');
+/** This rig's navigator names no OS, so the shim's fallback comes from the default family (D12). */
+const FALLBACK_CORES = new Set(personasForFamily(DEFAULT_FAMILY).map((p) => p.cores));
 
 const REAL_UA = 'Mozilla/5.0 (REAL MACHINE)';
+const REAL_CORES = 64;
+// 7 cores: a value no pool persona has, so "the salted persona arrived" cannot be
+// confused with a fallback that happens to match.
 const SALTED = {
-  id: 'win11-chrome-rtx3060', platform: 'Win32', ua: 'Mozilla/5.0 (SALTED PERSONA)',
+  id: 'win11-chrome-rtx3060', platform: 'Win32',
   uaData: { platform: 'Windows' },
   gpu: { vendor: 'Google Inc. (NVIDIA)', renderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)' },
-  cores: 12, memory: 16,
+  cores: 7, memory: 16,
   screen: { width: 1920, height: 1080, availHeight: 1032, colorDepth: 24, dpr: 1 },
   fontList: ['Arial'], noise: { canvas: 0.25, audio: 0.5, webgl: 0.75 }, seed: 42,
 };
@@ -103,6 +113,9 @@ async function runPage(opts = {}) {
   class Navigator {}
   Object.defineProperty(Navigator.prototype, 'userAgent', {
     get() { return REAL_UA; }, configurable: true, enumerable: true,
+  });
+  Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', {
+    get() { return REAL_CORES; }, configurable: true, enumerable: true,
   });
 
   const logs = [];
@@ -177,6 +190,7 @@ async function runPage(opts = {}) {
 
   return {
     ua: mainCtx.navigator.userAgent,
+    cores: mainCtx.navigator.hardwareConcurrency,
     gpc: mainCtx.navigator.globalPrivacyControl,
     /** Everything the loader told the service worker, in order. */
     reported: toWorker.filter((m) => m.type === 'nullecho:shim-status')
@@ -184,7 +198,7 @@ async function runPage(opts = {}) {
     logs,
     /** A page script's view: dispatch a forged persona event after the fact. */
     forge: (payload) => document.dispatchEvent(new Ev('nullecho:persona', { detail: JSON.stringify(payload) })),
-    read: () => mainCtx.navigator.userAgent,
+    read: () => mainCtx.navigator.hardwareConcurrency,
   };
 }
 
@@ -192,21 +206,22 @@ async function runPage(opts = {}) {
 
 test('a normal page: the loader authenticates and the shim takes the salted persona', async () => {
   const r = await runPage();
-  assert.equal(r.ua, SALTED.ua, 'the salted persona never arrived — the handshake did not complete');
+  assert.equal(r.cores, SALTED.cores, 'the salted persona never arrived — the handshake did not complete');
+  assert.equal(r.ua, REAL_UA, 'D51: the user agent is the real browser\'s, under the persona too');
   assert.equal(r.gpc, true, 'GPC should be up on a normal page');
   assert.deepEqual(r.reported, ['upgraded']);
 });
 
 test('an allowlisted site: the authenticated stand-down restores the real APIs', async () => {
   const r = await runPage({ allowlisted: true });
-  assert.equal(r.ua, REAL_UA, 'the user switched Nullecho off here and it stayed on');
+  assert.equal(r.cores, REAL_CORES, 'the user switched Nullecho off here and it stayed on');
   assert.equal(r.gpc, undefined, 'the JS signal must agree with the allowAllRequests DNR rule');
   assert.deepEqual(r.reported, ['allowlisted']);
 });
 
 test('a GPC exception reaches gpc.js through the same authenticated payload', async () => {
   const r = await runPage({ gpcOn: false });
-  assert.equal(r.ua, SALTED.ua, 'a GPC exception must not disturb the persona');
+  assert.equal(r.cores, SALTED.cores, 'a GPC exception must not disturb the persona');
   // `false`, not absent. The spec: "The value is false if no Sec-GPC header
   // field would be sent." Standing the whole extension DOWN is the other case
   // (the test above) and restores whatever the browser had — G2, 2026-09-19.
@@ -215,8 +230,8 @@ test('a GPC exception reaches gpc.js through the same authenticated payload', as
 
 test('an unreachable service worker fails loud and keeps the fallback persona', async () => {
   const r = await runPage({ swDown: true });
-  assert.notEqual(r.ua, REAL_UA, 'a dead service worker must never expose the real machine');
-  assert.match(r.ua, /Chrome\//, 'expected the coherent fallback persona');
+  assert.notEqual(r.cores, REAL_CORES, 'a dead service worker must never expose the real machine');
+  assert.ok(FALLBACK_CORES.has(r.cores), `expected the coherent fallback persona, got ${r.cores} cores`);
   assert.ok(r.logs.some((l) => /Could not reach the extension service worker/.test(l)));
 });
 
@@ -226,12 +241,12 @@ test('a page cannot switch off a live install by dispatching enabled:false', asy
   // Both windows a real page gets: before the service worker answers (when the
   // handshake is still open) and after (when it has been spent).
   const r = await runPage({ preForge: [{ ok: true, enabled: false }] });
-  assert.equal(r.ua, SALTED.ua,
+  assert.equal(r.cores, SALTED.cores,
     'a forged stand-down reached the shim through the real loader path');
 
   r.forge({ ok: true, enabled: false });
   r.forge({ ok: true, enabled: false, nonce: 'f'.repeat(32) });
-  assert.equal(r.read(), SALTED.ua, 'a post-handshake forgery stood the shim down');
+  assert.equal(r.read(), SALTED.cores, 'a post-handshake forgery stood the shim down');
 });
 
 test('a page cannot pre-empt the handshake by shouting before the worker answers', async () => {
@@ -247,7 +262,7 @@ test('a page cannot pre-empt the handshake by shouting before the worker answers
       'not json{',
     ],
   });
-  assert.equal(r.ua, SALTED.ua, 'shouting first denied the genuine handshake');
+  assert.equal(r.cores, SALTED.cores, 'shouting first denied the genuine handshake');
   assert.equal(r.gpc, true, 'shouting first denied gpc.js its config too');
 });
 
@@ -269,7 +284,7 @@ test('when they lose it, the loader says so from the world the page cannot reach
   assert.ok(r.logs.some((l) => /booted after page script had already run/.test(l)));
 
   // …and the page still works. This is a disclosure, not a failure to function.
-  assert.equal(r.ua, SALTED.ua);
+  assert.equal(r.cores, SALTED.cores);
 });
 
 test('a subframe booting late is NOT reported — that warning is for the main document', async () => {
@@ -282,5 +297,5 @@ test('a subframe booting late is NOT reported — that warning is for the main d
   const r = await runPage({ pageScriptRan: true, subframe: true });
   assert.ok(!r.reported.includes('nonce-exposed'),
     'subframe noise reached the popup, which is how a real warning gets ignored');
-  assert.equal(r.ua, SALTED.ua, 'a subframe must still get its persona');
+  assert.equal(r.cores, SALTED.cores, 'a subframe must still get its persona');
 });

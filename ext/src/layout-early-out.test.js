@@ -59,7 +59,6 @@ const PERSONA_FONTS = ['Arial', 'Courier New', 'Georgia', 'Helvetica', 'Helvetic
 
 const DELIVERED = {
   id: 'mac-chrome-m1-pro', platform: 'MacIntel',
-  ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
   uaData: { platform: 'macOS', platformVersion: '14.0.0', architecture: 'arm', bitness: '64', model: '', wow64: false },
   gpu: { vendor: 'Google Inc. (Apple)', renderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)', unmaskedVendor: 'Google Inc. (Apple)', maxTextureSize: 16384 },
   cores: 10, memory: 16,

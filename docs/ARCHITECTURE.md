@@ -59,7 +59,7 @@ of **high-population, internally consistent real-world configurations**:
 {
   "id": "win11-chrome-rtx3060",
   "platform": "Win32",
-  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) …Chrome/151.0.0.0…",
+  // no "ua": the page is shown the browser's REAL user agent, brands and version (D51)
   "uaData": { "platform": "Windows", "platformVersion": "15.0.0", "architecture": "x86", "bitness": "64" },
   "gpu": { "vendor": "Google Inc. (NVIDIA)",
            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)" },

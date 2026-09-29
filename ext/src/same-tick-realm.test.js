@@ -73,7 +73,6 @@ const REAL_CORES = 12;
 
 const DELIVERED = {
   id: 'macos-chrome-m1-pro', platform: 'MacIntel',
-  ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
   uaData: { platform: 'macOS', platformVersion: '14.6.0', architecture: 'arm', bitness: '64', model: '', wow64: false },
   gpu: { vendor: 'Google Inc. (Apple)', renderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)', unmaskedVendor: 'Google Inc. (Apple)', maxTextureSize: 16384 },
   cores: 8, memory: 16,
@@ -556,13 +555,15 @@ function bootRealm({ pool = 4, openPool = 0, crossOrigin = 0, depth = 1 } = {}) 
   );
 
   const page = (code) => vm.runInContext(code, ctx, { filename: 'page.js' });
-  assert.equal(ctx.navigator.userAgent, DELIVERED.ua, 'rig: the parent realm is not shimmed');
+  // deviceMemory, not userAgent: since D51 the UA is the real browser's in every realm, so it
+  // cannot tell a patched realm from a pristine one. Any persona-supplied getter can.
+  assert.equal(ctx.navigator.deviceMemory, DELIVERED.memory, 'rig: the parent realm is not shimmed');
 
   return {
     ctx, win, page, children, opened, crossOrigin: crossOriginRealms,
     /** Is the realm now at `window[i]` patched? Read it the way a page would. */
     frameCores: (i) => page(`self[${i}].navigator.hardwareConcurrency`),
-    frameUA: (i) => page(`self[${i}].navigator.userAgent`),
+    frameMemory: (i) => page(`self[${i}].navigator.deviceMemory`),
     len: () => page('self.length'),
   };
 }
@@ -612,13 +613,13 @@ test('D35: CreepJS\'s exact path — DocumentFragment + div.innerHTML + body.app
       div.innerHTML = '<div style="display:none"><iframe></iframe></div>';
       document.body.appendChild(frag);
       const w = self[numberOfIframes];
-      return { cores: w.navigator.hardwareConcurrency, ua: w.navigator.userAgent, n: self.length };
+      return { cores: w.navigator.hardwareConcurrency, mem: w.navigator.deviceMemory, n: self.length };
     })()
   `);
   assert.equal(got.n, 1, 'rig: exactly one browsing context was created');
   assert.equal(s.win.__observed > 0, true, 'rig: the shim did install its MutationObserver (which never fires here)');
   assert.equal(got.cores, DELIVERED.cores, 'REGRESSION: the same-tick child realm reported the REAL core count (§3c)');
-  assert.equal(got.ua, DELIVERED.ua, 'REGRESSION: the same-tick child realm reported the REAL user agent');
+  assert.equal(got.mem, DELIVERED.memory, 'REGRESSION: the same-tick child realm reported the REAL device memory');
 });
 
 test('D35: the child realm\'s Function.prototype.toString is patched in the same tick, so the shim\'s source is not readable through it', () => {
@@ -630,8 +631,8 @@ test('D35: the child realm\'s Function.prototype.toString is patched in the same
       document.body.appendChild(f);
       const w = self[n];
       const ts = w.Function.prototype.toString;
-      const uaGetter = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
-      return { viaChild: ts.call(uaGetter), tsOfTs: ts.call(ts) };
+      const memGetter = Object.getOwnPropertyDescriptor(Navigator.prototype, 'deviceMemory').get;
+      return { viaChild: ts.call(memGetter), tsOfTs: ts.call(ts) };
     })()
   `);
   assert.match(got.viaChild, /\[native code\]/,
@@ -677,9 +678,9 @@ test('D35: insertBefore and replaceChild install in the same tick', () => {
 
 test('D35: window.open returns an installed same-origin window', () => {
   const s = bootRealm({ openPool: 1 });
-  const got = s.page(`(() => { const w = open('about:blank', 'aux'); return { cores: w.navigator.hardwareConcurrency, ua: w.navigator.userAgent }; })()`);
+  const got = s.page(`(() => { const w = open('about:blank', 'aux'); return { cores: w.navigator.hardwareConcurrency, mem: w.navigator.deviceMemory }; })()`);
   assert.equal(got.cores, DELIVERED.cores, 'REGRESSION: an opened window is a pristine realm');
-  assert.equal(got.ua, DELIVERED.ua);
+  assert.equal(got.mem, DELIVERED.memory);
 });
 
 test('D35: Range.insertNode and a Range-created fragment install in the same tick', () => {
@@ -785,31 +786,31 @@ test('D35: installing twice is a no-op — the second reach does not re-wrap or 
       document.body.appendChild(document.createElement('iframe'));
       const w = self[n];
       const before = {
-        ua: Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'userAgent').get,
+        mem: Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'deviceMemory').get,
         append: w.Node.prototype.appendChild,
         ts: w.Function.prototype.toString,
-        value: w.navigator.userAgent,
+        value: w.navigator.deviceMemory,
       };
       // Every one of these reaches the SAME realm again, through three different doors.
       document.body.appendChild(document.createElement('span'));
       document.body.querySelectorAll('iframe')[0].contentWindow;
       document.body.innerHTML = document.body.innerHTML;
       const after = {
-        ua: Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'userAgent').get,
+        mem: Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'deviceMemory').get,
         append: w.Node.prototype.appendChild,
         ts: w.Function.prototype.toString,
-        value: w.navigator.userAgent,
+        value: w.navigator.deviceMemory,
       };
       return {
-        ua: before.ua === after.ua, append: before.append === after.append,
+        mem: before.mem === after.mem, append: before.append === after.append,
         ts: before.ts === after.ts, value: after.value,
       };
     })()
   `);
-  assert.equal(got.ua, true, 'REGRESSION: the child realm\'s patched getter was replaced by a second install');
+  assert.equal(got.mem, true, 'REGRESSION: the child realm\'s patched getter was replaced by a second install');
   assert.equal(got.append, true, 'REGRESSION: the child realm\'s insertion wrapper was wrapped a second time');
   assert.equal(got.ts, true, 'REGRESSION: the child realm\'s toString was patched twice');
-  assert.equal(got.value, DELIVERED.ua, 'and it still serves the persona');
+  assert.equal(got.value, DELIVERED.memory, 'and it still serves the persona');
 });
 
 test('D35: a GRANDCHILD created by the child realm\'s OWN appendChild is installed too (CreepJS getBehemothIframe goes two levels down)', () => {
@@ -881,12 +882,12 @@ test('D47: a frame navigated AFTER insertion is re-installed by the next inserti
       const before = self[n].navigator.hardwareConcurrency;
       __navigate(f, { load: false });                                   // a later task; no listener of any kind has run
       document.body.appendChild(document.createElement('span'));        // the next insertion anywhere on the page
-      return { before, after: self[n].navigator.hardwareConcurrency, ua: self[n].navigator.userAgent };
+      return { before, after: self[n].navigator.hardwareConcurrency, mem: self[n].navigator.deviceMemory };
     })()
   `);
   assert.equal(got.before, DELIVERED.cores, 'installed on insertion (D35)');
   assert.equal(got.after, DELIVERED.cores, 'REGRESSION: the realm created by a NAVIGATION was left pristine — INSTALLED is keyed on the WindowProxy, which survives navigation');
-  assert.equal(got.ua, DELIVERED.ua);
+  assert.equal(got.mem, DELIVERED.memory);
 });
 
 test('D47: contentWindow re-installs a navigated frame too', () => {
@@ -915,8 +916,8 @@ test('D47: the page\'s own load listener on the navigated iframe already sees an
       f.addEventListener('load', () => {
         const w = self[n];
         seen.cores = w.navigator.hardwareConcurrency;
-        seen.ua = w.navigator.userAgent;
-        seen.ts = w.Function.prototype.toString.call(Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get);
+        seen.mem = w.navigator.deviceMemory;
+        seen.ts = w.Function.prototype.toString.call(Object.getOwnPropertyDescriptor(Navigator.prototype, 'deviceMemory').get);
       });
       f.onload = () => { seen.onloadCores = self[n].navigator.hardwareConcurrency; };
       __navigate(f);                                                    // commits the new realm, then fires load — nothing else happens
@@ -924,7 +925,7 @@ test('D47: the page\'s own load listener on the navigated iframe already sees an
     })()
   `);
   assert.equal(got.cores, DELIVERED.cores, 'REGRESSION: the page read the REAL machine from inside its own load handler, with no insertion and no contentWindow read in between');
-  assert.equal(got.ua, DELIVERED.ua);
+  assert.equal(got.mem, DELIVERED.memory);
   assert.match(got.ts, /\[native code\]/, 'the navigated realm\'s toString is masked before the page can use it');
   assert.equal(got.onloadCores, DELIVERED.cores, 'onload= sees the same');
 });
@@ -1000,7 +1001,7 @@ test('D47: after a navigation, re-reaching the new realm through three doors cha
       __navigate(f);
       const w = self[n];
       const snap = () => ({
-        ua: Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'userAgent').get,
+        mem: Object.getOwnPropertyDescriptor(w.Navigator.prototype, 'deviceMemory').get,
         append: w.Node.prototype.appendChild,
         ts: w.Function.prototype.toString,
       });
@@ -1009,13 +1010,13 @@ test('D47: after a navigation, re-reaching the new realm through three doors cha
       void f.contentWindow;
       __fireLoad(f);                                                    // a second load for the SAME document (a page can dispatch one)
       const after = snap();
-      return { ua: before.ua === after.ua, append: before.append === after.append, ts: before.ts === after.ts, value: w.navigator.userAgent };
+      return { mem: before.mem === after.mem, append: before.append === after.append, ts: before.ts === after.ts, value: w.navigator.deviceMemory };
     })()
   `);
-  assert.equal(got.ua, true, 'REGRESSION: the navigated realm\'s patched getter was replaced by a second install');
+  assert.equal(got.mem, true, 'REGRESSION: the navigated realm\'s patched getter was replaced by a second install');
   assert.equal(got.append, true, 'REGRESSION: the navigated realm\'s insertion wrapper was wrapped a second time');
   assert.equal(got.ts, true, 'REGRESSION: the navigated realm\'s toString was patched twice');
-  assert.equal(got.value, DELIVERED.ua);
+  assert.equal(got.value, DELIVERED.memory);
 });
 
 test('D47: a navigated-away realm is not retained by the shim — the restore ledger is weak', async () => {

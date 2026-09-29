@@ -182,11 +182,33 @@ async function detectBotWall(page, httpStatus) {
 }
 
 async function probes(page) {
-  return await page.evaluate(() => ({
-    gpc: navigator.globalPrivacyControl,
-    cores: navigator.hardwareConcurrency ?? null,
-    mem: navigator.deviceMemory ?? null,
-  })).catch(() => ({ gpc: undefined, cores: null, mem: null }));
+  return await page.evaluate(async () => {
+    // D51: what the page is told about the BROWSER must be the same with the
+    // extension on and off — the real UA, brands and full version. Until 2026-09-28
+    // the ON pass said Chrome/151 while this Chrome for Testing was 146/149.
+    const u = navigator.userAgentData;
+    let full = null;
+    try { if (u) full = JSON.stringify((await u.getHighEntropyValues(['fullVersionList', 'uaFullVersion']))); } catch (_) { full = 'error'; }
+    return {
+      gpc: navigator.globalPrivacyControl,
+      cores: navigator.hardwareConcurrency ?? null,
+      mem: navigator.deviceMemory ?? null,
+      ua: navigator.userAgent,
+      brands: u ? JSON.stringify(u.brands) : null,
+      full,
+    };
+  }).catch(() => ({ gpc: undefined, cores: null, mem: null, ua: null, brands: null, full: null }));
+}
+
+/** D51: the browser the ON pass describes is the one the OFF pass describes. */
+function browserIdentityReasons(ctx) {
+  const off = ctx.offProbes, on = ctx.probes;
+  if (!off || !on) return [];
+  const out = [];
+  for (const k of ['ua', 'brands', 'full']) {
+    if (off[k] !== on[k]) out.push(`browser identity ${k} differs ON vs OFF (D51): ${String(on[k]).slice(0, 80)} vs ${String(off[k]).slice(0, 80)}`);
+  }
+  return out;
 }
 
 function withTimeout(promise, ms, label) {
@@ -248,6 +270,7 @@ const SITES = [
       const reasons = [];
       if (ctx.probes.gpc !== true) reasons.push(`GPC expected true, got ${ctx.probes.gpc}`);
       if (ctx.hostCores != null && ctx.probes.cores === ctx.hostCores) reasons.push(`persona cores (${ctx.probes.cores}) equal host cores (${ctx.hostCores}) — no persona applied`);
+      reasons.push(...browserIdentityReasons(ctx));
       return { ok: loaded && reasons.length === 0, detail: { title }, reasons };
     },
   },
@@ -450,7 +473,7 @@ async function runPass({ withExtension, unpackDir, offRecords, ua }) {
     for (const site of sites) {
       if (budgetLeft() < 60000) { records[site.key] = { site: site.key, withExtension, skipped: true, skipReason: 'runtime budget exceeded', ok: false, detail: {}, reasons: [], probes: null, consoleLines: [] }; continue; }
       const off = offRecords ? offRecords[site.key] : null;
-      const ctx = { withExtension, hostCores: off ? off.probes?.cores : undefined, hostMem: off ? off.probes?.mem : undefined, offGpc: off ? off.probes?.gpc : undefined };
+      const ctx = { withExtension, hostCores: off ? off.probes?.cores : undefined, hostMem: off ? off.probes?.mem : undefined, offGpc: off ? off.probes?.gpc : undefined, offProbes: off ? off.probes : undefined };
       console.error(`[site-smoke] ${withExtension ? 'ON ' : 'OFF'} ${site.label} …`);
       records[site.key] = await runSite(browser, site, ctx, ua);
       console.error(`  → ${records[site.key].ok ? 'ok' : 'not-ok'}${records[site.key].blocked ? ' (blocked)' : ''}${records[site.key].skipped ? ' (skipped)' : ''}`);
@@ -543,7 +566,7 @@ async function main() {
         for (const r of retryCandidates) {
           const site = SITES.find((s) => s.key === r.site);
           const offR = off.records[r.site];
-          const ctx = { withExtension: true, hostCores: offR.probes?.cores, hostMem: offR.probes?.mem, offGpc: offR.probes?.gpc };
+          const ctx = { withExtension: true, hostCores: offR.probes?.cores, hostMem: offR.probes?.mem, offGpc: offR.probes?.gpc, offProbes: offR.probes };
           console.error(`  retry: ${site.label} …`);
           const retry = await retryOnSite(browser, site, ctx, ua);
           retry.retriedAfterInitialFail = true;

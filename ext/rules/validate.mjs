@@ -20,12 +20,12 @@
  *       every non-`block` rule inside a BLOCKING ruleset is declared
  *       non-blocking, no non-blocking ruleset smuggles in a `block`, and the
  *       reserved dynamic ranges agree with the ones below
- *   10. the three `ua-*.json` header rulesets are byte-identical to what
- *       `gen-ua.mjs` derives from src/personas.js + src/shim.js (they are build
- *       artifacts — a hand edit is exactly the header/JS disagreement they
- *       exist to close), and both manifests register them DISABLED (the
- *       service worker enables the host family's one; three enabled at once
- *       would race each other on the same headers)
+ *   10. the three `ua-*.json` Client-Hint rulesets are byte-identical to what
+ *       `gen-ua.mjs` emits (they are build artifacts), they only REMOVE the
+ *       seven Accept-CH hints (D49) and never touch User-Agent / Sec-CH-UA /
+ *       -Mobile / -Platform, which carry the real browser the JS now reports
+ *       (D51), and both manifests register them DISABLED (the service worker
+ *       enables the host family's one)
  */
 
 import fs from 'node:fs';
@@ -37,7 +37,7 @@ import {
   DYNAMIC_RULE_RANGES,
   BLOCKING_RULESET_IDS,
 } from '../src/protocol.js';
-import { UA_RULESETS, buildUaRulesets, serialise as serialiseUa } from './gen-ua.mjs';
+import { UA_RULESETS, NEVER_REWRITTEN, buildUaRulesets, serialise as serialiseUa } from './gen-ua.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const EXT = path.resolve(HERE, '..');
@@ -49,7 +49,7 @@ export const RANGES = {
   'social.json': [3000, 3999],
   'fingerprinting.json': [4000, 4999],
   'gpc.json': [5000, 5099],
-  // Per-host-family User-Agent / Client-Hint rewrites. Generated: see gen-ua.mjs.
+  // Per-host-family Client-Hint removal (D49/D51). Generated: see gen-ua.mjs.
   'ua-win.json': UA_RULESETS.win.range,
   'ua-mac.json': UA_RULESETS.mac.range,
   'ua-linux.json': UA_RULESETS.linux.range,
@@ -312,10 +312,11 @@ for (let i = 1; i < ordered.length; i++) {
 
 // ── ua-*.json are generated; the shipped bytes must match the generator ──
 //
-// The header values are the persona pool's `ua`/`uaData` and the shim's GREASE
-// brand. If the pool or the shim moves and these files do not, every request
-// carries a header that disagrees with the JS persona — the exact finding
-// (REVIEW-2026-09-16 B2) the rulesets were added to close.
+// And, whatever the generator says, they may REMOVE hints and nothing else, and
+// never name a header the browser writes on every request (D51): the JS reports
+// the real browser's User-Agent and brands, so a rewritten one on the wire would
+// be the header/JS contradiction REVIEW-2026-09-16 B2 was about, pointing the
+// other way.
 {
   let expected = null;
   try { expected = buildUaRulesets(); } catch (e) { errors.push(`gen-ua.mjs failed: ${e.message}`); }
@@ -324,8 +325,23 @@ for (let i = 1; i < ordered.length; i++) {
       const full = path.join(HERE, file);
       if (!fs.existsSync(full)) continue; // already reported as missing above
       if (fs.readFileSync(full, 'utf8') !== serialiseUa(rules)) {
-        errors.push(`${file} differs from what gen-ua.mjs derives from src/personas.js + src/shim.js — run \`node rules/gen-ua.mjs\`; never edit it by hand`);
+        errors.push(`${file} differs from what gen-ua.mjs emits — run \`node rules/gen-ua.mjs\`; never edit it by hand`);
       }
+    }
+  }
+  for (const { file } of Object.values(UA_RULESETS)) {
+    const full = path.join(HERE, file);
+    if (!fs.existsSync(full)) continue;
+    let rules = [];
+    try { rules = JSON.parse(fs.readFileSync(full, 'utf8')); } catch (_) { continue; } // reported above
+    for (const r of rules) {
+      for (const h of r?.action?.requestHeaders ?? []) {
+        if (h.operation !== 'remove') errors.push(`${file} rule ${r.id}: "${h.operation}" ${h.header} — these rulesets only remove hints (D49/D51)`);
+        if (NEVER_REWRITTEN.some((n) => n.toLowerCase() === String(h.header).toLowerCase())) {
+          errors.push(`${file} rule ${r.id}: touches ${h.header}, which carries the real browser the JS reports (D51)`);
+        }
+      }
+      if (r?.action?.responseHeaders) errors.push(`${file} rule ${r.id}: rewrites response headers`);
     }
   }
 }
@@ -356,8 +372,9 @@ if (fs.existsSync(manifestPath)) {
 
     // ── the family header rulesets ship DISABLED ──────────────────────────
     // background.js enables exactly the host family's ruleset at worker start.
-    // Enabled by default they would all match every request and fight over the
-    // same headers — which of the three UAs wins is unspecified.
+    // Since D51 the three are identical but for their ids, so enabling all three
+    // would be harmless; it would still be a second, silent way for the ruleset
+    // selection to go wrong, so the shipped state stays pinned.
     for (const { id, file } of Object.values(UA_RULESETS)) {
       const entry = declared.find((r) => r.id === id);
       if (!entry) {

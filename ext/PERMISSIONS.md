@@ -24,8 +24,10 @@ This is the *narrow* form on purpose. Nullecho does not request `webRequest` +
 extension never sees the URL of a request it did not block. Less capability, less
 data reaching us, and nothing lost — the blocklists are static rules.
 
-The header rulesets rewrite `User-Agent` and the `Sec-CH-UA-*` request headers
-to the persona's values (2026-09-16, REVIEW B2 / DECISIONS D19). That is
+The header rulesets REMOVE the seven high-entropy `Sec-CH-UA-*` hints a server
+can ask for with `Accept-CH` (DECISIONS D19 → D49 → D51). They rewrite nothing:
+since D51 the page is shown the browser's real `User-Agent` and brands, so those
+headers go out exactly as the browser writes them. That is
 `modifyHeaders`, which this permission plus `host_permissions` already covers —
 `declarativeNetRequestWithHostAccess` is the alternative for extensions that
 lack the `declarativeNetRequest` permission, and is **not** needed. No new
@@ -97,9 +99,9 @@ The one large ask. Three things need it and none of them can be scoped down:
 1. **Header rewriting.** DNR `modifyHeaders` rules require host permission for
    the request being modified. `Sec-GPC: 1` is only meaningful if it is sent
    everywhere — a do-not-sell signal you send to a curated subset of sites is not
-   a signal. The same applies to the `User-Agent` / `Sec-CH-UA-*` rewrite: a
-   persona header that reaches only some sites would contradict the JS persona on
-   the rest, which is the defect it exists to remove.
+   a signal. The same applies to the Client-Hint removal: a platform-version or
+   architecture hint that still reaches some sites would contradict the JS
+   persona's values there, which is the defect it exists to remove.
 2. **The fingerprint shim** has to run on every site, because "the site I forgot to
    add to the list" is exactly the site that fingerprints you.
 3. **Per-site reporting.** Reading the active tab's URL in the popup, and matching

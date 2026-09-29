@@ -17,8 +17,10 @@
  *
  * These tests run the real `src/shim.js` in a `node:vm` realm with a DOM small
  * enough to be honest about — one navigator property, one event system — and then
- * attack it. `navigator.userAgent` is the observable: it returns the harness's
- * REAL_UA only if the shim has stood down, so "did the forgery work?" is one read.
+ * attack it. `navigator.hardwareConcurrency` is the observable: it returns the
+ * harness's REAL_CORES only if the shim has stood down, so "did the forgery work?"
+ * is one read. (It was `navigator.userAgent` until D51, which made the UA the real
+ * browser's in every state.)
  *
  * The event system deliberately models the part of DOM dispatch that matters here:
  * an event dispatched on `document` propagates window → document, capture-phase
@@ -43,19 +45,22 @@ const SHIM_SRC = fs.readFileSync(path.join(HERE, 'shim.js'), 'utf8');
 
 /** What the un-shimmed machine says. Seeing this back means the shim stood down. */
 const REAL_UA = 'Mozilla/5.0 (REAL MACHINE — the thing we are hiding)';
+const REAL_CORES = 64;
+const { personasForFamily, DEFAULT_FAMILY } = await import('./personas.js');
+/** This rig's navigator names no OS, so the fallback comes from the default family (D12). */
+const FALLBACK_CORES = new Set(personasForFamily(DEFAULT_FAMILY).map((p) => p.cores));
 
 /**
  * The persona the "service worker" delivers. `id` is a real pool id so the drift
- * warning stays quiet; `ua` is deliberately unlike anything in the pool so that
+ * warning stays quiet; `cores` is deliberately unlike anything in the pool so that
  * "upgraded to the salted persona" is distinguishable from "still on the fallback".
  */
 const DELIVERED = {
   id: 'win11-chrome-rtx3060',
   platform: 'Win32',
-  ua: 'Mozilla/5.0 (DELIVERED PERSONA) Chrome/151.0.0.0',
   uaData: { platform: 'Windows', architecture: 'x86', bitness: '64', platformVersion: '15.0.0' },
   gpu: { vendor: 'Google Inc. (NVIDIA)', renderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)' },
-  cores: 12,
+  cores: 7,
   memory: 16,
   screen: { width: 1920, height: 1080, availHeight: 1032, colorDepth: 24, dpr: 1 },
   fontList: ['Arial', 'Segoe UI'],
@@ -136,6 +141,9 @@ function bootShim() {
   Object.defineProperty(Navigator.prototype, 'userAgent', {
     get() { return REAL_UA; }, configurable: true, enumerable: true,
   });
+  Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', {
+    get() { return REAL_CORES; }, configurable: true, enumerable: true,
+  });
 
   const document = new FakeEventTarget();
   document.createElement = () => ({});
@@ -192,7 +200,7 @@ function bootShim() {
     FakeCustomEvent,
     addPageListener: (target, type, fn, capture) =>
       listenersFor(target === 'window' ? win : document).push({ type, fn, capture: !!capture }),
-    ua: () => ctx.navigator.userAgent,
+    hw: () => ctx.navigator.hardwareConcurrency,
     statuses: () => dispatched.filter((d) => !d.phase),
   };
 }
@@ -256,9 +264,9 @@ test('a page forging {ok:true, enabled:false} does NOT get the real fingerprint'
 
   s.send({ ok: true, enabled: false });
 
-  assert.notEqual(s.ua(), REAL_UA,
+  assert.notEqual(s.hw(), REAL_CORES,
     'THE VULNERABILITY: an unauthenticated stand-down restored the true machine');
-  assert.match(s.ua(), /Chrome\//, 'the fallback persona should still be in place');
+  assert.ok(FALLBACK_CORES.has(s.hw()), 'the fallback persona should still be in place');
   assert.ok(
     s.statuses().every((d) => d.reason !== 'allowlisted'),
     'the shim reported that it stood down for a forged payload',
@@ -276,7 +284,7 @@ test('every shape of unauthenticated stand-down is refused', () => {
   ]) {
     const s = bootShim();
     s.send(forged);
-    assert.notEqual(s.ua(), REAL_UA, `forgery got through: ${JSON.stringify(forged)}`);
+    assert.notEqual(s.hw(), REAL_CORES, `forgery got through: ${JSON.stringify(forged)}`);
   }
 });
 
@@ -284,21 +292,21 @@ test('a forgery cannot guess its way in by brute force, and each miss is refused
   const s = bootShim();
   const wrong = s.boot.nonce.slice(0, -1) + (s.boot.nonce.endsWith('0') ? '1' : '0');
   for (let i = 0; i < 50; i++) s.send({ ok: true, enabled: false, nonce: wrong });
-  assert.notEqual(s.ua(), REAL_UA);
+  assert.notEqual(s.hw(), REAL_CORES);
 });
 
 test('a near-miss nonce (right prefix, wrong length) is refused', () => {
   const s = bootShim();
   for (const n of [s.boot.nonce.slice(0, 16), s.boot.nonce + '0', ' ' + s.boot.nonce]) {
     s.send({ ok: true, enabled: false, nonce: n });
-    assert.notEqual(s.ua(), REAL_UA, `refused nonce variant ${JSON.stringify(n)} was accepted`);
+    assert.notEqual(s.hw(), REAL_CORES, `refused nonce variant ${JSON.stringify(n)} was accepted`);
   }
 });
 
 test('the loader\'s authenticated stand-down still works — the fix is not just "never stand down"', () => {
   const s = bootShim();
   s.send(realPayload(s.boot, { enabled: false, persona: null }));
-  assert.equal(s.ua(), REAL_UA, 'an allowlisted site must actually get its real APIs back');
+  assert.equal(s.hw(), REAL_CORES, 'an allowlisted site must actually get its real APIs back');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -313,19 +321,19 @@ test('a rejected forgery does not consume the handshake', () => {
   s.send({ ok: true, enabled: false });
   s.send({ ok: true, enabled: false, nonce: 'deadbeef'.repeat(4) });
   s.send(realPayload(s.boot));
-  assert.equal(s.ua(), DELIVERED.ua, 'the genuine handshake was locked out by earlier forgeries');
+  assert.equal(s.hw(), DELIVERED.cores, 'the genuine handshake was locked out by earlier forgeries');
 });
 
 test('the authenticated handshake is accepted exactly once', () => {
   const s = bootShim();
   s.send(realPayload(s.boot));
-  assert.equal(s.ua(), DELIVERED.ua);
+  assert.equal(s.hw(), DELIVERED.cores);
 
   // Replay the *same, valid* nonce with the destructive instruction. The nonce is
   // observable to the page after delivery (its own listener can read the payload),
   // so single-use is what makes that disclosure harmless.
   s.send(realPayload(s.boot, { enabled: false, persona: null }));
-  assert.notEqual(s.ua(), REAL_UA, 'a replay of the spent nonce stood the shim down');
+  assert.notEqual(s.hw(), REAL_CORES, 'a replay of the spent nonce stood the shim down');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -346,7 +354,7 @@ test('a page window-capture listener cannot steal the handshake before the shim 
 
   // The shim registered at document_start, so it is ahead of the page in
   // registration order and consumed the payload first.
-  assert.equal(s.ua(), DELIVERED.ua, 'the page intercepted the handshake before the shim');
+  assert.equal(s.hw(), DELIVERED.cores, 'the page intercepted the handshake before the shim');
 
   // 2026-09-16 (review A3, DECISIONS.md D21): the page no longer learns
   // ANYTHING — not the spent nonce, and not the persona's noise keys, which
@@ -354,7 +362,7 @@ test('a page window-capture listener cannot steal the handshake before the shim 
   assert.equal(stolen, null, 'the page listener saw the delivery');
   // The spent nonce is still worthless even to a page that somehow has it.
   s.send({ ok: true, enabled: false, nonce: s.boot.nonce });
-  assert.notEqual(s.ua(), REAL_UA, 'a spent nonce was still good for a stand-down');
+  assert.notEqual(s.hw(), REAL_CORES, 'a spent nonce was still good for a stand-down');
 });
 
 test('a page that repatches CustomEvent.prototype.detail cannot swap the payload', () => {
@@ -384,7 +392,7 @@ test('a page that repatches CustomEvent.prototype.detail cannot swap the payload
   s.send(realPayload(s.boot));
   Object.defineProperty(proto, 'detail', original);
 
-  assert.notEqual(s.ua(), REAL_UA,
+  assert.notEqual(s.hw(), REAL_CORES,
     'a repatched detail getter swapped the payload and stood the shim down');
 });
 
@@ -398,14 +406,14 @@ test('the authenticated upgrade swaps to the salted persona', () => {
   // machines is the contradiction DECISIONS.md D2 calls worse than no defense.
   const s = bootShim();
   s.send(realPayload(s.boot));
-  assert.equal(s.ua(), DELIVERED.ua);
+  assert.equal(s.hw(), DELIVERED.cores);
   assert.ok(s.statuses().some((d) => d.upgraded === true), 'no upgraded status was reported');
 });
 
 test('an authenticated failure payload keeps the fallback and reports it', () => {
   const s = bootShim();
   s.send({ ok: false, reason: 'timeout', nonce: s.boot.nonce });
-  assert.notEqual(s.ua(), REAL_UA);
+  assert.notEqual(s.hw(), REAL_CORES);
   assert.ok(s.statuses().some((d) => d.reason === 'timeout'));
 });
 

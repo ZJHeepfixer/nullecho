@@ -8,6 +8,12 @@
  *   node harness/unpacked-chrome.mjs smoke  http://localhost:4886   # the extension is in: versions, SW, first-script timing
  *   node harness/unpacked-chrome.mjs timing http://localhost:4886   # realm-timing.html?shim=off — every child-realm reading
  *   node harness/unpacked-chrome.mjs claim  http://localhost:4886   # claim-verification.html?shim=off on BOTH hostnames, CreepJS included
+ *
+ * `smoke` and `claim` also run the D51 VERSION GATE: the page's navigator.userAgent,
+ * userAgentData.brands and getHighEntropyValues() full version must equal an unshimmed
+ * dedicated Worker's (the browser itself, A8) AND the version `browser.version()` reports.
+ * Until 2026-09-28 every page said Chrome/151 while this harness's Chrome for Testing
+ * was 146/149 and nothing checked. A disagreement sets a non-zero exit code.
  *   node harness/unpacked-chrome.mjs retain http://localhost:4886   # page-script shim + --expose-gc: dead realms after 20 navigations
  *
  * Options
@@ -109,7 +115,51 @@ async function launch({ withExtension, exposeGc }) {
   const env = { version, ua, realChrome: /Chrome\//.test(ua) && !/Electron/i.test(ua), headless: !HEADFUL, extension: !!withExtension, profile };
   console.log('env ' + JSON.stringify(env));
   if (!env.realChrome) console.error('⚠ not real Chrome by UA — numbers are not authoritative');
+  browser.__nullechoVersion = version;
   return browser;
+}
+
+/**
+ * D51 version gate, run INSIDE a page the extension has shimmed: does the page describe
+ * the browser that is actually running? Compared three ways — against an unshimmed
+ * dedicated Worker (A8: content scripts never reach one, so it is the engine's own
+ * answer), and against `browser.version()` from the DevTools protocol. Prints one line,
+ * and sets a failing exit code on any disagreement, so a pinned version can never
+ * again ride through an automated run.
+ */
+async function versionGate(page, browserVersion, label) {
+  const r = await page.evaluate(async () => {
+    const snap = async (nav) => {
+      const u = nav.userAgentData;
+      let fvl = null, full = null;
+      if (u) { const h = await u.getHighEntropyValues(['fullVersionList', 'uaFullVersion']); fvl = JSON.stringify(h.fullVersionList); full = h.uaFullVersion; }
+      return { ua: nav.userAgent, brands: u ? JSON.stringify(u.brands) : null, fvl, full };
+    };
+    const src = 'onmessage = async () => { const u = navigator.userAgentData; let fvl = null, full = null;' +
+      ' if (u) { const h = await u.getHighEntropyValues(["fullVersionList", "uaFullVersion"]); fvl = JSON.stringify(h.fullVersionList); full = h.uaFullVersion; }' +
+      ' postMessage({ ua: navigator.userAgent, brands: u ? JSON.stringify(u.brands) : null, fvl, full }); };';
+    const worker = await new Promise((resolve, reject) => {
+      const wk = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+      const t = setTimeout(() => reject(new Error('worker timeout')), 5000);
+      wk.onmessage = (e) => { clearTimeout(t); wk.terminate(); resolve(e.data); };
+      wk.onerror = (e) => { clearTimeout(t); reject(new Error(e.message || 'worker error')); };
+      wk.postMessage(1);
+    });
+    return { page: await snap(navigator), worker };
+  }).catch((e) => ({ error: String(e && e.message || e) }));
+  const want = (/[\d.]+$/.exec(browserVersion || '') || [''])[0];                 // "Chrome/149.0.7827.22" → "149.0.7827.22"
+  const problems = [];
+  if (r.error) problems.push('probe failed: ' + r.error);
+  else {
+    for (const k of ['ua', 'brands', 'fvl', 'full']) if (r.page[k] !== r.worker[k]) problems.push(`page ${k} ≠ worker ${k}`);
+    if (want && r.page.full !== want) problems.push(`page full version ${r.page.full} ≠ browser ${want}`);
+    const major = want.split('.')[0];
+    if (major && !new RegExp(`Chrome/${major}\\.`).test(r.page.ua || '')) problems.push(`page UA major ≠ ${major}`);
+    if (/Chrome\/151\./.test(r.page.ua || '') && major !== '151') problems.push('page UA still says the old pinned Chrome/151');
+  }
+  console.log('version ' + JSON.stringify({ label, browser: browserVersion, page: r.page && { ua: r.page.ua, brands: r.page.brands, full: r.page.full }, ok: problems.length === 0, problems }));
+  if (problems.length) process.exitCode = 1;
+  return problems.length === 0;
 }
 /**
  * Put a fresh test page IN FRONT and close the extension's own pages first. A fresh profile is a
@@ -166,6 +216,7 @@ const modes = {
       }));
       r.shimRanBeforeFirstPageScript = r.coresAtFirstPageScript === r.coresNow;
       console.log('page ' + JSON.stringify(r));
+      await versionGate(page, browser.__nullechoVersion, 'smoke');
       console.log('NOTE the page cannot know the host: with the extension in, its first script already sees the persona. ' +
         'Run the same page with no extension to learn the host, then compare.');
     } finally { await teardown(browser, true); }
@@ -218,6 +269,10 @@ const modes = {
         };
         ids.push(row.fingerprintjs);
         console.log('claim ' + JSON.stringify(row));
+        const inPage = r.invariants && r.invariants.realBrowserVersion;
+        console.log('claim.realBrowserVersion ' + JSON.stringify(inPage ? inPage.value : null));
+        if (inPage && inPage.agree === false) process.exitCode = 1;
+        await versionGate(page, browser.__nullechoVersion, origin);
         await page.close();
       }
       console.log(ids[0] && ids[1] && ids[0] !== ids[1]
@@ -268,4 +323,5 @@ const modes = {
   },
 };
 
-modes[MODE]().then(() => process.exit(0), (e) => { console.error(e && e.stack || e); process.exit(1); });
+// A failed D51 version gate sets process.exitCode; keep it rather than exiting 0 over it.
+modes[MODE]().then(() => process.exit(process.exitCode || 0), (e) => { console.error(e && e.stack || e); process.exit(1); });

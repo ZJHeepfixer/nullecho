@@ -18,7 +18,15 @@ D49 was live and reCAPTCHA still failed. The real cause was a learned `google.co
 2026-09-28); fixed and verified in the owner's Chrome with Nullecho ON (patrickhlauke + ascendpartner render the box).
 The bisect below was not needed. Kept for the record.
 
-## Step 1b — the persona's Chrome version is hardcoded and goes stale (blocking; D51)
+## Step 1b — the persona's Chrome version is hardcoded and goes stale (blocking; D51) — ✅ DONE 2026-09-28 (D51)
+
+Fixed on branch `d51-real-browser-version`: the shim leaves `userAgent` / `appVersion` / `vendor` / `brands` / `toJSON`
+to the browser and delegates `getHighEntropyValues()` for everything but the five persona hints; personas carry no
+`ua`; the `ua-*` rules only remove the seven hints (now on http too — Chrome sends them to `http://localhost`); the popup
+names the real browser. Firefox had it worse (a Chrome UA, vendor and Client Hints on a Gecko engine) and is fixed by
+the same change. New automated gate: `harness/unpacked-chrome.mjs smoke|claim` and `harness/site-smoke.mjs` fail when
+the page describes a different browser than the one running (it fails on the pre-D51 build: page 151, worker 149).
+Still owed: the same check in the owner's branded Chrome 153 (step 3, row 10 — `browserleaks.com/client-hints`).
 
 Found during step 1: the owner's Chrome is **153**; every persona, the shim's brand list and the static UA rules say
 **151** with a fixed GREASE brand (`Not;A=Brand`/99 — real 153 sends `Not_A Brand`/8, in a different order). Chrome
@@ -59,7 +67,7 @@ the OFF control. Tabs must be visible (`document.visibilityState === 'visible'`)
 | 7 | A real checkout to the payment page: Amazon, Stripe-hosted, PayPal popup | fraud vendors score the device | owner |
 | 8 | Bank login (done 9/26 on the old rules — redo on 0.9.1) | fraud-vendor tier, off by default | owner |
 | 9 | Akamai-fronted retail (Best Buy, Dell) and PerimeterX (Walmart) | these walled the device-price probe | director drives |
-| 10 | Header check: `browserleaks.com/client-hints` and `httpbin.org/headers` | confirm 4 headers rewritten, 7 hints absent, Sec-GPC present | director |
+| 10 | Header check: `browserleaks.com/client-hints` and `httpbin.org/headers` | confirm the 4 always-sent headers are the browser's own (153, real brands — D51), 7 hints absent, Sec-GPC present | director |
 | 11 | CreepJS in the owner's Chrome | detectability did not regress with D49 | director |
 
 ## Step 4 — automated gates (director; must stay green on every change)
@@ -68,8 +76,9 @@ the OFF control. Tabs must be visible (`document.visibilityState === 'visible'`)
 one layer that changes behaviour with use. The smoke must also run with a SEEDED learned state — google.com,
 facebook.com, microsoft/live.com, apple.com, cloudflare.com, amazon.com promoted — and pass the CAPTCHA and sign-in rows.
 
-`npm test` (481+), `node rules/validate.mjs`, `node ext/tools/package.mjs`, `npm run smoke` (14 sites, packaged
-zip, ON/OFF), `harness/unpacked-chrome.mjs claim` (lieCount 2, no toString proxy, two FingerprintJS ids),
+`npm test` (506+), `node rules/validate.mjs`, `node ext/tools/package.mjs`, `npm run smoke` (14 sites, packaged
+zip, ON/OFF, browser identity ON = OFF), `harness/unpacked-chrome.mjs claim` (lieCount 2, no toString proxy, two
+FingerprintJS ids, D51 version gate: page = Worker = `browser.version()`),
 `web-ext lint` on the Firefox package (0/0/0).
 
 ## Step 5 — soak, then go/no-go

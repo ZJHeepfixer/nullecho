@@ -677,6 +677,10 @@ URL. Verified readable in light and dark.
 
 ## D19 — Request headers follow the persona at OS-family level, from static, generated DNR rules. 2026-09-16.
 
+> **Superseded by D51 (2026-09-28)** for `User-Agent`, `Sec-CH-UA`, `-Mobile` and `-Platform`: the page is now shown the
+> browser's real UA and brands and those headers are not rewritten at all; its item 6 below was the follow-up D51 took.
+> What survives is the family ruleset as a container for D49's hint removal.
+
 **The defect (REVIEW-2026-09-16 B2).** The shim pins `navigator.userAgent` / `userAgentData` to
 the persona — Chrome/151, the persona's platform, architecture, platform version — while the
 browser kept sending its **real** `User-Agent` and `Sec-CH-UA-*` headers on every request. A
@@ -1208,6 +1212,8 @@ entry exists so the next reviewer does not have to re-derive, from a REPRO-label
 finding whose fix already shipped is actually closed.
 
 ## D27 — `userAgentData.brands` is a FRESH frozen array per read, because that is what Chrome does. 2026-09-16.
+
+> *Since D51 (2026-09-28) `brands` is not patched: the engine's own getter answers, so this holds by construction.*
 
 *(REWRITTEN in place, the same day, after a measurement. The first version of this entry — and the
 commit `d7a055c` it described — cached the array, on the review's word that Chrome caches it. The
@@ -3031,3 +3037,111 @@ Google/Facebook sign-in.
 be promoted to), the owner's exact rule and its repair, and the concurrent-reconcile race (with IPC-like latency in the
 DNR stub — at zero latency the race cannot happen and the test passed on the broken code). 491/491. Verified in the
 owner's Chrome with Nullecho ON: reCAPTCHA renders on patrickhlauke.github.io/recaptcha and ascendpartner.com.
+
+## D51 — The page is shown the browser's REAL version, brands and full version; a persona names no browser. 2026-09-28.
+
+**Evidence.** The owner's Chrome is **153.0.8010.54** (macOS, arm). A blob Worker — which the shim never reaches (A8)
+— reported the real `Chrome/153.0.0.0` UA, brands `[Google Chrome/153, Not_A Brand/8, Chromium/153]` in that order, and
+full version `153.0.8010.54`. Every page's main thread said `Chrome/151.0.0.0`, brands `[Not;A=Brand/99, Chromium/151,
+Google Chrome/151]` (a fixed GREASE entry in a fixed order, synthesised by `shim.js brandsFor()`), full version
+`151.0.0.0`; and the D19 rules `set` the same 151 values on the wire. Inside an OS family every persona's UA string and
+low-entropy hints were the real reduced UA **except the version**, so the rewrite hid nothing and added one claim the
+browser contradicts everywhere the shim cannot reach — TLS, the feature set, Google's X-Client-Data, every Worker —
+and Chrome ships every four weeks, so every install drifted into it. On Edge, Brave and Opera it also renamed the
+browser "Google Chrome". Chrome for Testing 146/149, the harness browsers, have NO "Google Chrome" brand at all
+(`[Not-A.Brand/24, Chromium/146]`, `[Chromium/149, Not)A;Brand/24]`), so every automated run carried the
+contradiction too, and no check looked. Measured with the new gate on the pre-D51 build (unpacked, CfT 149):
+`page 151.0.0.0 · worker 149.0.7827.22`, "DISAGREE on ua, brands, fvl, full". D19 item 6 had already named this
+follow-up ("the host the source of truth for the version") and deferred it.
+
+**Firefox, which was the worse case.** The shim patched `navigator.userAgent` to the Chrome persona's UA, `appVersion`
+to match, and `navigator.vendor` to "Google Inc." on Firefox as well, and the static rules (registered by
+`manifest.firefox.json` and enabled by the same `applyUaRuleset()`) set a Chrome `User-Agent` and ADDED `Sec-CH-UA` /
+`-Mobile` / `-Platform` headers Firefox never sends. A Gecko engine — its own TLS/HTTP-2 fingerprint, `navigator.oscpu`,
+`buildID`, `-moz-` CSS — introduced itself as Chrome 151 in JS and on the wire. `userAgentData` was never invented
+there (the shim only patches `NavigatorUAData.prototype` where it exists), and still is not. **Measured in a real
+Firefox 156** (the store package installed through WebDriver BiDi, HTTPS echo server): pre-D51 the page read a
+`Chrome/151.0.0.0` UA and appVersion, vendor "Google Inc." — next to Firefox's own `oscpu` "Intel Mac OS X 10.15" —
+and the server received `User-Agent: …Chrome/151.0.0.0…` plus `Sec-CH-UA: "Not;A=Brand";v="99", "Chromium";v="151",
+"Google Chrome";v="151"`, `-Mobile`, `-Platform`. With D51 the page and the wire both say
+`Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0`, vendor "", no `Sec-CH-UA*`
+at all, and the persona's hardware still applies (hardwareConcurrency 10 against the machine's 12).
+
+**Decision.**
+1. **`shim.js` no longer patches `navigator.userAgent`, `appVersion`, `vendor`, or `userAgentData.brands` / `mobile` /
+   `platform` / `toJSON()`.** The engine's own getters answer, so the value, its per-read freshness (D27), its realm
+   (D31) and its source text are the engine's by construction. A patch that returns the real value would only be a
+   surface to get wrong.
+2. **`getHighEntropyValues()` is still wrapped, and delegates.** The engine answers every hint except the five a persona
+   still supplies — `platformVersion`, `architecture`, `bitness`, `model`, `wow64` (family-constant disguises of the
+   host's values, e.g. an Intel Mac or Windows-on-ARM reports the family's arch; macOS 26 reports 14.6.0) — so
+   `uaFullVersion`, `fullVersionList`, `formFactors`, the low-entropy trio and any hint a later Chrome adds are real.
+   Two traps shaped it, both measured in CfT 149: (a) the engine resolves its promise with a plain dictionary, and
+   resolution looks up `then` — an `Object.prototype.then` getter is handed the REAL dictionary
+   (`"brands,mobile,platform,platformVersion"`), so the engine is **never asked** for a persona hint; (b) the engine
+   converts the hint sequence through the page-visible `Array.prototype[Symbol.iterator]`, so the list handed to it is
+   a sealed null-prototype iterable of the shim's own that pulls the page's iterator lazily, step for step (the page's
+   `@@iterator`, `next`, `done`/`value` and each `toString` are touched exactly once, as by the engine), records persona
+   hints and skips them. The answer is merged in the engine's key order (lexicographic — the old builder put
+   brands/mobile/platform first), built on the engine dictionary's own prototype (the receiver's realm). Errors are the
+   engine's: a wrong receiver, a missing argument and a non-object are delegated (they reject before resolving
+   anything); failures inside the page's iterator are replayed to the engine so it rejects in its own words. The old
+   wrapper THREW `Illegal invocation` synchronously where the engine rejects, refused a sibling realm's receiver the
+   engine accepts, resolved on a microtask where the engine resolves on a task, and resolved for no argument — all
+   gone.
+3. **A persona's platform fields apply only where the real UA already agrees with them** (`personaUaFits`): the real
+   `userAgent` must carry the family's frozen reduced-UA platform token exactly (`FAMILY_UA_PLATFORM`:
+   "Windows NT 10.0; Win64; x64" / "Macintosh; Intel Mac OS X 10_15_7" / "X11; Linux x86_64"), and the real
+   `userAgentData.platform`, where readable, must be the persona's. Otherwise `navigator.platform` and all five hints
+   are the real ones too. The real values are read ONCE at module evaluation (`REAL_UA`), before `installInto()`
+   exists and before any page script (G9), through the prototype getters rather than `navigator.x`.
+4. **Personas carry no `ua`** (`personas.js`, the shim mirror; `persona-validator.js` rejects a `ua` and any
+   `uaData.brands`/`fullVersionList`/`uaFullVersion`), `validPersona()` requires `uaData` instead of `ua`, and a
+   delivered persona's `uaData` is copied as OWN fields into a null-prototype object with literal defaults (D29 — the
+   old `d.uaData.platformVersion || ''` read `Object.prototype` for an omitted field). The GREASE constant and
+   `brandsFor()` are gone.
+5. **The rules rewrite nothing** (`gen-ua.mjs`; the three `ua-*.json` regenerated). Each family keeps ONE rule that
+   removes D49's seven Accept-CH hints — no longer scoped to `https`/`wss`: measured, Chrome sends every requested hint
+   to `http://localhost` (a secure context), and the old filter let the real platformVersion/arch through there (the
+   pre-D51 build also sent a real `Sec-CH-UA` to `http://localhost` next to a JS 151). The User-Agent rule (ids
+   5100/5200/5300) is retired; the hint rule keeps 5101/5201/5301; the three files are identical but for ids and are
+   kept so the manifests and `applyUaRuleset()` did not move in this change.
+6. **The popup's System row names the real browser** (from the popup's own navigator: the first brand that is neither
+   GREASE nor "Chromium", else the UA's product token), never `p.ua`; the options page says the browser is reported as
+   it is.
+
+**Edge cases, decided.** ChromeOS ("X11; CrOS …", "Chrome OS"), Android and any host in no family: the D12 mapping
+still picks the persona (hardware, GPU, fonts), but `navigator.platform` and every hint are real, so nothing
+contradicts the real "CrOS" UA — a Linux kernel version next to "Chrome OS" would. Chrome on Linux aarch64: the reduced
+UA says x86_64, so the persona's "Linux x86_64" / `x86` stand (a consistent disguise; a Worker still says arm — A8).
+Firefox on Linux aarch64: the UA names aarch64, so `navigator.platform` is the real "Linux aarch64". Edge / Brave /
+Opera: brands, order and `Edg/`/`OPR/` pass through verbatim. No `userAgentData` (Firefox, or any insecure context):
+nothing is invented.
+
+**Measured, Chrome for Testing 149, unpacked, headless.** Claim gate: lieCount **2** (unchanged from the pre-D51 build,
+same run conditions), `hasToStringProxy` false, two FingerprintJS ids for the two site keys; the new version gate
+passes (`page 149.0.7827.22 · worker 149.0.7827.22`) where the pre-D51 build fails it. On the wire (HTTPS echo server
+sending `Accept-CH` for all seven hints, reload): `User-Agent`, `Sec-CH-UA`, `-Mobile`, `-Platform` equal the JS on
+https and http, and none of the seven hints arrives on either (without the extension all seven arrive). In-page attack
+probe: the `then` trap plus an `Array` iterator hook saw no real platformVersion; `getHighEntropyValues` prints native,
+`length` 1, rejects an illegal receiver, resolves before `setTimeout(0)` like the engine; an about:blank child, a
+same-tick child and a sandboxed srcdoc frame all report the real UA and the persona's hardware.
+
+**Residuals.** (1) The persona's platformVersion ages more slowly but the same way: every macOS persona says "14.6.0"
+while this Mac's real value is "26.6.0", and every Windows persona "15.0.0" (23H2; not re-checked against today's
+Windows crowd). Worth a pool review — it is a disguise that normalises, not a version the page is told the browser is. (2) Workers (A8) still
+report the real platformVersion / arch / hardware; they now AGREE with the page on the browser. (3) On Firefox the
+persona's ANGLE-format GPU strings and Chrome font sets are still a Chrome-ism (pre-existing; out of scope here). (4) The
+install/update window (D19 residual 7) now concerns only the seven hints. (5) Not yet observed in the owner's branded,
+signed-in Chrome 153 — CfT carries no X-Client-Data; that is PRELAUNCH step 3.
+
+**Tests.** `src/real-browser-version-2026-09-28.test.js` (15; the machine is "Chrome 999" with brands in a non-default
+order through `test-realm-rig.js bootRealm({ real })`, whose NavigatorUAData models the CfT measurements; 14 of 15
+fail against the pre-D51 shim via `NULLECHO_SHIM_SRC` — the one that passes there is the stand-down GUARD), `rules/ua.test.js` (rewritten:
+no `set`, no always-sent header, no version string, removal on every transport), `review-2026-09-16.test.js` B2
+(rewritten: every persona × the four always-sent headers equals the browser's own, in a realm whose browser is 152 with
+a real-shaped brand list), B3c (the wrapped method's promise and dictionary belong to the child realm), B7,
+`personas.test.js` (no `ua`; family tokens mirrored), `popup-display-2026-09-22.test.js` (the System row), and the
+observables of `handshake-integration`, `shim-handshake`, `native-shape`, `native-source`, `same-tick-realm` moved off
+`navigator.userAgent` (now the real UA in every state) onto persona reads. `harness/unpacked-chrome.mjs smoke|claim`
+and `harness/site-smoke.mjs` (ON vs OFF) now FAIL on a page that describes a different browser than the one running.

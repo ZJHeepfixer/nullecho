@@ -34,7 +34,16 @@
  *   - GPU vendor is possible on the claimed platform.
  *   - cores/memory is a pair that actually ships together.
  *   - font set is the stock set for the claimed OS.
- *   - Client Hints agree with the UA string field by field.
+ *   - `platform`, `uaData.platform` and the family's UA platform token
+ *     (FAMILY_UA_PLATFORM) name the same OS.
+ *   - NO BROWSER VERSION, and no `ua` string (DECISIONS.md D51). The page is
+ *     shown the browser's real `userAgent`, `userAgentData.brands` and full
+ *     version: inside a family every persona's UA was the real reduced UA
+ *     except for a pinned "Chrome/151", which hid nothing, went stale with
+ *     every four-weekly Chrome release, and contradicted the TLS stack, the
+ *     feature set, Google's X-Client-Data and every Worker. A persona supplies
+ *     only what varies below the UA: `uaData` platformVersion / architecture /
+ *     bitness / model / wow64, and everything that is not the UA at all.
  *   - screen geometry is a common panel, and colorDepth is 24 (never 30 —
  *     HDR is rare enough to re-identify on its own).
  *   - every family has ≥ MIN_PERSONAS_PER_FAMILY entries, weights per family
@@ -111,6 +120,32 @@ export const PLATFORM_FAMILY = {
   'Linux x86_64': 'linux',
   'Linux aarch64': 'linux',
 };
+
+/**
+ * The platform token of Chrome's REDUCED User-Agent in each family — the text
+ * between the first pair of parentheses, which Chrome freezes per OS: every
+ * Windows (x64, ARM, 32-bit) says "Windows NT 10.0; Win64; x64", every Mac
+ * (Intel or Apple silicon, any macOS) says "Macintosh; Intel Mac OS X 10_15_7",
+ * every desktop Linux (x86_64 or aarch64) says "X11; Linux x86_64".
+ *
+ * D51: the shim no longer writes a UA, so this is how it knows the persona's
+ * platform-level fields (`navigator.platform`, and the uaData platformVersion /
+ * architecture / bitness / model / wow64) sit truthfully under the REAL one. It
+ * applies them only when the browser's own `userAgent` carries exactly this
+ * token (and, where readable, `userAgentData.platform` is the persona's). A
+ * ChromeOS "X11; CrOS …", an Android "Linux; Android …", a Firefox
+ * "…; rv:140.0)" or an unreduced "X11; Linux aarch64" fails the test, and the
+ * real platform fields are reported there instead of ones the real UA would
+ * contradict.
+ */
+export const FAMILY_UA_PLATFORM = {
+  win: 'Windows NT 10.0; Win64; x64',
+  mac: 'Macintosh; Intel Mac OS X 10_15_7',
+  linux: 'X11; Linux x86_64',
+};
+
+/** The `userAgentData.platform` Chrome reports in each family. */
+export const FAMILY_UAD_PLATFORM = { win: 'Windows', mac: 'macOS', linux: 'Linux' };
 
 /**
  * Where an undetectable host lands. Windows is the largest desktop-Chrome
@@ -239,7 +274,6 @@ export const PERSONAS = [
     weight: 23,
     platform: 'Win32',
     os: 'windows-11',
-    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Windows', platformVersion: '15.0.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -261,7 +295,6 @@ export const PERSONAS = [
     weight: 31,
     platform: 'Win32',
     os: 'windows-11',
-    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Windows', platformVersion: '15.0.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -282,7 +315,6 @@ export const PERSONAS = [
     weight: 19,
     platform: 'Win32',
     os: 'windows-11',
-    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Windows', platformVersion: '15.0.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -305,7 +337,6 @@ export const PERSONAS = [
     weight: 16,
     platform: 'Win32',
     os: 'windows-11',
-    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Windows', platformVersion: '15.0.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -325,7 +356,6 @@ export const PERSONAS = [
     weight: 11,
     platform: 'Win32',
     os: 'windows-11',
-    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Windows', platformVersion: '15.0.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -361,7 +391,6 @@ export const PERSONAS = [
     weight: 24,
     platform: 'MacIntel',
     os: 'macos-14',
-    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'macOS', platformVersion: '14.6.0',
       architecture: 'arm', bitness: '64', model: '', wow64: false,
@@ -383,7 +412,6 @@ export const PERSONAS = [
     weight: 26,
     platform: 'MacIntel',
     os: 'macos-14',
-    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'macOS', platformVersion: '14.6.0',
       architecture: 'arm', bitness: '64', model: '', wow64: false,
@@ -405,7 +433,6 @@ export const PERSONAS = [
     weight: 16,
     platform: 'MacIntel',
     os: 'macos-14',
-    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'macOS', platformVersion: '14.6.0',
       architecture: 'arm', bitness: '64', model: '', wow64: false,
@@ -428,7 +455,6 @@ export const PERSONAS = [
     weight: 20,
     platform: 'MacIntel',
     os: 'macos-14',
-    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'macOS', platformVersion: '14.6.0',
       architecture: 'arm', bitness: '64', model: '', wow64: false,
@@ -453,7 +479,6 @@ export const PERSONAS = [
     weight: 14,
     platform: 'MacIntel',
     os: 'macos-14',
-    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'macOS', platformVersion: '14.6.0',
       architecture: 'arm', bitness: '64', model: '', wow64: false,
@@ -497,7 +522,6 @@ export const PERSONAS = [
     weight: 24,
     platform: 'Linux x86_64',
     os: 'ubuntu-22',
-    ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Linux', platformVersion: '6.8.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -519,7 +543,6 @@ export const PERSONAS = [
     weight: 22,
     platform: 'Linux x86_64',
     os: 'ubuntu-22',
-    ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Linux', platformVersion: '6.8.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -542,7 +565,6 @@ export const PERSONAS = [
     weight: 20,
     platform: 'Linux x86_64',
     os: 'ubuntu-22',
-    ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Linux', platformVersion: '6.8.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -565,7 +587,6 @@ export const PERSONAS = [
     weight: 20,
     platform: 'Linux x86_64',
     os: 'ubuntu-22',
-    ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Linux', platformVersion: '6.8.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,
@@ -586,7 +607,6 @@ export const PERSONAS = [
     weight: 14,
     platform: 'Linux x86_64',
     os: 'ubuntu-22',
-    ua: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
     uaData: {
       platform: 'Linux', platformVersion: '6.8.0',
       architecture: 'x86', bitness: '64', model: '', wow64: false,

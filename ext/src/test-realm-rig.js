@@ -19,7 +19,6 @@ const LOADER_SRC = fs.readFileSync(process.env.NULLECHO_LOADER_SRC || path.join(
 
 const DELIVERED = {
   id: 'win11-chrome-rtx3060', platform: 'Win32',
-  ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
   uaData: { platform: 'Windows', platformVersion: '15.0.0', architecture: 'x86', bitness: '64', model: '', wow64: false },
   gpu: { vendor: 'Google Inc. (NVIDIA)', renderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)', unmaskedVendor: 'Google Inc. (NVIDIA)', maxTextureSize: 16384 },
   cores: 12, memory: 16,
@@ -82,12 +81,88 @@ const DOM_SETUP = `
   Object.defineProperty(CustomEvent.prototype, 'detail', { get() { return this._detail; }, configurable: true, enumerable: true });
 
   class Navigator {}
-  ro(Navigator, 'userAgent', () => 'Mozilla/5.0 (REAL MACHINE)');
-  ro(Navigator, 'appVersion', () => '5.0 (REAL MACHINE)');
-  ro(Navigator, 'platform', () => 'MacIntel');
+  // \`bootRealm({ real })\` replaces the machine's browser identity (D51). Without it the
+  // realm is the old anonymous "REAL MACHINE" with no userAgentData, as every older
+  // test expects.
+  const REALNAV = globalThis.__REAL_NAV || null;
+  const NAVV = REALNAV || { userAgent: 'Mozilla/5.0 (REAL MACHINE)', appVersion: '5.0 (REAL MACHINE)', platform: 'MacIntel', vendor: 'Google Inc.' };
+  ro(Navigator, 'userAgent', () => NAVV.userAgent);
+  ro(Navigator, 'appVersion', () => NAVV.appVersion);
+  ro(Navigator, 'platform', () => NAVV.platform);
   ro(Navigator, 'hardwareConcurrency', () => 12);
-  ro(Navigator, 'vendor', () => 'Google Inc.');
+  ro(Navigator, 'vendor', () => NAVV.vendor);
   const navigator = Object.create(Navigator.prototype);
+
+  // ── NavigatorUAData, modelled on what Chrome for Testing 146/149 MEASURED
+  //    (2026-09-28, docs/DECISIONS.md D51), only when \`real.uaData\` is given:
+  //  · \`brands\` is a fresh frozen array of fresh, unfrozen entries per read;
+  //  · \`toJSON()\` brand-checks SYNCHRONOUSLY;
+  //  · \`getHighEntropyValues()\` never throws: a bad receiver, a missing or
+  //    non-iterable argument and a throwing iterator are all REJECTIONS with
+  //    Blink's messages; the argument is converted through the page-visible
+  //    iterator protocol (so an \`Array.prototype[Symbol.iterator]\` hook reaches
+  //    it, as it reaches Blink's); keys come back in lexicographic order, only
+  //    the requested ones plus brands/mobile/platform; the result object is
+  //    created by definition and RESOLVED through the thenable check, so an
+  //    \`Object.prototype.then\` getter sees it, exactly as in the engine. Every
+  //    hint the "engine" was asked for is logged in \`__rigAsked\`.
+  let NavigatorUAData = undefined;
+  if (REALNAV && REALNAV.uaData) {
+    const U = REALNAV.uaData;
+    const HE = U.he || {};
+    const rawApply = Reflect.apply, rawDefine = Object.defineProperty, rawFreeze = Object.freeze;
+    const RawPromise = Promise, rawReject = Promise.reject, RawTypeError = TypeError, rawSetTimeout = setTimeout;
+    const symIter = Symbol.iterator;
+    const KEYS = ['architecture', 'bitness', 'brands', 'formFactors', 'fullVersionList', 'mobile', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'wow64'];
+    const def = (o, k, v) => rawDefine(o, k, { value: v, writable: true, enumerable: true, configurable: true });
+    const brandList = (list) => { const out = []; for (let i = 0; i < list.length; i++) { const e = {}; def(e, 'brand', list[i].brand); def(e, 'version', list[i].version); def(out, i, e); } return out; };
+    const reject = (e) => rawApply(rawReject, RawPromise, [e]);
+    const fail = (msg) => reject(new RawTypeError("Failed to execute 'getHighEntropyValues' on 'NavigatorUAData': " + msg));
+    globalThis.__rigAsked = [];
+    NavigatorUAData = class NavigatorUAData {};
+    ro(NavigatorUAData, 'brands', () => rawFreeze(brandList(U.brands)));
+    ro(NavigatorUAData, 'mobile', () => U.mobile);
+    ro(NavigatorUAData, 'platform', () => U.platform);
+    rawDefine(NavigatorUAData.prototype, 'toJSON', { writable: true, enumerable: true, configurable: true, value: function toJSON() {
+      brand(this, NavigatorUAData);
+      const o = {}; def(o, 'brands', brandList(U.brands)); def(o, 'mobile', U.mobile); def(o, 'platform', U.platform); return o;
+    } });
+    rawDefine(NavigatorUAData.prototype, 'getHighEntropyValues', { writable: true, enumerable: true, configurable: true, value: function getHighEntropyValues(hints) {
+      if (!(this instanceof NavigatorUAData)) return fail('Illegal invocation');
+      if (arguments.length < 1) return fail('1 argument required, but only 0 present.');
+      if (hints === null || (typeof hints !== 'object' && typeof hints !== 'function')) return fail('The provided value cannot be converted to a sequence.');
+      const want = Object.create(null);
+      try {
+        const method = hints[symIter];
+        if (typeof method !== 'function') return fail('The object must have a callable @@iterator property.');
+        const it = rawApply(method, hints, []);
+        if (it === null || typeof it !== 'object') throw new RawTypeError('Result of the Symbol.iterator method is not an object');
+        const next = it.next;
+        for (;;) {
+          const r = rawApply(next, it, []);
+          if (r === null || typeof r !== 'object') throw new RawTypeError('Iterator result ' + r + ' is not an object');
+          if (r.done) break;
+          const v = r.value;
+          if (typeof v === 'symbol') throw new RawTypeError("Failed to execute 'getHighEntropyValues' on 'NavigatorUAData': Cannot convert a Symbol value to a string");
+          const s = \`\${v}\`;
+          def(globalThis.__rigAsked, globalThis.__rigAsked.length, s);
+          want[s] = true;
+        }
+      } catch (e) { return reject(e); }
+      const out = {};
+      const VALUES = { brands: () => brandList(U.brands), mobile: () => U.mobile, platform: () => U.platform,
+        fullVersionList: () => brandList(HE.fullVersionList), formFactors: () => { const a = []; for (let i = 0; i < HE.formFactors.length; i++) def(a, i, HE.formFactors[i]); return a; } };
+      for (let i = 0; i < KEYS.length; i++) {
+        const k = KEYS[i];
+        const always = k === 'brands' || k === 'mobile' || k === 'platform';
+        if (!always && !want[k]) continue;
+        def(out, k, VALUES[k] ? VALUES[k]() : HE[k]);
+      }
+      return new RawPromise((resolve) => { rawSetTimeout(() => resolve(out), 0); });
+    } });
+    const uad = Object.create(NavigatorUAData.prototype);
+    ro(Navigator, 'userAgentData', () => uad);
+  }
 
   class Node extends EventTarget {}
   ro(Node, 'nodeType', () => 1);
@@ -232,6 +307,8 @@ const DOM_SETUP = `
     MutationObserver, getComputedStyle, HTMLCanvasElement, CanvasRenderingContext2D, OffscreenCanvas, OffscreenCanvasRenderingContext2D,
     ImageData, TextMetrics, AudioBuffer, document,
   });
+  if (NavigatorUAData) globalThis.NavigatorUAData = NavigatorUAData;
+  delete globalThis.__REAL_NAV;
   // The natives, held before the shim runs, so "still patched" is a comparison and not a guess.
   globalThis.__natives = {
     toDataURL: HTMLCanvasElement.prototype.toDataURL,
@@ -248,7 +325,7 @@ const DOM_SETUP = `
  * reverse-channel listener (window capture, registered first, swallowing tokened
  * reports — D30). `console` records EVERY call the shim makes to it, by method.
  */
-function bootRealm({ lockToDataURL = false, syncReply = false, csprng = true } = {}) {
+function bootRealm({ lockToDataURL = false, syncReply = false, csprng = true, real = null } = {}) {
   const consoleCalls = [];
   const rec = (method) => (...a) => consoleCalls.push({ method, text: a.map(String).join(' ') });
   const sandbox = {
@@ -256,6 +333,9 @@ function bootRealm({ lockToDataURL = false, syncReply = false, csprng = true } =
     crypto: csprng ? { getRandomValues: (a) => webcrypto.getRandomValues(a) } : {},
     console: { log: rec('log'), info: rec('info'), warn: rec('warn'), error: rec('error'), debug: rec('debug'), trace: rec('trace') },
     setTimeout, clearTimeout, queueMicrotask,
+    // The machine's REAL browser identity (D51): { userAgent, appVersion, platform,
+    // vendor, uaData?: { brands, mobile, platform, he: { …high-entropy… } } }.
+    ...(real ? { __REAL_NAV: real } : {}),
   };
   const ctx = vm.createContext(sandbox);
   vm.runInContext(DOM_SETUP, ctx, { filename: 'dom-setup.js' });

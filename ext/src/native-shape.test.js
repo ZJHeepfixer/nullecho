@@ -84,7 +84,8 @@ const DOM_SETUP = `
     get() { return this._detail; }, configurable: true, enumerable: true,
   });
 
-  // ── Navigator: three accessors the shim patches, one it never touches ──
+  // ── Navigator: two accessors the shim patches (platform, hardwareConcurrency),
+  //    two it never touches (webdriver; userAgent since D51) ──
   const REAL = { userAgent: ${JSON.stringify(REAL_UA)}, platform: 'MacIntel', hardwareConcurrency: 12, webdriver: false };
   class Navigator {}
   for (const k of Object.keys(REAL)) {
@@ -217,6 +218,7 @@ function bootRealm() {
   return { ctx, page, logs, before, after, probe, desc, find, nativeSrc };
 }
 
+const HC = ['Navigator.prototype', 'hardwareConcurrency', 'get'];
 const UA = ['Navigator.prototype', 'userAgent', 'get'];
 const GID = ['CanvasRenderingContext2D.prototype', 'getImageData', 'value'];
 const TS = ['Function.prototype', 'toString', 'value'];
@@ -227,10 +229,11 @@ const WD = ['Navigator.prototype', 'webdriver', 'get'];
 // the toString replacement; with an unpatched control and a negative control.
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('CV-3b GUARD: a patched ACCESSOR (Navigator.prototype.userAgent getter) has the shape of a native getter', () => {
+test('CV-3b GUARD: a patched ACCESSOR (Navigator.prototype.hardwareConcurrency getter) has the shape of a native getter', () => {
+  // hardwareConcurrency, not userAgent: since D51 the shim leaves userAgent to the engine.
   const s = bootRealm();
-  const was = s.find(s.before, ...UA).fn, is = s.find(s.after, ...UA).fn;
-  assert.notEqual(is, was, 'precondition: the shim did patch userAgent (otherwise the probe is vacuous)');
+  const was = s.find(s.before, ...HC).fn, is = s.find(s.after, ...HC).fn;
+  assert.notEqual(is, was, 'precondition: the shim did patch hardwareConcurrency (otherwise the probe is vacuous)');
   assert.deepEqual(s.probe(is), NATIVE, 'REGRESSION: the patched getter is a plain function — own `prototype`, constructible, `class extends` does not throw');
 });
 
@@ -256,6 +259,8 @@ test('CV-3b CONTROL: an accessor the shim never touches (Navigator.prototype.web
   const was = s.find(s.before, ...WD).fn, is = s.find(s.after, ...WD).fn;
   assert.equal(is, was, 'webdriver must stay unpatched — it is the harness\'s positive control');
   assert.deepEqual(s.probe(is), NATIVE);
+  // D51: userAgent is the engine's own getter now, not a masked replacement.
+  assert.equal(s.find(s.after, ...UA).fn, s.find(s.before, ...UA).fn, 'D51: userAgent must stay unpatched');
   // Negative control: the probe DOES discriminate. A page's own plain function
   // fails it (sloppy page code also carries own `arguments`/`caller`; strict
   // code — the shim is strict — does not, and still fails on `prototype`).
@@ -276,7 +281,7 @@ test('CV-3b SWEEP: every function the shim installed anywhere in the realm has a
     return !prev || prev.fn !== e.fn;
   });
   const names = changed.map((e) => `${e.label}.${e.key}#${e.kind}`).sort();
-  for (const must of ['Function.prototype.toString#value', 'Navigator.prototype.userAgent#get',
+  for (const must of ['Function.prototype.toString#value', 'Navigator.prototype.hardwareConcurrency#get',
     'CanvasRenderingContext2D.prototype.getImageData#value', 'HTMLCanvasElement.prototype.toDataURL#value']) {
     assert.ok(names.includes(must), `precondition: the sweep sees ${must} as installed by the shim (saw: ${names.join(', ')})`);
   }
@@ -297,25 +302,24 @@ test('CV-3b SWEEP: every function the shim installed anywhere in the realm has a
 
 test('CV-3b KEEP: the brand check survives — a patched accessor or method called with a wrong receiver still throws Illegal invocation (ARKENFOX (f))', () => {
   const s = bootRealm();
-  assert.throws(() => s.page('Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get.call({})'),
+  assert.throws(() => s.page('Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get.call({})'),
     (e) => e.constructor.name === 'TypeError' && /Illegal invocation/.test(e.message));
   assert.throws(() => s.page('CanvasRenderingContext2D.prototype.getImageData.call({}, 0, 0, 1, 1)'),
     (e) => e.constructor.name === 'TypeError' && /Illegal invocation/.test(e.message));
-  assert.throws(() => s.page('new (Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get)()'),
+  assert.throws(() => s.page('new (Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get)()'),
     (e) => e.constructor.name === 'TypeError');
   // …and the RIGHT receiver still goes through: the persona, not the machine.
-  const ua = s.page('navigator.userAgent');
-  assert.equal(typeof ua, 'string');
-  assert.notEqual(ua, REAL_UA, 'the getter must still forward `this` to the delegate and serve the persona');
-  assert.match(ua, /Chrome\//);
+  const hc = s.page('navigator.hardwareConcurrency');
+  assert.equal(typeof hc, 'number');
+  assert.notEqual(hc, 12, 'the getter must still forward `this` to the delegate and serve the persona');
   const px = s.page('document.createElement("canvas").getContext("2d").getImageData(0, 0, 2, 2).data.length');
   assert.equal(px, 16, 'the method must still forward `this` and its arguments');
 });
 
 test('CV-3b KEEP: descriptors keep their original enumerable / configurable / writable flags and the original setter', () => {
   const s = bootRealm();
-  const ua = s.desc('Navigator.prototype', 'userAgent');
-  assert.deepEqual([ua.enumerable, ua.configurable, ua.set], [true, true, undefined]);
+  const hc = s.desc('Navigator.prototype', 'hardwareConcurrency');
+  assert.deepEqual([hc.enumerable, hc.configurable, hc.set], [true, true, undefined]);
   const gid = s.desc('CanvasRenderingContext2D.prototype', 'getImageData');
   assert.deepEqual([gid.writable, gid.enumerable, gid.configurable], [true, false, true]);
   const ts = s.desc('Function.prototype', 'toString');
@@ -324,14 +328,14 @@ test('CV-3b KEEP: descriptors keep their original enumerable / configurable / wr
 
 test('CV-3b KEEP: toString masking, name and length are unchanged by the shape fix', () => {
   const s = bootRealm();
-  assert.equal(s.page('Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get.toString()'), 'function get userAgent() { [native code] }');
+  assert.equal(s.page('Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get.toString()'), 'function get hardwareConcurrency() { [native code] }');
   assert.equal(s.page('CanvasRenderingContext2D.prototype.getImageData.toString()'), 'function getImageData() { [native code] }');
   assert.equal(s.page('HTMLCanvasElement.prototype.toDataURL.toString()'), 'function toDataURL() { [native code] }');
   assert.match(s.page('(function pageFn() { return 42; }).toString()'), /return 42/, 'a genuine page function still prints its source');
-  assert.equal(s.page('Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent").get.name'), 'get userAgent');
+  assert.equal(s.page('Object.getOwnPropertyDescriptor(Navigator.prototype, "hardwareConcurrency").get.name'), 'get hardwareConcurrency');
   assert.equal(s.page('CanvasRenderingContext2D.prototype.getImageData.name'), 'getImageData');
   assert.equal(s.page('CanvasRenderingContext2D.prototype.getImageData.length'), 4, 'length is the original\'s (4 params in the fake, 4 in Chrome)');
-  for (const [obj, prop] of [['Navigator.prototype', 'userAgent'], ['CanvasRenderingContext2D.prototype', 'getImageData']]) {
+  for (const [obj, prop] of [['Navigator.prototype', 'hardwareConcurrency'], ['CanvasRenderingContext2D.prototype', 'getImageData']]) {
     const f = obj === 'Navigator.prototype' ? `Object.getOwnPropertyDescriptor(${obj}, "${prop}").get` : `${obj}.${prop}`;
     for (const own of ['name', 'length']) {
       const d = s.page(`Object.getOwnPropertyDescriptor(${f}, "${own}")`);

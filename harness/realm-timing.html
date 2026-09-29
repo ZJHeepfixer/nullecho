@@ -207,7 +207,8 @@ window.__timingDone = (async () => {
   T.readings['nav.1.loadMs'] = await until(() => loads >= 1, 10000);
   window.__read('nav.1.afterLoad', p);
   T.readings['nav.1.toStringMasked'] = (() => {
-    try { return /native code/.test(p.Function.prototype.toString.call(Object.getOwnPropertyDescriptor(p.Navigator.prototype, 'userAgent').get)); }
+    // hardwareConcurrency, not userAgent: since D51 the UA getter is the engine's own, so it reads native with or without the mask.
+    try { return /native code/.test(p.Function.prototype.toString.call(Object.getOwnPropertyDescriptor(p.Navigator.prototype, 'hardwareConcurrency').get)); }
     catch (e) { return 'throws ' + e.name; }
   })();
 

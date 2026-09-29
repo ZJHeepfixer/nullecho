@@ -267,8 +267,10 @@ window.__evaluateBoot = () => {
   const handshake = statuses.find((s) => s.upgraded !== undefined) || null;
   const p = window.__expectedPersona;
 
+  // D51: the user agent is the REAL browser's, not a persona field — compared with the
+  // UA stage 0 captured, which the shim does not change either.
   const checks = p ? {
-    'navigator.userAgent': [navigator.userAgent, p.ua],
+    'navigator.userAgent': [navigator.userAgent, window.__ENV.realUA],
     'navigator.platform': [navigator.platform, p.platform],
     'hardwareConcurrency': [navigator.hardwareConcurrency, p.cores],
     'deviceMemory': [navigator.deviceMemory, p.memory],
@@ -416,9 +418,8 @@ const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'nullecho-claim-runs-v1';
 
 // ── environment banner ──────────────────────────────────────────────────────
-// Reported from the UA captured in stage 0, BEFORE the shim replaced navigator.
-// After the shim runs, navigator.userAgent is the persona's and could not tell
-// Chrome from Electron at all.
+// Reported from the UA captured in stage 0. Since D51 the shim leaves
+// navigator.userAgent to the browser, so this is the real UA in every mode.
 (() => {
   const e = window.__ENV;
   const el = $('envBanner');
@@ -644,7 +645,8 @@ async function runInvariants() {
     return '[' + Object.getOwnPropertyNames(f).sort().join(',') + '] extends→' + ext;
   };
   inv.nativeShapePatched = {
-    value: 'Navigator.userAgent ' + shape(Navigator.prototype, 'userAgent') +
+    // hardwareConcurrency, not userAgent: since D51 the UA getter is the engine's own.
+    value: 'Navigator.hardwareConcurrency ' + shape(Navigator.prototype, 'hardwareConcurrency') +
            ' · ctx.getImageData ' + shape(CanvasRenderingContext2D.prototype, 'getImageData'),
     why: 'Shimmed surfaces. Native is "[length,name] extends→TypeError". A third value means the patch is a plain function.',
   };
@@ -662,12 +664,12 @@ async function runInvariants() {
     document.documentElement.appendChild(frame);
     const W = window[n];
     const pristine = W.Function.prototype.toString;
-    const uaGetter = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
-    const src = pristine.call(uaGetter);
+    const patchedGetter = Object.getOwnPropertyDescriptor(Navigator.prototype, 'hardwareConcurrency').get;
+    const src = pristine.call(patchedGetter);
     const tsSrc = pristine.call(Function.prototype.toString);
     inv.pristineRealm = {
       value: 'child cores=' + W.navigator.hardwareConcurrency + ' platform=' + W.navigator.platform +
-             ' · pristine toString(userAgent getter) says [native code]? ' + /\[native code\]/.test(src) +
+             ' · pristine toString(hardwareConcurrency getter) says [native code]? ' + /\[native code\]/.test(src) +
              ' · toString(Function.prototype.toString) says [native code]? ' + /\[native code\]/.test(tsSrc),
       why: 'A same-tick window[n] realm. "false" here means a page can read the shim’s own source, ' +
            'which defeats the [native code] lie everywhere at once. Unclosable from an extension.',
@@ -703,6 +705,39 @@ async function runInvariants() {
       why: 'A page-installed console.error hook plus one illegal-receiver call. "true" means the ' +
            'extension announces itself BY NAME, and the "UNPROTECTED" text is a false alarm.',
     };
+  }
+
+  // ── D51: the browser the page is told about is the browser that is running ──
+  // A dedicated Worker is never shimmed (A8), so its navigator is the browser's own.
+  // Before D51 the page said Chrome/151 with a fixed brand list while this worker said
+  // 146/149 (Chrome for Testing) or 153 (the owner's Chrome), and nothing checked.
+  try {
+    const src = 'onmessage = async () => { const u = navigator.userAgentData; let fvl = null, full = null;' +
+      ' if (u) { const h = await u.getHighEntropyValues(["fullVersionList", "uaFullVersion"]); fvl = JSON.stringify(h.fullVersionList); full = h.uaFullVersion; }' +
+      ' postMessage({ ua: navigator.userAgent, brands: u ? JSON.stringify(u.brands) : null, fvl, full }); };';
+    const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    const w = await new Promise((resolve, reject) => {
+      const wk = new Worker(url);
+      const t = setTimeout(() => reject(new Error('worker timeout')), 5000);
+      wk.onmessage = (e) => { clearTimeout(t); wk.terminate(); resolve(e.data); };
+      wk.onerror = (e) => { clearTimeout(t); reject(new Error(e.message || 'worker error')); };
+      wk.postMessage(1);
+    });
+    URL.revokeObjectURL(url);
+    const u = navigator.userAgentData;
+    let pfvl = null, pfull = null;
+    if (u) { const h = await u.getHighEntropyValues(['fullVersionList', 'uaFullVersion']); pfvl = JSON.stringify(h.fullVersionList); pfull = h.uaFullVersion; }
+    const page = { ua: navigator.userAgent, brands: u ? JSON.stringify(u.brands) : null, fvl: pfvl, full: pfull };
+    const diff = Object.keys(page).filter((k) => page[k] !== w[k]);
+    inv.realBrowserVersion = {
+      value: (diff.length ? 'DISAGREE on ' + diff.join(',') : 'agree') + ' · page ' + (page.full || (/(?:Chrome|Firefox)\/[\d.]+/.exec(page.ua) || ['?'])[0]) +
+             ' · worker ' + (w.full || (/(?:Chrome|Firefox)\/[\d.]+/.exec(w.ua) || ['?'])[0]),
+      agree: diff.length === 0,
+      page, worker: w,
+      why: 'D51. The unshimmed Worker is the browser itself. Any disagreement on the UA, the brand list or the full version is a claim the browser contradicts.',
+    };
+  } catch (e) {
+    inv.realBrowserVersion = { value: 'probe failed: ' + e.message, agree: null, why: 'D51 worker-vs-page version probe' };
   }
 
   inv.nativeShapeControl = {

@@ -35,7 +35,7 @@ import { fileURLToPath } from 'node:url';
 import {
   PERSONAS, FONT_SETS, FAMILIES, DEFAULT_FAMILY, MIN_PERSONAS_PER_FAMILY,
   personaFor, personasForFamily, familyOf, seedFor, hashString, rngFrom, newSalt,
-  detectHostFamily, familyFromPlatformString, hostFamily,
+  detectHostFamily, familyFromPlatformString, hostFamily, FAMILY_UA_PLATFORM, FAMILY_UAD_PLATFORM,
 } from './personas.js';
 import {
   validatePersona, validatePool, validateFamilies, MAX_DEVICE_MEMORY, HDR_PANELS,
@@ -139,7 +139,6 @@ test('personaFor(salt, origin) is stable across 100 calls', () => {
     assert.equal(again.seed, first.seed, `call ${i}: seed changed`);
     assert.deepEqual(again.noise, first.noise, `call ${i}: noise changed`);
     assert.deepEqual(again.screen, first.screen, `call ${i}: screen changed`);
-    assert.equal(again.ua, first.ua, `call ${i}: UA changed`);
   }
 });
 
@@ -442,14 +441,34 @@ test('rejects: unknown fonts key', () => {
   );
 });
 
-test('rejects: UA and uaData.platform disagree', () => {
+test('rejects: navigator.platform and uaData.platform disagree', () => {
   const p = baseWindows({ id: 'broken-hints' });
   p.uaData = { ...p.uaData, platform: 'macOS' };
-  assertRejected(p, /Client Hints must agree with the UA string/, 'UA/CH mismatch');
+  assertRejected(p, /is a win value but uaData.platform is "macOS"/, 'Win32 + macOS hint');
 
   const q = baseMac({ id: 'broken-hints-linux' });
   q.uaData = { ...q.uaData, platform: 'Linux' };
-  assertRejected(q, /UA claims macOS but uaData.platform is "Linux"/, 'mac UA + Linux hint');
+  assertRejected(q, /is a mac value but uaData.platform is "Linux"/, 'MacIntel + Linux hint');
+});
+
+test('rejects (D51): a persona that names a browser version — a `ua`, or uaData brands / fullVersionList / uaFullVersion', () => {
+  const stale = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
+  assertRejected(baseMac({ id: 'broken-ua', ua: stale }), /carries a `ua`/, 'a persona with a ua');
+  for (const k of ['brands', 'fullVersionList', 'uaFullVersion']) {
+    const p = baseMac({ id: `broken-${k}` });
+    p.uaData = { ...p.uaData, [k]: k === 'uaFullVersion' ? '151.0.0.0' : [{ brand: 'Chromium', version: '151' }] };
+    assertRejected(p, new RegExp(`uaData\\.${k} is the real browser's`), `uaData.${k}`);
+  }
+});
+
+test('D51: no persona in the pool carries a `ua`, and every one agrees with its family\'s UA platform token', () => {
+  for (const p of PERSONAS) {
+    assert.equal('ua' in p, false, `${p.id} carries a ua`);
+    const fam = familyOf(p);
+    assert.equal(p.uaData.platform, FAMILY_UAD_PLATFORM[fam], p.id);
+    assert.ok(FAMILY_UA_PLATFORM[fam], `${p.id}: family ${fam} has no UA platform token`);
+  }
+  assert.deepEqual(Object.keys(FAMILY_UA_PLATFORM).sort(), [...FAMILIES].sort());
 });
 
 test('rejects: arm architecture paired with a discrete NVIDIA GPU', () => {
@@ -844,10 +863,14 @@ test('src/shim.js inlined pool is an exact mirror of this one', () => {
 
   // The block is plain declarations; evaluating it is how we compare the values
   // the shim will actually use rather than the text they are written in.
-  const mirrored = new Function(`${block[1]}\nreturn { FONT_SETS, PERSONAS };`)();
+  const mirrored = new Function(`${block[1]}\nreturn { FONT_SETS, PERSONAS, FAMILY_UA_PLATFORM, FAMILY_UAD_PLATFORM };`)();
 
   assert.deepEqual(mirrored.FONT_SETS, FONT_SETS,
     'shim.js FONT_SETS has drifted from personas.js — regenerate the mirror');
+  // D51: the shim applies a persona's platform fields only under a real UA that
+  // carries its family's token; a drifted token would silently switch them off.
+  assert.deepEqual(mirrored.FAMILY_UA_PLATFORM, FAMILY_UA_PLATFORM, 'shim.js FAMILY_UA_PLATFORM has drifted');
+  assert.deepEqual(mirrored.FAMILY_UAD_PLATFORM, FAMILY_UAD_PLATFORM, 'shim.js FAMILY_UAD_PLATFORM has drifted');
 
   assert.deepEqual(
     mirrored.PERSONAS.map((p) => p.id),
@@ -860,7 +883,7 @@ test('src/shim.js inlined pool is an exact mirror of this one', () => {
     // Compare the fields the shim reads. `personaFor` adds fontList/seed/noise
     // at call time, so the stored entry is the whole contract.
     assert.deepEqual(m, {
-      id: p.id, weight: p.weight, platform: p.platform, os: p.os, ua: p.ua,
+      id: p.id, weight: p.weight, platform: p.platform, os: p.os,
       uaData: p.uaData, gpu: p.gpu, cores: p.cores, memory: p.memory,
       screen: p.screen, fonts: p.fonts,
     }, `${p.id} differs between personas.js and the shim mirror`);

@@ -187,18 +187,30 @@ const DOM_SETUP = `
   // are ordinary writable objects. \`languages\` above, by contrast, IS the same
   // frozen object every time — so this fake reproduces both, and the difference
   // between them is what the B7 guards measure the shim against.
+  //
+  // D51 (2026-09-28): this machine's browser is Chrome 152 with the brand list in
+  // the form and order a real 15x build sends (the owner's 153 sends exactly this
+  // shape) — NOT the shim's old \`[Not;A=Brand/99, Chromium, Google Chrome]\`, so a
+  // test that passes here cannot be passing on the old synthesised list.
   const REAL_BRANDS = [
-    { brand: 'Not;A=Brand', version: '99' }, { brand: 'Chromium', version: '152' }, { brand: 'Google Chrome', version: '152' },
+    { brand: 'Google Chrome', version: '152' }, { brand: 'Not_A Brand', version: '8' }, { brand: 'Chromium', version: '152' },
   ];
+  const REAL_FULL_VERSION = '152.0.7400.12';
+  const REAL_FULL_LIST = [
+    { brand: 'Google Chrome', version: REAL_FULL_VERSION }, { brand: 'Not_A Brand', version: '8.0.0.0' }, { brand: 'Chromium', version: REAL_FULL_VERSION },
+  ];
+  const REAL_HE = { architecture: 'arm', bitness: '64', model: '', platformVersion: '26.6.0', uaFullVersion: REAL_FULL_VERSION, wow64: false };
   // Built with the freeze captured at rig-setup time and by index assignment, never
   // \`map\`/\`push\`: this getter stands in for NATIVE code, and A2-timing hooks those
   // three to throw. A native getter routes through none of them.
   const rawFreeze = Object.freeze;
-  const freshBrands = () => {
+  const RawPromise = Promise, rawReject = Promise.reject, rawApplyR = Reflect.apply, rawDefine = Object.defineProperty;
+  const freshList = (src) => {
     const out = [];
-    for (let i = 0; i < REAL_BRANDS.length; i++) out[i] = { brand: REAL_BRANDS[i].brand, version: REAL_BRANDS[i].version };
-    return rawFreeze(out);
+    for (let i = 0; i < src.length; i++) out[i] = { brand: src[i].brand, version: src[i].version };
+    return out;
   };
+  const freshBrands = () => rawFreeze(freshList(REAL_BRANDS));
   const UAD = { mobile: false, platform: 'macOS' };
   for (const k of Object.keys(UAD)) {
     Object.defineProperty(NavigatorUAData.prototype, k, {
@@ -208,10 +220,27 @@ const DOM_SETUP = `
   Object.defineProperty(NavigatorUAData.prototype, 'brands', {
     get() { brand(this, NavigatorUAData); return freshBrands(); }, configurable: true, enumerable: true,
   });
-  NavigatorUAData.prototype.toJSON = function () { brand(this, NavigatorUAData); return { ...UAD, brands: freshBrands() }; };
-  NavigatorUAData.prototype.getHighEntropyValues = function () {
-    brand(this, NavigatorUAData);
-    return Promise.resolve({ ...UAD, brands: freshBrands(), platformVersion: '26.6.0', architecture: 'arm', bitness: '64' });
+  NavigatorUAData.prototype.toJSON = function () { brand(this, NavigatorUAData); return { brands: freshList(REAL_BRANDS), ...UAD }; };
+  // As the engine does it (measured, CfT 146/149): a wrong receiver REJECTS; the
+  // hints are converted through the iterator protocol; the dictionary holds only
+  // what was asked for plus the low-entropy trio, in lexicographic key order, and
+  // resolves through the engine's own Promise, never the page's \`Promise.resolve\`.
+  const HE_KEYS = ['architecture', 'bitness', 'brands', 'formFactors', 'fullVersionList', 'mobile', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'wow64'];
+  NavigatorUAData.prototype.getHighEntropyValues = function (hints) {
+    if (!(this instanceof NavigatorUAData)) {
+      return rawApplyR(rawReject, RawPromise, [new TypeError("Failed to execute 'getHighEntropyValues' on 'NavigatorUAData': Illegal invocation")]);
+    }
+    const want = Object.create(null);
+    for (const h of hints) want[\`\${h}\`] = true;
+    const out = {};
+    const put = (k, v) => rawDefine(out, k, { value: v, writable: true, enumerable: true, configurable: true });
+    for (let i = 0; i < HE_KEYS.length; i++) {
+      const k = HE_KEYS[i];
+      if (k === 'brands') put(k, freshList(REAL_BRANDS));
+      else if (k === 'mobile' || k === 'platform') put(k, UAD[k]);
+      else if (want[k]) put(k, k === 'fullVersionList' ? freshList(REAL_FULL_LIST) : (k === 'formFactors' ? ['Desktop'] : REAL_HE[k]));
+    }
+    return new RawPromise((resolve) => resolve(out));
   };
   const uad = Object.create(NavigatorUAData.prototype);
   Object.defineProperty(Navigator.prototype, 'userAgentData', {
@@ -336,7 +365,7 @@ const DOM_SETUP = `
     MutationObserver, getComputedStyle, WebGLRenderingContext, GPUAdapterInfo,
     AudioBuffer, AnalyserNode, document,
   });
-  globalThis.__h = { listenersFor, REAL, UAD, REAL_GL, REAL_GPU };
+  globalThis.__h = { listenersFor, REAL, UAD, REAL_GL, REAL_GPU, REAL_BRANDS, REAL_FULL_LIST, REAL_HE };
 })();
 `;
 
@@ -426,6 +455,8 @@ function bootRealm({ hostname = 'example.test', origin = 'https://example.test',
       gpcNonce: gpcBoot ? gpcBoot.nonce : null, reportTokens: RIG_TOKENS, ...over,
     }),
     ua: () => ctx.navigator.userAgent,
+    /** A persona-supplied read — the observable since D51 made the UA the real browser's. REAL is 12. */
+    hw: () => ctx.navigator.hardwareConcurrency,
     canvas: (w, h2) => { const c = page('document.createElement("canvas")'); c.width = w; c.height = h2; return c; },
   };
 }
@@ -435,7 +466,6 @@ const RIG_TOKENS = Array.from({ length: 32 }, (_, i) => `rigtoken${String(i).pad
 
 const DELIVERED = {
   id: 'macos-chrome-m1-pro', platform: 'MacIntel',
-  ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
   uaData: { platform: 'macOS', platformVersion: '14.6.0', architecture: 'arm', bitness: '64', model: '', wow64: false },
   gpu: { vendor: 'Google Inc. (Apple)', renderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)', unmaskedVendor: 'Google Inc. (Apple)', maxTextureSize: 16384 },
   cores: 10, memory: 32,
@@ -578,8 +608,10 @@ test('A1c GUARD: a silent AudioBuffer reads back all zeros, and a pattern learne
 test('A2a GUARD: hooking Function.prototype.call sees NO call from the shim and gets no native getter', () => {
   const s = bootRealm();
   s.upgrade();
-  assert.equal(s.ua(), DELIVERED.ua, 'sanity: the persona is in place');
+  assert.equal(s.hw(), DELIVERED.cores, 'sanity: the persona is in place');
 
+  // hardwareConcurrency, not userAgent, since D51: the UA is the engine's own
+  // getter now, so there is no native behind a replacement to leak.
   const out = s.page(`
     const leaked = [];
     const origCall = Function.prototype.call;
@@ -589,20 +621,20 @@ test('A2a GUARD: hooking Function.prototype.call sees NO call from the shim and 
     };
     let spoofed;
     try {
-      spoofed = navigator.userAgent;
-      void navigator.hardwareConcurrency; void navigator.deviceMemory; void navigator.platform;
-      void navigator.userAgentData.brands;
+      spoofed = navigator.hardwareConcurrency;
+      void navigator.userAgent; void navigator.deviceMemory; void navigator.platform;
+      void navigator.userAgentData.brands; void navigator.userAgentData.getHighEntropyValues(['platformVersion']);
     } finally { Function.prototype.call = origCall; }
     // The attacker's harvest: any leaked function that answers differently from the spoof.
-    const replacement = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
+    const replacement = Object.getOwnPropertyDescriptor(Navigator.prototype, 'hardwareConcurrency').get;
     let real = null;
     for (const fn of leaked) {
       if (fn === replacement) continue;
-      try { const v = Reflect.apply(fn, navigator, []); if (typeof v === 'string' && v !== spoofed) { real = v; break; } } catch {}
+      try { const v = Reflect.apply(fn, navigator, []); if (typeof v === 'number' && v !== spoofed) { real = v; break; } } catch {}
     }
     ({ spoofed, real, calls: leaked.length });
   `);
-  assert.equal(out.spoofed, DELIVERED.ua, 'the spoof held while the hook was live');
+  assert.equal(out.spoofed, DELIVERED.cores, 'the spoof held while the hook was live');
   assert.equal(out.real, null, 'REGRESSION: a native navigator getter reached the page through a .call hook');
   assert.equal(out.calls, 0, 'REGRESSION: the shim invoked Function.prototype.call at run time (D21: every builtin is captured at boot)');
 });
@@ -647,7 +679,7 @@ test('A2b GUARD: hooking Function.prototype.apply sees NO call from the shim; to
 
 test('A2c GUARD: hooking String.prototype.charCodeAt no longer makes a forged nonce match; the genuine one still does under the hook', () => {
   const s = bootRealm();
-  const fallbackUA = s.ua();
+  const fallbackHw = s.hw();    // a shimmed read: from here the upgrade gate keeps the fallback (D2)
   s.page(`
     globalThis.__origCharCodeAt = String.prototype.charCodeAt;
     String.prototype.charCodeAt = function () { return 0; };
@@ -655,13 +687,17 @@ test('A2c GUARD: hooking String.prototype.charCodeAt no longer makes a forged no
       detail: JSON.stringify({ ok: true, enabled: false, nonce: '0'.repeat(32) }),
     }));
   `);
-  assert.notEqual(s.ua(), REAL_UA, 'REGRESSION: a page that never saw the nonce stood the shim down');
-  assert.equal(s.ua(), fallbackUA, 'the forgery changed nothing: still the fallback persona');
+  assert.notEqual(s.hw(), s.h.REAL.hardwareConcurrency, 'REGRESSION: a page that never saw the nonce stood the shim down');
+  assert.equal(s.hw(), fallbackHw, 'the forgery changed nothing: still the fallback persona');
   assert.ok(s.statuses.some((d) => d.reason === 'forged-handshake-rejected'), 'the forgery was reported as such');
   assert.ok(!s.statuses.some((d) => d.reason === 'allowlisted'), 'and not as an allowlist');
   // Timing 2: the hook is STILL installed when the loader's genuine delivery lands.
   s.upgrade();
-  assert.equal(s.ua(), DELIVERED.ua, 'the genuine handshake authenticated through the captured charCodeAt while the live one was hooked');
+  // The read above locked the fallback, so the proof of authentication is the
+  // status only an AUTHENTICATED payload can produce: the upgrade gate's refusal.
+  assert.deepEqual(plain(s.statuses.at(-1)), { upgraded: false, lockedToFallback: true, reason: 'api-read-before-handshake', token: s.statuses.at(-1).token },
+    'the genuine handshake authenticated through the captured charCodeAt while the live one was hooked');
+  assert.equal(s.hw(), fallbackHw);
   s.page('String.prototype.charCodeAt = globalThis.__origCharCodeAt;');
 });
 
@@ -681,7 +717,7 @@ test('A2d GUARD: the same charCodeAt hook cannot delete navigator.globalPrivacyC
   // Timing 2: the loader's genuine delivery (both nonces) with the hook still live.
   // It reaches gpc.js through the shim's relay (A3 below) and must still be honoured.
   s.upgrade(DELIVERED, { gpc: false });
-  assert.equal(s.ua(), DELIVERED.ua, 'the shim half authenticated');
+  assert.equal(s.hw(), DELIVERED.cores, 'the shim half authenticated');
   // `false`, not absent, since 2026-09-19 G2: OFF is a conformant value, and
   // `delete` was removing Firefox's own native property.
   assert.equal(s.ctx.navigator.globalPrivacyControl, false, 'the gpc half authenticated its own nonce under the hook');
@@ -792,15 +828,15 @@ test('A2-timing GUARD: with a dozen builtins hooked BEFORE the genuine handshake
     };
   })()`.replace(/__c/g, '__canvasUnderTest'), Object.assign(s.ctx, { __canvasUnderTest: c }));
 
-  assert.equal(read.ua, DELIVERED.ua);
+  assert.equal(read.ua, REAL_UA, 'D51: the user agent is the browser\'s own, hooks or not');
   assert.equal(read.cores, DELIVERED.cores, 'hardwareConcurrency (goes through a captured Math.max)');
   assert.equal(read.memory, DELIVERED.memory);
   // Expectation changed 2026-09-16 (D25): `languages` is no longer patched, so it
   // is the realm's own real list — the point here is that the hostile hooks did not
-  // disturb it either. Captured-`Object.freeze` coverage moved to `brands` below,
-  // which still builds frozen entries through `objFreeze` while the page's throws.
+  // disturb it either. The same is true of `brands` since D51 (2026-09-28): the
+  // engine's own getter answers, verbatim, whatever the page hooked.
   assert.deepEqual(plain(read.languages), plain(s.h.REAL.languages), 'languages stayed the host\'s real list (D25)');
-  assert.equal(read.brands, 'Not;A=Brand/99 Chromium/151 Google Chrome/151', 'brands (no Array.prototype.map)');
+  assert.equal(read.brands, 'Google Chrome/152 Not_A Brand/8 Chromium/152', 'brands are the browser\'s own (D51)');
   assert.equal(read.renderer, DELIVERED.gpu.renderer);
   assert.deepEqual(plain(read.extensions), ['WEBGL_compressed_texture_astc', 'WEBGL_debug_renderer_info', 'OES_texture_float'],
     'an Apple persona strips nothing; the list came back through an index loop, not .filter');
@@ -808,25 +844,26 @@ test('A2-timing GUARD: with a dozen builtins hooked BEFORE the genuine handshake
   const rawDataURL = 'data:fake,' + Array.from(c.getContext('2d')._buf).join(',');
   assert.notEqual(read.toDataURL, rawDataURL, 'toDataURL was noised');
   const he = await read.he;
-  assert.equal(he.architecture, DELIVERED.uaData.architecture, 'getHighEntropyValues (captured Promise.resolve, Set.has, Array.isArray)');
+  assert.equal(he.architecture, DELIVERED.uaData.architecture, 'getHighEntropyValues (captured Promise.prototype.then, Set.has/add)');
+  assert.equal(he.platformVersion, DELIVERED.uaData.platformVersion, 'the persona\'s platformVersion, not the real 26.6.0, with Set.has hooked to say false');
 
   // THE HARVEST. Everything that went through the hooked call/apply/get: does any
   // of it answer with the real machine, the raw canvas, or the patched-function oracle?
   const harvest = s.page(`(() => {
     const gl = new WebGLRenderingContext(document.createElement('canvas'));
-    const spoofedUA = navigator.userAgent;
-    const patchedUA = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get;
-    let realUA = null, realRenderer = null, rawDataURL = null, oracle = false;
+    const spoofedCores = navigator.hardwareConcurrency;
+    const patchedGetter = Object.getOwnPropertyDescriptor(Navigator.prototype, 'hardwareConcurrency').get;
+    let realCores = null, realRenderer = null, rawDataURL = null, oracle = false;
     for (const fn of __leaked) {
       if (typeof fn !== 'function') continue;
-      try { const v = Reflect.apply(fn, navigator, []); if (typeof v === 'string' && v !== spoofedUA && v.startsWith('Mozilla/')) realUA = v; } catch {}
+      try { const v = Reflect.apply(fn, navigator, []); if (typeof v === 'number' && v !== spoofedCores && v === 12 /* the rig's real core count */) realCores = v; } catch {}
       try { const v = Reflect.apply(fn, gl, [0x9246]); if (v === ${JSON.stringify(REAL_RENDERER)}) realRenderer = v; } catch {}
       try { const v = Reflect.apply(fn, __c, []); if (typeof v === 'string' && v === ${JSON.stringify(rawDataURL)}) rawDataURL = v; } catch {}
     }
-    for (const m of __maps) { try { if (WeakMap.prototype.has.call(m, patchedUA)) oracle = true; } catch {} }
-    return { realUA, realRenderer, rawDataURL, oracle, routed: __leaked.length, maps: __maps.length };
+    for (const m of __maps) { try { if (WeakMap.prototype.has.call(m, patchedGetter)) oracle = true; } catch {} }
+    return { realCores, realRenderer, rawDataURL, oracle, routed: __leaked.length, maps: __maps.length };
   })()`.replace(/__c/g, '__canvasUnderTest'));
-  assert.equal(harvest.realUA, null, 'REGRESSION: a native navigator getter was routed through the live call/apply');
+  assert.equal(harvest.realCores, null, 'REGRESSION: a native navigator getter was routed through the live call/apply');
   assert.equal(harvest.realRenderer, null, 'REGRESSION: the native getParameter was routed through the live call/apply');
   assert.equal(harvest.rawDataURL, null, 'REGRESSION: the native toDataURL was routed through the live call/apply');
   assert.equal(harvest.oracle, false, 'REGRESSION: NATIVE_SRC was routed through the live WeakMap.prototype.get (C2)');
@@ -898,7 +935,7 @@ test('A3 GUARD: a page window-capture listener sees neither the persona delivery
     document.addEventListener('nullecho:persona', (ev) => { globalThis.__fires++; });
   `);
   s.upgrade(DELIVERED, { gpc: false });
-  assert.equal(s.ua(), DELIVERED.ua, 'the shim consumed the handshake');
+  assert.equal(s.hw(), DELIVERED.cores, 'the shim consumed the handshake');
   assert.equal(s.ctx.navigator.globalPrivacyControl, false, 'gpc.js heard {gpc:false} through the shim\'s relay');
   assert.equal(s.ctx.__stolen, null, 'REGRESSION: a page listener read the delivered payload');
   assert.equal(s.ctx.__fires, 0, 'REGRESSION: a page listener fired on the delivery or on the relay');
@@ -911,12 +948,12 @@ test('A3 GUARD: with gpc.js absent (excluded host) nothing is relayed, and an un
     globalThis.EventTarget.prototype.addEventListener.call(globalThis, 'nullecho:persona', (ev) => { globalThis.__seen.push(JSON.parse(ev.detail)); }, true);
   `);
   s.upgrade();                                     // gpcNonce: null → no relay
-  assert.equal(s.ua(), DELIVERED.ua);
+  assert.equal(s.hw(), DELIVERED.cores);
   assert.deepEqual(plain(s.ctx.__seen), [], 'nothing reached the page: no delivery, no relay');
   // The page's own event (wrong nonce) is not ours to swallow — swallowing it would be a free presence probe.
   s.send({ ok: true, enabled: false, nonce: 'f'.repeat(32) });
   assert.equal(s.ctx.__seen.length, 1, 'an unauthenticated event propagates normally');
-  assert.equal(s.ua(), DELIVERED.ua, 'and changes nothing');
+  assert.equal(s.hw(), DELIVERED.cores, 'and changes nothing');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1119,28 +1156,28 @@ test('B1 GUARD: navigator.language / languages are left real and agree with Intl
   assert.equal(out.stableLangs, true, 'GUARD: unpatched languages keeps Chrome FrozenArray identity (B7)');
 });
 
-// FIXED 2026-09-16 (DECISIONS.md D19). Three static `modifyHeaders` rulesets —
-// one per host OS family, generated from personas.js + the shim's GREASE brand —
-// rewrite `User-Agent` and every `Sec-CH-UA-*` request header; background.js
-// enables the host family's one. Family-level rather than per-origin because the
-// `main_frame` request precedes any content script, so a per-origin rule cannot
-// exist for the first request to a site — while D12 already pins every persona
-// this host can be shown (fallback included) to one family. The guard boots the
-// REAL shim once per persona and compares what its navigator says to the bytes
-// the ruleset would put on the wire, field by field.
+// FIXED 2026-09-16 (DECISIONS.md D19) by rewriting the headers to the persona's
+// "Chrome/151"; RE-FIXED 2026-09-28 (D51) the other way round. B2 was "the JS says
+// one browser and the wire says another". D19 made the wire follow the JS — and so
+// both claimed a pinned Chrome 151 that the TLS stack, the feature set, Google's
+// X-Client-Data and every Worker contradicted, on a browser that was 153. Since D51
+// the JS follows the BROWSER: `userAgent`, `brands`, `mobile` and `platform` are the
+// engine's own, and the rulesets no longer touch the four headers that carry them.
+// The seven Accept-CH hints stay REMOVED (D49), because the JS still answers the
+// five platform hints from the persona.
+//
+// The guard boots the REAL shim once per persona in a realm whose browser is Chrome
+// 152 with a brand list in the real, non-default form (not the shim's old synthesised
+// one), and compares what its navigator says with what the browser itself would put
+// on the wire — which, with no rule touching those headers, is the browser's own.
 
-test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the host family\'s values, which equal the JS persona\'s field by field (no residual since D24)', async () => {
-  const s0 = bootRealm(); // host navigator says Chrome/152
-  assert.match(s0.h.REAL.userAgent, /Chrome\/152/, 'the browser itself would send Chrome/152');
-  assert.match(s0.ua(), /Chrome\/151\.0\.0\.0/, 'the JS persona still says 151 — the header follows it, not the other way round');
-
-  const WANT = ['User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform', 'Sec-CH-UA-Full-Version-List',
-    'Sec-CH-UA-Full-Version', 'Sec-CH-UA-Platform-Version', 'Sec-CH-UA-Arch', 'Sec-CH-UA-Bitness', 'Sec-CH-UA-Model', 'Sec-CH-UA-WoW64'];
+test('B2 (D51): the four always-sent headers are the browser\'s own and so is the JS — for every persona — and the Accept-CH hints are removed, never added', async () => {
+  const REMOVED = ['Sec-CH-UA-Full-Version-List', 'Sec-CH-UA-Full-Version', 'Sec-CH-UA-Platform-Version',
+    'Sec-CH-UA-Arch', 'Sec-CH-UA-Bitness', 'Sec-CH-UA-Model', 'Sec-CH-UA-WoW64'];
   const ALWAYS = ['User-Agent', 'Sec-CH-UA', 'Sec-CH-UA-Mobile', 'Sec-CH-UA-Platform'];
   const families = { win: 'ua-win.json', mac: 'ua-mac.json', linux: 'ua-linux.json' };
-  const familyOfPlatform = { Win32: 'win', MacIntel: 'mac', 'Linux x86_64': 'linux' };
   // Chrome's wire form (RFC 8941), written out here rather than imported so this
-  // check does not lean on the generator it is checking.
+  // check does not lean on a generator.
   const q = (v) => `"${String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
   const list = (arr) => Array.from(arr, (b) => `${q(b.brand)};v=${q(b.version)}`).join(', ');
   const bool = (b) => (b ? '?1' : '?0');
@@ -1152,56 +1189,61 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
       const r = m.declarative_net_request.rule_resources.find((x) => x.path === `rules/${file}`);
       assert.ok(r, `${name} does not register ${file}`);
       assert.equal(r.id, `ua-${fam}`);
-      assert.equal(r.enabled, false, `${name}: three enabled at once would fight over the same headers`);
+      assert.equal(r.enabled, false, `${name}: the worker enables the host family's one`);
     }
   }
 
-  const mismatches = [];
-  let checked = 0;
-  for (const [fam, file] of Object.entries(families)) {
+  // What the rulesets do to the wire: remove exactly the seven hints; touch nothing else.
+  for (const file of Object.values(families)) {
     const rules = JSON.parse(fs.readFileSync(path.join(EXT, 'rules', file), 'utf8'));
-    const wire = {};
     const removed = new Set();
     for (const r of rules) {
       assert.equal(r.action.type, 'modifyHeaders');
       assert.ok(r.condition.resourceTypes.includes('main_frame'), 'the navigation is the first request the server sees');
-      // D49 (2026-09-28): the four always-sent headers are SET to the persona; the seven Accept-CH
-      // hints are REMOVED (never added — adding them broke reCAPTCHA in a real signed-in Chrome).
       for (const h of r.action.requestHeaders) {
-        if (ALWAYS.includes(h.header)) { assert.equal(h.operation, 'set'); wire[h.header] = h.value; }
-        else { assert.equal(h.operation, 'remove', `${file}: ${h.header} must be removed, not set`); removed.add(h.header); }
+        assert.equal(h.operation, 'remove', `${file}: ${h.header} is ${h.operation} — nothing may be SET (D49), and nothing the browser says about itself rewritten (D51)`);
+        assert.ok(!ALWAYS.includes(h.header), `${file}: touches ${h.header}`);
+        removed.add(h.header);
       }
     }
-    assert.deepEqual(Object.keys(wire).sort(), [...ALWAYS].sort(), `${file} rewrites exactly the always-sent headers`);
-    assert.deepEqual([...removed].sort(), WANT.filter((n) => !ALWAYS.includes(n)).sort(), `${file} removes exactly the Accept-CH hints`);
+    assert.deepEqual([...removed].sort(), [...REMOVED].sort(), `${file} removes exactly the Accept-CH hints`);
+  }
 
-    for (const p of PERSONAS.filter((p) => familyOfPlatform[p.platform] === fam)) {
-      const s = bootRealm();
-      s.upgrade({ ...p, fontList: ['Helvetica'], noise: { canvas: 0.31, audio: 0.57, webgl: 0.73 }, seed: 1 });
-      assert.equal(s.statuses.at(-1)?.upgraded, true, `${p.id}: the shim did not accept the persona`);
-      const hi = await s.page('navigator.userAgentData.getHighEntropyValues(["architecture","bitness","model","platformVersion","uaFullVersion","fullVersionList","wow64"])');
-      const js = {
-        'User-Agent': s.ua(),
-        'Sec-CH-UA': list(s.page('navigator.userAgentData.brands')),
-        'Sec-CH-UA-Mobile': bool(s.page('navigator.userAgentData.mobile')),
-        'Sec-CH-UA-Platform': q(s.page('navigator.userAgentData.platform')),
-        'Sec-CH-UA-Full-Version-List': list(hi.fullVersionList),
-        'Sec-CH-UA-Full-Version': q(hi.uaFullVersion),
-        'Sec-CH-UA-Platform-Version': q(hi.platformVersion),
-        'Sec-CH-UA-Arch': q(hi.architecture),
-        'Sec-CH-UA-Bitness': q(hi.bitness),
-        'Sec-CH-UA-Model': q(hi.model),
-        'Sec-CH-UA-WoW64': bool(hi.wow64),
-      };
-      for (const name of ALWAYS) {
-        checked += 1;
-        if (js[name] !== wire[name]) mismatches.push({ persona: p.id, header: name, js: js[name], wire: wire[name] });
-      }
+  // So on the wire the four always-sent headers are exactly what this browser writes.
+  const s0 = bootRealm();
+  const wire = {
+    'User-Agent': s0.h.REAL.userAgent,
+    'Sec-CH-UA': list(s0.h.REAL_BRANDS),
+    'Sec-CH-UA-Mobile': bool(s0.h.UAD.mobile),
+    'Sec-CH-UA-Platform': q(s0.h.UAD.platform),
+  };
+  assert.match(wire['User-Agent'], /Chrome\/152/, 'rig: the browser is not 151');
+  assert.equal(wire['Sec-CH-UA'], '"Google Chrome";v="152", "Not_A Brand";v="8", "Chromium";v="152"', 'rig: a real-shaped brand list');
+
+  const mismatches = [];
+  let checked = 0;
+  for (const p of PERSONAS) {
+    const s = bootRealm();
+    s.upgrade({ ...p, fontList: ['Helvetica'], noise: { canvas: 0.31, audio: 0.57, webgl: 0.73 }, seed: 1 });
+    assert.equal(s.statuses.at(-1)?.upgraded, true, `${p.id}: the shim did not accept the persona`);
+    const hi = await s.page('navigator.userAgentData.getHighEntropyValues(["uaFullVersion","fullVersionList"])');
+    const js = {
+      'User-Agent': s.ua(),
+      'Sec-CH-UA': list(s.page('navigator.userAgentData.brands')),
+      'Sec-CH-UA-Mobile': bool(s.page('navigator.userAgentData.mobile')),
+      'Sec-CH-UA-Platform': q(s.page('navigator.userAgentData.platform')),
+    };
+    for (const name of ALWAYS) {
+      checked += 1;
+      if (js[name] !== wire[name]) mismatches.push({ persona: p.id, header: name, js: js[name], wire: wire[name] });
     }
+    // The version the page is shown is the browser's, to the last digit.
+    assert.equal(hi.uaFullVersion, s0.h.REAL_HE.uaFullVersion, p.id);
+    assert.equal(list(hi.fullVersionList), list(s0.h.REAL_FULL_LIST), p.id);
   }
   assert.equal(checked, PERSONAS.length * ALWAYS.length, 'every persona × every always-sent header was compared');
   assert.deepEqual(mismatches, [],
-    'GUARD (D24): no persona disagrees with its family\'s header ruleset on any header. Anything here is B2 back — or a pool change that needs D19 revisited');
+    'GUARD (D51): the JS and the wire disagree on what the browser is. That is B2 back, from either side');
 });
 
 // ✅ FIXED 2026-09-16 (DECISIONS.md D31). A same-origin `about:blank` / `srcdoc`
@@ -1212,7 +1254,10 @@ test('B2 FIXED: User-Agent and every Sec-CH-UA-* header are rewritten to the hos
 // salted persona its parent is on.
 test('B3a GUARD: an about:blank / srcdoc child derives the SAME fallback persona as its parent', () => {
   const PEPPER = 'nullecho-fallback-v1';
-  const machine = (s) => `${s.ctx.navigator.hardwareConcurrency}/${s.ctx.navigator.deviceMemory}/${s.ctx.navigator.userAgent}`;
+  // Cores, memory and the WebGL renderer: persona reads. (The user agent was the third
+  // field until D51 made it the real browser's in every realm.)
+  const machine = (s) => `${s.ctx.navigator.hardwareConcurrency}/${s.ctx.navigator.deviceMemory}/` +
+    s.page('new WebGLRenderingContext(document.createElement("canvas")).getParameter(0x9246)');
   // A site where keying on the origin STRING would have landed somewhere else —
   // i.e. one where the old bug was observable (≈80% of sites are).
   let site = null;
@@ -1225,7 +1270,7 @@ test('B3a GUARD: an about:blank / srcdoc child derives the SAME fallback persona
   // about:blank and srcdoc: hostname is '', origin is the parent's, inherited.
   const blank = bootRealm({ hostname: '', origin: `https://www.${site}` });
   const srcdoc = bootRealm({ hostname: '', origin: `https://www.${site}` });
-  assert.equal(machine(parent), `${expectParent.cores}/${expectParent.memory}/${expectParent.ua}`,
+  assert.equal(machine(parent), `${expectParent.cores}/${expectParent.memory}/${expectParent.gpu.renderer}`,
     'parent fallback = personaFor(pepper, eTLD+1)');
   assert.equal(machine(blank), machine(parent), 'GUARD: the blank child presents its parent\'s machine');
   assert.equal(machine(srcdoc), machine(parent), 'GUARD: so does a srcdoc child');
@@ -1235,10 +1280,11 @@ test('B3a GUARD: an about:blank / srcdoc child derives the SAME fallback persona
   const ported = bootRealm({ hostname: '', origin: `https://www.${site}:8443` });
   assert.equal(machine(ported), machine(parent), 'GUARD: a port in the inherited origin is not part of the key');
   const v6 = bootRealm({ hostname: '', origin: 'https://[2606:4700::1111]:8443' });
-  assert.equal(v6.ctx.navigator.userAgent, bootRealm({ hostname: '[2606:4700::1111]', origin: 'https://[2606:4700::1111]' }).ctx.navigator.userAgent,
+  assert.equal(machine(v6), machine(bootRealm({ hostname: '[2606:4700::1111]', origin: 'https://[2606:4700::1111]' })),
     'GUARD: a bracketed IPv6 authority survives the parse intact');
   const opaque = bootRealm({ hostname: '', origin: 'null' });
-  assert.match(opaque.ctx.navigator.userAgent, /Chrome\//, 'an opaque origin still gets SOME coherent persona, just not an inherited one');
+  const macRenderers = PERSONAS.filter((p) => p.platform === 'MacIntel').map((p) => p.gpu.renderer);
+  assert.ok(macRenderers.includes(machine(opaque).split('/').slice(2).join('/')), 'an opaque origin still gets SOME coherent persona, just not an inherited one');
 });
 
 test('B3b GUARD: the service worker answers an about:blank / srcdoc sender with the PARENT origin\'s persona', async () => {
@@ -1268,7 +1314,7 @@ test('B3b GUARD: the service worker answers an about:blank / srcdoc sender with 
   assert.deepEqual(internal, { ok: false, error: 'unsupported scheme' }, 'chrome:// must not borrow a site key from sender.origin');
 });
 
-test('B3c GUARD: a child realm reached through contentWindow presents the parent\'s persona, in the CHILD realm\'s own Array', () => {
+test('B3c GUARD: a child realm reached through contentWindow presents the parent\'s persona, in the CHILD realm\'s own Array', async () => {
   const s = bootRealm({ child: true });
   s.upgrade();
   // Reading `contentWindow` is what installs into that realm — the same read a
@@ -1276,8 +1322,8 @@ test('B3c GUARD: a child realm reached through contentWindow presents the parent
   s.page('globalThis.__cw = document.createElement("iframe").contentWindow;');
   const inChild = (code) => vm.runInContext(code, s.childCtx);
 
-  assert.equal(s.childCtx.navigator.userAgent, DELIVERED.ua, 'GUARD: the child realm presents the parent\'s persona');
-  assert.equal(s.childCtx.navigator.hardwareConcurrency, DELIVERED.cores);
+  assert.equal(s.childCtx.navigator.hardwareConcurrency, DELIVERED.cores, 'GUARD: the child realm presents the parent\'s persona');
+  assert.equal(s.childCtx.navigator.userAgent, REAL_UA, 'D51: and the browser\'s own user agent, as the parent does');
   assert.equal(s.childCtx.navigator.deviceMemory, DELIVERED.memory);
   assert.equal(s.childCtx.navigator.platform, DELIVERED.platform);
 
@@ -1291,14 +1337,23 @@ test('B3c GUARD: a child realm reached through contentWindow presents the parent
     'GUARD: and its entries are the child realm\'s objects');
   assert.equal(inChild('Object.isFrozen(navigator.userAgentData.brands)'), true, 'still frozen (D27)');
   assert.equal(inChild('navigator.userAgentData.brands === navigator.userAgentData.brands'), false, 'still fresh per read (D27)');
-  assert.equal(inChild('navigator.userAgentData.brands[1].brand + "/" + navigator.userAgentData.brands[1].version'), 'Chromium/151',
-    'and it is the parent persona\'s brand list');
+  assert.equal(inChild('navigator.userAgentData.brands[0].brand + "/" + navigator.userAgentData.brands[0].version'), 'Google Chrome/152',
+    'and it is the browser\'s own brand list (D51), not one the shim built');
   assert.equal(inChild('navigator.userAgentData.toJSON().brands instanceof Array'), true,
     'GUARD: the toJSON() dictionary\'s array too');
   assert.equal(inChild('Object.getPrototypeOf(navigator.userAgentData.toJSON()) === Object.prototype'), true,
     'GUARD: and the dictionary object itself');
   assert.equal(inChild('new WebGLRenderingContext(document.createElement("canvas")).getSupportedExtensions() instanceof Array'), true,
     'GUARD: the filtered WebGL extension list too');
+  // D51: the one userAgentData member still wrapped. Its promise and dictionary
+  // belong to the child realm (the engine builds them in the receiver's realm, and
+  // the merge is built on the engine dictionary's own prototype).
+  inChild('globalThis.__he = navigator.userAgentData.getHighEntropyValues(["platformVersion", "fullVersionList"])');
+  assert.equal(inChild('__he instanceof Promise'), true, 'GUARD: getHighEntropyValues returns the CHILD realm\'s Promise');
+  const he = await inChild('__he');
+  assert.equal(inChild('(d) => Object.getPrototypeOf(d) === Object.prototype')(he), true, 'GUARD: and the child realm\'s dictionary');
+  assert.equal(he.platformVersion, DELIVERED.uaData.platformVersion, 'with the parent persona\'s platformVersion');
+  assert.equal(inChild('(d) => d.fullVersionList instanceof Array')(he), true);
 
   // The parent realm is unaffected: its arrays are still its own.
   assert.equal(s.page('navigator.userAgentData.brands instanceof Array'), true, 'the parent still gets parent-realm arrays');
@@ -1386,8 +1441,8 @@ test('B7 GUARD: userAgentData.brands is a FRESH frozen array per read and naviga
     'GUARD: a new array per read, as measured — caching it was the detector');
   assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands)'), true,
     'GUARD: each array is frozen, as a FrozenArray attribute is');
-  assert.equal(s.page('navigator.userAgentData.brands[1].brand + "/" + navigator.userAgentData.brands[1].version'), 'Chromium/151',
-    'and it is still the persona\'s brand list');
+  assert.equal(s.page('navigator.userAgentData.brands[0].brand + "/" + navigator.userAgentData.brands[0].version'), 'Google Chrome/152',
+    'and it is the browser\'s own brand list — since D51 the engine\'s getter answers');
   assert.deepEqual(plain(s.page('navigator.userAgentData.brands')), plain(s.page('navigator.userAgentData.brands')),
     'GUARD: different objects, identical contents — the freshness is not an entropy source');
 
@@ -1406,9 +1461,9 @@ test('B7 GUARD: userAgentData.brands is a FRESH frozen array per read and naviga
   assert.notEqual(s.page('navigator.userAgentData.brands[0].brand'), 'zz',
     'GUARD: and the next read is a fresh array, so the write did not persist');
 
-  // The native brand check must still fire on the replaced getter.
+  // The native brand check fires — on the engine's own getter, which D51 leaves in place.
   assert.throws(() => s.page('Object.getOwnPropertyDescriptor(NavigatorUAData.prototype, "brands").get.call({})'),
-    /Illegal invocation/, 'GUARD: the Illegal-invocation check survived the revert');
+    /Illegal invocation/, 'GUARD: the Illegal-invocation check');
 
   // `toJSON()` and `getHighEntropyValues()` return IDL DICTIONARIES: each
   // conversion builds a new plain array. Measured per-call freshness for
@@ -1425,15 +1480,17 @@ test('B7 GUARD: userAgentData.brands is a FRESH frozen array per read and naviga
   assert.equal(vm.runInContext('Object.isFrozen(navigator.userAgentData.brands)', control), true);
 });
 
-test('B7 GUARD: getHighEntropyValues hands back a fresh fullVersionList per call, and a refused upgrade does not change the brand VALUES', async () => {
+test('B7 GUARD: getHighEntropyValues hands back a fresh fullVersionList per call, and the brand VALUES never change across the handshake', async () => {
   const s = bootRealm();
-  // Reading first trips the D2 read gate, so the upgrade below is refused and the
-  // fallback persona stays. Nothing about the brands may change across that.
+  // Before D51 reading `brands` tripped the D2 read gate and the upgrade below was
+  // refused. It is the engine's own getter now — nothing persona-dependent was read,
+  // so the upgrade goes through, and the brands are the browser's on both sides.
   const before = plain(s.page('navigator.userAgentData.brands'));
   s.upgrade();
-  assert.ok(s.statuses.some((d) => d.reason === 'api-read-before-handshake'), 'the read gate refused the swap, as D2 requires');
+  assert.ok(s.statuses.some((d) => d.upgraded === true), 'D51: reading the browser\'s own brands does not lock the fallback');
   assert.deepEqual(plain(s.page('navigator.userAgentData.brands')), before,
-    'GUARD: same derived persona → same brand values, across the refused upgrade');
+    'GUARD: the same browser → the same brand values, across the upgrade');
+  assert.deepEqual(before, plain(s.h.REAL_BRANDS), 'and they are the browser\'s own');
   assert.equal(s.page('Object.isFrozen(navigator.userAgentData.brands)'), true);
 
   const two = await s.page(`Promise.all([
@@ -1443,6 +1500,7 @@ test('B7 GUARD: getHighEntropyValues hands back a fresh fullVersionList per call
   assert.equal(two[0].fullVersionList === two[1].fullVersionList, false,
     'GUARD: a fresh fullVersionList per call, as measured in Chrome 151');
   assert.deepEqual(plain(two[0].fullVersionList), plain(two[1].fullVersionList), 'with identical contents');
+  assert.deepEqual(plain(two[0].fullVersionList), plain(s.h.REAL_FULL_LIST), 'D51: the browser\'s own full version list');
 });
 
 // ✅ FIXED 2026-09-16 (DECISIONS.md D26). `maxTouchPoints` is no longer pinned to
@@ -1486,7 +1544,7 @@ test('B9 GUARD: a page owning Object.prototype cannot steer any field the handsh
     Object.prototype.dev = true;
     Object.prototype.enabled = false;      // would be "allowlisted" → restoreAll(), the real machine
     Object.prototype.ok = false;
-    Object.prototype.persona = { ua: 'x', platform: 'Win32', gpu: {}, screen: {}, fontList: [], noise: { canvas: 0 } };
+    Object.prototype.persona = { uaData: {}, platform: 'Win32', gpu: {}, screen: {}, fontList: [], noise: { canvas: 0 } };
     Object.prototype.nonce = 'z'.repeat(32);
     Object.prototype.gpcNonce = 'z'.repeat(32);
     Object.prototype.site = 'attacker.test';
@@ -1500,7 +1558,7 @@ test('B9 GUARD: a page owning Object.prototype cannot steer any field the handsh
   assert.equal(s.page('typeof __nullechoDev'), 'undefined', 'GUARD: no dev surface');
   assert.ok(s.statuses.some((d) => d.upgraded === true), 'GUARD: the genuine upgrade landed anyway');
   assert.ok(!s.statuses.some((d) => d.reason === 'allowlisted'), 'GUARD: injected enabled=false did not stand the shim down');
-  assert.equal(s.ctx.navigator.userAgent, DELIVERED.ua, 'GUARD: the delivered persona is in place, not the injected one');
+  assert.equal(s.ctx.navigator.hardwareConcurrency, DELIVERED.cores, 'GUARD: the delivered persona is in place, not the injected one');
   assert.equal(s.ctx.navigator.platform, DELIVERED.platform);
 });
 
@@ -1771,14 +1829,14 @@ test('C2 GUARD: hooking WeakMap.prototype.get never sees NATIVE_SRC; toString ma
     let plainSrc, patchedSrc;
     try {
       plainSrc = (function pageFn() { return 1; }).toString();
-      patchedSrc = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent').get.toString();
+      patchedSrc = Object.getOwnPropertyDescriptor(Navigator.prototype, 'hardwareConcurrency').get.toString();
     } finally { WeakMap.prototype.get = origGet; }
     ({ gotMap: map instanceof WeakMap, gets, plainSrc, patchedSrc });
   `);
   assert.equal(out.gotMap, false, 'REGRESSION: the shim consulted NATIVE_SRC through the live WeakMap.prototype.get');
   assert.equal(out.gets, 0, 'REGRESSION: the patched toString invoked WeakMap.prototype.get at run time');
   assert.match(out.plainSrc, /return 1/, 'an ordinary function still prints its source');
-  assert.equal(out.patchedSrc, 'function get userAgent() { [native code] }', 'the mask still applied while the hook was live');
+  assert.equal(out.patchedSrc, 'function get hardwareConcurrency() { [native code] }', 'the mask still applied while the hook was live');
 });
 
 test('C3 GUARD: the CANVAS / SUPERCOOKIE page-report strike path is gone, not merely unreachable (D20)', () => {
@@ -1893,7 +1951,6 @@ test('R2-1 GUARD: a genuinely late boot still raises nonce-exposed — the fix i
 const DELIVERED_NVIDIA = {
   ...DELIVERED,
   id: 'win11-chrome-rtx3060', platform: 'Win32',
-  ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
   uaData: { platform: 'Windows', platformVersion: '15.0.0', architecture: 'x86', bitness: '64', model: '', wow64: false },
   gpu: {
     vendor: 'Google Inc. (NVIDIA)',
