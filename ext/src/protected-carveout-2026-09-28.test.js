@@ -315,6 +315,18 @@ test('a learned rule never breaks a same-company hand-off: login.live.com postin
   }
 });
 
+test('work/school sign-in (login.microsoftonline.com, Entra ID) posting back to any Microsoft domain is spared too', async () => {
+  // Predicted by the seeded smoke's rule dump (2026-09-28): D52's group had live.com but not microsoftonline.com.
+  for (const domain of ['microsoft.com', 'live.com', 'office.com']) {
+    await H.reset();
+    dynamicRules.clear();
+    await H.setDomainStatus(domain, 'blocked');
+    const [rule] = rules();
+    assert.equal(coversFrom(rule, `www.${domain}`, 'login.microsoftonline.com'), false,
+      `a learned ${domain} rule acts on the Entra ID sign-in post-back`);
+  }
+});
+
 test('the learner\'s company groups and the rule\'s initiator exclusions are the same thing', async () => {
   await promote('www.google.com');
   const [rule] = rules();

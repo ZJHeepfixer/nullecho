@@ -152,7 +152,10 @@ const ENTITY_GROUPS = [
   ['google.com', 'googleapis.com', 'gstatic.com', 'googlevideo.com', 'youtube.com', 'ytimg.com', 'withgoogle.com', 'google-analytics.com', 'googletagmanager.com'],
   ['facebook.com', 'facebook.net', 'fbcdn.net', 'fbsbx.com', 'instagram.com', 'whatsapp.com', 'messenger.com'],
   ['amazon.com', 'amazonaws.com', 'media-amazon.com', 'ssl-images-amazon.com', 'amazon-adsystem.com'],
-  ['microsoft.com', 'live.com', 'msn.com', 'bing.com', 'office.com', 'sharepoint.com', 'windows.net'],
+  // microsoftonline.com (Entra ID work/school sign-in) and the msauth/msftauth login CDNs belong here: D52 spares
+  // a company's own hand-offs, and the seeded smoke's rule dump showed Entra ID posting back into a learned domain.
+  ['microsoft.com', 'live.com', 'msn.com', 'bing.com', 'office.com', 'sharepoint.com', 'windows.net',
+    'microsoftonline.com', 'msauth.net', 'msftauth.net', 'office365.com', 'microsoft365.com', 'outlook.com', 'onedrive.com', 'azure.com'],
   ['apple.com', 'icloud.com', 'cdn-apple.com', 'mzstatic.com'],
   ['twitter.com', 'x.com', 'twimg.com', 't.co'],
   ['linkedin.com', 'licdn.com'],

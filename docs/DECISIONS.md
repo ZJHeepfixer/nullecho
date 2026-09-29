@@ -3179,3 +3179,12 @@ Fingerprinting by those scripts is left to the shim. Apple Music, OneDrive/Offic
 Tests: four more in `src/protected-carveout-2026-09-28.test.js` (the live.com → microsoft.com hand-off, company groups =
 initiator exclusions, six social hosts cookie-stripped when learned, migration of an old facebook.com block), all failing
 before the change. 510/510.
+
+**Addendum (same night).** The rebased seeded smoke (`be17209`, merged) gates rows 26/27 and a new row 28 — the
+`login.live.com` → `www.microsoft.com/cascadeauth/…/signin-oidc` hand-off, deterministic without signing in — all PASS on
+D52 and FAIL on the pre-D52 learner (rules 1000002 / 1000009 / 1000003). Its rule dump showed the work/school twin still
+open: `microsoftonline.com` (Entra ID) was in no company group. It, the `msauth.net` / `msftauth.net` login CDNs and
+Microsoft's product domains (office365, microsoft365, outlook, onedrive, azure) joined the Microsoft group; a test pins
+login.microsoftonline.com posting back into learned microsoft.com / live.com / office.com. 511/511. Known harness limit:
+`site-smoke.mjs` overrides the UA without metadata (to drop "HeadlessChrome"), so its D51 identity check sees empty
+brands on both sides; the real-values gate is `unpacked-chrome.mjs`, and the owner's Chrome 153 was checked by hand.
