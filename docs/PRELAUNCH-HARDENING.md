@@ -43,6 +43,13 @@ browser's real `userAgent`, `brands`, and full version; the static rules stop re
   (a) drop the Sec-CH-UA/-Mobile/-Platform rewrite, (b) drop the User-Agent rewrite, (c) drop Sec-GPC,
   (d) the heuristics' learned dynamic rules. Record each result here.
 
+**Owner's-Chrome verification of D50 + D51 (2026-09-28, Chrome 153.0.8010.54, macOS arm, signed in, `41f4b69`):**
+page `navigator.userAgent`, `userAgentData.brands` and `uaFullVersion` identical to an unpatched Worker's (Chrome/153.0.0.0,
+153.0.8010.54); on the wire `User-Agent` Chrome/153, `Sec-CH-UA` v=153/8/153, zero high-entropy hints, `Sec-GPC: 1`;
+persona still applied (`architecture` arm, `hardwareConcurrency` 8 on the page vs 12 in a Worker — the known A8 gap, now the
+largest remaining detectability tell); reCAPTCHA anchor 304×78 on patrickhlauke + ascendpartner; extension card shows no
+Errors after the reload.
+
 ## Step 2 — replace the pending store submission (owner clicks; director guides)
 
 1. Bump `ext/manifest.json` + `manifest.firefox.json` to **0.9.1**; `npm test`; `node ext/tools/package.mjs`;
