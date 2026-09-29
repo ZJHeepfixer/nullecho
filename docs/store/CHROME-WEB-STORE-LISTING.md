@@ -132,14 +132,18 @@ Nullecho carries.
 
 ## Permission justifications
 
+*Updated 2026-09-28 for 0.9.1 (D51: the User-Agent is no longer rewritten; D50/D52: learned rules may be cookie strips).*
+
 One paragraph per permission, drawn from `ext/PERMISSIONS.md` (the project's own permissions
 document) and verified directly against `ext/manifest.json` and `ext/src/background.js` while writing
 this file — not copied from memory.
 
 **`declarativeNetRequest`**
 > Runs Nullecho's five static tracker-blocking rulesets (advertising, analytics, social widgets, known
-> fingerprinting vendors, and the Global Privacy Control header), the per-OS-family User-Agent/
-> Client-Hint header rules, and the per-site allowlist rules. The browser evaluates these rules
+> fingerprinting vendors, and the Global Privacy Control header), a rule that removes the high-entropy
+> Client Hint headers (detailed OS version, CPU architecture, full browser version) so they cannot
+> contradict a site's device profile, the per-site allowlist rules, and the rules the tracker learner
+> writes (a block, or a cookie strip for services with a visible feature). The browser evaluates these rules
 > itself, so the extension never sees the URL of a request it did not act on. `webRequestBlocking` is
 > not requested on any platform.
 
@@ -166,15 +170,16 @@ Chrome MV3)
 > Used only to observe request and response headers — never to block. A passive, three-strike
 > observer reads `onBeforeSendHeaders` and `onHeadersReceived` to identify which third-party domains
 > set cookies across unrelated sites; once a domain crosses the threshold, the extension writes a
-> `declarativeNetRequest` rule and the blocking itself happens there, so a bug in the observer can
+> `declarativeNetRequest` rule (a block, or a cookie strip for a service with a visible feature) and the
+> action itself happens there, so a bug in the observer can
 > never hang a request. Only aggregate per-domain strike counts are kept — never a request log or
 > request bodies — and nothing observed is ever transmitted anywhere.
 
 **`host_permissions`: `<all_urls>`**
 > Required on every site for three reasons that do not scope down. First, the `Sec-GPC: 1`
-> do-not-sell header and the persona's User-Agent/Client-Hint headers are only meaningful sent
-> everywhere — a signal or a persona header reaching a curated subset of sites is not a signal, and
-> would contradict the JavaScript persona on every other site. Second, the fingerprint-defense content
+> do-not-sell header and the removal of high-entropy Client Hint headers are only meaningful applied
+> everywhere — a signal reaching a curated subset of sites is not a signal, and a detailed hint left on
+> other sites would contradict the JavaScript device profile there. Second, the fingerprint-defense content
 > script has to run at `document_start` on every page, before any page script, because the one site a
 > user forgot to add to a list is exactly the site that fingerprints them. Third, the popup needs the
 > active tab's URL to attribute blocked requests to the page that made them. Nullecho does not request
