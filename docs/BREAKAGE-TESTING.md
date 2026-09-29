@@ -304,3 +304,22 @@ tier off by default) and A.6 (Amazon checkout, taken through to a real order) ar
 **Still owed:** A.1 Google SSO on the current code (last cleared 2026-08-21, before D35/D46/D47/D48 changed
 child-realm and popup handling, which SSO exercises) — to be tried during the store review window, since the
 submission goes in with automatic publishing off. A.2 Stripe test-mode and A.3 PayPal popup not run.
+
+### 2026-09-28 — reCAPTCHA script 503 in the owner's Chrome (field report from the Director session) — OPEN, S0 candidate
+
+| Where | google.com/recaptcha/api.js | Widget |
+|---|---|---|
+| Owner's everyday Chrome (Nullecho 0.9.0 unpacked, ON), google.com's own demo (first-party) | 200 | renders |
+| Owner's Chrome, ascendpartner.com signup (third-party) | **503** | 0 px |
+| Owner's Chrome, patrickhlauke.github.io/recaptcha (third-party) | **503** | none |
+| Clean Chrome for Testing, store zip OFF / ON — google demo, ascendpartner, patrickhlauke | 200 / 200 | renders |
+| curl, same Mac + network, with Nullecho's exact UA + Client-Hint + Sec-GPC header set and the site's Referer | 200 (3/3) | — |
+
+Not a Nullecho *block*: a blocked request shows `net::ERR_BLOCKED_BY_CLIENT`, not an HTTP status, and no ruleset names
+recaptcha/gstatic. A 503 is Google's answer. No service worker on the site. The store build does not reproduce it in a
+clean profile. **Still possible that Nullecho contributes in the owner's profile**: branded Chrome sends Google-only
+headers (X-Client-Data variations, signed-in cookies) that neither CfT nor curl carries, and Nullecho rewrites the UA and
+all Client Hints (Full-Version "151.0.0.0", Platform-Version "14.6.0") beside them — an inconsistency only a real signed-in
+profile would present. The other candidate is Google scoring that profile as automated (claude-in-chrome drives it).
+**Decider (owner, 30 s):** on a failing page, popup → turn Nullecho off for this site → reload. Widget appears ⇒ ours (S0,
+fix before publish). Still 503 ⇒ not ours. Publishing is on hold regardless (auto-publish is off).
