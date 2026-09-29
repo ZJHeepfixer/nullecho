@@ -3145,3 +3145,37 @@ a real-shaped brand list), B3c (the wrapped method's promise and dictionary belo
 observables of `handshake-integration`, `shim-handshake`, `native-shape`, `native-source`, `same-tick-realm` moved off
 `navigator.userAgent` (now the real UA in every state) onto persona reads. `harness/unpacked-chrome.mjs smoke|claim`
 and `harness/site-smoke.mjs` (ON vs OFF) now FAIL on a page that describes a different browser than the one running.
+
+## D52 — A learned rule spares its own company's hand-offs; social platforms whose embeds are content are cookie-stripped, never blocked. 2026-09-28.
+
+**Evidence.** The seeded-learned-state smoke (`harness/site-smoke.mjs --seeded`, branch `smoke-seeded-learned-state`) seeds
+what a week of browsing would teach the learner — google, youtube, facebook, microsoft, live, microsoftonline, apple,
+cloudflare, amazon, twitter, x, linkedin promoted — and renders their embeds on third-party pages. After D50 it found:
+1. A learned `facebook.com` / `twitter.com` block removed Facebook page plugins and embedded X posts from every site
+   (rows 26/27). `rules/social.json` deliberately blocks only their pixel paths and tracking subdomains and leaves the
+   embeds alone; the learner undid that curation.
+2. A learned `microsoft.com` block stopped microsoft.com's own silent sign-in: `login.live.com` posts back to
+   `www.microsoft.com/cascadeauth/account/signin-oidc`, and DNR's `domainType: thirdParty` judges that request by
+   registrable domain (initiator `live.com`), although the learner's `sameEntity` counts the two as one company and
+   never gave a strike for it.
+
+**Decision.**
+1. Every learned rule carries `excludedInitiatorDomains` = the other domains of its company (`heuristics.js`
+   `ENTITY_GROUPS`, `entityPeers`). The rule's idea of "third party" now matches the learner's. It still acts when an
+   unrelated site embeds the domain.
+2. `facebook.com`, `instagram.com`, `twitter.com`, `x.com`, `linkedin.com`, `tiktok.com` join COOKIE_BLOCK_ONLY: their
+   embeds are content the reader came for, and stripping their cookies removes exactly the cross-site identity the learner
+   observed. Their dedicated tracking endpoints stay blocked by the static lists (`pixel.facebook.com`,
+   `analytics.tiktok.com`, `||facebook.com/tr^`, …). A learner `blocked` record for them is migrated by `reconcile()`
+   (D50's migration, unchanged).
+3. `validate.mjs` warns only for a whole-host block of a yellowlisted domain itself (or its `www`), not for a path-scoped
+   filter or a dedicated tracking subdomain — checked by planting a `www.youtube.com` and a `||facebook.com^` block: both
+   warn; the shipped lists: 0 warnings.
+
+**Cost, stated plainly.** A learned facebook.com / x.com no longer disappears from pages; it loads without its cookies.
+Fingerprinting by those scripts is left to the shim. Apple Music, OneDrive/Office and similar embeds under `apple.com`
+/ `microsoft.com` / `live.com` were predicted by the smoke but not rendered; they stay blockable until measured.
+
+Tests: four more in `src/protected-carveout-2026-09-28.test.js` (the live.com → microsoft.com hand-off, company groups =
+initiator exclusions, six social hosts cookie-stripped when learned, migration of an old facebook.com block), all failing
+before the change. 510/510.

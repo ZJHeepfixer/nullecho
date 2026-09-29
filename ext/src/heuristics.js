@@ -168,6 +168,10 @@ ENTITY_GROUPS.forEach((group, i) => group.forEach((d) => ENTITY_OF.set(d, i)));
 const sameEntity = (a, b) =>
   a === b || (ENTITY_OF.has(a) && ENTITY_OF.get(a) === ENTITY_OF.get(b));
 
+/** The other registrable domains of `domain`'s company, e.g. microsoft.com → live.com, bing.com, … */
+const entityPeers = (domain) =>
+  (ENTITY_OF.has(domain) ? ENTITY_GROUPS[ENTITY_OF.get(domain)].filter((d) => d !== domain) : []);
+
 // ── entropy ───────────────────────────────────────────────────────────────
 
 /**
@@ -419,6 +423,12 @@ function ruleFor(domain, id, status) {
   const condition = { requestDomains: [domain], domainType: 'thirdParty' };
   const carved = protectedHostsUnder(domain, { includeCookieBlockOnly: status === 'blocked' });
   if (carved.length) condition.excludedRequestDomains = carved;
+  // The learner never counts a company's own domains as third parties to each
+  // other (`sameEntity`); DNR does, by registrable domain. Without this, a learned
+  // microsoft.com rule caught login.live.com posting the sign-in back to
+  // www.microsoft.com — microsoft.com's own login (D52, seeded smoke 2026-09-28).
+  const peers = entityPeers(domain);
+  if (peers.length) condition.excludedInitiatorDomains = peers;
   if (status === 'blocked') {
     return { id, priority: 1, action: { type: 'block' }, condition };
   }
@@ -517,6 +527,7 @@ const ruleShape = (r) => stable({
   action: r.action,
   requestDomains: [...(r.condition?.requestDomains ?? [])].sort(),
   excludedRequestDomains: [...(r.condition?.excludedRequestDomains ?? [])].sort(),
+  excludedInitiatorDomains: [...(r.condition?.excludedInitiatorDomains ?? [])].sort(),
   domainType: r.condition?.domainType ?? null,
 });
 

@@ -31,7 +31,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { NEVER_BLOCK, COOKIE_BLOCK_ONLY, isNeverBlock, isCookieBlockOnly } from '../src/allowlist.js';
+import { NEVER_BLOCK, COOKIE_BLOCK_ONLY, isNeverBlock } from '../src/allowlist.js';
 import {
   NON_BLOCKING_STATIC_RULE_IDS,
   DYNAMIC_RULE_RANGES,
@@ -207,9 +207,20 @@ function checkRule(file, rule, index) {
     const hosts = [...(c.requestDomains ?? [])];
     const fromFilter = c.urlFilter ? hostFromUrlFilter(c.urlFilter) : null;
     if (fromFilter) hosts.push(fromFilter);
+    // The yellowlist protects a company's FEATURE domain (youtube.com,
+    // facebook.com), not every host it runs: a path-scoped filter
+    // (`||facebook.com/tr^`) or a dedicated tracking subdomain
+    // (`pixel.facebook.com`, `analytics.tiktok.com`) blocks one endpoint, which
+    // is exactly right. Only a whole-host block of the listed domain itself (or
+    // its www) is the mistake the yellowlist exists to prevent (D52).
+    const wholeHost = !c.urlFilter || /^\|\|[a-z0-9.-]+\^?$/i.test(c.urlFilter);
+    const isYellowlistedDomain = (h) => {
+      const x = h.toLowerCase().replace(/^www\./, '');
+      return COOKIE_BLOCK_ONLY.some((e) => e.toLowerCase() === x);
+    };
     for (const h of hosts) {
       if (isNeverBlock(h)) errors.push(`${at}: blocks NEVER_BLOCK domain "${h}"`);
-      else if (isCookieBlockOnly(h)) warnings.push(`${at}: blocks COOKIE_BLOCK_ONLY domain "${h}" — should be cookie-stripped, not blocked`);
+      else if (wholeHost && isYellowlistedDomain(h)) warnings.push(`${at}: blocks COOKIE_BLOCK_ONLY domain "${h}" — should be cookie-stripped, not blocked`);
     }
   }
 }

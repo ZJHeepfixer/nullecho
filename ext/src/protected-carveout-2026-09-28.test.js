@@ -282,3 +282,77 @@ test('two reconciles at the same instant — install() and onInstalled on an upd
   assert.equal(dynamicRules.size, 1);
   assert.equal(covers(rules()[0], 'www.google.com'), false);
 });
+
+// ── D52: what the seeded-learned-state smoke found next ──────────────────
+//
+// The smoke (harness/site-smoke.mjs --seeded, 2026-09-28) promoted the big
+// multi-service domains the way a week of browsing would, then rendered their
+// embeds on third-party pages. Two more classes:
+//   1. a learned facebook.com / twitter.com block removed Facebook plugins and
+//      embedded X posts from every site — the static social rules deliberately
+//      leave those alone and block only the pixel paths;
+//   2. a learned microsoft.com block stopped microsoft.com's own silent sign-in:
+//      login.live.com posts back to www.microsoft.com/cascadeauth/…, and to DNR
+//      that request is third-party (initiator live.com) although the learner
+//      itself counts the two as one company.
+
+/** Would the rule act on a request to `host` made by a document on `initiator`? */
+function coversFrom(rule, host, initiator) {
+  if (!covers(rule, host)) return false;
+  return !(rule.condition.excludedInitiatorDomains ?? []).some((d) => under(initiator, d));
+}
+
+test('a learned rule never breaks a same-company hand-off: login.live.com posting back to www.microsoft.com', async () => {
+  for (const status of ['blocked', 'cookieblocked']) {
+    await H.reset();
+    dynamicRules.clear();
+    await H.setDomainStatus('microsoft.com', status);
+    const [rule] = rules();
+    assert.equal(coversFrom(rule, 'www.microsoft.com', 'login.live.com'), false,
+      `a ${status} microsoft.com rule acts on microsoft's own sign-in post-back`);
+    assert.equal(coversFrom(rule, 'www.microsoft.com', 'news.example'), true,
+      'the rule must still act when an unrelated site embeds microsoft.com');
+  }
+});
+
+test('the learner\'s company groups and the rule\'s initiator exclusions are the same thing', async () => {
+  await promote('www.google.com');
+  const [rule] = rules();
+  for (const peer of ['youtube.com', 'gstatic.com', 'googleapis.com']) {
+    assert.ok((rule.condition.excludedInitiatorDomains ?? []).includes(peer), `${peer} missing`);
+  }
+  assert.ok(!(rule.condition.excludedInitiatorDomains ?? []).includes('google.com'), 'a domain need not exclude itself');
+});
+
+test('social platforms whose embeds are content are cookie-stripped when learned, never blocked', async () => {
+  for (const host of ['www.facebook.com', 'www.instagram.com', 'platform.twitter.com', 'x.com',
+    'www.linkedin.com', 'www.tiktok.com']) {
+    await H.reset();
+    dynamicRules.clear();
+    await promote(host);
+    const [rule] = rules();
+    assert.ok(rule, `${host} was not promoted at all — the learner must still act`);
+    assert.equal(rule.action.type, 'modifyHeaders', `${host}: a learned block removes its embeds from every site`);
+  }
+});
+
+test('a learner block written by an earlier build on facebook.com is migrated to a cookie-strip', async () => {
+  await H.reset();
+  dynamicRules.clear();
+  store[STORAGE_KEY] = {
+    version: 1,
+    domains: {
+      'facebook.com': { sites: { 'a.test': 1, 'b.test': 1, 'c.test': 2 }, status: 'blocked', ruleId: BLOCK_BASE + 3, firstSeen: 1, lastSeen: 2 },
+    },
+  };
+  dynamicRules.set(BLOCK_BASE + 3, {
+    id: BLOCK_BASE + 3, priority: 1, action: { type: 'block' },
+    condition: { requestDomains: ['facebook.com'], domainType: 'thirdParty' },
+  });
+  const sw = await restart();
+  await sw.reconcile();
+  const live = rules();
+  assert.equal(live.length, 1);
+  assert.equal(live[0].action.type, 'modifyHeaders');
+  assert.equal(store[STORAGE_KEY].domains['facebook.com'].status, 'cookieblocked');
+});

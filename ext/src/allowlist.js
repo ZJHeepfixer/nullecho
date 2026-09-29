@@ -129,6 +129,17 @@ export const COOKIE_BLOCK_ONLY = [
   // of browsing hands google.com three strikes. Blocking it would take Maps,
   // Forms, Docs, Calendar and Translate embeds off every site (D50).
   'google.com',
+  // Social platforms whose embeds are content the reader came for: posts,
+  // videos, page plugins. A learned block removed Facebook plugins and embedded
+  // X posts from every site (seeded smoke, D52). Their pixel endpoints are
+  // blocked by PATH in rules/social.json; stripping their cookies removes the
+  // cross-site identity the learner actually observed.
+  'facebook.com',
+  'instagram.com',
+  'twitter.com',
+  'x.com',
+  'linkedin.com',
+  'tiktok.com',
   'youtube.com',
   'youtube-nocookie.com',
   'ytimg.com',
