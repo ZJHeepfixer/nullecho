@@ -73,7 +73,7 @@ async function patchSettings(patch) {
 function render(s) {
   state = s;
 
-  const version = LIVE ? api.runtime.getManifest().version : '0.9.0';
+  const version = LIVE ? api.runtime.getManifest().version : '0.9.1';
   $('ver').textContent = `v${version}`;
   $('ver-foot').textContent = `v${version}`;
 
