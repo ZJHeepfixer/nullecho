@@ -14,3 +14,8 @@ Jason sends every email himself. This file records what actually went out, when,
 subject. Decision: no follow-up — a third message apologising for the second adds noise; the subjected copy
 is the one they will read. If they reply, reply on whichever thread they chose. Logged times corrected from
 the time of logging (13:55) to Gmail's own send timestamps.
+
+**2026-09-29 — Ballard Spahr follow-up STAGED (not sent).** Silent 7 days → the one planned follow-up. Gate re-run the same
+morning: their May 5 post still quotes the struck string verbatim, no update note; Maryland's endpoint in a browser still returns
+"File Not Found" for §13-322 and the text for §13-321. Staged in rockpros as a reply on the SUBJECTED thread (msg 1a0cae2c85a0978d),
+To Maarec + Schuster, Cc Kaplinsky, draft `r-7802797949217597278` — the only outreach draft staged. Jason sends. No further follow-up after this one.
