@@ -45,9 +45,10 @@
  * The worker console during the reload is captured: a `[nullecho]` warning/error there (the pre-D50
  * concurrent-reconcile race: "Rule with id … does not have a unique ID") is a finding, not noise.
  * `--seeded` adds the THIRD-PARTY rows (reCAPTCHA v2 on two unrelated sites, reCAPTCHA Enterprise, Turnstile,
- * hCaptcha, Google Sign-In on two sites, YouTube / Maps / Calendar embeds, and two POLICY rows — the Facebook
- * SDK Page plugin and an embedded X post — whose providers no policy list protects today; a learned block
- * there is reported as POLICY-BLOCKED, not hidden and not counted as a regression). Exit code: 3 seeding
+ * hCaptcha, Google Sign-In on two sites, YouTube / Maps / Calendar / Facebook-plugin / X-post embeds, and
+ * microsoft.com's own silent sign-in hand-off from login.live.com). A row marked `policy: true` — a provider no
+ * policy list protects — reports a learned block as POLICY-BLOCKED instead of FAIL; since D52 moved facebook.com
+ * and x.com/twitter.com to COOKIE_BLOCK_ONLY no row uses it. Exit code: 3 seeding
  * failed, 1 any FAIL/VOID/seeding finding, 0 clean.
  *
  * Method, matching docs/BREAKAGE-TESTING.md + the 2026-09-20 hidden-tab lesson
@@ -261,7 +262,7 @@ function seedRecords() {
 class SeedingError extends Error {}
 
 const learnedOnly = (rules) => rules.filter((r) => isLearnedId(r.id)).sort((a, b) => a.id - b.id);
-const ruleLine = (r) => `${r.id} ${r.action.type}${r.action.type === 'modifyHeaders' ? '(strip Cookie/Set-Cookie)' : ''} requestDomains=[${(r.condition.requestDomains || []).join(',')}] excluded=[${(r.condition.excludedRequestDomains || []).join(',')}] ${r.condition.domainType || ''}`;
+const ruleLine = (r) => `${r.id} ${r.action.type}${r.action.type === 'modifyHeaders' ? '(strip Cookie/Set-Cookie)' : ''} requestDomains=[${(r.condition.requestDomains || []).join(',')}] excluded=[${(r.condition.excludedRequestDomains || []).join(',')}]${r.condition.excludedInitiatorDomains ? ` excludedInitiators=[${r.condition.excludedInitiatorDomains.join(',')}]` : ''} ${r.condition.domainType || ''}`;
 
 /**
  * Seed → reload → prove. Returns a handle the row runner uses to attribute learned-rule matches to rows.
@@ -493,7 +494,19 @@ async function freshPage(browser, ua) {
     const err = req.failure() && req.failure().errorText;
     if (err && /ERR_BLOCKED_BY_CLIENT/.test(err)) blockedByClient.push(`${req.resourceType()} ${req.url().slice(0, 200)}`);
   });
-  return { page, consoleLines, blockedByClient };
+  // Every DOCUMENT request (main frame, iframes, their redirects) with what became of it — for checks whose
+  // evidence is a hand-off between frames rather than something drawn (row 28). Status only from a real
+  // response; a request the extension blocked has `failed` and never a status.
+  const documents = [];
+  const docOf = new WeakMap();
+  page.on('request', (req) => {
+    if (req.resourceType() !== 'document') return;
+    const d = { url: req.url().slice(0, 300), method: req.method(), status: null, failed: null };
+    docOf.set(req, d); documents.push(d);
+  });
+  page.on('response', (res) => { const d = docOf.get(res.request()); if (d) d.status = res.status(); });
+  page.on('requestfailed', (req) => { const d = docOf.get(req); if (d) d.failed = (req.failure() && req.failure().errorText) || 'failed'; });
+  return { page, consoleLines, blockedByClient, documents };
 }
 
 async function assertVisible(page) {
@@ -785,8 +798,8 @@ const SITES = [
 // frame is readable — contains the widget. Never a network status.
 //
 // `fixture` rows load harness/fixtures/third-party-embeds.html from a 127.0.0.1 server the smoke starts.
-// `policy: true` rows are providers no policy list protects today (facebook.com, twitter.com): if a learned
-// BLOCK rule is what removed them, the verdict is POLICY-BLOCKED — reported loudly, not counted as a
+// `policy: true` marks a provider no policy list protects: if a learned BLOCK rule is what removed it, the
+// verdict is POLICY-BLOCKED — reported loudly, not counted as a
 // regression, because no decision has said they must survive a learned block. Any other failure is a FAIL.
 
 let FIXTURE = { origin: null };
@@ -919,8 +932,8 @@ const THIRD_PARTY_SITES = [
     },
   },
   {
-    key: 'tp-facebook-sdk-plugin', n: 26, label: 'Facebook JS SDK + Page plugin (fixture)', fixture: 'third-party-embeds.html?e=facebook', settleMs: 3500, policy: true,
-    protects: 'NOTHING under facebook.com except graph.facebook.com — POLICY row',
+    key: 'tp-facebook-sdk-plugin', n: 26, label: 'Facebook JS SDK + Page plugin (fixture)', fixture: 'third-party-embeds.html?e=facebook', settleMs: 3500,
+    protects: 'facebook.com (COOKIE_BLOCK_ONLY since D52 — was a POLICY row until then)',
     async check(page) {
       const plugin = await providerFrame(page, /^https:\/\/www\.facebook\.com\/v[\d.]+\/plugins\/page\.php/, {
         minW: 100, minH: 100,
@@ -931,14 +944,46 @@ const THIRD_PARTY_SITES = [
     },
   },
   {
-    key: 'tp-x-embedded-post', n: 27, label: 'X / Twitter embedded post (fixture)', fixture: 'third-party-embeds.html?e=tweet', settleMs: 3500, policy: true,
-    protects: 'NOTHING under twitter.com — POLICY row',
+    key: 'tp-x-embedded-post', n: 27, label: 'X / Twitter embedded post (fixture)', fixture: 'third-party-embeds.html?e=tweet', settleMs: 3500,
+    protects: 'twitter.com / x.com (COOKIE_BLOCK_ONLY since D52 — was a POLICY row until then)',
     async check(page) {
       const post = await providerFrame(page, /^https:\/\/platform\.twitter\.com\/embed\/Tweet\.html/, {
         minW: 100, minH: 50,
         probe: () => { const t = document.body ? document.body.innerText : ''; return { ok: t.length > 20, text: t.replace(/\s+/g, ' ').slice(0, 60) }; },
       });
       return { ok: post.ok, detail: { post } };
+    },
+  },
+  {
+    // Not an embed: microsoft.com's OWN page, whose silent sign-in round-trips through Microsoft's identity
+    // hosts and comes back as a form POST from login.live.com into a hidden www.microsoft.com frame. DNR judges
+    // that POST third-party (initiator live.com), so a learned microsoft.com block killed it — the learner
+    // itself calls the two one company (D52). Deterministic signed out: 4/4 fresh profiles on 2026-09-28 ran
+    // microsoftonline → live → POST signin-oidc → 302 → cascadeauth/store/account/silentauth?auth=No.
+    key: 'tp-msft-signin-handoff', n: 28, label: 'microsoft.com silent sign-in hand-off (login.live.com → www.microsoft.com)', url: 'https://www.microsoft.com/en-us', settleMs: 0,
+    protects: 'www.microsoft.com receiving its own login hand-off — excludedInitiatorDomains (same company, D52)',
+    async check(page, ctx) {
+      const docs = ctx.documents || [];
+      const HANDOFF = /^https:\/\/www\.microsoft\.com\/cascadeauth\/account\/signin-oidc/;
+      const LANDED = /^https:\/\/www\.microsoft\.com\/cascadeauth\/store\/account\/silentauth/;
+      const deadline = Date.now() + FRAME_WAIT_MS + 5000;   // 20 s; the self-test's short FRAME_WAIT_MS shortens it
+      let handoff = null;
+      let landed = false;
+      for (;;) {
+        handoff = docs.find((d) => HANDOFF.test(d.url)) || null;
+        landed = page.frames().some((f) => LANDED.test(f.url()));
+        if ((handoff && handoff.failed) || landed || Date.now() >= deadline) break;
+        await sleep(500);
+      }
+      const chain = docs.filter((d) => /login\.(live|microsoftonline)\.com|\/cascadeauth\//.test(d.url))
+        .map((d) => `${d.method} ${d.url.slice(0, 90)} → ${d.failed || d.status}`);
+      // PASS = the server answered the hand-off (a real response — a blocked request never gets one) AND the
+      // frame finished the round-trip on www.microsoft.com (a blocked frame lands on chrome-error://).
+      const answered = !!handoff && handoff.status !== null && !handoff.failed;
+      return {
+        ok: answered && landed,
+        detail: { handoff: handoff && { method: handoff.method, status: handoff.status, failed: handoff.failed }, landed, errorFrames: page.frames().filter((f) => /^chrome-error:/.test(f.url())).length, chain },
+      };
     },
   },
 ];
@@ -981,7 +1026,7 @@ function startFixtureServer() {
 
 // ── 5. run one site ──────────────────────────────────────────────────────────
 async function runSite(browser, site, ctxIn, ua) {
-  const { page, consoleLines, blockedByClient } = await freshPage(browser, ua);
+  const { page, consoleLines, blockedByClient, documents } = await freshPage(browser, ua);
   const url = urlOf(site);
   const record = { site: site.key, withExtension: ctxIn.withExtension, url, ok: false, blocked: false, blockedEvidence: null, skipped: false, skipReason: null, void: false, reasons: [], detail: {}, probes: null, visibility: null, consoleLines: [], httpStatus: null, error: null, blockedByClient: [], learnedHits: null };
   if (ctxIn.seed) await ctxIn.seed.drain().catch(() => {});   // hits from before this row belong to no row
@@ -1016,7 +1061,7 @@ async function runSite(browser, site, ctxIn, ua) {
       return record;
     }
     record.probes = await probes(page);
-    const ctx = { ...ctxIn, probes: record.probes, httpStatus: record.httpStatus };
+    const ctx = { ...ctxIn, probes: record.probes, httpStatus: record.httpStatus, documents };
     const result = await withTimeout(site.check(page, ctx), 45000, site.key).catch((e) => ({ ok: false, error: String(e.message || e).slice(0, 300) }));
     record.ok = !!result.ok;
     record.detail = result.detail || {};
