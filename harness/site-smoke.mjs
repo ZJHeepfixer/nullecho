@@ -161,6 +161,21 @@ function buildAndUnpackChromePackage() {
 const sha256Of = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
 /**
+ * The commit the run tested, and whether ext/ or harness/ had uncommitted edits. It goes into the report NAME:
+ * two runs on one day used to write the same `<date>-site-smoke.md`, and on 2026-09-28 two branches committed
+ * different runs under that one path (D51's and the seeded-smoke branch's) — the later one silently replaced
+ * the evidence of the earlier. `-dirty` means the tested code is not any commit.
+ */
+function codeProvenance() {
+  const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  try {
+    const head = git('rev-parse', '--short=7', 'HEAD');
+    const dirty = git('status', '--porcelain', '--', 'ext', 'harness').length > 0;
+    return { head, dirty, tag: head + (dirty ? '-dirty' : '') };
+  } catch { return { head: null, dirty: null, tag: 'nogit' }; }
+}
+
+/**
  * NEGATIVE CONTROL ONLY (`--learner-from <rev>`): overwrite the learner's two files in the UNPACKED STORE ZIP
  * with that revision's copies — for `b42beb4^` that is exactly the pre-D50 runtime (D50 changed no other shipped
  * file). The temp dir is thrown away with the run; nothing is committed. A swap that changes nothing is not a
@@ -1128,6 +1143,7 @@ async function selfTest(ua) {
 
 // ── 7. main ──────────────────────────────────────────────────────────────────
 async function main() {
+  const code = codeProvenance();   // at the START: the code that runs, not whatever the tree holds when it ends
   const pkg = OFF_ONLY ? null : buildAndUnpackChromePackage();
   const control = pkg && LEARNER_FROM ? swapLearner(pkg.unpackDir, LEARNER_FROM) : null;
   const fixture = THIRD_PARTY ? await startFixtureServer() : null;
@@ -1286,6 +1302,7 @@ async function main() {
   const seedFindings = [...(on.seedReport ? on.seedReport.findings : []), ...retrySeedReports.flatMap((r) => r.findings.map((f) => `retry browser: ${f}`))];
   const meta = {
     date: today(),
+    code,
     package: pkg ? { version: pkg.version, zipName: pkg.zipName, sha256: pkg.sha256, size: pkg.size } : null,
     control,
     seeded: SEEDED, thirdParty: THIRD_PARTY,
@@ -1324,7 +1341,7 @@ async function main() {
 function writeSeedingFailure({ pkg, control, chromeVersion, error, report }) {
   const outDir = path.join(REPO, 'docs', 'breakage-runs');
   fs.mkdirSync(outDir, { recursive: true });
-  const base = `${today()}-site-smoke-seeded${control ? '-control-' + control.revSha.slice(0, 7) : ''}-SEEDING-FAILED`;
+  const base = `${today()}-site-smoke-seeded${control ? '-control-' + control.revSha.slice(0, 7) : ''}-${codeProvenance().tag}-SEEDING-FAILED`;
   fs.writeFileSync(path.join(outDir, base + '.json'), JSON.stringify({ error, package: pkg && { zipName: pkg.zipName, sha256: pkg.sha256 }, control, chromeVersion, report }, null, 2));
   console.error(`[site-smoke] wrote ${path.relative(REPO, path.join(outDir, base + '.json'))}`);
 }
@@ -1334,7 +1351,7 @@ function writeReports(meta, results) {
   const outDir = path.join(REPO, 'docs', 'breakage-runs');
   fs.mkdirSync(outDir, { recursive: true });
   const suffix = (meta.seeded ? '-seeded' : meta.thirdParty ? '-thirdparty' : '') + (meta.control ? `-control-${meta.control.revSha.slice(0, 7)}` : '');
-  const base = `${meta.date}-site-smoke${suffix}`;
+  const base = `${meta.date}-site-smoke${suffix}-${meta.code.tag}`;
   const jsonPath = path.join(outDir, `${base}.json`);
   const mdPath = path.join(outDir, `${base}.md`);
 
@@ -1354,6 +1371,7 @@ function writeReports(meta, results) {
   md += meta.package ? `\`${meta.package.zipName}\`, sha256 \`${meta.package.sha256}\`, ${(meta.package.size / 1024).toFixed(1)} KB.\n` : `(OFF-only run — package not built.)\n`;
   md += `\n- **Chrome:** ${meta.chromeVersion}\n- **Puppeteer:** ${meta.puppeteerVersion}\n- **Node:** ${meta.node}\n`;
   md += `- **UA used (both passes):** \`${meta.ua}\`\n`;
+  md += `- **Code tested:** ${meta.code.head ? `\`${meta.code.head}\`` : 'unknown (no git)'}${meta.code.dirty ? ' — **⚠ with uncommitted edits in ext/ or harness/: not reproducible from any commit**' : meta.code.head ? ' (ext/ and harness/ clean)' : ''}\n`;
   md += `- **Runtime:** ${Math.round(meta.runtimeMs / 1000)}s\n`;
   md += `- **\`ext/_metadata/\` present:** ${meta.metadataLeaked ? '⚠ YES — investigate, must never be committed' : 'NO (verified)'}\n`;
   md += `- **Mode:** ${meta.offOnly ? 'OFF-only (no extension, no package build)' : 'OFF pass then ON pass, side by side'}${meta.seeded ? ' — ON browsers SEEDED with learned state (below) before any site' : ''}${meta.thirdParty ? '; third-party rows included' : ''}\n`;

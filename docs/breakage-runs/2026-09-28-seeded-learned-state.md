@@ -6,13 +6,13 @@ Every automated check was green because every automated run started from a fresh
 learner is the one layer whose behaviour changes with use, so the smoke now also runs with a **seeded** learned state:
 `harness/site-smoke.mjs --seeded` (`npm run smoke:seeded` from `ext/`).
 
-Generated reports, same date:
+Generated reports, same date — all three ran on `b42beb4` (D50, before D51) plus this branch's then-uncommitted harness; file names carry that commit since the rebase onto `73b511b`:
 
 | Run | Build under test | Report | Exit |
 |---|---|---|---|
-| Seeded, current code | store zip from `ext/tools/package.mjs` (0.9.0, D50 included) | `2026-09-28-site-smoke-seeded.md` / `.json` | **0** |
-| Seeded, **negative control** | the same zip, `src/heuristics.js` + `src/allowlist.js` swapped for `b42beb4^` (= `c0bedeb`, pre-D50), temp dir only | `2026-09-28-site-smoke-seeded-control-c0bedeb.md` / `.json` | **1** |
-| Default (fresh profile), current code | store zip | `2026-09-28-site-smoke-b42beb4.md` / `.json` (renamed on rebase: D51 committed its own `2026-09-28-site-smoke.md`) | 0 |
+| Seeded, current code | store zip from `ext/tools/package.mjs` (0.9.0, D50 included) | `2026-09-28-site-smoke-seeded-b42beb4.md` / `.json` | **0** |
+| Seeded, **negative control** | the same zip, `src/heuristics.js` + `src/allowlist.js` swapped for `b42beb4^` (= `c0bedeb`, pre-D50), temp dir only | `2026-09-28-site-smoke-seeded-control-c0bedeb-b42beb4.md` / `.json` | **1** |
+| Default (fresh profile), current code | store zip | `2026-09-28-site-smoke-b42beb4.md` / `.json` (D51 committed its own `2026-09-28-site-smoke.md`, kept as is) | 0 |
 
 Chrome for Testing 149.0.7827.22, headless, Puppeteer 25.1.0, Node 22.22.3. Every measured tab `visibilityState: visible`.
 

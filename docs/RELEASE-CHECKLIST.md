@@ -134,10 +134,13 @@ NYT article, IRS search, Reddit, and the GPC-exception control on `open.spotify.
 extension OFF and then ON, side by side. It reuses `site-bisect.mjs`'s hidden-tab handling
 (close extension pages, front the tab, assert `visibilityState === 'visible'` before measuring)
 and reports PASS / FAIL / NOT-OURS / BLOCKED per site, plus every `Nullecho`/`Illegal invocation`
-console line verbatim. Run it — and read the resulting `docs/breakage-runs/<date>-site-smoke.md`
+console line verbatim. Run it — and read the resulting `docs/breakage-runs/<date>-site-smoke-<commit>.md`
 — before every Chrome Web Store or AMO upload; a FAIL there on a site that PASSED under `--off`
 is a real regression in the exact package about to ship, not a source-tree finding that may or
 may not have made it into the zip.
+`<commit>` in every report name is the HEAD the run tested (since 2026-09-28 — two branches had
+committed different runs under one `<date>-site-smoke.md`). A `-dirty` suffix means `ext/` or
+`harness/` had uncommitted edits: that run is evidence for no commit and does not clear this gate.
 
 ## 3d. Seeded learned-state smoke — RELEASE GATE, run before every store upload (D50)
 
@@ -165,7 +168,7 @@ POLICY rows) OFF and ON.
   runs the same zip with the pre-D50 learner swapped in (temp dir only) and the reCAPTCHA, Turnstile,
   Sign-In and Google-embed rows FAIL, each attributed to the learned rule that blocked it. Re-run that
   control whenever the harness changes; a harness edit that makes the control pass has broken the gate.
-- Read the report: `docs/breakage-runs/<date>-site-smoke-seeded.md` — the rule dump, the positive
+- Read the report: `docs/breakage-runs/<date>-site-smoke-seeded-<commit>.md` — the rule dump, the positive
   control table, and per row which learned rules matched (blocked or cookie-stripped).
 
 ---
