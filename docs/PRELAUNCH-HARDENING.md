@@ -125,3 +125,9 @@ Google owns the Chrome Web Store and can reject or pull the listing; the code is
 the store, not the code. Before or at 1.0: the Firefox package to AMO (built, `web-ext lint` 0/0/0), the same Chrome
 package to Microsoft Edge Add-ons (free, Chromium MV3), and a signed release zip on GitHub for manual install. Keep the
 Chrome listing strictly accurate so a policy reviewer has nothing to act on.
+
+**Safari (owner, 2026-09-29: "I'd love a Safari extension — after this one is moving").** After the Chrome launch: a Safari Web
+Extension ships inside a macOS/iOS container app via the App Store (the owner already has an Apple developer account and signing
+chain). Most of `ext/` carries over, but Safari's declarativeNetRequest support differs (modifyHeaders coverage, rule limits,
+`excludedRequestDomains` / `excludedInitiatorDomains`, which D50/D52 depend on) — it needs its own capability audit and breakage pass,
+not a repackage. A third gatekeeper independent of Google.
