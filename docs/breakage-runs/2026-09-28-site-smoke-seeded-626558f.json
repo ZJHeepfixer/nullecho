@@ -1,0 +1,3681 @@
+{
+  "meta": {
+    "date": "2026-09-28",
+    "code": {
+      "head": "626558f",
+      "dirty": false,
+      "tag": "626558f"
+    },
+    "package": {
+      "version": "0.9.1",
+      "zipName": "nullecho-0.9.1-chrome.zip",
+      "sha256": "c4903cb56adbcbe4db2e38d965948ce4d7e0dfa51792f891432d6b7c79441ecd",
+      "size": 253547
+    },
+    "control": null,
+    "seeded": true,
+    "thirdParty": true,
+    "chromeVersion": "Chrome/149.0.7827.22",
+    "puppeteerVersion": "25.1.0",
+    "node": "v22.22.3",
+    "runtimeMs": 619154,
+    "metadataLeaked": true,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+    "offOnly": false,
+    "selfTest": {
+      "youtube": {
+        "expectedFail": true,
+        "actuallyFailed": true,
+        "detail": {
+          "from": 0,
+          "currentTime": 0,
+          "readyState": 0,
+          "buffered": 0,
+          "paused": false,
+          "skipPlay": false
+        },
+        "method": "invalid video id (watch?v=00000000000)",
+        "consoleSample": []
+      },
+      "maps": {
+        "expectedFail": true,
+        "actuallyFailed": true,
+        "detail": {
+          "ok": false,
+          "error": "timeout after 15000ms: maps self-test"
+        }
+      },
+      "thirdParty": {
+        "tp-recaptcha-patrickhlauke": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-recaptcha-ascendpartner": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-recaptcha-enterprise-reddit": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-turnstile-peet": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-hcaptcha-democaptcha": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-gsi-reddit": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-gsi-pinterest": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-youtube-embed": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-maps-embed": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-maps-embed-legacy": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-calendar-embed": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-facebook-sdk-plugin": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-x-embedded-post": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-msft-signin-handoff": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        }
+      }
+    },
+    "passEnv": {
+      "off": {
+        "worker": null,
+        "extensionTargets": []
+      },
+      "on": {
+        "worker": "chrome-extension://dfibdnmhpkfkjjjnllednebmdblplflb/src/background.js",
+        "extensionTargets": [
+          "service_worker chrome-extension://dfibdnmhpkfkjjjnllednebmdblplflb/src/background.js"
+        ]
+      }
+    },
+    "fixtureOrigin": "http://127.0.0.1:55735",
+    "seed": {
+      "domains": [
+        "google.com",
+        "youtube.com",
+        "facebook.com",
+        "microsoft.com",
+        "live.com",
+        "microsoftonline.com",
+        "apple.com",
+        "cloudflare.com",
+        "amazon.com",
+        "twitter.com",
+        "x.com",
+        "linkedin.com"
+      ],
+      "storageKey": "nullecho:heuristics:v1",
+      "extensionId": "dfibdnmhpkfkjjjnllednebmdblplflb",
+      "rulesBeforeReload": [],
+      "rulesAfterReload": [
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "live.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "microsoftonline.com",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "requestDomains": [
+              "microsoft.com"
+            ]
+          },
+          "id": 1000003,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "microsoft.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "microsoftonline.com",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "excludedRequestDomains": [
+              "login.live.com"
+            ],
+            "requestDomains": [
+              "live.com"
+            ]
+          },
+          "id": 1000004,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "microsoft.com",
+              "live.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "excludedRequestDomains": [
+              "login.microsoftonline.com"
+            ],
+            "requestDomains": [
+              "microsoftonline.com"
+            ]
+          },
+          "id": 1000005,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "icloud.com",
+              "cdn-apple.com",
+              "mzstatic.com"
+            ],
+            "excludedRequestDomains": [
+              "appleid.apple.com"
+            ],
+            "requestDomains": [
+              "apple.com"
+            ]
+          },
+          "id": 1000006,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "cloudflareinsights.com"
+            ],
+            "excludedRequestDomains": [
+              "cdnjs.cloudflare.com",
+              "challenges.cloudflare.com"
+            ],
+            "requestDomains": [
+              "cloudflare.com"
+            ]
+          },
+          "id": 1000007,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "amazonaws.com",
+              "media-amazon.com",
+              "ssl-images-amazon.com",
+              "amazon-adsystem.com"
+            ],
+            "requestDomains": [
+              "amazon.com"
+            ]
+          },
+          "id": 1000008,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "facebook.net",
+              "fbcdn.net",
+              "fbsbx.com",
+              "instagram.com",
+              "whatsapp.com",
+              "messenger.com"
+            ],
+            "excludedRequestDomains": [
+              "graph.facebook.com"
+            ],
+            "requestDomains": [
+              "facebook.com"
+            ]
+          },
+          "id": 1050000,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "googleapis.com",
+              "gstatic.com",
+              "googlevideo.com",
+              "youtube.com",
+              "ytimg.com",
+              "withgoogle.com",
+              "google-analytics.com",
+              "googletagmanager.com"
+            ],
+            "excludedRequestDomains": [
+              "accounts.google.com",
+              "apis.google.com",
+              "www.google.com"
+            ],
+            "requestDomains": [
+              "google.com"
+            ]
+          },
+          "id": 1050001,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "licdn.com"
+            ],
+            "requestDomains": [
+              "linkedin.com"
+            ]
+          },
+          "id": 1050002,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "x.com",
+              "twimg.com",
+              "t.co"
+            ],
+            "requestDomains": [
+              "twitter.com"
+            ]
+          },
+          "id": 1050003,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "twitter.com",
+              "twimg.com",
+              "t.co"
+            ],
+            "requestDomains": [
+              "x.com"
+            ]
+          },
+          "id": 1050004,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "google.com",
+              "googleapis.com",
+              "gstatic.com",
+              "googlevideo.com",
+              "ytimg.com",
+              "withgoogle.com",
+              "google-analytics.com",
+              "googletagmanager.com"
+            ],
+            "requestDomains": [
+              "youtube.com"
+            ]
+          },
+          "id": 1050005,
+          "priority": 1
+        }
+      ],
+      "stateAfterReload": {
+        "amazon.com": {
+          "status": "blocked",
+          "ruleId": 1000008,
+          "source": "learned"
+        },
+        "apple.com": {
+          "status": "blocked",
+          "ruleId": 1000006,
+          "source": "learned"
+        },
+        "cloudflare.com": {
+          "status": "blocked",
+          "ruleId": 1000007,
+          "source": "learned"
+        },
+        "facebook.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050000,
+          "source": "learned"
+        },
+        "google.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050001,
+          "source": "learned"
+        },
+        "linkedin.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050002,
+          "source": "learned"
+        },
+        "live.com": {
+          "status": "blocked",
+          "ruleId": 1000004,
+          "source": "learned"
+        },
+        "microsoft.com": {
+          "status": "blocked",
+          "ruleId": 1000003,
+          "source": "learned"
+        },
+        "microsoftonline.com": {
+          "status": "blocked",
+          "ruleId": 1000005,
+          "source": "learned"
+        },
+        "twitter.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050003,
+          "source": "learned"
+        },
+        "x.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050004,
+          "source": "learned"
+        },
+        "youtube.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050005,
+          "source": "learned"
+        }
+      },
+      "reloadWorkerConsole": [],
+      "positiveControl": [
+        {
+          "ok": true,
+          "what": "no learned-range rule existed before the reload (found 0) — so every rule below was written by the extension's reconcile(), not left over"
+        },
+        {
+          "ok": true,
+          "what": "the reloaded extension still has its static blocking rulesets on ([\"gpc\",\"ads\",\"analytics\",\"social\",\"fingerprinting\",\"ua-mac\"]) — the seeded ON pass is the whole extension plus the learned rules, not a lesser one"
+        },
+        {
+          "ok": true,
+          "what": "google.com: a live learned rule covers it (id 1050001, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "google.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050001)"
+        },
+        {
+          "ok": true,
+          "what": "youtube.com: a live learned rule covers it (id 1050005, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "youtube.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050005)"
+        },
+        {
+          "ok": true,
+          "what": "facebook.com: a live learned rule covers it (id 1050000, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "facebook.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050000)"
+        },
+        {
+          "ok": true,
+          "what": "microsoft.com: a live learned rule covers it (id 1000003, block)"
+        },
+        {
+          "ok": true,
+          "what": "microsoft.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000003)"
+        },
+        {
+          "ok": true,
+          "what": "live.com: a live learned rule covers it (id 1000004, block)"
+        },
+        {
+          "ok": true,
+          "what": "live.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000004)"
+        },
+        {
+          "ok": true,
+          "what": "microsoftonline.com: a live learned rule covers it (id 1000005, block)"
+        },
+        {
+          "ok": true,
+          "what": "microsoftonline.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000005)"
+        },
+        {
+          "ok": true,
+          "what": "apple.com: a live learned rule covers it (id 1000006, block)"
+        },
+        {
+          "ok": true,
+          "what": "apple.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000006)"
+        },
+        {
+          "ok": true,
+          "what": "cloudflare.com: a live learned rule covers it (id 1000007, block)"
+        },
+        {
+          "ok": true,
+          "what": "cloudflare.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000007)"
+        },
+        {
+          "ok": true,
+          "what": "amazon.com: a live learned rule covers it (id 1000008, block)"
+        },
+        {
+          "ok": true,
+          "what": "amazon.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000008)"
+        },
+        {
+          "ok": true,
+          "what": "twitter.com: a live learned rule covers it (id 1050003, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "twitter.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050003)"
+        },
+        {
+          "ok": true,
+          "what": "x.com: a live learned rule covers it (id 1050004, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "x.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050004)"
+        },
+        {
+          "ok": true,
+          "what": "linkedin.com: a live learned rule covers it (id 1050002, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "linkedin.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050002)"
+        },
+        {
+          "ok": true,
+          "what": "enforcement + recorder: a fetch from http://127.0.0.1:55735 to www.linkedin.com matched learned rule 1050002 and the recorder saw it (fetch loaded; 1 hit(s))"
+        }
+      ],
+      "ok": true,
+      "findings": [],
+      "enabledRulesetsAfterReload": [
+        "gpc",
+        "ads",
+        "analytics",
+        "social",
+        "fingerprinting",
+        "ua-mac"
+      ],
+      "recorder": "installed",
+      "enforcementProbe": {
+        "fetched": "loaded",
+        "hits": [
+          {
+            "t": 1790656913848,
+            "ruleId": 1050002,
+            "type": "xmlhttprequest",
+            "url": "https://www.linkedin.com/robots.txt",
+            "initiator": "http://127.0.0.1:55735"
+          }
+        ]
+      }
+    },
+    "retrySeeds": [],
+    "rulesAtEnd": [
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "live.com",
+            "msn.com",
+            "bing.com",
+            "office.com",
+            "sharepoint.com",
+            "windows.net",
+            "microsoftonline.com",
+            "msauth.net",
+            "msftauth.net",
+            "office365.com",
+            "microsoft365.com",
+            "outlook.com",
+            "onedrive.com",
+            "azure.com"
+          ],
+          "requestDomains": [
+            "microsoft.com"
+          ]
+        },
+        "id": 1000003,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "microsoft.com",
+            "msn.com",
+            "bing.com",
+            "office.com",
+            "sharepoint.com",
+            "windows.net",
+            "microsoftonline.com",
+            "msauth.net",
+            "msftauth.net",
+            "office365.com",
+            "microsoft365.com",
+            "outlook.com",
+            "onedrive.com",
+            "azure.com"
+          ],
+          "excludedRequestDomains": [
+            "login.live.com"
+          ],
+          "requestDomains": [
+            "live.com"
+          ]
+        },
+        "id": 1000004,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "microsoft.com",
+            "live.com",
+            "msn.com",
+            "bing.com",
+            "office.com",
+            "sharepoint.com",
+            "windows.net",
+            "msauth.net",
+            "msftauth.net",
+            "office365.com",
+            "microsoft365.com",
+            "outlook.com",
+            "onedrive.com",
+            "azure.com"
+          ],
+          "excludedRequestDomains": [
+            "login.microsoftonline.com"
+          ],
+          "requestDomains": [
+            "microsoftonline.com"
+          ]
+        },
+        "id": 1000005,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "icloud.com",
+            "cdn-apple.com",
+            "mzstatic.com"
+          ],
+          "excludedRequestDomains": [
+            "appleid.apple.com"
+          ],
+          "requestDomains": [
+            "apple.com"
+          ]
+        },
+        "id": 1000006,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "cloudflareinsights.com"
+          ],
+          "excludedRequestDomains": [
+            "cdnjs.cloudflare.com",
+            "challenges.cloudflare.com"
+          ],
+          "requestDomains": [
+            "cloudflare.com"
+          ]
+        },
+        "id": 1000007,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "amazonaws.com",
+            "media-amazon.com",
+            "ssl-images-amazon.com",
+            "amazon-adsystem.com"
+          ],
+          "requestDomains": [
+            "amazon.com"
+          ]
+        },
+        "id": 1000008,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "facebook.net",
+            "fbcdn.net",
+            "fbsbx.com",
+            "instagram.com",
+            "whatsapp.com",
+            "messenger.com"
+          ],
+          "excludedRequestDomains": [
+            "graph.facebook.com"
+          ],
+          "requestDomains": [
+            "facebook.com"
+          ]
+        },
+        "id": 1050000,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "googleapis.com",
+            "gstatic.com",
+            "googlevideo.com",
+            "youtube.com",
+            "ytimg.com",
+            "withgoogle.com",
+            "google-analytics.com",
+            "googletagmanager.com"
+          ],
+          "excludedRequestDomains": [
+            "accounts.google.com",
+            "apis.google.com",
+            "www.google.com"
+          ],
+          "requestDomains": [
+            "google.com"
+          ]
+        },
+        "id": 1050001,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "licdn.com"
+          ],
+          "requestDomains": [
+            "linkedin.com"
+          ]
+        },
+        "id": 1050002,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "x.com",
+            "twimg.com",
+            "t.co"
+          ],
+          "requestDomains": [
+            "twitter.com"
+          ]
+        },
+        "id": 1050003,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "twitter.com",
+            "twimg.com",
+            "t.co"
+          ],
+          "requestDomains": [
+            "x.com"
+          ]
+        },
+        "id": 1050004,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "google.com",
+            "googleapis.com",
+            "gstatic.com",
+            "googlevideo.com",
+            "ytimg.com",
+            "withgoogle.com",
+            "google-analytics.com",
+            "googletagmanager.com"
+          ],
+          "requestDomains": [
+            "youtube.com"
+          ]
+        },
+        "id": 1050005,
+        "priority": 1
+      }
+    ],
+    "ruleDrift": {
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "seedFindings": []
+  },
+  "results": [
+    {
+      "site": {
+        "key": "example.com",
+        "n": 1,
+        "label": "example.com",
+        "url": "https://example.com/",
+        "settleMs": 2000
+      },
+      "on": {
+        "site": "example.com",
+        "withExtension": true,
+        "url": "https://example.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "title": "Example Domain"
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "example.com",
+        "withExtension": false,
+        "url": "https://example.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "title": "Example Domain"
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "spotify",
+        "n": 2,
+        "label": "open.spotify.com",
+        "url": "https://open.spotify.com/",
+        "settleMs": 3500
+      },
+      "on": {
+        "site": "spotify",
+        "withExtension": true,
+        "url": "https://open.spotify.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "bodyLen": 1039
+        },
+        "probes": {
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.googletagmanager.com/gtm.js?id=GTM-PZHN3VD"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "spotify",
+        "withExtension": false,
+        "url": "https://open.spotify.com/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "bodyLen": 1039
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "recaptcha",
+        "n": 3,
+        "label": "google.com/recaptcha/api2/demo",
+        "url": "https://www.google.com/recaptcha/api2/demo",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "recaptcha",
+        "withExtension": true,
+        "url": "https://www.google.com/recaptcha/api2/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 304,
+            "h": 78
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "recaptcha",
+        "withExtension": false,
+        "url": "https://www.google.com/recaptcha/api2/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 304,
+            "h": 78
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "hcaptcha",
+        "n": 4,
+        "label": "accounts.hcaptcha.com/demo",
+        "url": "https://accounts.hcaptcha.com/demo",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "hcaptcha",
+        "withExtension": true,
+        "url": "https://accounts.hcaptcha.com/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 302,
+            "h": 76
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "hcaptcha",
+        "withExtension": false,
+        "url": "https://accounts.hcaptcha.com/demo",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 302,
+            "h": 76
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "turnstile",
+        "n": 5,
+        "label": "demo.turnstile.workers.dev",
+        "url": "https://demo.turnstile.workers.dev/",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "turnstile",
+        "withExtension": true,
+        "url": "https://demo.turnstile.workers.dev/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 300,
+            "h": 71,
+            "via": "widget-children"
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "turnstile",
+        "withExtension": false,
+        "url": "https://demo.turnstile.workers.dev/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "box": {
+            "w": 300,
+            "h": 71,
+            "via": "widget-children"
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "amazon",
+        "n": 6,
+        "label": "amazon.com (search \"usb c cable\")",
+        "url": "https://www.amazon.com/s?k=usb+c+cable",
+        "settleMs": 3000
+      },
+      "on": {
+        "site": "amazon",
+        "withExtension": true,
+        "url": "https://www.amazon.com/s?k=usb+c+cable",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "resultCount": 22
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.googletagservices.com/dcm/dcmads.js",
+          "fetch https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?_=1607460946161",
+          "document https://s.amazon-adsystem.com/iu3?d=amazon.com&slot=navFooter&a2=0101025dd4a7413283499f6f9f9be1a0b07796fa83623504536a3e3ac6c2aca5b3a7&old_oo=0&ts=1790656933212&s=AfDzHOsyYS2dNI4Ab3sD2G6PRIM5JEGcE6bGh3"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "amazon",
+        "withExtension": false,
+        "url": "https://www.amazon.com/s?k=usb+c+cable",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "resultCount": 16
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "maps",
+        "n": 7,
+        "label": "google.com/maps",
+        "url": "https://www.google.com/maps/@35.6225,-117.6709,12z",
+        "settleMs": 0
+      },
+      "on": {
+        "site": "maps",
+        "withExtension": true,
+        "url": "https://www.google.com/maps/@35.6225,-117.6709,12z",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": "timeout after 45000ms: maps",
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "maps",
+        "withExtension": false,
+        "url": "https://www.google.com/maps/@35.6225,-117.6709,12z",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": "timeout after 45000ms: maps",
+        "blockedByClient": [],
+        "learnedHits": null,
+        "retriedAfterInitialFail": true,
+        "firstAttempt": {
+          "ok": false,
+          "reasons": [],
+          "detail": {},
+          "error": "timeout after 45000ms: maps"
+        }
+      },
+      "verdict": "NOT-OURS",
+      "reason": "fails with extension OFF too — off: timeout after 45000ms: maps",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "osm",
+        "n": 8,
+        "label": "openstreetmap.org",
+        "url": "https://www.openstreetmap.org/#map=12/35.6225/-117.6709",
+        "settleMs": 4000
+      },
+      "on": {
+        "site": "osm",
+        "withExtension": true,
+        "url": "https://www.openstreetmap.org/#map=12/35.6225/-117.6709",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "total": 24,
+          "loaded": 24
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 10,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "osm",
+        "withExtension": false,
+        "url": "https://www.openstreetmap.org/#map=12/35.6225/-117.6709",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "total": 24,
+          "loaded": 24
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "youtube",
+        "n": 9,
+        "label": "youtube.com/watch?v=jNQXAC9IVRw",
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "settleMs": 0
+      },
+      "on": {
+        "site": "youtube",
+        "withExtension": true,
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "from": 1.423261,
+          "currentTime": 10.425172,
+          "readyState": 4,
+          "buffered": 19,
+          "paused": false,
+          "skipPlay": false
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 10,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "fetch https://googleads.g.doubleclick.net/pagead/viewthroughconversion/962985656/?backend=innertube&cname=1&cver=2_20260925&data=backend%3Dinnertube%3Bcname%3D1%3Bcver%3D2_20260925%3Bptype%3Df_view%3Btype%3"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "youtube",
+        "withExtension": false,
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "from": 1.405735,
+          "currentTime": 10.40897,
+          "readyState": 4,
+          "buffered": 19,
+          "paused": false,
+          "skipPlay": false
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "chartjs",
+        "n": 10,
+        "label": "chartjs.org vertical bar sample",
+        "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html",
+        "settleMs": 1500
+      },
+      "on": {
+        "site": "chartjs",
+        "withExtension": true,
+        "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "w": 800,
+          "h": 400,
+          "nonTransparentPixels": 0
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.google-analytics.com/analytics.js"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "chartjs",
+        "withExtension": false,
+        "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "w": 800,
+          "h": 400,
+          "nonTransparentPixels": 0
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "retriedAfterInitialFail": true,
+        "firstAttempt": {
+          "ok": false,
+          "reasons": [],
+          "detail": {
+            "w": 800,
+            "h": 400,
+            "nonTransparentPixels": 0
+          },
+          "error": null
+        }
+      },
+      "verdict": "NOT-OURS",
+      "reason": "fails with extension OFF too — off: functional check failed",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "nytimes",
+        "n": 11,
+        "label": "nytimes.com",
+        "url": "https://www.nytimes.com/",
+        "settleMs": 2500
+      },
+      "on": {
+        "site": "nytimes",
+        "withExtension": true,
+        "url": "https://www.nytimes.com/",
+        "ok": false,
+        "blocked": true,
+        "blockedEvidence": "HTTP 403 — nytimes.com —",
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": null,
+        "consoleLines": [],
+        "httpStatus": 403,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "nytimes",
+        "withExtension": false,
+        "url": "https://www.nytimes.com/",
+        "ok": false,
+        "blocked": true,
+        "blockedEvidence": "HTTP 403 — nytimes.com —",
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {},
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": null,
+        "consoleLines": [],
+        "httpStatus": 403,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "BLOCKED",
+      "reason": "HTTP 403 — nytimes.com —",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "squoosh",
+        "n": 12,
+        "label": "squoosh.app",
+        "url": "https://squoosh.app/",
+        "settleMs": 2000
+      },
+      "on": {
+        "site": "squoosh",
+        "withExtension": true,
+        "url": "https://squoosh.app/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "textSample": "Drop OR Paste\n\nOr try one of these:\n\n2.8MB\n2.9MB\n1.6MB\n13KB\nSmall\n\nSmaller images mean faster load times. Squoosh can re"
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.google-analytics.com/analytics.js"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "squoosh",
+        "withExtension": false,
+        "url": "https://squoosh.app/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "textSample": "Drop OR Paste\n\nOr try one of these:\n\n2.8MB\n2.9MB\n1.6MB\n13KB\nSmall\n\nSmaller images mean faster load times. Squoosh can re"
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "irs",
+        "n": 13,
+        "label": "irs.gov site search \"form 1040\"",
+        "url": "https://www.irs.gov/",
+        "settleMs": 1500
+      },
+      "on": {
+        "site": "irs",
+        "withExtension": true,
+        "url": "https://www.irs.gov/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "url": "https://www.irs.gov/site-index-search?search=form+1040&field_pup_historical_1=1&field_pup_historical=1",
+          "resultCount": 10,
+          "has1040": true
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.googletagmanager.com/gtm.js?id=GTM-KV978ZL",
+          "script https://www.googletagmanager.com/gtm.js?id=GTM-KV978ZL"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "irs",
+        "withExtension": false,
+        "url": "https://www.irs.gov/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "url": "https://www.irs.gov/site-index-search?search=form+1040&field_pup_historical_1=1&field_pup_historical=1",
+          "resultCount": 10,
+          "has1040": true
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "reddit",
+        "n": 14,
+        "label": "reddit.com/r/technology",
+        "url": "https://www.reddit.com/r/technology/",
+        "settleMs": 5000
+      },
+      "on": {
+        "site": "reddit",
+        "withExtension": true,
+        "url": "https://www.reddit.com/r/technology/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "postCount": 8
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.googletagmanager.com/gtag/js?id=AW-788729857",
+          "image https://id.rlcdn.com/472486.gif"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "reddit",
+        "withExtension": false,
+        "url": "https://www.reddit.com/r/technology/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "postCount": 6
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-recaptcha-patrickhlauke",
+        "n": 15,
+        "label": "reCAPTCHA v2 on patrickhlauke.github.io",
+        "url": "https://patrickhlauke.github.io/recaptcha/",
+        "settleMs": 2500,
+        "protects": "www.google.com/recaptcha/ (NEVER_BLOCK) under a learned google.com"
+      },
+      "on": {
+        "site": "tp-recaptcha-patrickhlauke",
+        "withExtension": true,
+        "url": "https://patrickhlauke.github.io/recaptcha/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "grecaptcha": "object",
+            "ready": true
+          },
+          "anchor": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ld2sf4SAAAAAKSgzs0Q13IZhY02Pyo31S2jgOB5&co=aHR0cHM6Ly9wYXRyaWNraGxhdWtlLmdpdGh1Yi5pbzo0NDM.&hl=en&v=kemdRjW",
+            "box": {
+              "w": 304,
+              "h": 78
+            },
+            "content": {
+              "ok": true,
+              "checkbox": true,
+              "text": "I'm not a robot reCAPTCHA is changing its terms of service. "
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-recaptcha-patrickhlauke",
+        "withExtension": false,
+        "url": "https://patrickhlauke.github.io/recaptcha/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "grecaptcha": "object",
+            "ready": true
+          },
+          "anchor": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6Ld2sf4SAAAAAKSgzs0Q13IZhY02Pyo31S2jgOB5&co=aHR0cHM6Ly9wYXRyaWNraGxhdWtlLmdpdGh1Yi5pbzo0NDM.&hl=en&v=kemdRjW",
+            "box": {
+              "w": 304,
+              "h": 78
+            },
+            "content": {
+              "ok": true,
+              "checkbox": true,
+              "text": "I'm not a robot reCAPTCHA is changing its terms of service. "
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-recaptcha-ascendpartner",
+        "n": 16,
+        "label": "reCAPTCHA v2 on ascendpartner.com signup",
+        "url": "https://www.ascendpartner.com/affiliate/registration?usertype=2",
+        "settleMs": 3000,
+        "protects": "www.google.com/recaptcha/ (NEVER_BLOCK) under a learned google.com"
+      },
+      "on": {
+        "site": "tp-recaptcha-ascendpartner",
+        "withExtension": true,
+        "url": "https://www.ascendpartner.com/affiliate/registration?usertype=2",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "grecaptcha": "object",
+            "ready": true
+          },
+          "anchor": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LeHoIoUAAAAACNO2KJkhRR-bbw9g6BzJLAJNYQL&co=aHR0cHM6Ly93d3cuYXNjZW5kcGFydG5lci5jb206NDQz&hl=en&v=kemdRjWFxNj",
+            "box": {
+              "w": 304,
+              "h": 78
+            },
+            "content": {
+              "ok": true,
+              "checkbox": true,
+              "text": "I'm not a robot reCAPTCHA"
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-recaptcha-ascendpartner",
+        "withExtension": false,
+        "url": "https://www.ascendpartner.com/affiliate/registration?usertype=2",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "grecaptcha": "object",
+            "ready": true
+          },
+          "anchor": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LeHoIoUAAAAACNO2KJkhRR-bbw9g6BzJLAJNYQL&co=aHR0cHM6Ly93d3cuYXNjZW5kcGFydG5lci5jb206NDQz&hl=en&v=kemdRjWFxNj",
+            "box": {
+              "w": 304,
+              "h": 78
+            },
+            "content": {
+              "ok": true,
+              "checkbox": true,
+              "text": "I'm not a robot reCAPTCHA"
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-recaptcha-enterprise-reddit",
+        "n": 17,
+        "label": "reCAPTCHA Enterprise (invisible) on reddit.com/login",
+        "url": "https://www.reddit.com/login/",
+        "settleMs": 4000,
+        "protects": "www.google.com/recaptcha/enterprise (NEVER_BLOCK) under a learned google.com"
+      },
+      "on": {
+        "site": "tp-recaptcha-enterprise-reddit",
+        "withExtension": true,
+        "url": "https://www.reddit.com/login/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "grecaptcha": "object",
+            "ready": true
+          },
+          "anchor": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LfirrMoAAAAAHZOipvza4kpp_VtTwLNuXVwURNQ&co=aHR0cHM6Ly93d3cucmVkZGl0LmNvbTo0NDM.&hl=en&v=kemdRjWFxNjgs",
+            "box": {
+              "w": 256,
+              "h": 60
+            },
+            "content": {
+              "ok": true,
+              "checkbox": false,
+              "text": "protected by reCAPTCHA"
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "image https://id.rlcdn.com/472486.gif"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-recaptcha-enterprise-reddit",
+        "withExtension": false,
+        "url": "https://www.reddit.com/login/",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "grecaptcha": "object",
+            "ready": true
+          },
+          "anchor": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LfirrMoAAAAAHZOipvza4kpp_VtTwLNuXVwURNQ&co=aHR0cHM6Ly93d3cucmVkZGl0LmNvbTo0NDM.&hl=en&v=kemdRjWFxNjgs",
+            "box": {
+              "w": 256,
+              "h": 60
+            },
+            "content": {
+              "ok": true,
+              "checkbox": false,
+              "text": "protected by reCAPTCHA"
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-turnstile-peet",
+        "n": 18,
+        "label": "Cloudflare Turnstile on peet.ws",
+        "url": "https://peet.ws/turnstile-test/non-interactive.html",
+        "settleMs": 3000,
+        "protects": "challenges.cloudflare.com (NEVER_BLOCK) under a learned cloudflare.com"
+      },
+      "on": {
+        "site": "tp-turnstile-peet",
+        "withExtension": true,
+        "url": "https://peet.ws/turnstile-test/non-interactive.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "turnstile": "object",
+            "ready": true
+          },
+          "widget": {
+            "ok": true,
+            "found": true,
+            "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/nf7cl/0x4AAAAAAABS7vwvV6VFfMcD/light/fbE/new/normal?lang=auto",
+            "box": {
+              "w": 300,
+              "h": 65
+            },
+            "content": null
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-turnstile-peet",
+        "withExtension": false,
+        "url": "https://peet.ws/turnstile-test/non-interactive.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "turnstile": "object",
+            "ready": true
+          },
+          "widget": {
+            "ok": true,
+            "found": true,
+            "url": "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/qctr2/0x4AAAAAAABS7vwvV6VFfMcD/light/fbE/new/normal?lang=auto",
+            "box": {
+              "w": 300,
+              "h": 65
+            },
+            "content": null
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-hcaptcha-democaptcha",
+        "n": 19,
+        "label": "hCaptcha on democaptcha.com",
+        "url": "https://democaptcha.com/demo-form-eng/hcaptcha.html",
+        "settleMs": 3000,
+        "protects": "hcaptcha.com (NEVER_BLOCK; no seeded domain covers it — a CONTROL row: it must pass in every mode)"
+      },
+      "on": {
+        "site": "tp-hcaptcha-democaptcha",
+        "withExtension": true,
+        "url": "https://democaptcha.com/demo-form-eng/hcaptcha.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "hcaptcha": "object",
+            "ready": true
+          },
+          "checkbox": {
+            "ok": true,
+            "found": true,
+            "url": "https://newassets.hcaptcha.com/captcha/v1/b9ca2a6602c2bf69741b771db488f3001ea35b08/static/hcaptcha.html#frame=checkbox&id=097pgss4smik&host=democaptcha.com&sent",
+            "box": {
+              "w": 302,
+              "h": 76
+            },
+            "content": {
+              "ok": true,
+              "text": "I am human Privacy - Terms"
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-hcaptcha-democaptcha",
+        "withExtension": false,
+        "url": "https://democaptcha.com/demo-form-eng/hcaptcha.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "hcaptcha": "object",
+            "ready": true
+          },
+          "checkbox": {
+            "ok": true,
+            "found": true,
+            "url": "https://newassets.hcaptcha.com/captcha/v1/b9ca2a6602c2bf69741b771db488f3001ea35b08/static/hcaptcha.html#frame=checkbox&id=09jl51p0z7iq&host=democaptcha.com&sent",
+            "box": {
+              "w": 302,
+              "h": 76
+            },
+            "content": {
+              "ok": true,
+              "text": "I am human Privacy - Terms"
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-gsi-reddit",
+        "n": 20,
+        "label": "Google Sign-In button on reddit.com/login",
+        "url": "https://www.reddit.com/login/",
+        "settleMs": 4000,
+        "protects": "accounts.google.com (NEVER_BLOCK) under a learned google.com"
+      },
+      "on": {
+        "site": "tp-gsi-reddit",
+        "withExtension": true,
+        "url": "https://www.reddit.com/login/",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "ready": true
+          },
+          "button": {
+            "ok": false,
+            "found": false,
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "image https://id.rlcdn.com/472486.gif"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-gsi-reddit",
+        "withExtension": false,
+        "url": "https://www.reddit.com/login/",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "ready": true
+          },
+          "button": {
+            "ok": false,
+            "found": false,
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "retriedAfterInitialFail": true,
+        "firstAttempt": {
+          "ok": false,
+          "reasons": [],
+          "detail": {
+            "api": {
+              "ready": true
+            },
+            "button": {
+              "ok": false,
+              "found": false,
+              "errorFrames": 0
+            }
+          },
+          "error": null
+        }
+      },
+      "verdict": "NOT-OURS",
+      "reason": "fails with extension OFF too — off: functional check failed",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-gsi-pinterest",
+        "n": 21,
+        "label": "Google Sign-In button on pinterest.com/login",
+        "url": "https://www.pinterest.com/login/",
+        "settleMs": 4000,
+        "protects": "accounts.google.com (NEVER_BLOCK) under a learned google.com"
+      },
+      "on": {
+        "site": "tp-gsi-pinterest",
+        "withExtension": true,
+        "url": "https://www.pinterest.com/login/",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "ready": true
+          },
+          "button": {
+            "ok": false,
+            "found": true,
+            "url": "https://accounts.google.com/gsi/button?size=large&shape=rectangular&text=continue_with&theme=outline&width=382px&logo_alignment=left&click_listener=()%3D%3E%7BI",
+            "box": {
+              "w": 0,
+              "h": 0
+            },
+            "content": {
+              "ok": true,
+              "text": "Continue with Google"
+            },
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-gsi-pinterest",
+        "withExtension": false,
+        "url": "https://www.pinterest.com/login/",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "api": {
+            "ready": true
+          },
+          "button": {
+            "ok": false,
+            "found": true,
+            "url": "https://accounts.google.com/gsi/button?size=large&shape=rectangular&text=continue_with&theme=outline&width=382px&logo_alignment=left&click_listener=()%3D%3E%7BI",
+            "box": {
+              "w": 0,
+              "h": 0
+            },
+            "content": {
+              "ok": true,
+              "text": "Continue with Google"
+            },
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "retriedAfterInitialFail": true,
+        "firstAttempt": {
+          "ok": false,
+          "reasons": [],
+          "detail": {
+            "api": {
+              "ready": true
+            },
+            "button": {
+              "ok": false,
+              "found": true,
+              "url": "https://accounts.google.com/gsi/button?size=large&shape=rectangular&text=continue_with&theme=outline&width=382px&logo_alignment=left&click_listener=()%3D%3E%7BI",
+              "box": {
+                "w": 0,
+                "h": 0
+              },
+              "content": {
+                "ok": true,
+                "text": "Continue with Google"
+              },
+              "errorFrames": 0
+            }
+          },
+          "error": null
+        }
+      },
+      "verdict": "NOT-OURS",
+      "reason": "fails with extension OFF too — off: functional check failed",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-youtube-embed",
+        "n": 22,
+        "label": "YouTube iframe embed (fixture)",
+        "fixture": "third-party-embeds.html?e=youtube",
+        "settleMs": 2500,
+        "protects": "youtube.com (COOKIE_BLOCK_ONLY — cookie-strip, never block)"
+      },
+      "on": {
+        "site": "tp-youtube-embed",
+        "withExtension": true,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=youtube",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "player": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.youtube.com/embed/jNQXAC9IVRw",
+            "box": {
+              "w": 564,
+              "h": 319
+            },
+            "content": {
+              "ok": true,
+              "text": "Me at the zoo jawed jawed 6.63M subscribers Watch on"
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "xhr https://googleads.g.doubleclick.net/pagead/id",
+          "script https://static.doubleclick.net/instream/ad_status.js"
+        ],
+        "learnedHits": {
+          "hits": [
+            {
+              "t": 1790657072092,
+              "ruleId": 1050005,
+              "type": "sub_frame",
+              "url": "https://www.youtube.com/embed/jNQXAC9IVRw",
+              "initiator": "http://127.0.0.1:55735"
+            }
+          ],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-youtube-embed",
+        "withExtension": false,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=youtube",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "player": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.youtube.com/embed/jNQXAC9IVRw",
+            "box": {
+              "w": 564,
+              "h": 319
+            },
+            "content": {
+              "ok": true,
+              "text": "Me at the zoo jawed jawed 6.63M subscribers Watch on"
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-maps-embed",
+        "n": 23,
+        "label": "Google Maps embed, www.google.com/maps/embed (fixture)",
+        "fixture": "third-party-embeds.html?e=maps",
+        "settleMs": 3000,
+        "protects": "www.google.com (carved out of a learned google.com, D50)"
+      },
+      "on": {
+        "site": "tp-maps-embed",
+        "withExtension": true,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=maps",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "map": {
+            "ok": false,
+            "found": true,
+            "url": "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d52000!2d-117.6709!3d35.6225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1700000000000",
+            "box": {
+              "w": 604,
+              "h": 454
+            },
+            "content": {
+              "ok": false,
+              "images": 1,
+              "text": ""
+            },
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-maps-embed",
+        "withExtension": false,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=maps",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "map": {
+            "ok": false,
+            "found": true,
+            "url": "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d52000!2d-117.6709!3d35.6225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1700000000000",
+            "box": {
+              "w": 604,
+              "h": 454
+            },
+            "content": {
+              "ok": false,
+              "images": 1,
+              "text": ""
+            },
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "retriedAfterInitialFail": true,
+        "firstAttempt": {
+          "ok": false,
+          "reasons": [],
+          "detail": {
+            "map": {
+              "ok": false,
+              "found": true,
+              "url": "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d52000!2d-117.6709!3d35.6225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1700000000000",
+              "box": {
+                "w": 604,
+                "h": 454
+              },
+              "content": {
+                "ok": false,
+                "images": 1,
+                "text": ""
+              },
+              "errorFrames": 0
+            }
+          },
+          "error": null
+        }
+      },
+      "verdict": "NOT-OURS",
+      "reason": "fails with extension OFF too — off: functional check failed",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-maps-embed-legacy",
+        "n": 24,
+        "label": "Google Maps embed via maps.google.com (fixture)",
+        "fixture": "third-party-embeds.html?e=maps-legacy",
+        "settleMs": 3000,
+        "protects": "maps.google.com (COOKIE_BLOCK_ONLY) → www.google.com/maps/embed"
+      },
+      "on": {
+        "site": "tp-maps-embed-legacy",
+        "withExtension": true,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=maps-legacy",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "map": {
+            "ok": false,
+            "found": true,
+            "url": "https://www.google.com/maps/embed?origin=mfe&pb=!1m2!2m1!1sRidgecrest,+CA",
+            "box": {
+              "w": 604,
+              "h": 454
+            },
+            "content": {
+              "ok": false,
+              "images": 1,
+              "text": ""
+            },
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [
+            {
+              "t": 1790657093243,
+              "ruleId": 1050001,
+              "type": "sub_frame",
+              "url": "https://maps.google.com/maps?q=Ridgecrest%2C%20CA&output=embed",
+              "initiator": "http://127.0.0.1:55735"
+            }
+          ],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-maps-embed-legacy",
+        "withExtension": false,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=maps-legacy",
+        "ok": false,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "map": {
+            "ok": false,
+            "found": true,
+            "url": "https://www.google.com/maps/embed?origin=mfe&pb=!1m2!2m1!1sRidgecrest,+CA",
+            "box": {
+              "w": 604,
+              "h": 454
+            },
+            "content": {
+              "ok": false,
+              "images": 1,
+              "text": ""
+            },
+            "errorFrames": 0
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "retriedAfterInitialFail": true,
+        "firstAttempt": {
+          "ok": false,
+          "reasons": [],
+          "detail": {
+            "map": {
+              "ok": false,
+              "found": true,
+              "url": "https://www.google.com/maps/embed?origin=mfe&pb=!1m2!2m1!1sRidgecrest,+CA",
+              "box": {
+                "w": 604,
+                "h": 454
+              },
+              "content": {
+                "ok": false,
+                "images": 1,
+                "text": ""
+              },
+              "errorFrames": 0
+            }
+          },
+          "error": null
+        }
+      },
+      "verdict": "NOT-OURS",
+      "reason": "fails with extension OFF too — off: functional check failed",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-calendar-embed",
+        "n": 25,
+        "label": "Google Calendar public embed (fixture)",
+        "fixture": "third-party-embeds.html?e=calendar",
+        "settleMs": 3000,
+        "protects": "calendar.google.com — google.com is COOKIE_BLOCK_ONLY since D50"
+      },
+      "on": {
+        "site": "tp-calendar-embed",
+        "withExtension": true,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=calendar",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "cal": {
+            "ok": true,
+            "found": true,
+            "url": "https://calendar.google.com/calendar/embed?src=en.usa%23holiday%40group.v.calendar.google.com&ctz=America%2FLos_Angeles",
+            "box": {
+              "w": 804,
+              "h": 604
+            },
+            "content": {
+              "ok": true,
+              "textLen": 1713,
+              "title": "Holidays in United States",
+              "text": "Today Monday, September 28 Previous month Next month Septemb"
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [
+            {
+              "t": 1790657111992,
+              "ruleId": 1050001,
+              "type": "sub_frame",
+              "url": "https://calendar.google.com/calendar/embed?src=en.usa%23holiday%40group.v.calendar.google.com&ctz=America%2FLos_Angeles",
+              "initiator": "http://127.0.0.1:55735"
+            }
+          ],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-calendar-embed",
+        "withExtension": false,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=calendar",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "cal": {
+            "ok": true,
+            "found": true,
+            "url": "https://calendar.google.com/calendar/embed?src=en.usa%23holiday%40group.v.calendar.google.com&ctz=America%2FLos_Angeles",
+            "box": {
+              "w": 804,
+              "h": 604
+            },
+            "content": {
+              "ok": true,
+              "textLen": 1713,
+              "title": "Holidays in United States",
+              "text": "Today Monday, September 28 Previous month Next month Septemb"
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-facebook-sdk-plugin",
+        "n": 26,
+        "label": "Facebook JS SDK + Page plugin (fixture)",
+        "fixture": "third-party-embeds.html?e=facebook",
+        "settleMs": 3500,
+        "protects": "facebook.com (COOKIE_BLOCK_ONLY since D52 — was a POLICY row until then)"
+      },
+      "on": {
+        "site": "tp-facebook-sdk-plugin",
+        "withExtension": true,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=facebook",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "sdk": {
+            "FB": "object",
+            "xfbml": true
+          },
+          "plugin": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.facebook.com/v19.0/plugins/page.php?app_id=&channel=https%3A%2F%2Fstaticxx.facebook.com%2Fx%2Fconnect%2Fxd_arbiter%2F%3Fversion%3D46%23cb%3Dfe34b808",
+            "box": {
+              "w": 340,
+              "h": 500
+            },
+            "content": {
+              "ok": true,
+              "text": "Facebook 154,702,359 followers Follow Page Share Facebook 7 "
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-facebook-sdk-plugin",
+        "withExtension": false,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=facebook",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "sdk": {
+            "FB": "object",
+            "xfbml": true
+          },
+          "plugin": {
+            "ok": true,
+            "found": true,
+            "url": "https://www.facebook.com/v19.0/plugins/page.php?app_id=&channel=https%3A%2F%2Fstaticxx.facebook.com%2Fx%2Fconnect%2Fxd_arbiter%2F%3Fversion%3D46%23cb%3Df54a822e",
+            "box": {
+              "w": 340,
+              "h": 500
+            },
+            "content": {
+              "ok": true,
+              "text": "Facebook 154,702,359 followers Follow Page Share Facebook 7 "
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-x-embedded-post",
+        "n": 27,
+        "label": "X / Twitter embedded post (fixture)",
+        "fixture": "third-party-embeds.html?e=tweet",
+        "settleMs": 3500,
+        "protects": "twitter.com / x.com (COOKIE_BLOCK_ONLY since D52 — was a POLICY row until then)"
+      },
+      "on": {
+        "site": "tp-x-embedded-post",
+        "withExtension": true,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=tweet",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "post": {
+            "ok": true,
+            "found": true,
+            "url": "https://platform.twitter.com/embed/Tweet.html?dnt=false&embedId=twitter-widget-0&features=eyJ0ZndfdGltZWxpbmVfbGlzdCI6eyJidWNrZXQiOltdLCJ2ZXJzaW9uIjpudWxsfSwidG",
+            "box": {
+              "w": 550,
+              "h": 225
+            },
+            "content": {
+              "ok": true,
+              "text": "jack @jack · Follow just setting up my twttr 12:50 PM · Mar "
+            }
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": {
+          "hits": [
+            {
+              "t": 1790657119201,
+              "ruleId": 1050003,
+              "type": "script",
+              "url": "https://platform.twitter.com/js/tweet.7a6003258de838c35e66fd0f50ebdb0f.js",
+              "initiator": "http://127.0.0.1:55735"
+            },
+            {
+              "t": 1790657119577,
+              "ruleId": 1050003,
+              "type": "sub_frame",
+              "url": "https://platform.twitter.com/embed/Tweet.html?dnt=false&embedId=twitter-widget-0&features=eyJ0ZndfdGltZWxpbmVfbGlzdCI6eyJidWNrZXQiOltdLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X2ZvbGxvd2VyX2NvdW50X3N1bnNldCI6eyJidWNrZXQiOnRydWUsInZlcn",
+              "initiator": "http://127.0.0.1:55735"
+            }
+          ],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-x-embedded-post",
+        "withExtension": false,
+        "url": "http://127.0.0.1:55735/third-party-embeds.html?e=tweet",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "post": {
+            "ok": true,
+            "found": true,
+            "url": "https://platform.twitter.com/embed/Tweet.html?dnt=false&embedId=twitter-widget-0&features=eyJ0ZndfdGltZWxpbmVfbGlzdCI6eyJidWNrZXQiOltdLCJ2ZXJzaW9uIjpudWxsfSwidG",
+            "box": {
+              "w": 550,
+              "h": 225
+            },
+            "content": {
+              "ok": true,
+              "text": "jack @jack · Follow just setting up my twttr 12:50 PM · Mar "
+            }
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    },
+    {
+      "site": {
+        "key": "tp-msft-signin-handoff",
+        "n": 28,
+        "label": "microsoft.com silent sign-in hand-off (login.live.com → www.microsoft.com)",
+        "url": "https://www.microsoft.com/en-us",
+        "settleMs": 0,
+        "protects": "www.microsoft.com receiving its own login hand-off — excludedInitiatorDomains (same company, D52)"
+      },
+      "on": {
+        "site": "tp-msft-signin-handoff",
+        "withExtension": true,
+        "url": "https://www.microsoft.com/en-us",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "handoff": {
+            "method": "POST",
+            "status": 302,
+            "failed": null
+          },
+          "landed": true,
+          "errorFrames": 0,
+          "chain": [
+            "GET https://www.microsoft.com/cascadeauth/store/account/silentauth?auth=default → 302",
+            "GET https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=10fa57ef-4895- → 302",
+            "GET https://login.live.com/oauth20_authorize.srf?client_id=10fa57ef-4895-4ab2-872c-8c3613d4f7f → 200",
+            "POST https://www.microsoft.com/cascadeauth/account/signin-oidc → 302",
+            "GET https://www.microsoft.com/cascadeauth/store/account/silentauth?auth=None → 200"
+          ]
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 10,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://www.clarity.ms/tag/rcwvv0hsnp"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        }
+      },
+      "off": {
+        "site": "tp-msft-signin-handoff",
+        "withExtension": false,
+        "url": "https://www.microsoft.com/en-us",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "handoff": {
+            "method": "POST",
+            "status": 302,
+            "failed": null
+          },
+          "landed": true,
+          "errorFrames": 0,
+          "chain": [
+            "GET https://www.microsoft.com/cascadeauth/store/account/silentauth?auth=default → 302",
+            "GET https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=10fa57ef-4895- → 302",
+            "GET https://login.live.com/oauth20_authorize.srf?client_id=10fa57ef-4895-4ab2-872c-8c3613d4f7f → 200",
+            "POST https://www.microsoft.com/cascadeauth/account/signin-oidc → 302",
+            "GET https://www.microsoft.com/cascadeauth/store/account/silentauth?auth=None → 200"
+          ]
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    }
+  ]
+}
