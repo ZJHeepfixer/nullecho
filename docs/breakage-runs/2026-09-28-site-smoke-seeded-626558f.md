@@ -7,6 +7,10 @@
 > runs and show **0 learned-rule matches** ON; all six PASSED in the agent's run on 956882e earlier the same night, on another
 > network. So they are environmental on this connection (Google degrading automated Chrome for Testing after a day of runs, or
 > the network), not Nullecho — and the same rows are being confirmed by eye in the owner's real Chrome with Nullecho ON.
+>
+> **Confirmed by eye 2026-09-29 (owner's Chrome 153, Nullecho 0.9.1-equivalent main loaded unpacked, ON, learned google.com
+> cookie-strip live):** the Maps embed fixture (`?e=maps`) shows the map; pinterest.com/login shows "Continue with Google".
+> The NOT-OURS verdicts stand.
 
 
 Tests **the packaged Chrome build**, not the source tree: `ext/tools/package.mjs` → `nullecho-0.9.1-chrome.zip`, sha256 `c4903cb56adbcbe4db2e38d965948ce4d7e0dfa51792f891432d6b7c79441ecd`, 247.6 KB.
