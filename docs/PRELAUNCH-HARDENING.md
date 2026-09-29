@@ -86,10 +86,11 @@ storage record (status `blocked`, three sites, `source: 'learned'`, ids from the
 youtube.com, facebook.com, microsoft.com, live.com, microsoftonline.com, apple.com, cloudflare.com, amazon.com,
 twitter.com, x.com, linkedin.com; reloads the extension the way an update does, so the SHIPPED `reconcile()` writes the
 rules; then reads `getDynamicRules()` back and **aborts (exit 3) unless every seeded domain has a live learned rule
-and a probe fetch proves the rules are enforced and the match recorder sees them**. It runs the 14 sites plus 13
-third-party rows (reCAPTCHA v2 on patrickhlauke + ascendpartner, reCAPTCHA Enterprise on reddit login, Turnstile on
-peet.ws, hCaptcha on democaptcha, Google Sign-In on reddit + pinterest login, YouTube / Maps ×2 / Calendar embeds, and
-two POLICY rows — Facebook Page plugin, embedded X post) OFF and ON, attributes every learned-rule match to its row, and
+and a probe fetch proves the rules are enforced and the match recorder sees them**. It runs the 14 sites plus 14
+learned-state rows (reCAPTCHA v2 on patrickhlauke + ascendpartner, reCAPTCHA Enterprise on reddit login, Turnstile on
+peet.ws, hCaptcha on democaptcha, Google Sign-In on reddit + pinterest login, YouTube / Maps ×2 / Calendar / Facebook
+Page plugin / embedded X post embeds, and microsoft.com's own silent sign-in hand-off from login.live.com) OFF and ON,
+attributes every learned-rule match to its row, and
 fails any row where a learned rule BLOCKED a NEVER_BLOCK / COOKIE_BLOCK_ONLY host — the D50 invariant over all traffic,
 not just what each check looks at. **Green = exit 0**: no FAIL, no VOID (hidden tab), no `[nullecho]` warning in the
 worker console during the reload, no seeded rule lost mid-run.
@@ -98,10 +99,13 @@ worker console during the reload, no seeded rule lost mid-run.
   temp dir only): every reCAPTCHA / Turnstile / Google Sign-In / Google-embed row FAILS, each attributed to the learned
   rule that blocked it, and the worker console shows the D50 reload race. On the current code every one PASSES and the
   invariant finds zero protected-host blocks. Run logs: `docs/breakage-runs/2026-09-28-seeded-learned-state.md`.
-- **Open policy question it surfaced (owner):** a learned `facebook.com` or `twitter.com` block removes Facebook
-  plugins and embedded X posts from every third-party site (static rules deliberately leave both alone). Reported as
-  POLICY-BLOCKED, not FAIL, until a decision says whether they belong on COOKIE_BLOCK_ONLY — the same reasoning D50
-  used for google.com.
+- **What it surfaced, resolved by D52 (2026-09-28):** a learned `facebook.com` / `twitter.com` block removed Facebook
+  plugins and embedded X posts from every third-party site, and a learned `microsoft.com` block stopped microsoft.com's
+  own silent sign-in (login.live.com posting back). D52 cookie-strips the social platforms and gives every learned rule
+  its company's other domains as `excludedInitiatorDomains`; rows 26–28 now gate. Proven both ways: they PASS on
+  `f5a906d`+ and FAIL on the 73b511b learner (`--learner-from 73b511b --only tp-facebook-sdk-plugin,tp-x-embedded-post,
+  tp-msft-signin-handoff`), each attributed to its learned rule. Latest green run: `2026-09-28-site-smoke-seeded-956882e.md`
+  (27 PASS + nytimes BLOCKED, exit 0).
 
 `npm test` (506+), `node rules/validate.mjs`, `node ext/tools/package.mjs`, `npm run smoke` (14 sites, packaged
 zip, ON/OFF, browser identity ON = OFF), **`npm run smoke:seeded` (exit 0)**, `harness/unpacked-chrome.mjs claim`

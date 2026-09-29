@@ -115,7 +115,7 @@ already yellowlisted). This row shows D50's reconcile migration of a `blocked` y
 - **nytimes misclassification fixed:** OFF got the homepage and a 403 on the article, ON a 403 on the homepage — the same
   wall, previously scored "blocked ON only" = FAIL. Both are now BLOCKED.
 
-## Findings about the extension (not fixed — evidence only)
+## Findings about the extension (not fixed — evidence only; 1 and 3 were fixed on main by D52, see the update below)
 
 1. **POLICY (owner decision): a learned block on `facebook.com` or `twitter.com` removes that provider's embeds from every
    third-party site.** Rows 26/27: rule 1000002 blocks the Page plugin sub_frame, rule 1000009 blocks
@@ -145,3 +145,50 @@ Branded Chrome with a real signed-in profile (Google sees signals there CfT does
 Turnstile / hCaptcha **solving** (render only); the learner **earning** these promotions from traffic (seeded directly);
 the `onInstalled` reason string (only that it fired); Google Forms (no stable public form — Calendar stands in); the
 Facebook Login button.
+
+---
+
+## Update — rebased onto D51 + D52 (`f5a906d`), reruns on `956882e`
+
+Branch rebased onto `main` `f5a906d` (D51 real browser version `41f4b69`, owner verification `73b511b`, D52 `f5a906d`).
+D52 acted on findings 1 and 3: facebook.com / instagram.com / twitter.com / x.com / linkedin.com / tiktok.com joined
+COOKIE_BLOCK_ONLY, and every learned rule now carries its company's other domains (`ENTITY_GROUPS`) as
+`excludedInitiatorDomains`. On this branch: rows 26/27 lost `policy: true` and now gate; **row 28** checks
+microsoft.com's own silent sign-in hand-off — deterministic signed out (4/4 fresh profiles OFF: microsoftonline → live →
+`POST /cascadeauth/account/signin-oidc` from login.live.com → 302 → `silentauth` frame); PASS needs a real server
+response to the POST **and** the frame landing back on www.microsoft.com. Report names now carry the commit tested.
+
+| Run (code `956882e`, Chrome for Testing 149.0.7827.22) | Report | Result | Exit |
+|---|---|---|---|
+| `npm test` / `node rules/validate.mjs` | — | 510/510 / all rulesets valid | 0 / 0 |
+| Default smoke | `2026-09-28-site-smoke-956882e.md` | 13 PASS, nytimes BLOCKED; D51 identity ON = OFF | **0** |
+| Seeded smoke | `2026-09-28-site-smoke-seeded-956882e.md` | **27 PASS**, nytimes BLOCKED; positive control 27/27; 0 protected-host blocks; worker console clean; no rule drift; no retries | **0** |
+| Seeded, pre-D52 learner (`--learner-from 73b511b`, rows 26–28 only) | `2026-09-28-site-smoke-seeded-control-73b511b-956882e.md` | **3 FAIL**: 1000002 facebook.com → page.php sub_frame; 1000009 twitter.com → widgets.js; 1000003 microsoft.com → signin-oidc sub_frame, initiator `https://login.live.com` (POST `net::ERR_BLOCKED_BY_CLIENT`, frame on chrome-error) | 1 |
+
+The pre-D50 control (`--learner-from 'b42beb4^'`) was not rerun: the rebase did not touch the seeding or swap path.
+
+Rule dump after the reload on `956882e` (D52 visible — social platforms now cookie-strips, initiator exclusions):
+
+```
+1000003 block microsoft.com       excluded=[]                        excludedInitiators=[live.com,msn.com,bing.com,office.com,sharepoint.com,windows.net]
+1000004 block live.com            excluded=[login.live.com]          excludedInitiators=[microsoft.com,msn.com,bing.com,office.com,sharepoint.com,windows.net]
+1000005 block microsoftonline.com excluded=[login.microsoftonline.com]  (no company group → no initiator exclusions)
+1000006 block apple.com           excluded=[appleid.apple.com]       excludedInitiators=[icloud.com,cdn-apple.com,mzstatic.com]
+1000007 block cloudflare.com      excluded=[cdnjs…,challenges…]      excludedInitiators=[cloudflareinsights.com]
+1000008 block amazon.com          excluded=[]                        excludedInitiators=[amazonaws.com,media-amazon.com,ssl-images-amazon.com,amazon-adsystem.com]
+1050000-1050005 strip  facebook.com, google.com, linkedin.com, twitter.com, x.com, youtube.com (each with its company's initiators excluded)
+```
+
+On `956882e` the seeded rules are live and matching where rows pass: cookie-strips recorded on www.youtube.com (22),
+maps.google.com (24), calendar.google.com (25), platform.twitter.com (27).
+
+**New, predicted from that dump, not rendered:** `microsoftonline.com` belongs to no company group, so neither the
+microsoft.com nor the live.com rule excludes it as an initiator. A `login.microsoftonline.com` form-post back into a
+learned microsoft.com or live.com host — the work/school-account version of row 28 — is still blocked. Needs a signed-in
+work account to render; the rule shape alone shows it.
+
+**About D51's identity check in this harness:** it passes in both runs, but the harness sets the page User-Agent with
+`page.setUserAgent(ua)` and no metadata (to drop "HeadlessChrome"), so the page's `userAgentData.brands` and
+`getHighEntropyValues()` are **empty in both passes** — ON = OFF compares the UA override with itself and empty with
+empty. It still catches a shim that invents a UA or brands (pre-D51 would differ), but it does not show the real brands
+passing through. `harness/unpacked-chrome.mjs`'s version gate (no override) is the one that checks real values.

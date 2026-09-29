@@ -376,3 +376,12 @@ LinkedIn embeds predicted by the same rule shapes, not rendered. (2) A learned `
 microsoft.com's own silent sign-in callback (`/cascadeauth/account/signin-oidc`, initiator `login.live.com`) — the
 carve-outs cover requests *to* identity hosts, not an IdP posting *back* into a learned domain; user impact not verified.
 (3) Top-level navigations are untouched by learned `thirdParty` rules (measured).
+
+**Update, same night — rebased onto D51 + D52 (`f5a906d`).** D52 fixed (1) and (2): facebook.com / instagram.com /
+twitter.com / x.com / linkedin.com / tiktok.com are cookie-stripped, and every learned rule excludes its own company's
+domains as initiators. Rows 26/27 now gate, and row 28 (microsoft.com's silent sign-in, deterministic signed out)
+was added. Seeded run on `956882e`: **27 PASS, nytimes BLOCKED, exit 0**; default run 13 PASS + BLOCKED, exit 0; D51's
+browser-identity check passes in both. The 73b511b (pre-D52) learner FAILS rows 26–28, each attributed. Still open,
+predicted from the live rule dump and not rendered: `microsoftonline.com` is in no company group, so a
+`login.microsoftonline.com` form-post back into a learned microsoft.com / live.com (work and school accounts) is still
+blocked. Details: `docs/breakage-runs/2026-09-28-seeded-learned-state.md`.
