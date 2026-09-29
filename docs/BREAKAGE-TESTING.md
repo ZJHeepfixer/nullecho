@@ -305,7 +305,7 @@ tier off by default) and A.6 (Amazon checkout, taken through to a real order) ar
 child-realm and popup handling, which SSO exercises) — to be tried during the store review window, since the
 submission goes in with automatic publishing off. A.2 Stripe test-mode and A.3 PayPal popup not run.
 
-### 2026-09-28 — reCAPTCHA script 503 in the owner's Chrome (field report from the Director session) — OPEN, S0 candidate
+### 2026-09-28 — reCAPTCHA script 503 in the owner's Chrome (field report from the Director session) — RESOLVED same day: a LEARNED `google.com` block (D50), not a header and not a 503
 
 | Where | google.com/recaptcha/api.js | Widget |
 |---|---|---|
@@ -323,3 +323,34 @@ all Client Hints (Full-Version "151.0.0.0", Platform-Version "14.6.0") beside th
 profile would present. The other candidate is Google scoring that profile as automated (claude-in-chrome drives it).
 **Decider (owner, 30 s):** on a failing page, popup → turn Nullecho off for this site → reload. Widget appears ⇒ ours (S0,
 fix before publish). Still 503 ⇒ not ours. Publishing is on hold regardless (auto-publish is off).
+
+**Resolution (same evening).** Owner's toggle test: Nullecho off for the site ⇒ box back, so ours. D49 (hints removed)
+reloaded and verified live via httpbin — **still failing**. A second experiment (User-Agent + Sec-CH-UA left real, i.e.
+Chrome 153 — the owner's Chrome had auto-updated past the pool's hardcoded 151) — **still failing**; both hypotheses
+falsified in the owner's Chrome before any fix was built on them. Then the dynamic rules on disk
+(`Default/DNR Extension Rules/<id>/rules.json`) showed the cause, written at 17:18 that day:
+
+    {"action":{"type":"block"},"condition":{"domainType":"thirdParty","requestDomains":["google.com"]},"id":1000000,"priority":1}
+
+The heuristic learner had promoted `google.com` (its account cookies ride on every Google embed, so a normal week of
+browsing gives it three strikes) and the rule's `requestDomains` covered every subdomain — `www.google.com/recaptcha/`,
+`accounts.google.com`, `apis.google.com`. Third-party only, which is why google.com's own demo worked; a fresh profile
+has no learned state, which is why CfT, the store zip and curl never reproduced it; the allowlist's `allowAllRequests`
+outranks dynamic rules, which is why "off for this site" fixed it.
+
+**The measurement error that sent us after headers:** the "503" came from claude-in-chrome's `read_network_requests`,
+which reports ANY failed request as `statusCode: 503` — checked the same evening: `google-analytics.com/analytics.js`,
+which the static analytics list blocks, is listed as 503 too. Google never answered 503. The first triage also checked
+the static rulesets for google.com and stopped there; the dynamic ones were never read. **Rule: a status from that tool
+is not a server response; for "is Nullecho blocking this", read `rules.json` in the profile.**
+
+**Fixed (D50), verified in the owner's Chrome with Nullecho ON:** reload migrated the record to a cookie-strip with
+`excludedRequestDomains: [accounts.google.com, apis.google.com, www.google.com]`; `grecaptcha` loaded and the anchor
+iframe rendered 304×78 on patrickhlauke.github.io/recaptcha **and** ascendpartner.com signup (anchor + bframe 200).
+The reload itself surfaced a second defect — `install()` and `onInstalled` ran `reconcile()` concurrently and Chrome
+refused the duplicate id ("Rule with id 1050000 does not have a unique ID") — fixed in the same change (serialised,
+idempotent writes); the race test reproduces it only with IPC-like latency in the DNR stub.
+
+**Gap this exposes in our testing:** every automated run starts from a profile with no learned state. The learner is
+the one layer that changes behaviour with use, so the smoke must also run with a SEEDED learned state (the big
+multi-service domains promoted) — see PRELAUNCH-HARDENING step 4.

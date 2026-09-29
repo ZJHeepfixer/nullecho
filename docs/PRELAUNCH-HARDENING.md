@@ -12,7 +12,21 @@ with a real, signed-in profile**, because Google sees signals there (X-Client-Da
 browser carries. So the ship gate is **real-Chrome, real-profile testing with an OFF control on every failure** —
 the automated suites are necessary, not sufficient.
 
-## Step 1 — confirm D49 in the owner's Chrome (blocking)
+## Step 1 — confirm D49 in the owner's Chrome (blocking) — ✅ DONE 2026-09-28, but the cause was D50
+
+D49 was live and reCAPTCHA still failed. The real cause was a learned `google.com` block (D50, BREAKAGE-TESTING
+2026-09-28); fixed and verified in the owner's Chrome with Nullecho ON (patrickhlauke + ascendpartner render the box).
+The bisect below was not needed. Kept for the record.
+
+## Step 1b — the persona's Chrome version is hardcoded and goes stale (blocking; D51)
+
+Found during step 1: the owner's Chrome is **153**; every persona, the shim's brand list and the static UA rules say
+**151** with a fixed GREASE brand (`Not;A=Brand`/99 — real 153 sends `Not_A Brand`/8, in a different order). Chrome
+auto-updates every four weeks, so every install drifts into a claim the browser contradicts (TLS, features, Google's
+X-Client-Data). Within an OS family every persona's User-Agent and low-entropy hints are identical to the real reduced
+UA except for that version, so the rewrite hides nothing and only adds the stale claim. Fix: the shim reports the
+browser's real `userAgent`, `brands`, and full version; the static rules stop rewriting User-Agent / Sec-CH-UA /
+-Mobile / -Platform (the hint removal stays, D49).
 
 - Owner: chrome://extensions → Nullecho card → reload arrow (loads commit `6a49d06` rules), then
   `https://patrickhlauke.github.io/recaptcha/` with Nullecho ON. Box renders ⇒ D49 confirmed. Also re-check
@@ -50,6 +64,10 @@ the OFF control. Tabs must be visible (`document.visibilityState === 'visible'`)
 
 ## Step 4 — automated gates (director; must stay green on every change)
 
+**New gate from D50:** every automated run so far started from a profile with no learned state, and the learner is the
+one layer that changes behaviour with use. The smoke must also run with a SEEDED learned state — google.com,
+facebook.com, microsoft/live.com, apple.com, cloudflare.com, amazon.com promoted — and pass the CAPTCHA and sign-in rows.
+
 `npm test` (481+), `node rules/validate.mjs`, `node ext/tools/package.mjs`, `npm run smoke` (14 sites, packaged
 zip, ON/OFF), `harness/unpacked-chrome.mjs claim` (lieCount 2, no toString proxy, two FingerprintJS ids),
 `web-ext lint` on the Firefox package (0/0/0).
@@ -60,3 +78,10 @@ A week of the owner's normal browsing on 0.9.1 with Nullecho on; any "this site 
 OFF control. **Go** = zero S0 across steps 1–4, every S1 fixed or documented as a shipped exception, Google approval
 received. Then the owner presses Publish, the version becomes 1.0.0 per `RELEASE-CHECKLIST.md`, and the Firefox
 package goes to AMO.
+
+## Step 6 — distribution: not one gatekeeper (owner's instruction, 2026-09-28)
+
+Google owns the Chrome Web Store and can reject or pull the listing; the code is open source by design, so the risk is
+the store, not the code. Before or at 1.0: the Firefox package to AMO (built, `web-ext lint` 0/0/0), the same Chrome
+package to Microsoft Edge Add-ons (free, Chromium MV3), and a signed release zip on GitHub for manual install. Keep the
+Chrome listing strictly accurate so a policy reviewer has nothing to act on.

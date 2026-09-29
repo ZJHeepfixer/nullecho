@@ -2968,7 +2968,14 @@ OffscreenCanvas is read on the main thread (Google Maps, visibly). Fixed by pass
 `canvas` accessor; `offscreen-getimagedata-2026-09-20.test.js` fails on the old shim through the rig's
 `NULLECHO_SHIM_SRC` override and passes now. The shared rig itself moved to `src/test-realm-rig.js`.
 
-## D49 — The Accept-CH client hints are REMOVED, never added; only the four always-sent identity headers are rewritten. 2026-09-28. (Provisional until the owner's real-Chrome retest.)
+## D49 — The Accept-CH client hints are REMOVED, never added; only the four always-sent identity headers are rewritten. 2026-09-28.
+
+> **Its diagnosis was wrong — see D50.** The owner's retest with D49 live still failed; the reCAPTCHA break was a
+> learned `google.com` block rule, and the "503" was a tool artefact. The change itself is **kept on its own merits**:
+> `set` volunteered seven high-entropy hints to every server — passively visible to all of them, and more entropy
+> leaked (platform version, full version) — while `remove` is visible only to a server that asked and then looked.
+> Real Chrome's behaviour (send when asked) cannot be expressed in DNR. The evidence paragraph below is kept as
+> written, as a record of the wrong turn.
 
 **Evidence that reversed D19's choice.** D19 chose `set` for all eleven UA/Client-Hint headers and accepted that `set`
 ADDS the seven high-entropy hints (`-Full-Version-List`, `-Full-Version`, `-Platform-Version`, `-Arch`, `-Bitness`,
@@ -2992,3 +2999,35 @@ unchanged; header absence is not a value contradiction. `ua.test.js` and `review
 **Open until confirmed:** the owner reloads the unpacked extension and retests the third-party reCAPTCHA page with
 Nullecho ON. If the box renders, D49 stands and 0.9.1 replaces the 0.9.0 submission (cancel review, resubmit). If not,
 bisect further in the owner's Chrome (User-Agent / Sec-CH-UA low-entropy / Sec-GPC) — CfT cannot reproduce this.
+
+## D50 — A learned rule never reaches a protected service; `google.com` is cookie-stripped, never blocked. 2026-09-28.
+
+**Evidence.** reCAPTCHA vanished from every third-party page in the owner's Chrome (BREAKAGE-TESTING 2026-09-28). The
+cause was the heuristic learner's dynamic rule `{block, requestDomains: ["google.com"], domainType: thirdParty}`,
+written after `google.com` earned three strikes in ordinary browsing. `recordSignal` checked NEVER_BLOCK against the
+*promoted domain* (`google.com`: not listed) — but a DNR rule on a registrable domain also acts on every subdomain, so
+the rule reached `accounts.google.com` and `apis.google.com` (listed) and `www.google.com/recaptcha/` (reCAPTCHA's
+primary host; only the `recaptcha.net` fallback was listed). The same hole was open for `challenges.cloudflare.com`
+(Turnstile) under a learned `cloudflare.com`, `login.live.com` / `login.microsoftonline.com`, `appleid.apple.com`, and
+Google/Facebook sign-in.
+
+**Decision.**
+1. Every learned rule carries `excludedRequestDomains` = the protected hosts strictly beneath its domain
+   (`allowlist.js protectedHostsUnder`): NEVER_BLOCK hosts always; COOKIE_BLOCK_ONLY hosts too when the rule is a block.
+   A path-scoped entry protects its whole host — DNR can exclude a domain, not a path. Honest cost: a learned
+   `google.com` rule cannot touch `www.google.com`, where some Google cookie traffic lives; the static lists still
+   block Google's ad and analytics endpoints by path and domain.
+2. `www.google.com/recaptcha/` joins NEVER_BLOCK.
+3. `google.com` joins COOKIE_BLOCK_ONLY: Maps, Forms, Docs, Calendar and Translate embeds are visible features, the
+   same reasoning that already put `youtube.com` there. It is cookie-stripped when learned, never blocked.
+4. `reconcile()` applies the current policy to state an earlier build wrote (a learner `blocked` record now on the
+   yellowlist becomes `cookieblocked`; a record now on NEVER_BLOCK is retired) and rewrites live rules whose CONTENT
+   differs, not only missing ones. A block the user chose (`source: 'user'`) is not demoted. The owner's profile was
+   repaired by a plain reload.
+5. `reconcile()` is serialised, and its writes remove every id they add: on an update `install()` and `onInstalled`
+   call it in the same instant, and the first reload of this fix hit "Rule with id 1050000 does not have a unique ID".
+
+`src/protected-carveout-2026-09-28.test.js` pins the class (every NEVER_BLOCK host against every status its parent can
+be promoted to), the owner's exact rule and its repair, and the concurrent-reconcile race (with IPC-like latency in the
+DNR stub — at zero latency the race cannot happen and the test passed on the broken code). 491/491. Verified in the
+owner's Chrome with Nullecho ON: reCAPTCHA renders on patrickhlauke.github.io/recaptcha and ascendpartner.com.

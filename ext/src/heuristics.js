@@ -67,7 +67,7 @@
  * to block Stripe or reCAPTCHA is worse than no learner.
  */
 
-import { isNeverBlock, isCookieBlockOnly } from './allowlist.js';
+import { isNeverBlock, isCookieBlockOnly, protectedHostsUnder } from './allowlist.js';
 import { DYNAMIC_RULE_RANGES } from './protocol.js';
 
 // ── tuning ────────────────────────────────────────────────────────────────
@@ -384,6 +384,7 @@ export async function recordSignal(trackerHost, siteHost, signal) {
     const status = isCookieBlockOnly(tracker) ? 'cookieblocked' : 'blocked';
     const applied = await applyAction(tracker, rec, status);
     if (applied) {
+      rec.source = 'learned';
       await flush();
       return status;
     }
@@ -408,8 +409,16 @@ function allocateRuleId(base, limit) {
   return null;
 }
 
+/**
+ * `requestDomains` matches every subdomain, so a rule on a registrable domain
+ * would also reach the protected services beneath it — the 2026-09-28 learned
+ * `google.com` block took reCAPTCHA and Google sign-in off every third-party
+ * page (D50). Whatever is protected under the domain is carved out.
+ */
 function ruleFor(domain, id, status) {
   const condition = { requestDomains: [domain], domainType: 'thirdParty' };
+  const carved = protectedHostsUnder(domain, { includeCookieBlockOnly: status === 'blocked' });
+  if (carved.length) condition.excludedRequestDomains = carved;
   if (status === 'blocked') {
     return { id, priority: 1, action: { type: 'block' }, condition };
   }
@@ -462,35 +471,122 @@ async function clearAction(rec) {
 }
 
 /**
+ * Bring one promoted record in line with the CURRENT policy lists, which can
+ * change under state written by an earlier build (D50 moved `google.com` to the
+ * yellowlist and `www.google.com/recaptcha/` onto NEVER_BLOCK).
+ *
+ *   - now NEVER_BLOCK → retired to 'observing'; its rule is dropped.
+ *   - 'blocked' but now COOKIE_BLOCK_ONLY → 'cookieblocked', unless the USER
+ *     chose the block (`source: 'user'`): the learner's verdict follows policy,
+ *     the user's decision stands. Records from before `source` existed were
+ *     learner-written — nothing had shipped that let a user block from the UI
+ *     without also leaving this field.
+ *
+ * Returns true if the record changed.
+ */
+function migrateRecord(domain, rec) {
+  if (rec.status !== 'blocked' && rec.status !== 'cookieblocked') return false;
+  if (isNeverBlock(domain)) {
+    rec.status = 'observing';
+    rec.ruleId = null;
+    return true;
+  }
+  if (rec.status === 'blocked' && rec.source !== 'user' && isCookieBlockOnly(domain)) {
+    if (countByStatus('cookieblocked') >= MAX_COOKIE_RULES) return false; // carve-outs still protect
+    const id = allocateRuleId(COOKIE_RULE_BASE, COOKIE_RULE_LIMIT);
+    if (id === null) return false;
+    rec.status = 'cookieblocked';
+    rec.ruleId = id;
+    return true;
+  }
+  return false;
+}
+
+/** Key-order-independent JSON, for comparing a live rule with the wanted one. */
+function stable(v) {
+  if (Array.isArray(v)) return `[${v.map(stable).join(',')}]`;
+  if (v && typeof v === 'object') {
+    return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${stable(v[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(v);
+}
+
+/** The fields this module writes, so defaults Chrome may add do not read as drift. */
+const ruleShape = (r) => stable({
+  priority: r.priority ?? 1,
+  action: r.action,
+  requestDomains: [...(r.condition?.requestDomains ?? [])].sort(),
+  excludedRequestDomains: [...(r.condition?.excludedRequestDomains ?? [])].sort(),
+  domainType: r.condition?.domainType ?? null,
+});
+
+/**
  * Reconcile stored state against the dynamic rules Chrome actually holds.
  * Dynamic rules survive browser restarts and extension updates independently
  * of our storage, so the two can drift — a stale rule blocks something the UI
  * says is allowed, which is exactly the kind of silent divergence that makes
  * users distrust a privacy tool.
+ *
+ * Drift includes CONTENT: a rule an earlier build wrote under the same id (the
+ * owner's `google.com` block had no carve-outs) is rewritten, not kept because
+ * its id is still wanted.
  */
-export async function reconcile() {
+let reconcileQueue = Promise.resolve();
+
+export function reconcile() {
+  // Serialised: on an update, `install()` and `onInstalled` both call this in
+  // the same instant, and two runs that read the live rules before either
+  // wrote both add the same id — Chrome refuses the second ("does not have a
+  // unique ID"). Found on the owner's first reload of D50.
+  const run = reconcileQueue.then(reconcileNow);
+  reconcileQueue = run.catch(() => {});
+  return run;
+}
+
+async function reconcileNow() {
   await ready();
+  let migrated = 0;
+  for (const [domain, rec] of Object.entries(state.domains)) {
+    if (migrateRecord(domain, rec)) migrated++;
+  }
+  if (migrated) await flush();
+
   const live = await chrome.declarativeNetRequest.getDynamicRules();
   const ours = live.filter(
     (r) => (r.id >= BLOCK_RULE_BASE && r.id < BLOCK_RULE_BASE + BLOCK_RULE_LIMIT)
         || (r.id >= COOKIE_RULE_BASE && r.id < COOKIE_RULE_BASE + COOKIE_RULE_LIMIT),
   );
-  const liveIds = new Set(ours.map((r) => r.id));
+  const liveById = new Map(ours.map((r) => [r.id, r]));
   const wantedIds = new Set();
   const addRules = [];
+  const rewriteIds = [];
 
   for (const [domain, rec] of Object.entries(state.domains)) {
     if (rec.status !== 'blocked' && rec.status !== 'cookieblocked') continue;
     if (rec.ruleId === null) continue;
     wantedIds.add(rec.ruleId);
-    if (!liveIds.has(rec.ruleId)) addRules.push(ruleFor(domain, rec.ruleId, rec.status));
+    const want = ruleFor(domain, rec.ruleId, rec.status);
+    const have = liveById.get(rec.ruleId);
+    if (!have) addRules.push(want);
+    else if (ruleShape(have) !== ruleShape(want)) { addRules.push(want); rewriteIds.push(rec.ruleId); }
   }
 
-  const removeRuleIds = [...liveIds].filter((id) => !wantedIds.has(id));
+  const removeRuleIds = [...liveById.keys()].filter((id) => !wantedIds.has(id));
   if (addRules.length || removeRuleIds.length) {
-    await chrome.declarativeNetRequest.updateDynamicRules({ addRules, removeRuleIds });
+    // Removals are applied before additions, so a rewrite reuses its own id —
+    // and removing every id being added makes the write idempotent even if a
+    // promotion landed the same rule between our read and this write.
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      addRules,
+      removeRuleIds: [...removeRuleIds, ...addRules.map((r) => r.id)],
+    });
   }
-  return { added: addRules.length, removed: removeRuleIds.length };
+  return {
+    added: addRules.length - rewriteIds.length,
+    removed: removeRuleIds.length,
+    updated: rewriteIds.length,
+    migrated,
+  };
 }
 
 // ── observation ───────────────────────────────────────────────────────────
@@ -702,7 +798,7 @@ export async function setDomainStatus(domain, status) {
   await clearAction(rec);
   if (status === 'blocked' || status === 'cookieblocked') {
     if (isNeverBlock(key)) throw new Error(`${key} is on the never-block list`);
-    await applyAction(key, rec, status);
+    if (await applyAction(key, rec, status)) rec.source = 'user';
   } else {
     rec.status = status; // 'allowed' or 'observing'
   }

@@ -33,6 +33,12 @@ export const NEVER_BLOCK = [
   'fonts.net',
 
   // ── CAPTCHA / human-verification. Blocking these locks the user out. ───
+  // reCAPTCHA's PRIMARY home is www.google.com/recaptcha/ — recaptcha.net is
+  // only the fallback for regions where google.com is unreachable. Missing it
+  // is how a learned google.com rule took the box off every third-party page
+  // (2026-09-28, DECISIONS.md D50). A path-scoped entry protects its whole host
+  // from learned rules: DNR can exclude a domain, not a path.
+  'www.google.com/recaptcha/',
   'recaptcha.net',
   'www.recaptcha.net',
   'hcaptcha.com',
@@ -119,6 +125,10 @@ export const NEVER_BLOCK = [
 
 /** Tracks, but provides a visible feature. Strip cookies; do not block. */
 export const COOKIE_BLOCK_ONLY = [
+  // Google sets its account cookies on every embed it serves, so a normal week
+  // of browsing hands google.com three strikes. Blocking it would take Maps,
+  // Forms, Docs, Calendar and Translate embeds off every site (D50).
+  'google.com',
   'youtube.com',
   'youtube-nocookie.com',
   'ytimg.com',
@@ -154,7 +164,7 @@ function matches(set, host) {
   const h = host.toLowerCase().replace(/\.$/, '');
   if (set.has(h)) return true;
   for (const entry of set) {
-    if (entry.includes('/')) continue; // path-scoped entries are checked by URL
+    if (entry.includes('/')) continue; // path-scoped: host-carved out of learned rules by protectedHostsUnder
     if (h.endsWith(`.${entry}`)) return true;
   }
   return false;
@@ -162,3 +172,29 @@ function matches(set, host) {
 
 export const isNeverBlock = (host) => matches(NEVER_BLOCK_SET, host);
 export const isCookieBlockOnly = (host) => matches(COOKIE_BLOCK_SET, host);
+
+/** 'www.google.com/recaptcha/' → 'www.google.com'. */
+const hostOfEntry = (entry) => entry.split('/')[0];
+
+/**
+ * Every protected host strictly beneath `domain`, for a learned rule's
+ * `excludedRequestDomains` (D50).
+ *
+ * `isNeverBlock` answers "may this domain be promoted?" — but a DNR rule on a
+ * registrable domain also acts on every subdomain, so promoting `google.com`
+ * passed that check and still blocked `accounts.google.com`. The rule must
+ * carve out what the list protects. A block also carves out COOKIE_BLOCK_ONLY
+ * hosts (their feature is visible); a cookie-strip does not need to, since
+ * stripping is already what the yellowlist asks for.
+ */
+export function protectedHostsUnder(domain, { includeCookieBlockOnly = false } = {}) {
+  const d = String(domain || '').toLowerCase().replace(/\.$/, '');
+  if (!d) return [];
+  const pool = includeCookieBlockOnly ? [...NEVER_BLOCK, ...COOKIE_BLOCK_ONLY] : NEVER_BLOCK;
+  const out = new Set();
+  for (const entry of pool) {
+    const host = hostOfEntry(entry.toLowerCase());
+    if (host.endsWith(`.${d}`)) out.add(host);
+  }
+  return [...out].sort();
+}
