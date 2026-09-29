@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  Third-party embed fixture for harness/site-smoke.mjs (the seeded learned-state rows, DECISIONS.md D50).
+
+  Served by the smoke itself from http://127.0.0.1:<ephemeral port>/ — so every embed below is THIRD-PARTY
+  to the page, which is the only context a learned `domainType: thirdParty` rule acts in. A provider's own
+  demo page (google.com/recaptcha/api2/demo, youtube.com/watch) is first-party and can never show the break.
+
+    ?e=youtube      YouTube iframe embed               (youtube.com  — COOKIE_BLOCK_ONLY)
+    ?e=maps         Google Maps "Share → Embed" iframe (www.google.com, carved out of a learned google.com rule)
+    ?e=maps-legacy  maps.google.com/maps?output=embed  (maps.google.com hop, then www.google.com/maps/embed)
+    ?e=calendar     Google Calendar public embed       (calendar.google.com, under a learned google.com rule)
+    ?e=facebook     Facebook JS SDK + XFBML Page plugin (www.facebook.com — NOT protected by policy today)
+    ?e=tweet        X/Twitter embedded post             (platform.twitter.com — NOT protected by policy today)
+    ?e=none         no embed at all — the self-test runs every third-party check here and requires FAIL
+
+  Every embed URL is a public, key-less one. No account, no app id, no API key.
+-->
+<html lang="en">
+<head><meta charset="utf-8"><title>Nullecho smoke — third-party embed fixture</title></head>
+<body>
+<h1>Nullecho smoke — third-party embed fixture</h1>
+<p id="which"></p>
+<div id="slot"></div>
+<script>
+  const e = new URLSearchParams(location.search).get('e') || 'none';
+  document.getElementById('which').textContent = 'embed: ' + e;
+  const slot = document.getElementById('slot');
+  const frame = (src, w, h) => {
+    const f = document.createElement('iframe');
+    f.src = src; f.width = String(w); f.height = String(h); f.id = 'embed';
+    f.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+    f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    slot.appendChild(f);
+  };
+  const script = (src) => { const s = document.createElement('script'); s.async = true; s.src = src; s.crossOrigin = 'anonymous'; document.body.appendChild(s); };
+
+  if (e === 'youtube') frame('https://www.youtube.com/embed/jNQXAC9IVRw', 560, 315);
+  if (e === 'maps') frame('https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d52000!2d-117.6709!3d35.6225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1700000000000', 600, 450);
+  if (e === 'maps-legacy') frame('https://maps.google.com/maps?q=Ridgecrest%2C%20CA&output=embed', 600, 450);
+  if (e === 'calendar') frame('https://calendar.google.com/calendar/embed?src=en.usa%23holiday%40group.v.calendar.google.com&ctz=America%2FLos_Angeles', 800, 600);
+  if (e === 'facebook') {
+    const root = document.createElement('div'); root.id = 'fb-root'; document.body.insertBefore(root, document.body.firstChild);
+    slot.innerHTML = '<div class="fb-page" data-href="https://www.facebook.com/facebook" data-tabs="timeline" data-width="340" data-height="500"></div>';
+    script('https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0');
+  }
+  if (e === 'tweet') {
+    slot.innerHTML = '<blockquote class="twitter-tweet"><a href="https://twitter.com/jack/status/20">jack</a></blockquote>';
+    script('https://platform.twitter.com/widgets.js');
+  }
+</script>
+</body>
+</html>

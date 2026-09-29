@@ -354,3 +354,25 @@ idempotent writes); the race test reproduces it only with IPC-like latency in th
 **Gap this exposes in our testing:** every automated run starts from a profile with no learned state. The learner is
 the one layer that changes behaviour with use, so the smoke must also run with a SEEDED learned state (the big
 multi-service domains promoted) — see PRELAUNCH-HARDENING step 4.
+
+### 2026-09-28 — seeded learned-state smoke built and proven (docs/breakage-runs/2026-09-28-seeded-learned-state.md)
+
+The gap above, closed for the automated gate: `harness/site-smoke.mjs --seeded` (`npm run smoke:seeded`) seeds the
+learner's storage with twelve multi-service domains promoted (`blocked`, `source: 'learned'`), reloads the extension so
+the shipped `reconcile()` writes the rules, and aborts unless `getDynamicRules()` shows them live and a probe fetch is
+blocked and attributed. Then 14 + 13 third-party rows (reCAPTCHA v2 ×2, Enterprise, Turnstile, hCaptcha, Google Sign-In
+×2, YouTube / Maps ×2 / Calendar embeds, Facebook plugin, X post) OFF and ON, with every learned-rule match attributed to
+its row via `onRuleMatchedDebug` — the "is Nullecho blocking this" question answered by the worker, not by a status code.
+
+**Current code: exit 0** — 24 PASS, nytimes BLOCKED (bot wall, both passes), 2 POLICY-BLOCKED, zero learned blocks on
+protected hosts. **Negative control, same zip with the pre-D50 learner: exit 1** — 14 FAIL, each attributed (reCAPTCHA
+api.js / enterprise.js, `accounts.google.com/gsi/client`, `challenges.cloudflare.com`, the Google embeds), plus the D50
+reload race in the worker console. Three of those FAILs (Spotify, YouTube watch, Reddit) were rows whose own checks still
+passed: the gate also checks every learned block in every row against NEVER_BLOCK / COOKIE_BLOCK_ONLY.
+
+**Found, not fixed:** (1) a learned `facebook.com` / `twitter.com` block removes Facebook plugins and embedded X posts
+from every third-party site — POLICY-BLOCKED until the owner decides on COOKIE_BLOCK_ONLY; Apple Music / OneDrive /
+LinkedIn embeds predicted by the same rule shapes, not rendered. (2) A learned `microsoft.com` block stops
+microsoft.com's own silent sign-in callback (`/cascadeauth/account/signin-oidc`, initiator `login.live.com`) — the
+carve-outs cover requests *to* identity hosts, not an IdP posting *back* into a learned domain; user impact not verified.
+(3) Top-level navigations are untouched by learned `thirdParty` rules (measured).

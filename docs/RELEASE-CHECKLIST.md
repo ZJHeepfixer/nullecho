@@ -139,6 +139,35 @@ console line verbatim. Run it — and read the resulting `docs/breakage-runs/<da
 is a real regression in the exact package about to ship, not a source-tree finding that may or
 may not have made it into the zip.
 
+## 3d. Seeded learned-state smoke — RELEASE GATE, run before every store upload (D50)
+
+`npm run smoke:seeded` from `ext/` (= `node harness/site-smoke.mjs --seeded`; add
+`--puppeteer <dir>` or `NULLECHO_PUPPETEER_DIR` as for §3c). **Must exit 0.** §3c alone cannot catch
+the 2026-09-28 reCAPTCHA break: it starts from a fresh profile, and that break lived in the learner's
+state. The seeded run gives the same packaged zip a learned state first — google.com, youtube.com,
+facebook.com, microsoft.com, live.com, microsoftonline.com, apple.com, cloudflare.com, amazon.com,
+twitter.com, x.com, linkedin.com promoted, written through the extension's own storage and turned into
+rules by its own `reconcile()` on a reload — and refuses to run (exit 3) unless `getDynamicRules()`
+shows every one of them live and a probe fetch is stopped by one of them and seen by the match
+recorder. It then runs the 14 §3c sites plus 13 third-party rows (reCAPTCHA v2 ×2, reCAPTCHA
+Enterprise, Turnstile, hCaptcha, Google Sign-In ×2, YouTube / Maps ×2 / Calendar embeds, and two
+POLICY rows) OFF and ON.
+
+- **Red (exit 1)** on any FAIL — including a row whose own check passed but whose traffic shows a
+  learned rule BLOCKING a NEVER_BLOCK / COOKIE_BLOCK_ONLY host (the D50 invariant) — any VOID (a hidden
+  tab: the measurement did not happen), a `[nullecho]` warning in the worker console during the reload,
+  or a seeded rule lost mid-run.
+- **POLICY-BLOCKED** rows (Facebook Page plugin, embedded X post) are not red: no policy list protects
+  those providers yet, so a learned block removing them is reported, not failed. Open question for the
+  owner (PRELAUNCH-HARDENING step 4). If a decision puts them on COOKIE_BLOCK_ONLY, drop `policy: true`
+  from the two rows in `site-smoke.mjs` so they gate like the rest.
+- **The gate is proven able to fail:** `node harness/site-smoke.mjs --seeded --learner-from 'b42beb4^'`
+  runs the same zip with the pre-D50 learner swapped in (temp dir only) and the reCAPTCHA, Turnstile,
+  Sign-In and Google-embed rows FAIL, each attributed to the learned rule that blocked it. Re-run that
+  control whenever the harness changes; a harness edit that makes the control pass has broken the gate.
+- Read the report: `docs/breakage-runs/<date>-site-smoke-seeded.md` — the rule dump, the positive
+  control table, and per row which learned rules matched (blocked or cookie-stripped).
+
 ---
 
 ## 4. Launch — after the gate, not before
