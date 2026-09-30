@@ -19,3 +19,9 @@ the time of logging (13:55) to Gmail's own send timestamps.
 morning: their May 5 post still quotes the struck string verbatim, no update note; Maryland's endpoint in a browser still returns
 "File Not Found" for §13-322 and the text for §13-321. Staged in rockpros as a reply on the SUBJECTED thread (msg 1a0cae2c85a0978d),
 To Maarec + Schuster, Cc Kaplinsky, draft `r-7802797949217597278` — the only outreach draft staged. Jason sends. No further follow-up after this one.
+
+**2026-09-30 14:19 PDT — Retail Dive follow-up SENT** (Gmail "Message sent", verified by screenshot) from
+corecapitalinvestmentsinc@gmail.com as a Reply in the 9/23 thread to retail.dive.editors@industrydive.com — text
+`FINAL-2026-09-30-retail-dive-followup.md` as written ("takes effect tomorrow"). Gate: no reply; no new Retail Dive / Grocery
+Dive Maryland piece found since 9/23 (their April Maryland coverage describes the ban correctly). Their only follow-up.
+Ballard Spahr follow-up (staged 9/29) still UNSENT at this time. IAPP follow-up due 10/1.
