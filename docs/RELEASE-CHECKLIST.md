@@ -236,3 +236,16 @@ Until then the number stays `0.9.x`; patch releases bump the third digit. The ve
 - Lessons at submission: the store summary comes from the manifest `description` (rewritten in plain words);
   `version_name` displays publicly (removed); the reviewer-notes box is 500 characters, not 16,000; `pbcopy` needs a
   UTF-8 locale or em dashes paste as "‚Äî".
+
+## 2026-09-29 — 0.9.1 submitted to the Chrome Web Store (replaces 0.9.0)
+
+0.9.0 was APPROVED 2026-09-28 and staged ("Ready to publish", auto-publish off) — never published: it carries the
+learned-google.com reCAPTCHA break (D50), the stale Chrome/151 persona (D51) and the social-embed / Microsoft sign-in
+learned blocks (D52). The owner cancelled the staged publish (⋮ → Cancel Publish → back to Draft; "Upload new package"
+is disabled while an approved version is staged), uploaded `nullecho-0.9.1-chrome.zip` (sha256 81b3fb1b…d19a, built
+from `95d891c`; ext/ unchanged to HEAD), replaced three Privacy-tab permission justifications with the 0.9.1-accurate
+text (declarativeNetRequest, webRequest, host permission — no User-Agent rewrite since D51; learned rules may be cookie
+strips), and submitted with **"publish automatically" unticked** (owner-confirmed). Status: Pending review. Tag
+`v0.9.1-cws-submitted`. Gates on that zip: 511/511, validate, claim (lieCount 2), site smoke exit 0, seeded smoke exit 0
+(six NOT-OURS confirmed by eye in the owner's Chrome), web-ext lint 0/0/0. Next: on approval, the real-Chrome battery +
+a week's soak, then the owner presses Publish.
