@@ -25,3 +25,7 @@ corecapitalinvestmentsinc@gmail.com as a Reply in the 9/23 thread to retail.dive
 `FINAL-2026-09-30-retail-dive-followup.md` as written ("takes effect tomorrow"). Gate: no reply; no new Retail Dive / Grocery
 Dive Maryland piece found since 9/23 (their April Maryland coverage describes the ban correctly). Their only follow-up.
 Ballard Spahr follow-up (staged 9/29) still UNSENT at this time. IAPP follow-up due 10/1.
+
+**2026-09-30 15:00:10 PDT — Ballard Spahr follow-up SENT** (verified in rockpros Sent via the Gmail API: msg 1a0f45510c4247c0,
+same thread 1a0cae1962078cae, To Maarec + Schuster, Cc Kaplinsky) — the staged 9/29 draft, unchanged. Their only follow-up;
+no further contact unless they reply.
