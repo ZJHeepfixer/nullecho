@@ -29,3 +29,9 @@ Ballard Spahr follow-up (staged 9/29) still UNSENT at this time. IAPP follow-up 
 **2026-09-30 15:00:10 PDT — Ballard Spahr follow-up SENT** (verified in rockpros Sent via the Gmail API: msg 1a0f45510c4247c0,
 same thread 1a0cae1962078cae, To Maarec + Schuster, Cc Kaplinsky) — the staged 9/29 draft, unchanged. Their only follow-up;
 no further contact unless they reply.
+
+**2026-09-30 — IAPP follow-up moved from 10/1 to ~10/8.** Their 9/24 auto-reply asks for patience ("response times may be longer
+than usual … we will follow up with you soon"), and the contributor guidelines (iapp.org/news/write-for-us, read 9/30) state no
+response time. A contributor queue is not a newsroom: a 7-day nudge against an explicit "please be patient" costs more than it
+gains. On ~10/8, if still silent: one short reply in thread 1a0d091d3f5e8565, past tense ("took effect October 1; the summaries
+still carry the struck § 13-322"), 1–2 paragraphs, non-promotional per their guidelines.
