@@ -50,6 +50,9 @@ client-side: `curl` returns "File not Found" for **every** section, the control 
 recipient who checks with a script will conclude the control is broken and discount the whole
 finding. Every draft in this folder already says "in a browser" — keep it that way.
 
+> **Correction 2026-10-01 (compliance-monitor M1, verified by the director with curl):** Maryland's statute endpoint is NOT client-side rendered — a plain `curl` of `section=13-321` returns the full statute text (68 KB). The trap is different: the raw HTML of EVERY section, real or not, contains `alert("File not Found")` inside page JavaScript, so a script that greps raw HTML calls every section absent. The practical advice (read the RENDERED page in a browser) stands; the stated reason was wrong. Do not repeat "renders client-side" in any future email. Already-sent emails (Ballard 9/22, Retail Dive 9/23) carried the wrong reason in a parenthetical only; the legal claim is unaffected, so no correction email.
+
+
 ---
 
 ## Countdown language — recompute on the day you send

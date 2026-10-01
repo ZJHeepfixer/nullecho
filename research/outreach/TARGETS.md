@@ -210,6 +210,9 @@ as a measurement — there is no denominator and no methodology behind it.
 **The statute body is rendered client-side.** A bare HTTP client gets "File not Found" for *every*
 section, including the positive control. So:
 
+> **Correction 2026-10-01 (compliance-monitor M1, verified by the director with curl):** Maryland's statute endpoint is NOT client-side rendered — a plain `curl` of `section=13-321` returns the full statute text (68 KB). The trap is different: the raw HTML of EVERY section, real or not, contains `alert("File not Found")` inside page JavaScript, so a script that greps raw HTML calls every section absent. The practical advice (read the RENDERED page in a browser) stands; the stated reason was wrong. Do not repeat "renders client-side" in any future email. Already-sent emails (Ballard 9/22, Retail Dive 9/23) carried the wrong reason in a parenthetical only; the legal claim is unaffected, so no correction email.
+
+
 - ⛔ **Never tell a recipient to `curl` these URLs.** They will get "File not Found" on 13-321 too,
   conclude the control is broken, and discount the whole finding — the exact failure mode
   BRIEF-PITCH.md warns about ("without it a 'File Not Found' is equally consistent with a typo or

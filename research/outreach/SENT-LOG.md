@@ -35,3 +35,8 @@ than usual … we will follow up with you soon"), and the contributor guidelines
 response time. A contributor queue is not a newsroom: a 7-day nudge against an explicit "please be patient" costs more than it
 gains. On ~10/8, if still silent: one short reply in thread 1a0d091d3f5e8565, past tense ("took effect October 1; the summaries
 still carry the struck § 13-322"), 1–2 paragraphs, non-promotional per their guidelines.
+
+**2026-10-01 — correction to the record (no email sent).** The Ballard (9/22) and Retail Dive (9/23) first emails said, in a
+parenthetical, that Maryland's statute text "renders client-side". It does not: curl returns the §13-321 text; what fools scripts
+is an `alert("File not Found")` string present in every section's raw HTML. The legal claim (§13-322 was struck; the endpoint
+shows "File Not Found" for it in a browser) is unaffected and re-verified daily by compliance-monitor's statute watch.
