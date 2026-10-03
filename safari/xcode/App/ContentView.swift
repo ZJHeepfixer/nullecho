@@ -234,7 +234,7 @@ private struct LimitsSection: View {
                  detail: "The Safari build does not change what a site can read about your device. The per-site device profile Nullecho offers in Chrome is not part of this extension.")
             Fact(symbol: "network.slash", tint: .secondary,
                  title: "Does not hide your IP address",
-                 detail: "No extension can. On Apple devices that is iCloud Private Relay’s job.")
+                 detail: "Nullecho does not route your traffic anywhere. On Apple devices, hiding your IP address is the job of iCloud Private Relay, part of iCloud+.")
             Fact(symbol: "lock.shield", tint: .secondary,
                  title: "Collects nothing",
                  detail: "No account, no analytics, no crash reports, no server. This app opens no network connections; the two links below are handed to your browser.")

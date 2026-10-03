@@ -55,8 +55,37 @@ echo "[Nullecho] building Safari extension: $BUILD_SCRIPT"
 [ -f "$SOURCE_DIR/manifest.json" ] || fail "build-extension.mjs ran but $SOURCE_DIR/manifest.json does not exist."
 
 mkdir -p "$DEST_DIR"
-# Copy contents, not the folder. ditto preserves nothing that matters here and merges into DEST_DIR.
+
+# ditto MERGES into DEST_DIR, and on iOS DEST_DIR is the .appex root itself (executable, Info.plist,
+# _CodeSignature), so it cannot simply be emptied. Without this step an incremental build kept every
+# file a previous build embedded: measured 2026-10-03, a src/shim.js and a stray file left in the
+# appex both survived a rebuild. So before copying, remove (a) every directory the extension owns at
+# its top level (icons/, popup/, rules/, src/ — no native bundle content lives there) and (b) every
+# file the previous run of this phase embedded, from a list kept outside the bundle.
+EMBEDDED_LIST="$DERIVED_FILE_DIR/nullecho-embedded-files.txt"
+for dir in "$SOURCE_DIR"/*/; do
+  name=$(basename "$dir")
+  rm -rf "${DEST_DIR:?}/$name"
+done
+if [ -f "$EMBEDDED_LIST" ]; then
+  while IFS= read -r rel; do
+    [ -n "$rel" ] && rm -f "${DEST_DIR:?}/$rel"
+  done < "$EMBEDDED_LIST"
+fi
+
+# Copy contents, not the folder.
 /usr/bin/ditto "$SOURCE_DIR" "$DEST_DIR"
 
+mkdir -p "$DERIVED_FILE_DIR"
+(cd "$SOURCE_DIR" && find . -type f | sed 's|^\./||' | LC_ALL=C sort) > "$EMBEDDED_LIST"
+
 [ -f "$DEST_DIR/manifest.json" ] || fail "manifest.json did not land at the extension's resources root ($DEST_DIR)."
+
+# Prove it: inside the directories the extension owns, the bundle must hold exactly what was built.
+for dir in "$SOURCE_DIR"/*/; do
+  name=$(basename "$dir")
+  built=$(cd "$SOURCE_DIR" && find "$name" -type f | LC_ALL=C sort)
+  embedded=$(cd "$DEST_DIR" && find "$name" -type f | LC_ALL=C sort)
+  [ "$built" = "$embedded" ] || fail "the extension's $name/ in the bundle differs from the build output. Clean the build folder and retry."
+done
 echo "[Nullecho] embedded $(find "$SOURCE_DIR" -type f | wc -l | tr -d ' ') extension files into $UNLOCALIZED_RESOURCES_FOLDER_PATH"
