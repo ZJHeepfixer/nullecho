@@ -80,15 +80,33 @@ private-mode fingerprint noise. Those are Apple's.
    **Phase 1 is not exposed:** I checked Nullecho's four block lists and none of their 174 block rules (175 rules
    with the one allow rule) uses `excludedRequestDomains`, and the GPC rule sorts last. Any future Safari rule with an exclusion must be tested
    against this. The D50/D52 carve-outs would have broken the GPC rule here.
-4. **`requestDomains` may over-match.** From reading WebKit's source, `requestDomains: [d]` without a `urlFilter`
-   compiles to an unanchored `||d` regex with no boundary after the host (so `t.co` could also match `t.com`)
-   (01 §4.2). **Unverified by measurement.** 142 of Nullecho's 174 block rules use bare `requestDomains`. Phase 1 tests
-   this first, and if it's real, the Safari rulesets are generated with `‖d^` url filters.
+4. **`requestDomains` over-matches on the suffix side — measured in phase 1 (2026-10-02, iOS 27.0 Simulator,
+   server log as ground truth).** WebKit compiles `requestDomains: [d]` without a `urlFilter` to `||d`, i.e.
+   `^[^:]+://+([^:/]+\.)?d` with the dots escaped and no boundary after the host (01 §4.2): a rule for
+   `sfx.lvh.m` blocked `sfx.lvh.me`, and a rule for `dot.x.lvh.me` blocked `dot.x.lvh.me.evil.lvh.me` (the
+   `t.co` → `t.com` / `t.co.evil` shape). The "unescaped dot" half of the earlier reading was wrong: the same
+   rule let `dotzx.lvh.me` through. 142 of Nullecho's 174 block rules use bare `requestDomains`, so the Safari
+   rulesets are **generated** with one `||d^` filter per domain (`safari/tools/safari-rules.mjs`); measured
+   with the same probes, `||d^` still blocks the host and its subdomains (with a `:port` after the host) and
+   lets both over-match hosts through.
 5. **Unimplemented calls:** `updateStaticRules` and `getDisabledRuleIds` (both used by `ext/src/background.js`) throw
    in Safari, and there's no rule id in `getMatchedRules`. The Safari build does not run `ext/src/background.js`
    (persona, learner and pricing wiring). It gets its own small worker, or none.
 6. **The Simulator's extension toggle** only sticks if MobileSafari is terminated first (01 §4.6). That matters for
    test scripts, not for users.
+7. **`updateEnabledRulesets` poisons the enabled set across a Safari relaunch — measured in phase 1 (2026-10-02,
+   iOS 27.0 Simulator, test build with a reporting worker).** Six rulesets enabled by the manifest;
+   `updateEnabledRulesets({enableRulesetIds: ["fingerprinting-strict"]})` → `getEnabledRulesets()` correctly listed
+   all seven and the strict fixture host was blocked. Safari writes the change as a delta,
+   `DeclarativeNetRequestRulesetState => {"fingerprinting-strict": true}`, into
+   `Library/WebKit/com.apple.mobilesafari/WebExtensions/Default/<extension id>/State.plist`, and after a relaunch
+   loads that map as the **whole** enabled set: the new worker's first `getEnabledRulesets()` returned
+   `["fingerprinting-strict"]`, the tier-A fixture host loaded and no request carried `Sec-GPC`. After
+   `disableRulesetIds: ["fingerprinting-strict"]` the map read `{… : false}` and the next launch enabled nothing.
+   The file sits in Safari's container, so it **survived uninstalling and reinstalling the app**; the shipped
+   build sent no header until the file was removed. Phase 1 makes no such call (no worker), so it is not exposed;
+   any later toggle must pass the complete intended `enableRulesetIds` + `disableRulesetIds` on every call,
+   re-assert them at worker start, and be re-measured across a relaunch before it ships.
 
 ## 4. Packaging and distribution
 
@@ -126,7 +144,7 @@ be self-consistent per D11). It will be written into `docs/DECISIONS.md` on this
 |---|---|
 | Any extension behaviour in **macOS** Safari 27 (all API rows are iOS-measured) | Owner: Safari ▸ Settings ▸ Advanced ▸ "Show features for web developers", then Settings ▸ Developer ▸ "Allow unsigned extensions" (Safari asks for the Mac password; resets when Safari quits) ▸ "Add Temporary Extension…". Done once, for the probe and the phase-1 build together |
 | macOS Private Browsing GPC/AFP | Owner opens one Private window to a local probe URL (02 §9). Low priority: iPad Private already measured no GPC |
-| `requestDomains` over-match (§3.4) | Phase-1 test in the Simulator |
+| ~~`requestDomains` over-match (§3.4)~~ | Measured in phase 1 (§3.4): real on the suffix side, fixed by generating `‖d^` filters |
 | Port-less `initiatorDomains` | Phase-1 test, or a port-80/443 fixture |
 | Known-tracker blocking in Private Browsing on real hardware | Owner check on a real device (02 §9). Matters only for copy |
 | Container app review outcome | Only App Review can answer it |

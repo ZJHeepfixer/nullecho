@@ -1,0 +1,11 @@
+# Xcode per-user and build state. The project itself is committed.
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM
+.DS_Store
