@@ -54,6 +54,10 @@ app with no extension inside.
   macOS release that ships Safari 18.4; Safari 18.4 also exists for Sonoma and Ventura, so the
   Mac floor could be lowered to 14.0 if reaching those users matters more than guaranteeing the
   Safari version. Keep app and extension equal either way.
+- **Tip jar.** Decided 2026-10-05: free app, optional StoreKit 2 consumable tips, nothing gated, built after
+  the core is verified on all three platforms. Rules, owner steps and the StoreKit-testing plan are in
+  [`../TIP-JAR.md`](../TIP-JAR.md). Until that build lands, `check-container.mjs` still asserts the app has
+  no network code and no outgoing-network entitlement; the tip-jar change revisits those checks deliberately.
 
 ## Checks
 
