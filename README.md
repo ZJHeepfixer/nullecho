@@ -4,9 +4,10 @@
 nothing about you — which is exactly why it ships a button that lets you measure whether it's
 working.**
 
-> ⚠️ **Pre-release.** Loads and runs in Chrome 151, 477 tests passing, but breakage testing is
-> incomplete and there are open release blockers (see [Status](#status)). Not yet published to any
-> store. Don't rely on it as your only protection yet.
+> **Early release — 0.9.1 is [free on the Chrome Web Store](https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn)** (published 2026-10-05).
+> 511 tests passing; breakage testing continues and there are known limitations (see [Status](#status)) —
+> notably, on **Linux** the GPU names in the device profile are not yet verified on real hardware.
+> Don't rely on it as your only protection.
 
 ---
 
@@ -108,15 +109,15 @@ cd nullecho && python3 -m http.server 4886
 
 | | |
 |---|---|
-| Tests | 477 passing |
-| Loads in Chrome 151 | ✅ verified |
-| reCAPTCHA / Google SSO | ✅ verified unbroken |
+| Tests | 511 passing |
+| Browser version | ✅ reports the browser's real version, brands and full version (D51) — verified in Chrome 153 and 154 |
+| reCAPTCHA / Google SSO | ✅ reCAPTCHA verified in a real signed-in Chrome, incl. with a learned state (D50, seeded smoke) · ⏳ third-party Google sign-in re-test owed |
 | Shim breakage battery | ✅ 0 failures |
 | Full Tier A breakage suite | ⏳ incomplete |
-| **Linux personas** | 🚫 **GPU renderer strings unverified on real hardware — release blocker** |
+| **Linux personas** | ⚠️ **Known limitation:** GPU renderer strings are reconstructed from driver documentation and **not yet verified on real Linux hardware** — blocks 1.0 |
 | **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed:** A1–A5, B1–B5, B7–B9, C1–C3 — each reproduction flipped into a regression guard (D19–D31; see `docs/DECISIONS.md`). **Still open:** A8 (Web Workers — no content script runs in a worker scope) and B6 (WebGPU architecture — needs hardware). Full status + effort estimates: [`docs/RELEASE-READINESS-2026-09-16.md`](docs/RELEASE-READINESS-2026-09-16.md). |
 | **Third-party detectability (2026-09-19)** | Measured, not asserted. CreepJS: **2 lie records**, both our own canvas/audio noise; `hasToStringProxy` and `webDriverIsOn` back to the control's `false` (was 199 records and a bot verdict before D35). FingerprintJS + ClientJS: four personas, four distinct visitor IDs. CreepJS still re-joins them — see `docs/THREAT-MODEL.md`. |
-| Published to stores | ❌ not yet |
+| Published to stores | ✅ [Chrome Web Store](https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn) 0.9.1, 2026-10-05 · Firefox package ready (`web-ext lint` 0/0/0), not yet submitted · Safari in development |
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)
 

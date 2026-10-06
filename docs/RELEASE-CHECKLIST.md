@@ -249,3 +249,12 @@ strips), and submitted with **"publish automatically" unticked** (owner-confirme
 `v0.9.1-cws-submitted`. Gates on that zip: 511/511, validate, claim (lieCount 2), site smoke exit 0, seeded smoke exit 0
 (six NOT-OURS confirmed by eye in the owner's Chrome), web-ext lint 0/0/0. Next: on approval, the real-Chrome battery +
 a week's soak, then the owner presses Publish.
+
+## 2026-10-05 — 0.9.1 PUBLISHED on the Chrome Web Store
+
+Approved 2026-10-03 05:06 (email to the Core Capital inbox); the owner pressed Publish 2026-10-05. Public listing verified by
+fetch: https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn (title "Nullecho - Chrome Web Store",
+version 0.9.1). The owner chose to publish on approval rather than after the planned 20-minute pre-publish check; he had been running
+the same code daily since 2026-09-28. Still owed: the third-party Google sign-in re-test (Tier A.1) and the Linux GPU-string
+verification (§1) — both gate 1.0, not 0.9.x. Website and README switched from "pre-release" to "early release" with the store link.
+Tag `v0.9.1-published`.
