@@ -1,0 +1,45 @@
+{
+  "fill": {
+    "solid": "srgb:0.05098,0.06667,0.09020,1.00000"
+  },
+  "groups": [
+    {
+      "name": "dots",
+      "layers": [
+        {
+          "name": "dots",
+          "image-name": "dots.svg",
+          "fill": {
+            "solid": "srgb:0.33725,0.76471,0.64314,1.00000"
+          },
+          "glass": true,
+          "hidden": false,
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting": "individual",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.35
+      },
+      "specular": true,
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}
