@@ -244,10 +244,11 @@ non-binding statement asking for more than the binding state statutes do.
   as a cross-check costs nothing and builds a real contact list.
 - **EPIC and Consumer Reports advocacy.** Both are already in this fight — EPIC filed an amicus in
   the Second Circuit, CR co-sponsored California's bill and ran the Instacart study. The compliance
-  sweep is the kind of field data they don't have and can't easily produce. ⚠️ Note that both
-  organisations' public summaries also carry the struck Maryland § 13-322 as enacted law, so the
-  correction is useful to them rather than adversarial — offer it that way, privately and without
-  a public callout.
+  sweep is the kind of field data they don't have and can't easily produce. ⚠️ **Corrected
+  2026-10-07:** an earlier draft said both organisations' public summaries carry the struck Maryland
+  § 13-322 as enacted law. Consumer Reports' 2026-02-19 Maryland testimony page, read in full on
+  2026-10-07, contains neither "13-322" nor the struck string; EPIC has not been re-checked. Do not
+  raise § 13-322 with either unless a specific page of theirs is found and read first.
 - **A privacy newsletter** with a practitioner audience, as a fallback if the three above pass.
 
 ---
