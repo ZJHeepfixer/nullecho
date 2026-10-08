@@ -46,9 +46,20 @@ app with no extension inside.
   so nothing else needs editing. The extension id must stay prefixed by the app id.
 - **Signing.** Automatic signing with no team in the repo. In Xcode pick the team on each of the
   four targets, or pass `DEVELOPMENT_TEAM=XXXXXXXXXX` to `xcodebuild`. Never commit a team id.
-- **App icon.** `App/Assets.xcassets/AppIcon.appiconset` holds what the packager produced from
-  `ext/icons/icon-128.png`, including a 1024-px upscale. Fine for development; replace with a real
-  1024-px (ideally vector) asset before submission.
+- **App icon.** Settled 2026-10-07 (brand option 2: the dots stay; "nah." is never on the icon). Two sources,
+  both derived from `brand/` on `main`:
+  - `App/AppIcon.icon` — an Icon Composer package (`icon.json` + `Assets/dots.svg`): solid `#0D1117` fill,
+    one glass layer of the eight `#56C3A4` dots taken from `brand/nullecho-icon.svg`. iOS 26 / macOS 26 and
+    later render this (Liquid Glass); `actool` also compiles flat renditions from it. Verified: macOS 26 draws
+    the dark tile filling the squircle with glass dots (`safari/verify/2026-10-07/macos-26-app-icon-as-rendered.png`,
+    rendered through `NSWorkspace`, the Dock's own path); iPadOS 27 home screen and dock
+    (`ipad-home-screen-icon.png`).
+  - `App/Assets.xcassets/AppIcon.appiconset` — the legacy set for iOS 18 / macOS 15: `universal-icon-1024@1x.png`
+    is `brand/appstore-icon-1024.png` byte for byte (square, no alpha; Apple masks it); the ten `mac-icon-*.png`
+    are rendered from `brand/nullecho-icon-macos.svg`, the master placed on Apple's macOS icon grid (824-pt
+    tile at 100 pt, corner radius 185.4) so it sits like other Mac icons on macOS 15 (`macos-legacy-icns-as-rendered.png`).
+  Regenerate the PNGs with `qlmanage -t -s <px> -o <dir> brand/nullecho-icon-macos.svg` (Quick Look rasterizes
+  the SVG; no other rasterizer is needed). The in-app `LargeIcon` image is still `ext/icons/icon-128.png`.
 - **Minimum OS.** iOS 18.4 for app and extension (Safari 18.4 is the floor the manifest needs:
   `match_origin_as_fallback`, MAIN-world content scripts). macOS 15.4 for both, which is the
   macOS release that ships Safari 18.4; Safari 18.4 also exists for Sonoma and Ventura, so the
