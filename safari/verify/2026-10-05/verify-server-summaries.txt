@@ -1,0 +1,102 @@
+== ipad-noaccess
+run ipad-noaccess visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got=null want="1" FAIL
+ header: Sec-GPC on image (third party) got=null want="1" FAIL
+ header: Sec-GPC on script got=null want="1" FAIL
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=null want=true FAIL
+ JS: top frame, later got=null want=true FAIL
+ JS: after forged handshakes from page script got=null want=true FAIL
+ JS: getter name got=null want="get globalPrivacyControl" FAIL
+ JS: cross-origin iframe got=null want=true FAIL
+ JS: srcdoc iframe got=null want=true FAIL
+ JS: about:blank iframe at its load event got=null want=true FAIL
+ JS: about:blank iframe 500 ms later got=null want=true FAIL
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=null want=true FAIL
+== ipad-on
+run ipad-on visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got="1" want="1" PASS
+ header: Sec-GPC on image (third party) got="1" want="1" PASS
+ header: Sec-GPC on script got="1" want="1" PASS
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=true want=true PASS
+ JS: top frame, later got=true want=true PASS
+ JS: after forged handshakes from page script got=true want=true PASS
+ JS: getter name got="get globalPrivacyControl" want="get globalPrivacyControl" PASS
+ JS: cross-origin iframe got=true want=true PASS
+ JS: srcdoc iframe got=true want=true PASS
+ JS: about:blank iframe at its load event got=true want=true PASS
+ JS: about:blank iframe 500 ms later got=true want=true PASS
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=true want=true PASS
+== ipad-off
+run ipad-off visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got=null want="1" FAIL
+ header: Sec-GPC on image (third party) got=null want="1" FAIL
+ header: Sec-GPC on script got=null want="1" FAIL
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=null want=true FAIL
+ JS: top frame, later got=null want=true FAIL
+ JS: after forged handshakes from page script got=null want=true FAIL
+ JS: getter name got=null want="get globalPrivacyControl" FAIL
+ JS: cross-origin iframe got=null want=true FAIL
+ JS: srcdoc iframe got=null want=true FAIL
+ JS: about:blank iframe at its load event got=null want=true FAIL
+ JS: about:blank iframe 500 ms later got=null want=true FAIL
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=null want=true FAIL
+== iphone-noaccess
+run iphone-noaccess visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got=null want="1" FAIL
+ header: Sec-GPC on image (third party) got=null want="1" FAIL
+ header: Sec-GPC on script got=null want="1" FAIL
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=null want=true FAIL
+ JS: top frame, later got=null want=true FAIL
+ JS: after forged handshakes from page script got=null want=true FAIL
+ JS: getter name got=null want="get globalPrivacyControl" FAIL
+ JS: cross-origin iframe got=null want=true FAIL
+ JS: srcdoc iframe got=null want=true FAIL
+ JS: about:blank iframe at its load event got=null want=true FAIL
+ JS: about:blank iframe 500 ms later got=null want=true FAIL
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=null want=true FAIL
+== iphone-on
+run iphone-on visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got="1" want="1" PASS
+ header: Sec-GPC on image (third party) got="1" want="1" PASS
+ header: Sec-GPC on script got="1" want="1" PASS
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=true want=true PASS
+ JS: top frame, later got=true want=true PASS
+ JS: after forged handshakes from page script got=true want=true PASS
+ JS: getter name got="get globalPrivacyControl" want="get globalPrivacyControl" PASS
+ JS: cross-origin iframe got=true want=true PASS
+ JS: srcdoc iframe got=true want=true PASS
+ JS: about:blank iframe at its load event got=true want=true PASS
+ JS: about:blank iframe 500 ms later got=true want=true PASS
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=true want=true PASS
+== iphone-off
+run iphone-off visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got=null want="1" FAIL
+ header: Sec-GPC on image (third party) got=null want="1" FAIL
+ header: Sec-GPC on script got=null want="1" FAIL
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=null want=true FAIL
+ JS: top frame, later got=null want=true FAIL
+ JS: after forged handshakes from page script got=null want=true FAIL
+ JS: getter name got=null want="get globalPrivacyControl" FAIL
+ JS: cross-origin iframe got=null want=true FAIL
+ JS: srcdoc iframe got=null want=true FAIL
+ JS: about:blank iframe at its load event got=null want=true FAIL
+ JS: about:blank iframe 500 ms later got=null want=true FAIL
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=null want=true FAIL
