@@ -1,0 +1,41 @@
+== mac-on (GPC fixture)
+run mac-on visibility=visible (a report taken from a hidden tab is not valid)
+ header: Sec-GPC on image (same site) got="1" want="1" PASS
+ header: Sec-GPC on image (third party) got="1" want="1" PASS
+ header: Sec-GPC on script got="1" want="1" PASS
+ header: Sec-GPC on fetch (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on XHR (Safari: expected absent) got=null want=null PASS
+ header: Sec-GPC on the document (Safari: expected absent) got=null want=null PASS
+ JS: top frame, first inline script got=true want=true PASS
+ JS: top frame, later got=true want=true PASS
+ JS: after forged handshakes from page script got=true want=true PASS
+ JS: getter name got="get globalPrivacyControl" want="get globalPrivacyControl" PASS
+ JS: cross-origin iframe got=true want=true PASS
+ JS: srcdoc iframe got=true want=true PASS
+ JS: about:blank iframe at its load event got=true want=true PASS
+ JS: about:blank iframe 500 ms later got=true want=true PASS
+ JS: same-tick child realm (see VERIFY-MACOS.md for what a miss means) got=true want=true PASS
+
+== mac-on (blocking-proof, page's own report, autorun)
+visibility: visible
+Nullecho blocking proof
+verdict:   NOT AUTHORITATIVE — BLOCKING PROVEN
+trackers:  6/6 blocked
+controls:  3/3 loaded
+GPC:       true
+UA:        Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15
+page:      http://a.lvh.me:47301/blocking-proof.html?autorun=1&run=mac-on
+engine:    unknown   << NOT AUTHORITATIVE
+
+  tracker  cancelled analytics      www.google-analytics.com
+  tracker  cancelled analytics      www.googletagmanager.com
+  tracker  cancelled analytics      cdn.amplitude.com
+  tracker  cancelled social         connect.facebook.net
+  tracker  cancelled ads            securepubads.g.doubleclick.net
+  tracker  cancelled fingerprinting openfpcdn.io
+  control  loaded    font/CDN       fonts.gstatic.com
+  control  loaded    CDN            cdn.jsdelivr.net
+  control  loaded    CDN            cdnjs.cloudflare.com
+
+STILL MANUAL: popup blocked-count agrees; navigator.globalPrivacyControl
+is undefined on open.spotify.com (a shipped GPC exception).

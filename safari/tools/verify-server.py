@@ -159,7 +159,19 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, 'text/plain', 'pong ' + rec['iso'])
         if path == '/blocking-proof.html':
             with open(os.path.join(REPO, 'harness', 'blocking-proof.html'), 'rb') as f:
-                return self._send(200, 'text/html; charset=utf-8', f.read())
+                body = f.read()
+            # `?autorun=1&run=RUN`: press the page's own button and POST its plain-text report (#report, the
+            # text the page writes for copy-paste) to /report. For a browser nobody can click in from a script
+            # (the owner's macOS Safari). The harness file itself is served unchanged; this is appended after it.
+            if q.get('autorun', [''])[0]:
+                body += (b'<script>(function(){var run=%s;function done(){var t=(document.getElementById("report")||{}).textContent||"";'
+                         b'if(!/verdict:/.test(t)){return setTimeout(done,250);}'
+                         b'fetch("/report",{method:"POST",cache:"no-store",headers:{"Content-Type":"text/plain"},'
+                         b'body:JSON.stringify({kind:"blocking-proof",run:run,href:location.href,visibility:document.visibilityState,'
+                         b'gpc:navigator.globalPrivacyControl,report:t})});}'
+                         b'window.addEventListener("load",function(){document.getElementById("run").click();setTimeout(done,500);});})();</script>'
+                         % json.dumps(q.get('run', [''])[0]).encode())
+            return self._send(200, 'text/html; charset=utf-8', body)
         if path.endswith('.gif'):
             return self._send(200, 'image/gif', GIF)
         if path.endswith('.js') and path != '/page.js':

@@ -1,9 +1,35 @@
-# Nullecho for Safari — macOS verification (owner's step, ~10 minutes)
+# Nullecho for Safari — macOS verification
 
-Everything in the phase-1 report was measured in Safari on the **iOS 27 Simulator**. Nothing has been
-measured in **macOS Safari 27** yet, because loading an unsigned extension there asks for your Mac
-password, which is your step and nobody else's. This page is the whole sitting: five clicks in Safari,
-two local pages, and a one-line summary command that says pass or fail from the server log.
+## Result, 2026-10-07: PASS with the extension on (macOS 26.6, Safari 27.0)
+
+The owner loaded `dist/safari/extension` (branch `safari` at `65828e6`, version 0.9.1) into his own Safari as
+a temporary unsigned extension and allowed it on every website (steps in §1 below, run through a guided
+script). The two pages were then opened in that Safari from the command line (`open -a Safari <url>`); nobody
+clicked inside Safari, so the blocking page was opened with `?autorun=1`, which presses its own button and
+posts the page's plain-text report back to the server. Server log as ground truth; both pages reported
+`visibilityState === "visible"`; the request UA was `Macintosh … Version/27.0 Safari/605.1.15`. Full output:
+[`verify/2026-10-07/macos-summaries.txt`](verify/2026-10-07/macos-summaries.txt).
+
+| Check (run `mac-on`) | Result |
+|---|---|
+| GPC fixture, 15 checks | **15/15 PASS**: `Sec-GPC: 1` on same-site image, third-party image and script; absent on fetch, XHR and the document (Safari's limit); `navigator.globalPrivacyControl === true` in the top frame from its first inline script, after forged page-script handshakes, in a cross-origin iframe, a srcdoc iframe, an about:blank iframe (at load and +500 ms) and a same-tick child realm; getter named `get globalPrivacyControl` |
+| `harness/blocking-proof.html` | **6/6 trackers cancelled, 3/3 controls loaded**, `navigator.globalPrivacyControl: true` (verdict text "BLOCKING PROVEN", prefixed "NOT AUTHORITATIVE" because the page's engine gate knows only Chrome) |
+
+Why `true` is the proof on macOS: without the extension this same Safari reads `navigator.globalPrivacyControl`
+as **`false`** natively and sends no `Sec-GPC` on any request (measured 2026-10-01 across 57 requests,
+[`audit/02-builtin-protections.md`](audit/02-builtin-protections.md) §2.1). The `mac-off` control run (extension
+unticked) is **pending the owner's click**; until it is in this file, the 10-01 measurement is the macOS negative.
+
+Not measured on macOS: the same-day `mac-off` run (above); the container app's own window (built unsigned,
+never run here, so that it would not register a second copy of the extension with the owner's Safari); Private
+Browsing.
+
+## The sitting itself (owner's step, ~10 minutes)
+
+Everything in the phase-1 report was first measured in Safari on the **iOS 27 Simulator**. Loading an unsigned
+extension into macOS Safari asks for your Mac password, which is your step and nobody else's. This page is the
+whole sitting: five clicks in Safari, two local pages, and a one-line summary command that says pass or fail
+from the server log.
 
 Nothing here touches the network beyond `harness/blocking-proof.html`, which fetches real tracker
 *library* files (never beacons) to prove they are cancelled — read its disclosure box.
@@ -38,7 +64,7 @@ Open each in a normal (not Private) window and leave the tab in front while it w
 | Step | URL | Wait | What pass looks like |
 |---|---|---|---|
 | A | `http://a.lvh.me:47301/page?run=mac-on` | ~8 s, until the page prints `DONE` | the `gpc_top`, `gpc_frame_*`, `gpc_child_*` lines all say `"value": true` |
-| B | `http://a.lvh.me:47301/blocking-proof.html` ▸ **Run the test** | ~10 s | verdict **BLOCKING PROVEN** (6/6 trackers cancelled, 3/3 controls loaded). The page will prefix it with "NOT AUTHORITATIVE": its engine gate only knows Chrome; in Safari read the rows, and keep a screenshot |
+| B | `http://a.lvh.me:47301/blocking-proof.html` ▸ **Run the test** (or add `?autorun=1&run=mac-on` and the page presses its own button and posts its report) | ~10 s | verdict **BLOCKING PROVEN** (6/6 trackers cancelled, 3/3 controls loaded). The page will prefix it with "NOT AUTHORITATIVE": its engine gate only knows Chrome; in Safari read the rows, and keep a screenshot |
 | C (negative control) | Settings ▸ Extensions ▸ **untick Nullecho**, reload A as `…?run=mac-off`, reload B and run it again | — | A: every GPC value `false` (macOS ships the property natively, as `false`); B: **BLOCKING IS NOT HAPPENING**, all trackers loaded |
 
 Then, back in the terminal:
