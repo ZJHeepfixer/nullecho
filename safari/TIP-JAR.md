@@ -42,14 +42,42 @@ The build hand-off will include exact click-by-click steps for each of these.
   code does.
 - Sandbox testing with a Sandbox Apple Account on a device is the owner's step, after TestFlight.
 
-## Open items to settle in the tip-jar build (unverified today)
+## The two open questions, answered 2026-10-07
 
-- Whether StoreKit 2 on macOS works inside the app's current sandbox, which has **no outgoing-network
-  entitlement** (`ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO`; see `xcode/README.md`). StoreKit talks to the
-  system's App Store daemon over XPC, so it is expected to, but it must be measured, and if the entitlement has to
-  be added the "this app opens no network connections" sentence in the app changes with it.
-- Whether a StoreKit 2 purchase obliges any App Privacy declaration (the purchase history Apple shows the
-  developer is Apple's collection; the on-device transaction is not sent anywhere by us). To be checked against
-  Apple's App Privacy Details before the label is confirmed.
-- The exact thank-you: one line in the app, nothing persistent beyond `Transaction.currentEntitlements` (empty
-  for consumables), no badge, no counter.
+Evidence in [`audit/04-storekit-sandbox.md`](audit/04-storekit-sandbox.md) and
+[`audit/05-tip-jar-rules.md`](audit/05-tip-jar-rules.md).
+
+1. **StoreKit 2 works without the outgoing-network entitlement.** Measured with an ad-hoc-signed probe app
+   sandboxed exactly like Nullecho's Mac app (`app-sandbox` on, no `network.client`): `Product.products(for:)`
+   returned all three consumables with prices, `purchase()` succeeded `.verified`, `finish()` worked, while a
+   plain `URLSession` request in the same process failed with the sandbox's DNS denial (the control build with
+   the entitlement made the same request succeed). The app process never networks for StoreKit: the system's
+   `storekitagent` accepted the probe's XPC connection and made the App Store requests itself, and the sandbox
+   profile grants the StoreKit services to every sandboxed app unconditionally. The measurement used Xcode's
+   StoreKit test environment; the production path is argued from the same structure and Apple's "The StoreKit
+   framework connects to the App Store on your app's behalf", not measured (that needs a signed build and a
+   sandbox Apple Account: the owner's step, after TestFlight). **Decision:** keep
+   `ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO`; change the app's sentence to "This app opens no network
+   connections of its own; the two links below are handed to your browser, and a tip is handled by the App
+   Store's own purchase service, not by this app."
+2. **The privacy label stays "Data Not Collected".** Apple: "You are not responsible for disclosing data
+   collected by Apple." and data "processed only on device is not 'collected'". Reading the on-device
+   `Transaction` (ids, environment; `appAccountToken` never set) and transmitting nothing creates no duty. What
+   would change it: a receipt server, App Store Server Notifications / Server API, analytics, or storing an
+   `appAccountToken`.
+
+Design points that follow (from `audit/05`): tips only through IAP (3.1.1); never "donate", "donation",
+"charity", "fundraiser" (3.2.1(vi), 3.2.2(iv)); nothing unlocked (2.3.1(a)); no restore button for consumables;
+SwiftUI `PurchaseAction` / `ProductView`; `Transaction.updates` listener at launch; `finish()` after the thank-you;
+a `.pending` (Ask to Buy) thank-you comes from the listener, possibly next launch; hide the jar when
+`AppStore.canMakePayments` is false; sort products by price; `displayPrice` only; `.unverified` gets no thank-you.
+Product ids are immutable once created in App Store Connect; the working ids `org.nullecho.tip.small` /
+`.medium` / `.large` are the owner's to confirm or rename before he creates them.
+
+## Still open
+
+- The exact thank-you line (one sentence in the app, nothing persistent).
+- `SKTestSession.buyProduct(identifier:)` throws on macOS in the probe rig (`StoreKitError.unknown`, with and
+  without the entitlement; the ad-hoc app is unregistered with Launch Services), so automated outside-purchase
+  tests run on the iOS Simulator with the `.storekit` file attached to the scheme; on macOS, `purchase()` from
+  inside the app is what the tests exercise.
