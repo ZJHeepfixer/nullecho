@@ -675,6 +675,24 @@ blocked, 3/3 controls loaded, `globalPrivacyControl` undefined — i.e. all nine
 reachable, so under a real install any "blocked" row is attributable to Nullecho and not to a dead
 URL. Verified readable in light and dark.
 
+**Amended 2026-10-07: a control's "loaded" now means its bytes arrived.** While the demo video was
+being recorded, the `cdn.jsdelivr.net` control read "loaded" in every run, extension on or off,
+while Chrome's own log recorded the request as `net::ERR_ABORTED`. Cause: Chrome's Opaque Response
+Blocking on a `no-cors` fetch of `application/json` + `nosniff`. Chrome withholds the body, logs the
+request as aborted, and resolves the fetch with an empty opaque response anyway. With
+`--enable-features=OpaqueResponseBlockingErrorsForAllFetches` the same request fails as
+`net::ERR_BLOCKED_BY_ORB`. A `no-cors` fetch also resolves on the headers, before any body arrives,
+so no `no-cors` control could show that a file arrived. Controls are now fetched in CORS mode (all
+three hosts send `Access-Control-Allow-Origin: *`). The page reads each whole body and checks it is
+the file it asked for, and has two new control states, `http-<n>` and `unexpected`. Trackers stay
+`no-cors`. Tracker hosts do not all allow CORS, and for a tracker "loaded" correctly means the host
+answered. The page publishes its rows as `window.__proofDone`. `harness/blocking-proof-check.mjs`
+runs it OFF and ON (store package) and fails any row that disagrees with Chrome's network log.
+`harness/social/make-social-assets.mjs` gates on the same comparison
+(`harness/blocking-proof-netlog.mjs`). Negative control: the pre-fix page fails the check on
+`cdn.jsdelivr.net` in both runs. A "3/3 controls loaded" recorded in Chrome before this change, the
+2026-10-07 video among them, did not show that the jsDelivr file arrived.
+
 ## D19 — Request headers follow the persona at OS-family level, from static, generated DNR rules. 2026-09-16.
 
 > **Superseded by D51 (2026-09-28)** for `User-Agent`, `Sec-CH-UA`, `-Mobile` and `-Platform`: the page is now shown the
