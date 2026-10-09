@@ -20,6 +20,34 @@
                ReferencedContainer = "container:Nullecho.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4E430000000000000000C005"
+               BuildableName = "NullechoTests.xctest"
+               BlueprintName = "Nullecho Tests (iOS)"
+               ReferencedContainer = "container:Nullecho.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4E430000000000000000C007"
+               BuildableName = "NullechoUITests.xctest"
+               BlueprintName = "Nullecho UI Tests (iOS)"
+               ReferencedContainer = "container:Nullecho.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -27,7 +55,38 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "4E430000000000000000C001"
+            BuildableName = "Nullecho.app"
+            BlueprintName = "Nullecho (iOS)"
+            ReferencedContainer = "container:Nullecho.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4E430000000000000000C005"
+               BuildableName = "NullechoTests.xctest"
+               BlueprintName = "Nullecho Tests (iOS)"
+               ReferencedContainer = "container:Nullecho.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4E430000000000000000C007"
+               BuildableName = "NullechoUITests.xctest"
+               BlueprintName = "Nullecho UI Tests (iOS)"
+               ReferencedContainer = "container:Nullecho.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
@@ -50,6 +109,9 @@
             ReferencedContainer = "container:Nullecho.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../Nullecho.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

@@ -1,0 +1,68 @@
+{
+  "identifier" : "4E43A7E1",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "4E43A7E2",
+      "localizations" : [
+        {
+          "description" : "Thanks to the people who build Nullecho.",
+          "displayName" : "Small tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.nullecho.tip.small",
+      "referenceName" : "Small tip",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "4E43A7E3",
+      "localizations" : [
+        {
+          "description" : "More thanks to the people who build Nullecho.",
+          "displayName" : "Medium tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.nullecho.tip.medium",
+      "referenceName" : "Medium tip",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "4E43A7E4",
+      "localizations" : [
+        {
+          "description" : "Big thanks to the people who build Nullecho.",
+          "displayName" : "Large tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.nullecho.tip.large",
+      "referenceName" : "Large tip",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
