@@ -1,8 +1,27 @@
-# Tip jar — decided 2026-10-05, not built yet
+# Tip jar — decided 2026-10-05, built 2026-10-07
 
 **Decision (owner, 2026-10-05, relayed by the Nullecho director).** The Safari app is free. It carries an
 optional tip jar, "Support the project". It is built only after the core (tracker blocking + Global Privacy
 Control) is verified on Mac, iPhone and iPad; see `VERIFY-*.md`.
+
+**Built 2026-10-07** in `xcode/App/TipJar.swift` (model + section, the only file importing StoreKit),
+`xcode/Nullecho.storekit`, hosted XCTest bundles for iOS and macOS, an iOS UI test, and seven new
+`check-container.mjs` assertions. What was verified and what was not: [`VERIFY-TIP-JAR.md`](VERIFY-TIP-JAR.md).
+
+## Review notes (paste into App Store Connect)
+
+> Nullecho is a free Safari web extension with no accounts, no sign-in and no server. This version adds an
+> optional tip jar, "Support the project", at the bottom of the app's single screen (scroll down past "What it
+> does not do in Safari" and "If a site misbehaves"). It offers three consumable in-app purchases — Small tip,
+> Medium tip, Large tip — through StoreKit. A tip unlocks nothing and changes no feature: the only thing that
+> happens after a purchase is a one-line thank-you, which disappears when the app quits. Every feature of the
+> app and the extension works identically before and after a tip, so there is nothing to restore and no
+> restore button. The app stores no record of a purchase (no UserDefaults, no file, no keychain item, no
+> appAccountToken) and sends nothing to any server of ours; the privacy label remains "Data Not Collected"
+> (the purchase itself is handled by the App Store's purchase service). To test: scroll to "Support the
+> project", tap any price, complete the purchase with a Sandbox account, and observe the thank-you line and
+> that nothing else changes. If Screen Time or a management profile disallows purchases on the review device,
+> the section is hidden entirely, by design.
 
 ## Rules the build must keep
 
@@ -74,10 +93,20 @@ a `.pending` (Ask to Buy) thank-you comes from the listener, possibly next launc
 Product ids are immutable once created in App Store Connect; the working ids `org.nullecho.tip.small` /
 `.medium` / `.large` are the owner's to confirm or rename before he creates them.
 
+## Settled by the build (2026-10-07)
+
+- The thank-you line: "Thank you. Nothing has changed, and that’s the point." Shown after a verified tip,
+  gone when the app quits. Ask to Buy shows "Waiting for approval." until the listener thanks.
+- Automated tests run on the iOS Simulator (hosted unit tests + a UI test) and on macOS (hosted unit tests);
+  `purchase()` from inside the app, Ask to Buy approval via `SKTestSession`, simulated failures and simulated
+  verification failures. Results, mutation evidence and the rig's measured quirk (`xcodebuild` does not push
+  the scheme's StoreKit configuration; the first test process on an erased Simulator is still in the sandbox
+  environment) are in [`VERIFY-TIP-JAR.md`](VERIFY-TIP-JAR.md).
+
 ## Still open
 
-- The exact thank-you line (one sentence in the app, nothing persistent).
-- `SKTestSession.buyProduct(identifier:)` throws on macOS in the probe rig (`StoreKitError.unknown`, with and
-  without the entitlement; the ad-hoc app is unregistered with Launch Services), so automated outside-purchase
-  tests run on the iOS Simulator with the `.storekit` file attached to the scheme; on macOS, `purchase()` from
-  inside the app is what the tests exercise.
+- The production purchase path (real App Store servers, Sandbox Apple Account, TestFlight) is the owner's
+  step after signing; nothing here measures it.
+- `SKTestSession.buyProduct(identifier:)` (an outside purchase) still cannot be exercised on macOS for the
+  reason in `audit/04` §3.4; the macOS listener path is covered only by Ask to Buy approval from the session,
+  where that works, and by the iOS tests otherwise.
