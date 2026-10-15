@@ -1611,13 +1611,21 @@ async function extHandle(browser, unpackDir) {
     return 'installed';
   };
   let worker = null;
+  // After a seeded reload the PRE-reload worker's target can still be listed, and attaching to it never returns
+  // (measured 2026-10-15: three seeded shards sat at 0% CPU right after seeding). So: newest target first, and
+  // every step bounded.
   const attach = async () => {
-    const t = browser.targets().find(isExtensionWorker) || await browser.waitForTarget(isExtensionWorker, { timeout: 15000 });
-    worker = await t.worker();
-    for (let i = 0; i < 10; i++) {
-      const st = await worker.evaluate(install).catch(() => null);
-      if (st) return st;
-      await sleep(300);
+    const deadline = Date.now() + 25000;
+    while (Date.now() < deadline) {
+      for (const t of browser.targets().filter(isExtensionWorker).reverse()) {
+        try {
+          const w = await withTimeout(t.worker(), 5000, 'worker()');
+          if (!w) continue;
+          const st = await withTimeout(w.evaluate(install), 5000, 'install recorder');
+          if (st) { worker = w; return st; }
+        } catch { /* stale or not ready: next */ }
+      }
+      await sleep(500);
     }
     return 'failed';
   };
@@ -1634,14 +1642,14 @@ async function extHandle(browser, unpackDir) {
     status,
     async drain() {
       try {
-        const h = await worker.evaluate(() => (globalThis.__pzHits ? globalThis.__pzHits.splice(0) : null));
+        const h = await withTimeout(worker.evaluate(() => (globalThis.__pzHits ? globalThis.__pzHits.splice(0) : null)), 8000, 'drain');
         if (h) return { hits: h };
       } catch { /* worker gone */ }
       const st = await attach().catch(() => 'failed');
       return { hits: [], restarted: true, note: `worker restarted (${st}) — hits before this point lost` };
     },
     async tally(url) {
-      try { return await readTally(worker, url); } catch { await attach().catch(() => {}); return readTally(worker, url); }
+      try { return await withTimeout(readTally(worker, url), 8000, 'tally'); } catch { await attach().catch(() => {}); return withTimeout(readTally(worker, url), 8000, 'tally'); }
     },
   };
 }
