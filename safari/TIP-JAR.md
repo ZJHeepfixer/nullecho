@@ -12,8 +12,8 @@ Control) is verified on Mac, iPhone and iPad; see `VERIFY-*.md`.
 
 > Nullecho is a free Safari web extension with no accounts, no sign-in and no server. This version adds an
 > optional tip jar, "Support the project", at the bottom of the app's single screen (scroll down past "What it
-> does not do in Safari" and "If a site misbehaves"). It offers three consumable in-app purchases — Small tip,
-> Medium tip, Large tip — through StoreKit. A tip unlocks nothing and changes no feature: the only thing that
+> does not do in Safari" and "If a site misbehaves"). It offers four consumable in-app purchases — Small tip,
+> Medium tip, Large tip, Extra-large tip — through StoreKit. A tip unlocks nothing and changes no feature: the only thing that
 > happens after a purchase is a one-line thank-you, which disappears when the app quits. Every feature of the
 > app and the extension works identically before and after a tip, so there is nothing to restore and no
 > restore button. The app stores no record of a purchase (no UserDefaults, no file, no keychain item, no
@@ -27,8 +27,8 @@ Control) is verified on Mac, iPhone and iPad; see `VERIFY-*.md`.
 
 1. **Nothing is gated behind a tip.** Every feature works identically before and after. The only thing that
    changes after a tip is a thank-you.
-2. **StoreKit 2, consumable in-app purchases**, three tiers at $1.00 / $2.00 / $3.00 (owner, 2026-10-14: round amounts,
-   "more organic and different from others"; replaces the $1.99 / $4.99 / $9.99 working values). Apple's App Review Guideline 3.1.1 allows tipping through
+2. **StoreKit 2, consumable in-app purchases**, four tiers at $1.00 / $2.00 / $3.00 / $5.00 (owner, 2026-10-14: round amounts,
+   "more organic and different from others", plus a fourth; replaces the three $1.99 / $4.99 / $9.99 working values). Apple's App Review Guideline 3.1.1 allows tipping through
    IAP; a tip jar that used any other payment method would not pass.
 3. **No accounts, no analytics, no receipt server.** Transactions are verified on-device with StoreKit 2's
    `VerificationResult`, finished, and forgotten. No identifier leaves the device for Nullecho's benefit; the

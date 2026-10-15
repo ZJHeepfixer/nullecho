@@ -87,6 +87,13 @@ The owner changed the tiers to round amounts ($1.00 / $2.00 / $3.00). Measured t
 simulator (`testProductsLoadSortedByPriceWithDisplayPrices`, PASS): StoreKit formats them as `$1.00`, `$2.00`,
 `$3.00` (not `$1`), which is what the UI test's tier predicate and the app's buttons show. Product ids unchanged.
 
+Later the same day the owner added a fourth tier, **Extra-large tip, $5.00** (`org.nullecho.tip.xlarge`); the
+count checks in `check-container.mjs`, the unit test and the UI test now expect four. Measured the same day on the
+iPhone 17 Pro simulator: `testProductsLoadSortedByPriceWithDisplayPrices` PASS with four products sorted
+`$1.00 / $2.00 / $3.00 / $5.00`; `testTipFlowRendersSheetAndThankYou` PASS with four tier buttons and the thank-you
+([`verify/2026-10-14/tipjar-iphone-four-tiers-thanks.png`](verify/2026-10-14/tipjar-iphone-four-tiers-thanks.png)).
+check-container 18/18, self-test 35/35.
+
 ## Not verified
 
 - The production purchase path (App Store servers, Sandbox Apple Account, TestFlight): owner's step.

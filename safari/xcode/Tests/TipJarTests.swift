@@ -126,7 +126,7 @@ final class TipJarTests: XCTestCase {
         let products = try await loadedProducts(jar)
         for p in products { log("product id=\(p.id) type=\(p.type.rawValue) displayName=\"\(p.displayName)\" displayPrice=\(p.displayPrice) price=\(p.price)") }
 
-        XCTAssertEqual(products.count, 3)
+        XCTAssertEqual(products.count, TipJar.productIDs.count)
         XCTAssertEqual(products.map(\.id), TipJar.productIDs, "products must be sorted by price, smallest first")
         XCTAssertEqual(products.map(\.price), products.map(\.price).sorted())
         for p in products {

@@ -1,4 +1,4 @@
-// The tip jar: three consumable in-app purchases through StoreKit 2. Nothing is gated behind them.
+// The tip jar: four consumable in-app purchases through StoreKit 2. Nothing is gated behind them.
 //
 // What this file keeps true (safari/TIP-JAR.md, safari/audit/05-tip-jar-rules.md):
 // - A tip changes one thing, a thank-you line that lasts until the app quits. No UserDefaults, no file,
@@ -20,12 +20,13 @@ import SwiftUI
 @MainActor
 @Observable
 final class TipJar {
-    /// The three tips, smallest first. Nullecho.storekit (local testing) carries the same three, and these
+    /// The four tips, smallest first. Nullecho.storekit (local testing) carries the same four, and these
     /// are the ids to create in App Store Connect; product ids are immutable there, so confirm them first.
     static let productIDs = [
         "org.nullecho.tip.small",
         "org.nullecho.tip.medium",
         "org.nullecho.tip.large",
+        "org.nullecho.tip.xlarge",
     ]
 
     enum Products: Equatable {
@@ -66,7 +67,7 @@ final class TipJar {
         listener?.cancel()
     }
 
-    /// Asks the App Store for the three products. Called when the section appears; safe to call again.
+    /// Asks the App Store for the four products. Called when the section appears; safe to call again.
     func loadProducts() async {
         if case .available = products { return }
         products = .loading

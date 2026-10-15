@@ -118,8 +118,8 @@ final class TipJarUITests: XCTestCase {
         scroll(app, until: tier)
 
         // Every tier shows the App Store's name and price; nothing is typed in the app.
-        let tiers = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'tip, $1.00' OR label ENDSWITH 'tip, $2.00' OR label ENDSWITH 'tip, $3.00'"))
-        XCTAssertEqual(tiers.count, 3, "expected three tier buttons labelled '<name>, <price>', found \(tiers.count)")
+        let tiers = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'tip, $1.00' OR label ENDSWITH 'tip, $2.00' OR label ENDSWITH 'tip, $3.00' OR label ENDSWITH 'tip, $5.00'"))
+        XCTAssertEqual(tiers.count, 4, "expected four tier buttons labelled '<name>, <price>', found \(tiers.count)")
         XCTAssertFalse(app.staticTexts[thankYou].exists, "a thank-you before any tip")
         shot("1-section")
 
@@ -147,7 +147,7 @@ final class TipJarUITests: XCTestCase {
         scroll(app, until: thanks)
         shot("3-thanks")
         // The tiers are still there: a repeat tip is normal for a consumable, and nothing else changed.
-        XCTAssertEqual(tiers.count, 3)
+        XCTAssertEqual(tiers.count, 4)
     }
 
     /// Two behaviours in one flow: a purchase made outside the app (an Ask-to-Buy approval, another device)
