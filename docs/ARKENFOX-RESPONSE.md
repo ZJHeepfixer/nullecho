@@ -46,8 +46,17 @@ Same browser, same window geometry (verified matched programmatically), one navi
 deliberate) and `mediaDevices`, `math`, `storage`, which this layer never claimed.
 
 Repeated runs in one session: **0 of 15 signals drift.** 50 consecutive canvas reads → **1** hash via
-`toDataURL` and **1** via `getImageData`. The averaging attack that broke Brave's per-read farbling in
-2025 does not work here. `harness/shim-test.html` passes **39 of 39** correctness assertions.
+`toDataURL` and **1** via `getImageData`, so averaging repeated reads of one canvas gets a page nothing.
+`harness/shim-test.html` passes **39 of 39** correctness assertions.
+
+*Corrected 2026-10-14 (DECISIONS.md D56).* This paragraph used to end "The averaging attack that broke
+Brave's per-read farbling in 2025 does not work here." That was wrong. Brave's farbling is not per-read:
+it is keyed on session, domain and canvas content, as ours is keyed on persona, size and a digest of the
+whole canvas. The 2025 attack (Nguyen & Vadrevu, *Breaking the Shield*, WWW '25) draws the same content
+on several canvases that differ only in a strip outside the region it reads, and keeps each pixel's
+majority value. Run against Nullecho on 2026-10-14 (`harness/canvas-majority-vote.mjs`), 21 canvases
+returned the real canvas exactly, and identically under two personas on two sites. The one-hash result
+above is still true; it is simply not evidence against that attack.
 
 And then the adversarial half — a page trying to prove the shim is installed:
 
@@ -298,8 +307,11 @@ that, they are simply correct and we should not ship. So we should not claim it.
 **Say out loud, in-product, that better options exist:** Arkenfox's recommendation — Firefox's own
 `privacy.resistFingerprinting` / `fingerprintingProtection` — is genuinely stronger than any
 extension, because it operates below the JS layer where claims (a) and (e) are decided. Brave's
-built-in farbling is similarly better-positioned. Nullecho's honest niche is **Chrome, where neither
-exists**, and **per-origin rather than uniform**, which is a different trade than RFP makes (RFP buys
+built-in farbling is similarly better-positioned below the JS layer — but its **canvas** farbling was
+broken in 2025 by the same majority vote that recovers Nullecho's canvas (WWW '25; D56). For canvas, the
+stronger options are Firefox's and Tor Browser's fixed-output protections, which the same paper found
+working as intended.
+Nullecho's honest niche is **Chrome, where neither exists**, and **per-origin rather than uniform**, which is a different trade than RFP makes (RFP buys
 uniformity at the cost of breakage and of being visibly a Tor/RFP user).
 
 ## Follow-ups — what this analysis generated, and what became of them
