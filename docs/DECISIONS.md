@@ -3447,7 +3447,7 @@ per-read, and one hash for one canvas says nothing about many canvases.
 
 - **The cross-site join is restored.** Every exact recovery was the same bytes under both personas
   on both sites. Single reads differ in about 25,000 pixels and give four different hashes.
-- **Cost:** a median of 0.4–0.5 s for N = 21 (143 ms in a quieter run). Our 1-in-8 density
+- **Cost:** medians of 0.15–0.5 s for N = 21, depending on machine load. Our 1-in-8 density
   moves Brave's 5 canvases to about 21. That is a cost, not a defence.
 - **Translated copies** (the region blitted at 21 offsets): 20/20.
 - **The A1 subtraction still fails** (≈ 138,000 channels wrong), so D22 holds against what it was
