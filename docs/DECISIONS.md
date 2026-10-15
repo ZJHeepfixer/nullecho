@@ -3188,3 +3188,98 @@ Microsoft's product domains (office365, microsoft365, outlook, onedrive, azure) 
 login.microsoftonline.com posting back into learned microsoft.com / live.com / office.com. 511/511. Known harness limit:
 `site-smoke.mjs` overrides the UA without metadata (to drop "HeadlessChrome"), so its D51 identity check sees empty
 brands on both sides; the real-values gate is `unpacked-chrome.mjs`, and the owner's Chrome 153 was checked by hand.
+
+## D53 — On Firefox the GPU identity is Firefox's own; under resistFingerprinting the WebGL patch stands down. 2026-10-14.
+
+**Evidence — measured, not assumed.** Real **Firefox 156.0** on the owner's Mac (Apple M2 Max, 12 cores), headful,
+a fresh throwaway profile per run, the Firefox store package installed over WebDriver BiDi, the probe page served from
+loopback, every reading taken with `document.visibilityState === "visible"` (`harness/firefox-webgl-probe.mjs`). Two
+RFP runs whose window went `hidden` (occluded) were discarded, not used. WebGL 1 shown; WebGL 2 is the same with
+"WebGL 2.0" / "WebGL GLSL ES 3.00".
+
+| | Firefox, no extension | + 0.9.1 | + 0.9.2 |
+|---|---|---|---|
+| `VENDOR` | `Mozilla` | `Mozilla` | `Mozilla` |
+| `RENDERER` | `Apple M1, or similar` | the persona's, e.g. `ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)` | `Apple M1, or similar` |
+| `UNMASKED_VENDOR_WEBGL` | `Apple` | `Google Inc. (Apple)` | `Apple` |
+| `UNMASKED_RENDERER_WEBGL` | `Apple M1, or similar` | the ANGLE string above | `Apple M1, or similar` |
+| `VERSION` / `SHADING_LANGUAGE_VERSION` | `WebGL 1.0` / `WebGL GLSL ES 1.0` | `… (OpenGL ES 2.0 Chromium)` / `… Chromium)` | `WebGL 1.0` / `WebGL GLSL ES 1.0` |
+| `MAX_TEXTURE_SIZE` (cube, renderbuffer) | 8192 | **16384** | 8192 |
+| WebGPU adapter `vendor` / `architecture` / subgroups | `""` / `""` / 4–128 | `apple` / `metal-3` / 32–32 | `""` / `""` / 4–128 |
+| WebGPU features | 15 | 12 (three removed) | 15 |
+| `hardwareConcurrency` | 12 | 8 (persona) | 8 (persona) |
+| uniform-clear `readPixels`, pixels off the clear colour | 0/256 | 27/256 | 27–38/256 |
+
+**With `privacy.resistFingerprinting=true`:** with no extension every WebGL string is `Mozilla`, `MAX_TEXTURE_SIZE`
+2048, `MAX_VIEWPORT_DIMS` 4096, `WEBGL_debug_shaders` is withdrawn and every canvas/WebGL read-back is random bytes
+(Firefox's own); the time zone is `Atlantic/Reykjavik` (offset 0), the screen 800×600 with `avail*` equal to it at (0,0)
+and colour depth 24 (the real panel is 1512×982, 30-bit, menu bar reserved), `hardwareConcurrency` 8. **0.9.1 on top
+put `UNMASKED_*` back to the persona's ANGLE strings, VERSION back to Chromium's and the limits back to 16384/16384** —
+an RFP user who differs from every other RFP user, told a texture limit 8× what the engine will allocate. **0.9.2 on
+top: every WebGL value equals Firefox's own** (`Mozilla`, 2048, 4096). A page cannot see which branch ran (both
+answer with Firefox's values), so the shim's boot verdict was read from an instrumented COPY of the package
+(`--instrument`, one line, never shipped): **`gecko/rfp`** in the top document and in a same-origin child frame under
+RFP, **`gecko/no-rfp`** in a normal profile and with `privacy.fingerprintingProtection=true` (FPP left the time zone,
+screen and WebGL strings real and only moved `hardwareConcurrency` to 8).
+
+**Why the 0.9.1 strings were wrong.** Every persona's GPU block is Chrome's: an ANGLE renderer, a `Google Inc. (…)`
+vendor, Chromium VERSION strings, the 16384 limits Chrome reports. Firefox printed none of those on this machine, so a
+Gecko engine answering in Chrome's words is a combination no real browser produces. This was D51 residual (3), left
+out of scope there.
+
+**Decision.**
+1. **Pass the real values through on Gecko** rather than invent a Firefox-format persona. Of the two options this is
+   the one that can be proved: the engine's own answer is in Firefox's format on every OS by construction. The other
+   could not be: Firefox buckets the renderer (an M2 Max reports `Apple M1, or similar`, so "Apple M2, or similar" is
+   very likely a string no Firefox prints), and its Windows (ANGLE/D3D11) and Linux (Mesa) bucket strings cannot be
+   measured on this Mac — a guessed bucket would be the same tell in a new format. Firefox's coarsening is already the
+   crowd value the persona was standing in for.
+   - `patchGLContext` installs only `readPixels` on Gecko; `getParameter`, `getSupportedExtensions` and
+     `getExtension` stay the engine's natives, so strings, limits and the extension list are Firefox's and there is no
+     wrapper to detect. The extension deny-list was chosen for the persona's renderer and would now contradict the
+     real one, so it goes too.
+   - The WebGPU adapter identity, the feature filter and the `requestAdapter` fix-up are the persona's GPU as well and
+     are not installed on Gecko: with the WebGL renderer now real, a persona vendor there (`intel` on a Windows Firefox
+     whose WebGL says NVIDIA) would be a new cross-API contradiction. `webgpu.limits` clamps to the spec defaults on
+     every engine — not a persona value — and is unchanged.
+   - Everything else in the persona still applies on Firefox: core count, fonts, canvas/audio/WebGL read-back noise.
+2. **Under resistFingerprinting nothing WebGL is installed** (`GECKO_RFP`): Firefox already answers every string with
+   `Mozilla`, clamps the limits and randomises read-back.
+3. **Detection, once, at boot, before any page script (G9).** `ENGINE_GECKO` is structural — `Navigator.prototype`
+   carries `oscpu`/`buildID` in Gecko and in no other engine (both measured present in Firefox 156), so a UA override
+   cannot fake it. `GECKO_RFP` needs **all four**: Gecko; the UA is RFP's template (`Mozilla/5.0 (<Windows NT 10.0;
+   Win64; x64 | Macintosh; Intel Mac OS X 10.15 | X11; Linux x86_64>; rv:N.0) Gecko/20100101 Firefox/N.0`); the clock is
+   RFP's (`Atlantic/Reykjavik` — measured — or a UTC/GMT name, offset 0 in **both** January and July); the screen is
+   RFP's (`availWidth/Height` = `width/height`, `availLeft/Top` = 0, colour depth 24). Read through the captured
+   `Intl.DateTimeFormat`/`Date` and the `Screen.prototype` getters, so a page can neither steer nor observe it.
+4. **The UI says so.** In Firefox the popup's "What this site sees" no longer shows the persona's graphics card, memory
+   (Firefox has no `deviceMemory`) or OS version, and the options page says which profile fields apply in Firefox
+   (`src/browser-kind.js`, the browser-neutral wording that ships in the same release).
+
+**Limits, stated plainly.** (a) A non-RFP Firefox user in Iceland or on UTC, with nothing reserved at the screen edge
+(auto-hidden menu bar or taskbar), a 24-bit display and a stock UA is taken for RFP; the cost is the WebGL read-back
+noise only, since the WebGL identity is Firefox's on Gecko either way. (b) Only the macOS UA template and the
+`Atlantic/Reykjavik` zone were measured; the Windows/Linux templates and the UTC names come from RFP's documented
+behaviour, and if one is wrong the result is a missed detection — Gecko behaviour without the stand-down, i.e.
+read-back noise on top of RFP's random bytes — never a Chrome-format string. (c) An FPP override list that spoofs both
+the time zone and the screen without RFP is taken for RFP. (d) RFP with this site exempted reads as off, which is
+correct. (e) **Not fixed here, and the bigger problem:** under RFP the rest of the persona still applies on top of
+Firefox's uniform values — measured: `hardwareConcurrency` 10 (persona) where RFP says 8 — and so do the font
+measurements and the canvas/audio noise. Each makes an RFP user differ from other RFP users. Whether the whole shim
+should stand down under RFP is a decision for the owner; this entry does not make it. (f) The costs of pass-through:
+on Firefox the WebGL renderer bucket is the machine's (sanitised) one, not the persona's; and WebGL `getParameter`
+reads are no longer counted in the popup on Firefox (nothing is wrapped to count them; `readPixels` still is).
+(g) Windows and Linux Firefox, Firefox ESR and Firefox on Intel Macs were not measured.
+
+**Chrome and Edge are unchanged.** Every new branch is gated on `ENGINE_GECKO`, false in every Blink realm. The
+suite's 511 pre-existing tests (Chromium realms) pass unmodified; two GUARD tests pin the persona's strings, limits and
+deny-list on Chromium, including an RFP-shaped Chromium (UTC, full-screen avail, 24-bit); the mutation "`ENGINE_GECKO`
+always true" is killed by them; and the seeded smoke runs the Chrome package in Chrome for Testing.
+
+**Tests.** `src/firefox-webgl-2026-10-14.test.js` (7): Gecko realms modelled on the measurements above. Four fail
+against the 0.9.1 shim (`NULLECHO_SHIM_SRC`) — the Firefox-format test, WebGPU identity, the RFP stand-down, and the
+signal-specificity test (through its identity assertion); three pass there and are marked GUARD. Mutation attack, nine
+mutants, all killed: planting the Chrome identity on Gecko; planting only the Chromium VERSION; removing the RFP
+stand-down; RFP from the clock alone; without the UA check; without the colour-depth check; Gecko detection off; Gecko
+detection always on; WebGPU identity on Gecko. `src/browser-kind-2026-10-14.test.js` (9) and
+`src/privacy-page-2026-10-14.test.js` (4) cover the wording and the privacy page. 531/531.
