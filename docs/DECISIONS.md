@@ -3518,3 +3518,36 @@ The paper's own recommendations do not rescue us:
 
 Any kernel change must be re-measured with all of these: the harness's translate and colour-shift
 variants, the A1 controls, and the D56 tests.
+
+## D57 — `apps.roktecommerce.com/webevents/` is blocked although no list names it: it is the Rokt SDK's own fallback for a listed path. 2026-10-15.
+
+**The bar it fails.** `ext/rules/README.md` admits a domain only if DuckDuckGo's Tracker Radar default-blocks it, or
+EasyPrivacy or AdGuard lists it. `roktecommerce.com` appears in none of the three (EasyPrivacy 202610150153, AdGuard
+Tracking Protection 2.1.13.53, DDG `extension-tds.json` v6, checked by script 2026-10-14/15). EasyPrivacy lists only
+`||apps.rokt-api.com/webevents/` — the event upload of "mParticle by Rokt", the CDP Rokt bought in January 2025.
+
+**First-hand evidence (curl and in-browser, 2026-10-14/15).**
+- **Sephora and Gap load the SDK from the primary host** (`apps.rokt-api.com/js/v2/<key>/app.js`) and post to
+  `apps.rokt-api.com/webevents/v3/JS/<key>/events` (Chrome for Testing 149, extension off: four posts on sephora.com's
+  homepage). Counter-program workstream A found that Sephora's loader assembles `apps.roktecommerce.com` from string
+  pieces and loads the same SDK from it when the first host fails.
+- **The SDK names the fallback itself:** the shipped bundle contains the constant `"apps.roktecommerce.com"`, and its
+  service URLs are built as `<domain> + CNAMEUrlPaths`, with `v3SecureServiceUrl: "/webevents/v3/JS/"` — so an SDK
+  running from the fallback posts to `apps.roktecommerce.com/webevents/…`.
+- **Same software on both hosts:** `GET /js/v2/us2-6a2d0e4dc6b9e749870271a2f16058a1/app.js?env=0&` returned 200,
+  `content-type: application/javascript`, `server: Kestrel`, 303,469 bytes from each host, and the two bodies hash to the
+  same sha256 `b13d16a4fea8604f91c27cbc5dc47a1c3553b363aa773157dc26739b06cf93c6`. A CORS preflight
+  (`OPTIONS /webevents/v3/JS/<key>/events`, `Origin: https://www.sephora.com`) got the same answer from both: `204`,
+  `access-control-allow-methods: POST`, `access-control-allow-origin: *`, `server: Kestrel`. DNS: both are Akamai
+  (`apps.rokt-api.com.akamaized.net` → `a1446.dscd.akamai.net`; `apps.roktecommerce.com.akamaized.net` →
+  `a910.dscd.akamai.net`).
+
+**Decision.** Rule 6201 blocks `||apps.roktecommerce.com/webevents/` — the exact path EasyPrivacy lists for the primary
+host, on the host the vendor's own code falls back to. Nothing else on `roktecommerce.com` is blocked, and neither host's
+SDK is: EasyPrivacy blocks only the upload, and its `@@` exceptions for mParticle's SDK (gymshark.com, cnbc.com, nbc.com
+and others) record that blocking the SDK breaks sites. The admission is narrow on purpose: it closes the route around a
+listed rule and adds no vendor. A future exception needs its own entry and its own evidence.
+
+**Checks.** `personalization-2026-10-15.test.js`: both hosts' `/webevents/v3/JS/<key>/events` are blocked; both hosts'
+`/js/v2/<key>/app.js` and `/identity/v1/identify` are not. `harness/personalization-attack.mjs`: removing 6201 drops the
+per-tab count by exactly one.
