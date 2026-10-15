@@ -27,8 +27,8 @@ Control) is verified on Mac, iPhone and iPad; see `VERIFY-*.md`.
 
 1. **Nothing is gated behind a tip.** Every feature works identically before and after. The only thing that
    changes after a tip is a thank-you.
-2. **StoreKit 2, consumable in-app purchases**, about three tiers (working example $1.99 / $4.99 / $9.99; the
-   final tiers and product ids are the owner's call). Apple's App Review Guideline 3.1.1 allows tipping through
+2. **StoreKit 2, consumable in-app purchases**, three tiers at $1.00 / $2.00 / $3.00 (owner, 2026-10-14: round amounts,
+   "more organic and different from others"; replaces the $1.99 / $4.99 / $9.99 working values). Apple's App Review Guideline 3.1.1 allows tipping through
    IAP; a tip jar that used any other payment method would not pass.
 3. **No accounts, no analytics, no receipt server.** Transactions are verified on-device with StoreKit 2's
    `VerificationResult`, finished, and forgotten. No identifier leaves the device for Nullecho's benefit; the

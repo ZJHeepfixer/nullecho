@@ -118,7 +118,7 @@ final class TipJarUITests: XCTestCase {
         scroll(app, until: tier)
 
         // Every tier shows the App Store's name and price; nothing is typed in the app.
-        let tiers = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'tip, $1.99' OR label ENDSWITH 'tip, $4.99' OR label ENDSWITH 'tip, $9.99'"))
+        let tiers = app.buttons.matching(NSPredicate(format: "label ENDSWITH 'tip, $1.00' OR label ENDSWITH 'tip, $2.00' OR label ENDSWITH 'tip, $3.00'"))
         XCTAssertEqual(tiers.count, 3, "expected three tier buttons labelled '<name>, <price>', found \(tiers.count)")
         XCTAssertFalse(app.staticTexts[thankYou].exists, "a thank-you before any tip")
         shot("1-section")
