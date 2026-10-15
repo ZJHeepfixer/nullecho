@@ -602,6 +602,19 @@ async function detectBotWall(page, httpStatus) {
   return null;
 }
 
+/**
+ * A challenge served with HTTP 200 (walmart.com "Robot or human?" — PerimeterX's press-and-hold, 2026-10-15): the
+ * page is a wall whatever the status says. Recorded as BLOCKED, never solved or evaded. Shopping rows only — the
+ * standard rows keep the status-gated check the earlier runs were made with.
+ */
+async function detectChallengePage(page) {
+  await sleep(1500);
+  const title = await page.title().catch(() => '');
+  const text = await page.evaluate(() => (document.body ? document.body.innerText.slice(0, 600) : '')).catch(() => '');
+  const m = /robot or human|press (&|and) hold|verify you are (a )?human|are you a robot|pardon our interruption|access denied|unusual (traffic|activity)|checking your browser|request unsuccessful/i.exec(`${title}\n${text}`);
+  return m ? { evidence: `challenge page (HTTP 200): "${m[0]}" — ${title} — ${text.replace(/\s+/g, ' ').slice(0, 200)}` } : null;
+}
+
 async function probes(page) {
   return await page.evaluate(async () => {
     // D51: what the page is told about the BROWSER must be the same with the
@@ -1283,11 +1296,14 @@ async function addToCart(page, site) {
     if (req.method() === 'GET' || req.method() === 'OPTIONS') return;
     let u; try { u = new URL(res.url()); } catch { return; }
     if (registrableOf(u.hostname) !== base) return;
-    // The cart by its PATH (`/cart/add.js`, `/api/cart`, `/basket`, `addToCart`), or a POST body that names it
-    // (a GraphQL `addToCart` mutation). Never the query string: analytics collectors put "add_to_cart" there.
+    // The cart by its PATH (`/cart/add.js`, `/api/cart`, `/baskets`, `cart_items`), or a GraphQL mutation that names
+    // it. Never an analytics or logging beacon that merely REPORTS an add (measured 2026-10-15: Adobe `/b/ss/`,
+    // nike `/g/collect`, zappos `/kratos/api/log/ingest` all fire on the add OFF, and are blocked or never loaded ON,
+    // so counting them made the cart look broken ON when only the beacon was gone).
+    if (/\/b\/ss\/|\/collect\b|\/log\b|ingest|\/events?\b|\/track|analytics|metrics|beacon|pixel|monorail|sst-ev/i.test(u.pathname)) return;
     const body = (() => { try { return String(req.postData() || '').slice(0, 4000); } catch { return ''; } })();
-    const byPath = /\/cart|\/basket|\/bag(\/|\b)|add-?to-?(cart|bag|basket)|addtocart|\/atc\b/i.test(u.pathname);
-    const byBody = /add_?to_?(cart|bag|basket)|addItemsToCart|cartLinesAdd|"?operationName"?\s*:\s*"[^"]*cart/i.test(body);
+    const byPath = /\/cart|\/basket|\/bag(\/|$)|add-?to-?(cart|bag|basket)|addtocart|cart_items|\/atc\b/i.test(u.pathname);
+    const byBody = /mutation[^{]{0,80}\{[^}]{0,200}(cart|basket|bag)|"operationName"\s*:\s*"[^"]*(cart|basket|bag)[^"]*"/i.test(body);
     if (!byPath && !byBody) return;
     net.push({ status: res.status(), method: req.method(), url: (u.origin + u.pathname).slice(0, 140), by: byPath ? 'path' : 'body' });
   };
@@ -1365,7 +1381,7 @@ async function searchCheck(page, site, ctx) {
   try {
     const resp = await page.goto(s.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     out.httpStatus = resp ? resp.status() : null;
-    const wall = await detectBotWall(page, out.httpStatus);
+    const wall = await detectBotWall(page, out.httpStatus) || await detectChallengePage(page);
     if (wall) { out.blocked = true; out.blockedEvidence = wall.evidence; return out; }
     const re = s.link instanceof RegExp ? s.link.source : null;
     const deadline = Date.now() + 15000;
@@ -1504,7 +1520,7 @@ async function runSite(browser, site, ctxIn, ua) {
       return record;   // `finally` closes the page and collects console lines, blocked requests and learned hits
     }
     record.httpStatus = resp ? resp.status() : null;
-    const wall = await detectBotWall(page, record.httpStatus);
+    const wall = await detectBotWall(page, record.httpStatus) || (site.shopping ? await detectChallengePage(page) : null);
     if (wall) {
       record.probes = await probes(page).catch(() => null);
       record.blocked = true;
