@@ -278,6 +278,7 @@
         <tbody id="pool-body"></tbody>
       </table>
     </div>
+    <p class="note" id="pool-note" hidden></p>
   </section>
 
   <!-- ── DROP ─────────────────────────────────────────────────────────── -->
@@ -431,8 +432,8 @@
         <p>About ten lines of JavaScript will do it — filling a canvas with one colour and noticing the pixels are not quite uniform is enough. Nullecho breaks the link <em>between</em> sites; it does not hide that you are using it. Anyone claiming an extension can do that is guessing or selling something.</p>
       </div>
       <div class="limit">
-        <h3>Firefox and Brave do this better</h3>
-        <p>Firefox's <code>resistFingerprinting</code> and Brave's built-in protections work below the JavaScript layer, where an extension simply cannot reach — so they cover things Nullecho never will. If you can use either, they are the stronger choice. Nullecho exists for Chrome, where neither is available, and makes a different trade: a different device profile per site instead of one identical profile for everyone.</p>
+        <h3 id="limit-stronger-title">Browsers with built-in protection do this better</h3>
+        <p id="limit-stronger-body">Fingerprinting protection built into a browser works below the JavaScript layer, where an extension simply cannot reach — so it covers things Nullecho never will. Where your browser offers it, it is the stronger choice. Nullecho makes a different trade: a different device profile per site instead of one identical profile for everyone.</p>
       </div>
       <div class="limit">
         <h3>Your screen size and display</h3>
@@ -440,7 +441,7 @@
       </div>
       <div class="limit">
         <h3>Your browser and its version</h3>
-        <p>Sites see the browser you actually run — its name, version and brand list — exactly as it reports them. Your browser's network connection and its background workers state the real version anyway, so claiming a different one only added a contradiction a site could check, and went out of date with every browser update. What differs per site is the device underneath: processor, memory, graphics, fonts and operating-system version.</p>
+        <p>Sites see the browser you actually run — its name, version and brand list — exactly as it reports them. Your browser's network connection and its background workers state the real version anyway, so claiming a different one only added a contradiction a site could check, and went out of date with every browser update. <span id="limit-differs">What differs per site is the device underneath: processor, memory, graphics, fonts and operating-system version.</span></p>
       </div>
       <div class="limit">
         <h3>Your IP address</h3>

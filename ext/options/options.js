@@ -6,6 +6,7 @@
  */
 
 import { MSG, CATEGORY_LABELS } from '../src/protocol.js';
+import { browserKind, copyFor } from '../src/browser-kind.js';
 import {
   buildLinkageGraph,
   headline as linkageHeadline,
@@ -73,9 +74,10 @@ async function patchSettings(patch) {
 function render(s) {
   state = s;
 
-  const version = LIVE ? api.runtime.getManifest().version : '0.9.1';
+  const version = LIVE ? api.runtime.getManifest().version : '0.9.2';
   $('ver').textContent = `v${version}`;
   $('ver-foot').textContent = `v${version}`;
+  renderBrowserCopy(copyFor(browserKind()));
 
   $('t-blocked').textContent = nf.format(s.totals?.blocked ?? 0);
   $('t-fp').textContent = nf.format(s.totals?.fp ?? 0);
@@ -94,6 +96,19 @@ function render(s) {
   $('auto-rotate').value = String(s.settings.autoRotateDays ?? 0);
 
   if (LIVE) $('drop-link').href = api.runtime.getURL('options/drop.html');
+}
+
+/**
+ * The sentences that name a browser (D53). options.html ships the neutral text —
+ * true everywhere, no browser named (Edge Add-ons policy 1.1.2) — and Chrome and
+ * Firefox get their own here. `browser-kind.test.js` holds the HTML to the table.
+ */
+function renderBrowserCopy(c) {
+  $('limit-stronger-title').textContent = c.limitTitle;
+  $('limit-stronger-body').textContent = c.limitBody;
+  $('limit-differs').textContent = c.differs;
+  $('pool-note').textContent = c.poolNote;
+  $('pool-note').hidden = !c.poolNote;
 }
 
 function renderIdentity(s) {

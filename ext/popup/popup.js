@@ -21,6 +21,7 @@ import {
   FINDING,
 } from '../src/linkage.js';
 import '../src/pricing.js';
+import { browserKind, copyFor } from '../src/browser-kind.js';
 
 const api = globalThis.chrome ?? globalThis.browser;
 /** True when running as a real extension popup; false when opened as a plain page. */
@@ -28,6 +29,10 @@ const LIVE = !!api?.runtime?.id;
 
 const $ = (id) => document.getElementById(id);
 const nf = new Intl.NumberFormat();
+
+/** Chrome, Edge, Firefox or other — for the few sentences that must name the browser (D53). */
+const KIND = browserKind();
+const COPY = copyFor(KIND);
 
 let state = null;
 let pendingReload = false;
@@ -107,9 +112,30 @@ function realBrowser(nav = globalThis.navigator) {
   return 'your browser';
 }
 
-function prettySystem(p, nav) {
+/**
+ * In Firefox the persona's OS version is never shown to a site: Firefox has no
+ * `userAgentData`, its UA carries a frozen OS token, and `navigator.platform` stays
+ * real there (D51 `personaUaFits`). So the row names no persona OS in Firefox.
+ */
+function prettySystem(p, nav, kind) {
+  if (kind === 'firefox') return `${realBrowser(nav)} on your real operating system (not changed)`;
   const os = OS_LABEL[p.os] ?? p.os;
   return `${os} · ${realBrowser(nav)} (your real browser, not changed)`;
+}
+
+/**
+ * Graphics and CPU/RAM rows. In Firefox the GPU is the engine's own (D53: the persona's
+ * GPU block is Chrome's format and Firefox prints none of it), and Firefox has no
+ * `navigator.deviceMemory`, so neither row may claim a persona value there.
+ */
+function prettyGpuRow(p, kind) {
+  if (kind === 'firefox') return 'your real graphics card, as Firefox reports it — not changed';
+  return prettyGpu(p.gpu?.renderer);
+}
+
+function prettyCpuRow(p, kind) {
+  if (kind === 'firefox') return `${p.cores} cores · memory is not exposed by Firefox`;
+  return `${p.cores} cores · ${p.memory} GB`;
 }
 
 /** ANGLE renderer strings are long and mostly boilerplate. Keep the part a human reads. */
@@ -145,6 +171,7 @@ const apiLabel = fpSurfaceLabel;
 function render(s) {
   state = s;
   $('wrap').hidden = false;
+  $('foot-stronger').textContent = COPY.stronger;
 
   if (!s?.ok || !s.site) {
     $('site').textContent = s?.tabUrl ? new URL(s.tabUrl).protocol.replace(':', '') + ':' : '—';
@@ -423,9 +450,9 @@ function renderPersona(s, enabled) {
     return;
   }
   $('persona-id').textContent = p.id;
-  $('p-system').textContent = prettySystem(p);
-  $('p-gpu').textContent = prettyGpu(p.gpu?.renderer);
-  $('p-cpu').textContent = `${p.cores} cores · ${p.memory} GB`;
+  $('p-system').textContent = prettySystem(p, undefined, KIND);
+  $('p-gpu').textContent = prettyGpuRow(p, KIND);
+  $('p-cpu').textContent = prettyCpuRow(p, KIND);
   $('p-screen').textContent = realDisplay();
 
   $('persona').style.opacity = enabled ? '' : '.5';
@@ -511,8 +538,7 @@ function renderTrackers(s) {
     for (const [cat, n] of Object.entries(live.byCategory)) {
       ul.append(row(CATEGORY_LABELS[cat] ?? cat, n));
     }
-    note.textContent =
-      'Chrome only reports the individual blocked URLs to unpacked (developer) builds, so this is a per-category count for the current tab, not a domain list.';
+    note.textContent = COPY.blockedUrls;
     panel.hidden = false;
     return;
   }
