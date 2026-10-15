@@ -58,6 +58,8 @@ Already cleared on 8/21: reCAPTCHA v2, Google SSO, shim breakage battery.
 
 1. **Blocking proof** — open `harness/blocking-proof.html`, click Run.
    Need: **BLOCKING PROVEN** (6/6 trackers cancelled, 3/3 controls loaded). *~1 min.*
+   Automated pre-check, same page: `node harness/blocking-proof-check.mjs` (Chrome for Testing,
+   store package, every row checked against Chrome's network log; exit 0 required).
 2. **Popup counter agrees** — same page still open, open the popup. Need a **non-zero** blocked
    count. Disagreement either way is a real bug and this is the only place it shows. *~1 min.*
 3. **GPC mechanism** (D17, replaces the old fifty-site sweep) — on `open.spotify.com` console,
