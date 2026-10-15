@@ -1865,7 +1865,9 @@ async function main() {
   const ruleControl = pkg ? applyRuleControls(pkg.unpackDir) : null;
   const stdSites = selectedSites();
   const shopSites = OFF_ONLY ? [] : selectedShoppingSites();
-  const fixture = THIRD_PARTY && stdSites.length ? await startFixtureServer() : null;
+  // The fixture page is also where the seeded positive control proves its rules are enforced — so a seeded
+  // shopping-only run needs it too.
+  const fixture = (THIRD_PARTY && stdSites.length) || (SEEDED && !OFF_ONLY) ? await startFixtureServer() : null;
   if (fixture) FIXTURE = { origin: fixture.origin };
 
   // probe browser version + build a stable desktop UA before any real pass
@@ -1953,8 +1955,6 @@ async function main() {
       }
     }
   }
-  if (fixture) fixture.server.close();
-
   // ── the shopping lab (0.9.3): its own OFF + ON browsers, the ON one seeded in a seeded run ──
   let shopping = null;
   if (shopSites.length) {
@@ -1968,6 +1968,7 @@ async function main() {
       process.exit(3);
     }
   }
+  if (fixture) fixture.server.close();
 
   // verify the metadata-leak trap never fired
   const metadataLeaked = fs.existsSync(path.join(EXT, '_metadata'));
