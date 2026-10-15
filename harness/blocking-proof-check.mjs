@@ -18,7 +18,9 @@
  *        OFF  0/6 trackers blocked, 3/3 controls loaded, no net::ERR_BLOCKED_BY_CLIENT on any probe;
  *        ON   the extension's service worker running, 6/6 trackers blocked, every one with
  *             net::ERR_BLOCKED_BY_CLIENT, 3/3 controls loaded.
- * Exit: 0 pass, 1 any disagreement or unexpected result, 2 setup (no puppeteer, package build failed).
+ * Exit: 0 pass; 1 the check ran and found a disagreement or an unexpected result; 2 the check could not
+ * run (no puppeteer, package build failed, --page file missing, a crash or a timeout). Keep 1 and 2 apart:
+ * the negative control below needs exit 1 to mean the check failed, not that the run fell over.
  *
  * WHY. On 2026-10-07 the cdn.jsdelivr.net control read "loaded" in every run while Chrome logged the
  * request as net::ERR_ABORTED (Opaque Response Blocking on a no-cors JSON fetch). The page could not
@@ -58,6 +60,7 @@ const flag = (name) => argv.includes(name);
 const OFF_ONLY = flag('--off');
 const EXT_DIR = opt('--ext', null);
 const PAGE_FILE = path.resolve(opt('--page', path.join(HERE, 'blocking-proof.html')));
+if (!fs.existsSync(PAGE_FILE)) { console.error(`--page: no such file ${PAGE_FILE}`); process.exit(2); }
 const JSON_OUT = opt('--json', null);
 const HEADFUL = flag('--headful');
 
@@ -208,4 +211,4 @@ async function main() {
   process.exit(failed.length ? 1 : 0);
 }
 
-main().catch((e) => { console.error(e && e.stack || e); process.exit(1); });
+main().catch((e) => { console.error('the check could not run:', e && e.stack || e); process.exit(2); });
