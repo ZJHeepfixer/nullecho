@@ -192,6 +192,87 @@ Full reasoning: [`../ext/PERMISSIONS.md`](../ext/PERMISSIONS.md). Summary:
   stats or allowlist — those are separate keys — but it breaks the link between
   your past and future persona at every site.
 
+## The Safari app (iPhone, iPad and Mac)
+
+Nullecho for Safari is the same tracker-blocking and Global Privacy Control,
+packaged the way Apple requires: a Safari web extension inside a small app from
+the App Store. It is a *smaller* extension than the Chrome, Edge and Firefox one
+— no device profile, no tracker learner, no price-disclosure check — and it
+collects nothing. Every sentence here was checked against the source in
+`safari/`, cited by file and expression like the rest of this policy.
+
+### What it stores: nothing
+
+The Safari extension (`safari/extension/manifest.json`, assembled by
+`safari/tools/build-extension.mjs`) has no background script and asks for no
+`storage` permission — only `declarativeNetRequest`,
+`declarativeNetRequestWithHostAccess` and access to websites. Its two content
+scripts set the `navigator.globalPrivacyControl` property on the pages you
+allow; the Safari-only one (`safari/extension/src/gpc-loader.js`) makes no request and
+touches no storage. The shared one is the
+same `ext/src/gpc.js` described above: its half that reads a bundled rule file
+and `chrome.storage.local` runs only inside an extension's background worker
+(`IN_EXTENSION_WORKER` → otherwise `runInPage()` and return), and the Safari
+build has no such worker. The popup (`safari/extension/popup/popup.html`) is a
+static page with no script at all.
+
+What Safari itself keeps — that you enabled the extension, and which websites
+you allowed it on — lives in Safari's own settings on your device, like it does
+for any extension. Nullecho never reads it.
+
+### The app around the extension
+
+The app (`safari/xcode/App/`) exists because Safari extensions ship inside one.
+It shows what the extension does, how to turn it on, and — on a Mac — whether
+it is on. It opens **no network connections of its own**: on macOS it is
+sandboxed *without* the outgoing-network entitlement
+(`ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO` in `safari/xcode/Nullecho.xcodeproj`),
+and on every platform it contains no `URLSession`, no web view and no third-party
+code (the project has no package dependencies) — an automated check
+(`safari/tools/check-container.mjs`) fails the build if a `URLSession`, a web view,
+a remote address, or any `UserDefaults`, file or keychain write appears in the
+app's source. The two links it offers (this policy and the source code) are
+handed to your browser. The version number and the rule counts it displays are
+read from the extension bundled inside it
+(`safari/xcode/App/EmbeddedExtension.swift`), not typed in.
+
+### The tip jar
+
+The app offers four optional tips through Apple's in-app purchase system
+(StoreKit, `safari/xcode/App/TipJar.swift`). A tip changes nothing: no feature
+is locked behind one, and the only thing that happens afterwards is a one-line
+thank-you that disappears when the app quits. **Apple handles the payment**
+under Apple's own terms and privacy policy; the app reads the completed
+transaction on your device to show the thank-you and mark it finished, stores
+no record of it (no identifier, no `appAccountToken`, nothing on disk), and
+sends nothing to us. We receive no personal information from a tip.
+
+### Data collected: none
+
+That is the App Store privacy label the app carries — "Data Not Collected" —
+and it is literally true: there is no server, account, sign-in, telemetry,
+analytics or crash reporting in the Safari app or its extension. The one thing
+it does on the network is what Safari does for it: apply the blocking rules and
+the GPC header to the requests your pages make, inside your browser.
+
+### Two Safari limits, stated plainly
+
+- Tracker blocking works on every site as soon as the extension is on, before
+  you grant it any website access. Global Privacy Control needs that access, so
+  it applies only on the sites you allow — and Safari attaches the `Sec-GPC`
+  header to image and script requests only, never to the page itself
+  (`safari/CAPABILITY-AUDIT.md`). A site's own scripts still see the signal.
+- The Safari version does not change what a site can read about your device.
+  The per-site device profile the Chrome, Edge and Firefox extension offers is
+  not part of it.
+
+### How to delete everything
+
+- **Turn it off:** on iPhone and iPad, Settings → Apps → Safari → Extensions →
+  Nullecho; on a Mac, Safari → Settings → Extensions.
+- **Remove it:** delete the Nullecho app. Safari removes the extension with it,
+  and there was never anything else to delete.
+
 ## The website
 
 This policy covers two different things and they have two different answers.

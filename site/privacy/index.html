@@ -292,6 +292,82 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
 </div></section>
 
 <section><div class="wrap">
+  <h2>The Safari app (iPhone, iPad and Mac)</h2>
+  <p class="body">
+    Nullecho for Safari is the same tracker-blocking and Global Privacy Control, packaged the way Apple
+    requires: a Safari web extension inside a small app from the App Store. It is a <em>smaller</em>
+    extension than the Chrome, Edge and Firefox one — no device profile, no tracker learner, no
+    price-disclosure check — and it collects nothing. Every sentence here was checked against the
+    source in <code>safari/</code>, cited by file and expression like the rest of this page.
+  </p>
+  <h3>What it stores: nothing</h3>
+  <p>
+    The Safari extension (<code>safari/extension/manifest.json</code>, assembled by
+    <code>safari/tools/build-extension.mjs</code>) has no background script and asks for no
+    <code>storage</code> permission — only <code>declarativeNetRequest</code>,
+    <code>declarativeNetRequestWithHostAccess</code> and access to websites. Its two content scripts set the
+    <code>navigator.globalPrivacyControl</code> property on the pages you allow; the Safari-only one
+    (<code>safari/extension/src/gpc-loader.js</code>) makes no request and touches no storage. The shared one is the same
+    <code>ext/src/gpc.js</code> file described above: its half that reads a bundled rule file and
+    <code>chrome.storage.local</code> runs only inside an extension's background worker
+    (<code>IN_EXTENSION_WORKER</code> → otherwise <code>runInPage()</code> and return), and the Safari
+    build has no such worker. The popup (<code>safari/extension/popup/popup.html</code>) is a static page
+    with no script at all.
+  </p>
+  <p>
+    What Safari itself keeps — that you enabled the extension, and which websites you allowed it on —
+    lives in Safari's own settings on your device, like it does for any extension. Nullecho never reads it.
+  </p>
+  <h3>The app around the extension</h3>
+  <p>
+    The app (<code>safari/xcode/App/</code>) exists because Safari extensions ship inside one. It shows what
+    the extension does, how to turn it on, and — on a Mac — whether it is on. It opens <strong>no network
+    connections of its own</strong>: on macOS it is sandboxed <em>without</em> the outgoing-network entitlement
+    (<code>ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO</code> in <code>safari/xcode/Nullecho.xcodeproj</code>),
+    and on every platform it contains no <code>URLSession</code>, no web view and no third-party code (the
+    project has no package dependencies) — an automated check (<code>safari/tools/check-container.mjs</code>)
+    fails the build if a <code>URLSession</code>, a web view, a remote address, or any <code>UserDefaults</code>,
+    file or keychain write appears in the app's source. The two links it
+    offers (this policy and the source code) are handed to your browser. The version number and the rule
+    counts it displays are read from the extension bundled inside it
+    (<code>safari/xcode/App/EmbeddedExtension.swift</code>), not typed in.
+  </p>
+  <h3>The tip jar</h3>
+  <p>
+    The app offers four optional tips through Apple's in-app purchase system (StoreKit,
+    <code>safari/xcode/App/TipJar.swift</code>). A tip changes nothing: no feature is locked behind one, and
+    the only thing that happens afterwards is a one-line thank-you that disappears when the app quits.
+    <strong>Apple handles the payment</strong> under Apple's own terms and privacy policy; the app reads the
+    completed transaction on your device to show the thank-you and mark it finished, stores no record of it
+    (no identifier, no <code>appAccountToken</code>, nothing on disk), and sends nothing to us. We receive
+    no personal information from a tip.
+  </p>
+  <h3>Data collected: none</h3>
+  <p>
+    That is the App Store privacy label the app carries — "Data Not Collected" — and it is literally true:
+    there is no server, account, sign-in, telemetry, analytics or crash reporting in the Safari app or its
+    extension. The one thing it does on the network is what Safari does for it: apply the blocking rules
+    and the GPC header to the requests your pages make, inside your browser.
+  </p>
+  <h3>Two Safari limits, stated plainly</h3>
+  <ul>
+    <li>Tracker blocking works on every site as soon as the extension is on, before you grant it any
+      website access. Global Privacy Control needs that access, so it applies only on the sites you allow —
+      and Safari attaches the <code>Sec-GPC</code> header to image and script requests only, never to the
+      page itself (<code>safari/CAPABILITY-AUDIT.md</code>). A site's own scripts still see the signal.</li>
+    <li>The Safari version does not change what a site can read about your device. The per-site device
+      profile the Chrome, Edge and Firefox extension offers is not part of it.</li>
+  </ul>
+  <h3>How to delete everything</h3>
+  <ul>
+    <li><strong>Turn it off:</strong> on iPhone and iPad, Settings → Apps → Safari → Extensions → Nullecho;
+      on a Mac, Safari → Settings → Extensions.</li>
+    <li><strong>Remove it:</strong> delete the Nullecho app. Safari removes the extension with it, and there
+      was never anything else to delete.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
   <h2>The website</h2>
   <p class="body">
     <strong>The extension collects nothing</strong> — there is no endpoint for it to send anything to,
