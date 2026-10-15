@@ -3272,7 +3272,8 @@ reads are no longer counted in the popup on Firefox (nothing is wrapped to count
 (g) Windows and Linux Firefox, Firefox ESR and Firefox on Intel Macs were not measured.
 
 **Chrome and Edge are unchanged.** Every new branch is gated on `ENGINE_GECKO`, false in every Blink realm. The
-suite's 511 pre-existing tests (Chromium realms) pass unmodified; two GUARD tests pin the persona's strings, limits and
+suite's 511 pre-existing tests pass, and none of the Chromium-realm ones was edited (the rig only gained an optional
+`engine` hook; `manifest.test.js`'s storage.sync pattern was widened for the privacy page); two GUARD tests pin the persona's strings, limits and
 deny-list on Chromium, including an RFP-shaped Chromium (UTC, full-screen avail, 24-bit); the mutation "`ENGINE_GECKO`
 always true" is killed by them; and the seeded smoke runs the Chrome package in Chrome for Testing.
 

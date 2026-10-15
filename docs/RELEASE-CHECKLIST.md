@@ -258,3 +258,34 @@ version 0.9.1). The owner chose to publish on approval rather than after the pla
 the same code daily since 2026-09-28. Still owed: the third-party Google sign-in re-test (Tier A.1) and the Linux GPU-string
 verification (§1) — both gate 1.0, not 0.9.x. Website and README switched from "pre-release" to "early release" with the store link.
 Tag `v0.9.1-published`.
+
+## 2026-10-14 — 0.9.2 built (branch `release-0.9.2`; NOT submitted to any store)
+
+The release that also goes to Firefox AMO and Microsoft Edge Add-ons. Four changes:
+
+1. **Firefox WebGL — D53.** On Gecko the WebGL strings, limits and extension list, and the WebGPU adapter identity, are
+   Firefox's own (0.9.1 answered a Firefox in Chrome's words: ANGLE renderer, `Google Inc. (Apple)`, Chromium VERSION,
+   16384 where Firefox allows 8192). Under `privacy.resistFingerprinting` no WebGL wrapper is installed. Measured in real
+   Firefox 156, normal and RFP, OFF / 0.9.1 / 0.9.2 (`harness/firefox-webgl-probe.mjs`). Chrome and Edge behaviour unchanged.
+2. **Browser-neutral wording** (`ext/src/browser-kind.js`). The shipped HTML names no browser (Edge policy 1.1.2); Chrome and
+   Firefox get their own sentences at run time; in Firefox the popup no longer shows a persona GPU, memory or OS version.
+3. **Privacy page** (`site/privacy/index.html`, `docs/PRIVACY-POLICY.md`): `pricingObservations` described, Edge and
+   Firefox covered, five sentences the code contradicted corrected. **Not deployed** — the site update needs its own publish.
+4. **Version 0.9.2** in both manifests (and the options page's offline fallback).
+
+Gates, on commit `9278467` (ext/ and harness/ clean): `npm test` **531/531**, exit 0 (511 before + 7 Firefox-WebGL + 9
+wording + 4 privacy); `npm run validate` exit 0 (179 rules); seeded smoke (§3d) **exit 0**, 27 PASS + 1 BLOCKED (nytimes.com
+HTTP 403 in both passes, not ours) — `docs/breakage-runs/2026-10-14-site-smoke-seeded-9278467.md`; `web-ext lint` on the
+unzipped Firefox package **0 errors / 0 warnings / 0 notices**. Packages (`node ext/tools/package.mjs [--firefox]`, 41 files
+each — 0.9.1 plus `src/browser-kind.js`): `dist/nullecho-0.9.2-chrome.zip` sha256 `354eafc9…dac3a` (the zip the seeded smoke
+tested), `dist/nullecho-0.9.2-firefox.zip` sha256 `3cb80702…9662` (byte-identical contents to the build measured in Firefox).
+The zip hash is not reproducible across builds (file times); re-record it for whatever zip is uploaded. Chrome zip vs the
+published 0.9.1 zip: only `manifest.json` (version), `popup/popup.{html,js}`, `options/options.{html,js}`, `src/shim.js`
+and the new `src/browser-kind.js` differ.
+
+Still owed before upload: the real-Chrome battery (§3) on the owner's Chrome, a §3c site smoke, and — for AMO — the
+store-firefox-edge listing's "Hold" section is answered by D53 (its option A), so its description's Chrome-format-GPU
+disclaimer can be dropped. Open, not fixed here (owner's call): under RFP the rest of the persona still applies on top of
+Firefox's uniform values (D53 limit e); the popup's "requests blocked" headline is fed only by `onRuleMatchedDebug`, which
+packed Chrome/Edge builds never receive and Firefox lacks, so it very likely reads 0 in every store install; no UI clears
+`pricingObservations`.
