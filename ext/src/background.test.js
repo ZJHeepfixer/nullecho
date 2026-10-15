@@ -50,6 +50,7 @@ const store = {
 };
 const onMessage = [];
 const onRuleMatched = [];
+const blockErrorListeners = [];
 const enabledRulesetCalls = [];
 let matchedRulesInfo = [];
 
@@ -79,6 +80,8 @@ globalThis.chrome = {
     onBeforeRequest: noopEvent(),
     onBeforeSendHeaders: noopEvent(),
     onHeadersReceived: noopEvent(),
+    onSendHeaders: noopEvent(),
+    onErrorOccurred: { addListener: (fn) => blockErrorListeners.push(fn) },
   },
   declarativeNetRequest: {
     async getDynamicRules() { return []; },
@@ -405,4 +408,17 @@ test('D33: patch failures the loader forwards are recorded per site — sticky, 
 
   const clean = await report('other.example');
   assert.deepEqual(clean.stats.patchFailures, [], 'a site that reported nothing shows an empty list, not undefined');
+});
+
+test('D55 UNPACKED: a browser block report never double-counts what onRuleMatchedDebug already counted', async () => {
+  // This stub is an unpacked build: onRuleMatchedDebug exists and is the lifetime source.
+  await reset();
+  await matched(2000, 'analytics', { url: 'https://www.google-analytics.com/analytics.js', initiator: 'https://unpacked.example' });
+  for (const fn of blockErrorListeners) {
+    fn({ url: 'https://www.google-analytics.com/analytics.js', initiator: 'https://unpacked.example', tabId: 4, type: 'script', error: 'net::ERR_BLOCKED_BY_CLIENT' });
+  }
+  await new Promise((r) => setTimeout(r, 30));
+  const r = await report('unpacked.example');
+  assert.equal(r.stats.blocked, 1, 'one block, counted once');
+  assert.equal(r.lifetimeSource, 'debug');
 });

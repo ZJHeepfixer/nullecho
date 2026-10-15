@@ -325,7 +325,7 @@ const DOM_SETUP = `
  * reverse-channel listener (window capture, registered first, swallowing tokened
  * reports — D30). `console` records EVERY call the shim makes to it, by method.
  */
-function bootRealm({ lockToDataURL = false, syncReply = false, csprng = true, real = null } = {}) {
+function bootRealm({ lockToDataURL = false, syncReply = false, csprng = true, real = null, engine = null } = {}) {
   const consoleCalls = [];
   const rec = (method) => (...a) => consoleCalls.push({ method, text: a.map(String).join(' ') });
   const sandbox = {
@@ -344,6 +344,10 @@ function bootRealm({ lockToDataURL = false, syncReply = false, csprng = true, re
     // not configurable, so `replaceMethod` throws and `safe()` records a failure.
     vm.runInContext(`Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', { configurable: false })`, ctx);
   }
+  // More of the ENGINE, defined before the shim exists (so the shim captures it
+  // as the browser's own): extra interfaces, a Gecko navigator, a clock or a
+  // screen. Source text run in the realm — docs/DECISIONS.md D53's Firefox rigs.
+  if (engine) vm.runInContext(engine, ctx, { filename: 'engine-setup.js' });
   const win = vm.runInContext('globalThis', ctx);
 
   const statuses = [];

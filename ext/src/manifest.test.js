@@ -114,7 +114,9 @@ test('no shipped source can transmit anything off the machine', () => {
     [/\bnew\s+WebSocket\b/, 'WebSocket'],
     [/\bnew\s+EventSource\b/, 'EventSource'],
     [/\bimportScripts\s*\(/, 'importScripts'],
-    [/chrome\.storage\.sync/, 'chrome.storage.sync (would push data through a Google account)'],
+    // Any spelling — `chrome.`, `browser.` or an alias like background.js's `api.` —
+    // because the privacy policy says storage.sync is never used, not that one name is.
+    [/\bstorage\.sync\b/, 'storage.sync (would push data through a browser account)'],
     [/navigator\.sendBeacon/, 'navigator.sendBeacon'],
   ];
   for (const file of shippedSources()) {
