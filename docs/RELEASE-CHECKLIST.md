@@ -171,6 +171,25 @@ X post embeds, and microsoft.com's own silent sign-in hand-off) OFF and ON.
 - Read the report: `docs/breakage-runs/<date>-site-smoke-seeded-<commit>.md` — the rule dump, the positive
   control table, and per row which learned rules matched (blocked or cookie-stripped).
 
+## 3e. Shopping lab — the "Pricing & personalization" category must never change a price (0.9.3)
+
+The seeded gate (§3d) now also loads 34 shopping pages (rows 29–62 of `harness/site-smoke.mjs`: product pages where
+the vendor map saw a vendor `rules/personalization.json` blocks, Klaviyo / Intelligems Shopify stores, and the big
+retailers) once each, OFF and ON at the same moment, and goes red if ON reads a declared, rendered or cart price OFF
+never read, loses add-to-cart or search in most pairs, or meets a bot wall OFF did not.
+
+- **Before any change to `rules/personalization.json`:** `npm run smoke:shopping` from `ext/` (= `--seeded --shopping`,
+  3 interleaved rounds; add `--label <x> --only <keys>` to shard it). Every price difference is listed in the report,
+  noise included. A row that differs must be re-run with `--drop-rules all` (the same zip with no personalization
+  rule) before anything is blamed on the new rules: a difference that survives it is not theirs.
+- **Its controls must still fail:** `--plant-block redsky.target.com,algolia.net,algolianet.com,ac.cnstrc.com --only
+  shop-target,shop-gymshark,shop-jcpenney,shop-rothys` (blocks hosts that render a price or a search grid) must turn
+  those rows red. `node harness/personalization-attack.mjs <unzipped zip>` must report every rule counted exactly once,
+  every removal dropping the per-tab count by one, and no protected price/cart/search/form URL matched.
+- **Wording:** the category "blocks known price-personalization and personalization trackers on shopping pages". It
+  never "gets you lower prices" (charter guardrail); a blocked price-test script can show a HIGHER price, which is why
+  Intelligems' scripts are not blocked.
+
 ---
 
 ## 4. Launch — after the gate, not before
