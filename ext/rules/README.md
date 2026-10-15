@@ -30,12 +30,13 @@ off a whole category.
 | `5100–5199` | `ua-win.json` — Windows-family UA / Client-Hint headers (**generated**) | 2 | static, ships disabled |
 | `5200–5299` | `ua-mac.json` — macOS-family (**generated**) | 2 | static, ships disabled |
 | `5300–5399` | `ua-linux.json` — Linux-family (**generated**) | 2 | static, ships disabled |
+| `6000–6999` | `personalization.json` — "Pricing & personalization" (0.9.3) | 53 (52 block + 1 cookie strip) | static |
 | `900000–999999` | per-site allowlist (`protocol.js` `ALLOW_RULE_ID_BASE`) | — | dynamic |
 | `1000000–1049999` | heuristics: learned blocks | — | dynamic |
 | `1050000–1099999` | heuristics: learned cookie-blocks | — | dynamic |
 | `1100000–1100999` | GPC per-site exceptions | — | dynamic |
 
-**182 static rules, 182 unique ids.** Verified, not assumed — `validate.mjs`
+**232 static rules, 232 unique ids** (0.9.3). Verified, not assumed — `validate.mjs`
 fails on a duplicate, an out-of-range id, or an id that lands in a range
 reserved for runtime rules.
 
@@ -79,6 +80,11 @@ failed that bar and were dropped rather than guessed at — including
 `adjust.com`, `triplelift.com`, `themediagrid.com`, `spotxchange.com`,
 `snap.licdn.com`, `an.facebook.com` and `atlassolutions.com`. A blocklist of
 plausible-sounding wrong domains is worse than a shorter correct one.
+
+**One recorded exception (0.9.3, DECISIONS.md D56):** `||apps.roktecommerce.com/webevents/` (rule 6201) is on
+no list. It is the Rokt SDK's own fallback host for `apps.rokt-api.com`, whose `/webevents/` path EasyPrivacy
+lists; the two hosts serve byte-identical SDKs and answer the event upload identically (curl, 2026-10-15). It is
+admitted at exactly the listed path, not as a host. Any further exception needs its own D-entry with evidence.
 
 ---
 
@@ -159,8 +165,8 @@ learn its way into blocking them either.
 ## Never blocked, in any ruleset
 
 `src/allowlist.js` is the single source of truth, shared by `validate.mjs` (which
-fails the build) and `heuristics.js` (which will not promote them): 69 never-block
-entries and 24 cookie-block-only entries.
+fails the build) and `heuristics.js` (which will not promote them): 80 never-block
+entries and 32 cookie-block-only entries (0.9.3).
 
 **`NEVER_BLOCK`** — blocking it denies the user the site:
 
@@ -189,7 +195,8 @@ blocking is defensible but we decided the privacy gain did not justify the cost:
 | Sentry, Bugsnag | Crash reporting. No cross-site identity. Blocking it only stops the site owner fixing bugs. |
 | New Relic, Akamai mPulse | RUM/APM. Session-scoped performance data, no cross-site profile. |
 | Cloudflare Insights, Plausible, Simple Analytics, Matomo Cloud, Fathom | Cookieless, first-party-scoped analytics. There is no cross-site profile here to degrade, and blocking the privacy-respecting option punishes the sites that chose it. DDG blocks `cloudflareinsights.com` by default (22% prevalence); we disagree, and this row is the argument. |
-| HubSpot (`hubspot.com`, `hsforms.*`), Klaviyo | Render the site's own forms, CTAs and chat. `hs-analytics.net` **is** blocked — that is the tracking half, cleanly separable. |
+| HubSpot (`hubspot.com`, `hsforms.*`) | Render the site's own forms, CTAs and chat. `hs-analytics.net` **is** blocked — that is the tracking half, cleanly separable. |
+| Klaviyo's **form** hosts and paths (0.9.3: no longer the whole domain) | `static.klaviyo.com`, `static-forms.klaviyo.com`, `fast.a.klaviyo.com/custom-fonts/` and `/forms/`, and on `a.klaviyo.com` the subscription, back-in-stock, legacy-subscribe, consent-page, form and onsite-module paths. Its tracking-only hosts and paths are blocked by `personalization.json` 6950–6954; `klaviyo.com` itself is COOKIE_BLOCK_ONLY. See below. |
 | `yandex.ru`, `bing.com`, `reddit.com`, `tiktok.com`, `facebook.com` as hosts | Search engines and destination sites. Only their tracking hosts and paths are blocked (`mc.yandex.ru`, `bat.bing.com`, `alb.reddit.com`, `analytics.tiktok.com`, `facebook.com/tr`). |
 | `t.co` as a host | It is the link shortener. Blocking it breaks every link in every embedded tweet. Only `t.co/i/adsct` is blocked. |
 
@@ -201,6 +208,54 @@ both build cross-visit profiles, so they stay — but they are the most likely
 source of "the page looked weird" reports in `analytics.json`.
 
 ---
+
+## `personalization.json` — "Pricing & personalization" (0.9.3)
+
+**What it is for.** The collection and identity endpoints of the vendors that profile shoppers, target offers
+and run price tests in the browser — the client-side half of what the FTC's surveillance-pricing study calls
+"intermediary-provided web pixels". Mapped by counter-program workstream A
+(`nullecho-growth/counter-program/A-VENDOR-MAP.md`, 2026-10-14). Most of these vendors keep their visitor ID in a
+FIRST-party cookie and send it in the URL or body, so the three-strike learner (third-party cookies only) never
+sees them: before 0.9.3, "heuristic only" meant "allowed".
+
+**What it must never do — and the lab that checks it.** Block anything that renders a price, a cart, search
+results, a product grid or a sign-up form. Every rule here is a collection endpoint (a pixel, a beacon, an event
+upload, a tracker script) that renders nothing. `personalization-2026-10-15.test.js` holds 36 rendering URLs
+(Dynamic Yield's content hosts, Bloomreach's and Constructor's search APIs, Algolia, Coveo, Salesforce Einstein
+recommendations, Intelligems' price-test bundle, Rebuy's cart drawer, Nosto, the Rokt SDK, Klaviyo's forms and
+their submit endpoints, feature-flag hosts) against EVERY shipped ruleset and fails if any block rule covers one.
+Before a rule here ships, `harness/site-smoke.mjs --shopping` loads real product pages OFF and ON at the same
+moment, three rounds, and requires the same declared, rendered and cart price, a working add-to-cart and a working
+search; `harness/personalization-attack.mjs` proves each rule moves the per-tab count by exactly one.
+
+**What it blocks, per vendor, and why each one clears the bar** (lists fetched 2026-10-14/15: EasyPrivacy
+202610150153, AdGuard Tracking Protection 2.1.13.53, DDG `extension-tds.json` v6):
+
+| Ids | Vendor | Blocked | Source |
+|---|---|---|---|
+| 6000–6006 | Dynamic Yield (Mastercard) | `async-px`, `async-px-eu`, `px.dynamicyield.com`; `direct-collect.dy-api.com`; `/uia?` `/batch?` `/imp?` `/clog` `/rcomEvent?` on any DY host | EP, AG |
+| 6090 | Dynamic Yield | **cookie strip only** (Cookie / Set-Cookie removed, third-party) on all of `dynamicyield.com` and `dy-api.com` — `st.`, `cdn.`, `rcom.` render page content | director decision; AG carries ~14 per-site `@@` exceptions for `st.` — a record of breakage |
+| 6100–6102 | Bloomreach | pixel `p.`/`p-eu.brsrvr.com` (third-party), tracker `cdns.brsrvr.com`, `brcdn.com` (third-party) | AG `brsrvr.com$3p`, EP `cdns.brsrvr.com`, EP+AG `brcdn.com$3p` |
+| 6200–6206 | Rokt / mParticle by Rokt | `apps.rokt-api.com/webevents/` (the SDK's event upload); `apps.roktecommerce.com/webevents/` (**D56** — on no list; the SDK's own fallback host, admitted on first-hand evidence); `rokt.com` launcher and snippet; `rokt.com/v1/events`, `/v2/metrics`; `pps.rokt.com/v1/timings/events` | EP; D56; DDG; AG |
+| 6300–6302 | Attentive | `attn.tv/*/dtag.js`, `attn.tv/tag/`, `events.attentivemobile.com` — never `main_frame`, so SMS landing links on `<brand>.attn.tv` still open | EP, AG, DDG |
+| 6400 | Wunderkind | `bounceexchange.com`, `bouncex.net`, `wknd.ai` (the tag hosts; `wunderkind.co` is the company site and on no list) | EP, DDG, AG |
+| 6500 | Granify (Bazaarvoice) | `granify.com`, third-party | EP, AG |
+| 6510–6511 | Black Crow AI | `api.`, `init.`, `monitor-api.blackcrow.ai`; `/js/core/` (`shopify-init.` is on no list and is left alone) | AG, EP, DDG |
+| 6600–6601 | Salesforce | `evergage.com` (third-party, except on `mbusa.com` — EP's `@@`); `p.cquotient.com` (never `api.`/`e.`/`cdn.cquotient.com`, which render recommendations) | EP, AG, DDG |
+| 6700–6715 | search / recommendation behaviour beacons | Algolia `insights.algolia.io`; Constructor `/behavior?`, `/v2/behavioral_action/`; Coveo analytics hosts; Nosto `/analytics/`; `beacon.searchspring.io`; `tracker.unbxdapi.com`; Reflektion `/rfkj/` (images); GroupBy pixel; Sitecore events; `onsitestats.bluecore.com`; RichRelevance tracking (except blue-tomato.com, askul.co.jp — AG `@@`); Listrak activity; Rebuy analytics events | EP, AG |
+| 6800–6801 | Convert, AB Tasty | `convertexperiments.com` (third-party, except skratchlabs.com — AG `@@`); `ariane.`, `dcinfos-cache.abtasty.com` — the same reasoning as Optimizely and VWO in `analytics.json` | EP, AG, DDG |
+| 6900–6901 | Intelligems | `/v3/track` and `/track` **only**. Never `cdn.intelligems.io`: the store price is set to the HIGHEST test price and the script lowers it per group, so blocking the script can show you the higher price (vendor docs; DDG ignores the scripts for the same reason) | EP, AG |
+| 6910 | Triptease | `triptease.io`, third-party | EP |
+| 6950–6954 | Klaviyo | `static-tracking.klaviyo.com` (analytics, identity, web-personalization modules), `telemetrics.klaviyo.com`, `a.klaviyo.com/onsite/track-analytics`, `fast.a.klaviyo.com/…/klaviyo_analytics.js`, `a.klaviyo.com/client/events/` (browse events) | EP, AG (AG blocks all of `a.klaviyo.com` except its form paths) |
+
+**Left out, on purpose.** Search, grid and recommendation APIs (Bloomreach `dxpapi.com`/`brm-core-*`,
+Constructor `ac.cnstrc.com`, Algolia query hosts, Coveo `platform.`, Einstein `api./e./cdn.cquotient.com`);
+Intelligems' scripts; Rebuy's scripts; feature-flag SDKs; Monetate, Kameleoon, `try.abtasty.com`, Evergage's
+`evgnet.com` beacon, Nosto `connect.`, the Constructor beacon script and Adobe's `edge.adobedc.net` (all NEEDS LAB
+in the vendor map); Rokt's `/identity/` calls and its SDK itself (EasyPrivacy blocks only the event upload, and its
+own `@@` exceptions for mParticle's SDK on gymshark.com and others record that blocking the SDK breaks sites);
+The Hotels Network (Disconnect only — fails the bar; waits for a lab test); Tealium AudienceStream and Medallia
+DXA (analytics-category gaps, noted for a later pass).
 
 ## `gpc.json` — one rule, two enforcement points
 
