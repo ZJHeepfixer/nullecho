@@ -32,7 +32,11 @@ We can't see the result either.
   trackers that hash the signals we cover: verified 2026-09-17 against FingerprintJS 5.2.0 and
   ClientJS, which gave four personas four distinct visitor IDs. It does **not** break it for a
   lie-aware library — CreepJS discards values it catches being spoofed, keys on what's left, and
-  re-joins all four into one identity.
+  re-joins all four into one identity. Nor does it hold for the **canvas** against a page that draws
+  its canvas about 21 times, each copy differing only outside the area it reads, and keeps each
+  pixel's majority value (the 2025 *Breaking the Shield* attack that also broke Brave's canvas
+  noise): measured 2026-10-14, that returns the real canvas, identical under every persona
+  ([D56](docs/DECISIONS.md)). A Web Worker reads it unprotected in one try (a known gap).
 - **Global Privacy Control** — a legal do-not-sell request if *you* live in one of the states that
   recognise it (California, Colorado and several others). The duty attaches to your residency, not
   to where the site is; whether a given business is covered, and whether it complied, happens on

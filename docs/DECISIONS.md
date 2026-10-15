@@ -29,8 +29,15 @@ a billable event for a third party. None found so far.
 
 **Why.** Independent per-field randomization is worse than nothing: cross-field contradictions
 (Chrome UA + Apple GPU + 3 cores) are already flagged by fraud vendors, and per-load instability
-becomes its own fingerprint. Per-origin stability also kills the averaging attack that broke
-Brave's canvas farbling in 2025, and avoids site breakage.
+becomes its own fingerprint. Per-origin stability also defeats averaging repeated reads of one
+value, and avoids site breakage.
+
+*Corrected 2026-10-14 (D56).* This paragraph used to say per-origin stability "kills the averaging
+attack that broke Brave's canvas farbling in 2025". Wrong twice: Brave's farbling is not per-read
+(it is keyed on session, domain and canvas content, as ours is), and the 2025 attack (Nguyen &
+Vadrevu, WWW '25) is not an average of repeated reads but a majority vote across canvases whose
+content differs outside the region read. Measured against our kernel, that vote recovers the real
+canvas — see D56.
 
 **Key realization:** unlinkability *to a site you're actively using* is not the goal — that site
 can just set a cookie. The goal is breaking linkage *between* sites. Per-origin stability therefore
@@ -3388,3 +3395,126 @@ block rule covers a request built from its own condition under its own ruleset, 
 learned exclusions, non-block actions, Firefox's request shape); `background.test.js` +1 (unpacked: no double count).
 Mutants killed: no rule check, double count in unpacked, headline back on `stats.blocked`, no allowlist check, no reset
 on navigation, `NS_BINDING_ABORTED` counted, quota error uncaught, `domainType` ignored, GPC rule counted as a block.
+
+## D56 — The canvas noise falls to the WWW '25 majority vote; no deterministic kernel survives both it and A1, so the claim changes and the kernel does not. 2026-10-14.
+
+**Decision:** the D22 canvas kernel stays as it is. No mitigation ships, because none of the four
+we prototyped survives both attack families.
+
+The finding is recorded instead, in these places:
+- **Gap G10** in `shim.js`, and a row in THREAT-MODEL "Known gaps".
+- **Qualifiers on "breaks the join"**, in the README and in THREAT-MODEL's claim table.
+- **Corrections of the "per-read averaging" story** in:
+  - the `shim.js` header and kernel docstring;
+  - `personas.js`;
+  - D2;
+  - ARKENFOX-RESPONSE;
+  - ARCHITECTURE;
+  - `research/BASELINE.md`.
+- **Three FINDING tests** in `src/canvas-majority-vote-2026-10-14.test.js`. They pass while the defect
+  is present, by the convention of `review-2026-09-16.test.js`, and go red if a kernel change
+  defeats the vote.
+
+**The attack.** Nguyen & Vadrevu, *Breaking the Shield* (WWW '25, doi:10.1145/3696410.3714713),
+Algorithm 3:
+1. Draw the same content on several canvases.
+2. Give each a different 10-row strip on top.
+3. Read the region below the strip from each.
+4. Keep, per pixel and channel, the majority value.
+
+It broke Brave because Brave keys its noise on session, domain and canvas **content**. Each strip is
+new content, so each canvas gets new noise. Our kernel is the same family (persona, size, a digest of
+the whole canvas, position).
+
+Until this entry, D2, the `shim.js` header and ARKENFOX-RESPONSE described that attack as averaging
+"per-read" noise and cited our "50 reads → 1 hash" as the defence. Brave's farbling was never
+per-read, and one hash for one canvas says nothing about many canvases.
+
+**Measured** (`harness/canvas-majority-vote.mjs`; full method, controls and tables in
+`research/canvas-majority-vote/RUN-2026-10-14.md`). Setup:
+- Chrome for Testing 149.
+- The real extension, from the source tree and from the store zip.
+- Two personas (two fresh salts) × two origins.
+- Truth from the same page with no extension.
+- A 500×400 region, 200,000 pixels.
+
+| Canvases | Vote | Recovered exactly (source tree; store zip) | Typical residue |
+|---|---|---|---|
+| 5 | strict majority / plurality | 0/60 / 0/60 | ≈ 2,200 / 2,060 pixels wrong |
+| 9 | strict majority / plurality | 0/60 / 0/60 | ≈ 280 / 80 pixels wrong |
+| **21** | strict majority | 16/60 | ≤ 4 pixels wrong |
+| **21** | **plurality** | **60/60; 27/28** (the miss: 1 channel) | — |
+
+- **The cross-site join is restored.** Every exact recovery was the same bytes under both personas
+  on both sites. Single reads differ in about 25,000 pixels and give four different hashes.
+- **Cost:** medians of 0.15–0.5 s for N = 21, depending on machine load. Our 1-in-8 density
+  moves Brave's 5 canvases to about 21. That is a cost, not a defence.
+- **Translated copies** (the region blitted at 21 offsets): 20/20.
+- **The A1 subtraction still fails** (≈ 138,000 channels wrong), so D22 holds against what it was
+  built for.
+- **The Worker.** A dedicated Worker drawing on an `OffscreenCanvas` reads the extension-OFF bytes
+  exactly, in one read, in all four cells (gap G1).
+
+**The controls passed before any number was trusted:**
+- A Brave-shaped weak noise was recovered 10/10 at N = 5 (positive control).
+- The pre-D22 position-only kernel was recovered by A1, except 577 channels its clamp rule destroys
+  (A1 positive control).
+- One read with the extension on differed from the truth in every cell (negative control).
+- An isolated-world native read of the page's own canvas equalled the extension-OFF truth.
+- The planted break worked: with the position-only key the strip vote fell to 0/16 and the D56
+  tests went red.
+
+**Why no mitigation.** Each prototype ran as an in-page kernel built from the shipped `fin32`, `prf`,
+`keyMix` and `noiseRGBA` (exact recoveries, N = 21, plurality):
+
+| Noise keyed on | Algorithm 3 | Translated copies | Colour-shifted copies | 21 documents | A1 |
+|---|---|---|---|---|---|
+| persona, size, whole-canvas digest, position (**shipped**) | 10/10 | 10/10 | 10/10 | — | defeated |
+| persona, position, the pixel's own value | 0/10 | **10/10** | **10/10** | — | defeated |
+| persona, its 16×16 tile's digest, position | 0/10 | **10/10** | not run | — | defeated |
+| persona, the pixel's own value only | 0/10 | 0/10 | **10/10** | — | defeated |
+| shipped + 2 distinct canvases per document between gestures, then blank | 0/10 | — | — | **10/10** | blank |
+| persona, size, position (pre-D22) | 0/10 | not run | not run | — | **recovers** |
+
+The vote only needs the noise on one true pixel to differ between canvases that the attacker can
+build around it. The attacker controls everything about those canvases except that pixel's value:
+- the surrounding content (the strip);
+- the position (an exact `drawImage` blit);
+- the value itself, through an exact composite, undone afterwards.
+
+So each kernel that beat Algorithm 3 by holding one of those fixed fell to the variant that moves
+the next one. A kernel that ignores all of them depends on nothing a probe can't reproduce, and A1
+reads it off a known fill. That is the D22 tension, and it is not resolvable inside a deterministic
+per-pixel kernel.
+
+A per-document read budget is what Brave announced, and it is the only kind a MAIN-world shim can
+enforce synchronously. It fell to one canvas per same-origin iframe. A cross-document budget would
+have to come from the service worker, and pages read before the persona handshake arrives
+(fallback persona) and can open many frames in parallel. It was not built, and on the reasoning above
+it would not hold. G1 bypasses every main-thread scheme in one read in any case.
+
+The paper's own recommendations do not rescue us:
+- Non-deterministic per-read noise is rejected by D2 (averaging, and instability as a fingerprint).
+- Noise indistinguishable from real rendering variance is future research.
+- API monitoring is detection, not protection.
+
+**Claim consequences.**
+- **The canonical claim is unchanged.** It already says "does not defeat a determined adversary",
+  and this attack is that.
+- **"Breaks the join" is qualified for the canvas.** It holds against trackers that read the canvas
+  once on the main thread, as FingerprintJS and ClientJS do. It does not hold against a page that
+  runs the vote, or reads the canvas in a Worker.
+- **For canvas, the stronger options named are the fixed-output protections of Firefox and Tor
+  Browser**, which the same paper found working as intended. Brave's canvas farbling is broken by
+  the same vote.
+- **`docs/STORE-LISTING.md` and the in-product copy are not edited here.** That is for the release
+  owner. Neither currently says anything the measurement contradicts.
+
+**Would change this:**
+- G1 closed (worker canvases noised) **and** a cross-document read budget that also covers
+  pre-handshake reads, measured against parallel frames;
+- or a noise model indistinguishable from real rendering variance;
+- or an opt-in fixed-output canvas mode, with its breakage measured.
+
+Any kernel change must be re-measured with all of these: the harness's translate and colour-shift
+variants, the A1 controls, and the D56 tests.

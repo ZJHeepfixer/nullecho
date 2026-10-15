@@ -102,7 +102,10 @@ The honest ceiling on what a WebExtension can do. Product copy must not imply ot
    truthful on purpose, see DECISIONS.md D11 — plus `timezone` (also deliberate) and
    `mediaDevices`/`math`/`storage`, which this layer never claimed.)*
 3. Run again, same session → composite must **stay the same**. Per-read instability is itself a
-   fingerprint and enables the averaging attack that broke Brave's canvas farbling.
+   fingerprint and lets a page average repeated reads. *(Corrected 2026-10-14, D56: this used to
+   say it is "the averaging attack that broke Brave's canvas farbling". That 2025 attack is a
+   majority vote across differently-drawn canvases; stability does not stop it, and it breaks
+   Nullecho's canvas noise too.)*
 4. Second browser profile, extension on → composite must **differ** from profile 1, with every field
    still internally consistent.
 
