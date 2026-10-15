@@ -3266,7 +3266,8 @@ the time zone and the screen without RFP is taken for RFP. (d) RFP with this sit
 correct. (e) **Not fixed here, and the bigger problem:** under RFP the rest of the persona still applies on top of
 Firefox's uniform values — measured: `hardwareConcurrency` 10 (persona) where RFP says 8 — and so do the font
 measurements and the canvas/audio noise. Each makes an RFP user differ from other RFP users. Whether the whole shim
-should stand down under RFP is a decision for the owner; this entry does not make it. (f) The costs of pass-through:
+should stand down under RFP is a decision for the owner; this entry does not make it. **Decided the same day: D54 —
+the whole device layer stands down.** (f) The costs of pass-through:
 on Firefox the WebGL renderer bucket is the machine's (sanitised) one, not the persona's; and WebGL `getParameter`
 reads are no longer counted in the popup on Firefox (nothing is wrapped to count them; `readPixels` still is).
 (g) Windows and Linux Firefox, Firefox ESR and Firefox on Intel Macs were not measured.
@@ -3284,3 +3285,106 @@ mutants, all killed: planting the Chrome identity on Gecko; planting only the Ch
 stand-down; RFP from the clock alone; without the UA check; without the colour-depth check; Gecko detection off; Gecko
 detection always on; WebGPU identity on Gecko. `src/browser-kind-2026-10-14.test.js` (9) and
 `src/privacy-page-2026-10-14.test.js` (4) cover the wording and the privacy page. 531/531.
+
+## D54 — Under Firefox's resistFingerprinting the whole device layer stands down; blocking and GPC stay on. 2026-10-14.
+
+**Evidence.** With D53 alone, real Firefox 156 with `privacy.resistFingerprinting=true` read `hardwareConcurrency` **10** on a
+site whose persona was `macos-chrome-m1-pro`, where RFP reports **8** for every user. RFP's protection is that sameness;
+each persona value on top — cores, font measurements, canvas/audio/WebGL read-back noise, the WebGPU limit clamp — makes
+this user the one RFP user who differs. Director decision, 2026-10-14: a full stand-down.
+
+**Decision.**
+1. When `GECKO_RFP` holds, `installInto()` installs only what is not a device value: the `Function.prototype.toString`
+   mask, the GPC getter (Global Privacy Control stays on), and the two child-realm doors that carry those two into
+   frames. Every other patch group goes through `personaSafe()`, which is a no-op under RFP — cores, platform, the
+   high-entropy hints, canvas, WebGL, WebGPU (limits included), audio, fonts. Blocking is the worker's and is untouched.
+2. The shim answers the handshake with `{ upgraded: false, reason: 'resist-fingerprinting' }`. The worker stores it as the
+   site's status; the popup then says, in these words, **"Firefox's resistFingerprinting is on, so Nullecho leaves your
+   device profile to Firefox."** — as an alert and in place of the profile rows — and the options page shows the same
+   sentence when the newest page the shim reported from said so (`browser-kind.js RFP_ON`).
+3. **A fifth signal, as a veto.** The cost of a false positive is now the whole profile, not only WebGL read-back noise,
+   so the detector got stricter. RFP rounds the page clock to 16.667 ms: `performance.now()` at document_start read **0
+   or 16.667** in every top and child frame measured; a normal Firefox (1 ms clock) read **6–16**, always a whole
+   number. A positive whole number that is not a multiple of 100 (the older 100 ms RFP clamp) vetoes the other four.
+   Zero, fractional (RFP, or a cross-origin-isolated page's 20 µs clock) or unreadable: no veto.
+
+**Measured, real Firefox 156, the 0.9.2 build (instrumented copy reporting each site's persona — measurement only).**
+RFP on, 18 sites: every page read `hardwareConcurrency` 8, including the three whose persona was the 10-core
+`macos-chrome-m1-pro`; status `resist-fingerprinting` on all 18; `navigator.globalPrivacyControl` true and `Sec-GPC: 1`
+on all 18; 7 requests blocked on each. Control, RFP off, 12 sites: the two `m1-pro` sites read 10 and the rest 8,
+status healthy, GPC and blocking the same.
+
+**Limits.** (a) Detection is the D53 heuristic plus the veto: a Firefox user on a UTC/Reykjavik clock, with nothing
+reserved at the screen edge, a 24-bit display and a stock UA, on a page whose clock read 0 or fractional at boot, is
+taken for RFP and gets Firefox's own values (no persona) — blocking and GPC unchanged. (b) A user who changed RFP's
+timer precision to whole milliseconds defeats the veto in the other direction: RFP is then not recognised and the
+persona applies, as before D54. (c) The status is per page; the options banner reflects the newest page's.
+
+**Tests.** `src/rfp-standdown-2026-10-14.test.js` (4): a SNAPSHOT of every own descriptor of every interface prototype
+before boot and after the handshake — under RFP only the four non-device changes are allowed, so a future patch group
+not gated on RFP fails there; the values (cores, canvas, text metrics, audio, WebGPU limits) are the engine's; the
+control without RFP gets the persona; the clock veto at 0 / 16.667 / 33.334 / 100 / 200 (stand down) vs 6 / 12 / 16 /
+101 (persona) and 12.34 (fractional, no veto). Against the D53 shim three of four fail; the snapshot names the 17
+patches that leaked. Mutants killed: cores, `measureText` and WebGPU limits each installed under RFP; no veto; no status;
+GPC skipped under RFP. The popup/options sentence: two tests in `blocked-count-packed-2026-10-14.test.js` (the
+overview flag follows the newest page's status; the popup alert, the profile panel and the options banner use
+`RFP_ON`).
+
+## D55 — "Blocked" is counted in every store build: the page count from the browser, the lifetime from its block reports. 2026-10-14.
+
+**Evidence.** Every blocked request reached the counters through `declarativeNetRequest.onRuleMatchedDebug`, which
+Chrome and Edge give to UNPACKED builds only and Firefox 156 does not implement (its DNR schema has neither that event
+nor `getMatchedRules`; `testMatchOutcome` needs the `extensions.dnr.feedback` pref). So in every store install the popup
+headline (`stat-blocked` = `stats.blocked`) read **"0 requests blocked"**, and the per-site report, the cross-site map and
+the options totals were empty. Measured on 2026-10-14:
+- **Chrome for Testing 149** (fixture: four tracker scripts, five images): `getMatchedRules({tabId})` returned 11 matches —
+  analytics#2000, social#3000, ads#1000, analytics#2004 and **gpc#5000 ×7** — which `classifyMatchedRule` sorts into **4
+  blocked**. After a same-tab navigation it returns only the new page's matches. Quota: **calls 1–20 succeed, call 21
+  rejects** "This request exceeds the MAX_GETMATCHEDRULES_CALLS_PER_INTERVAL quota."; calls made inside a user gesture are
+  exempt. **The action-count badge** (`setExtensionActionOptions({displayActionCountAsBadgeText: true})`) read **"11"** on
+  that page — it counts the GPC header rule — and `""` on an allowlisted page; it would overstate every page by the
+  number of requests made, so it is **not used**.
+- **Chrome 149, `webRequest.onErrorOccurred`**: each of the four blocked scripts arrives with `error:
+  "net::ERR_BLOCKED_BY_CLIENT"`; on the allowlisted page they arrive as `net::ERR_CONNECTION_REFUSED` (not blocked).
+- **Firefox 156**: DNR runs after the webRequest listeners (`WebRequest.sys.mjs`), and a DNR block reaches
+  `onErrorOccurred` as `NS_ERROR_ABORT` (`ExtensionDNR.applyBlock`). A page aborting its own fetch reports
+  `NS_BINDING_ABORTED`. The speculative preloader requests scripts twice, so four `<script>` tags gave 4–7 cancellations.
+
+**Decision.**
+1. **The popup headline is the page count**, labelled **"blocked on this page"**: Chrome/Edge's own `getMatchedRules` for
+   the tab through `classifyMatchedRule` (the browser's account, GPC and allow rules excluded); where that API is absent
+   (Firefox) or its quota is spent, Nullecho's own tally for the tab. No count for the tab → a dash, never a zero.
+2. **The tally** (`block-counter.js`): a request counts when the browser reported an extension block
+   (`net::ERR_BLOCKED_BY_CLIENT` / `NS_ERROR_ABORT`) **and** one of Nullecho's own block rules covers it — the ENABLED static
+   blocking rulesets plus the learner's dynamic rules, matched with DNR's semantics for every condition the rules use
+   (`requestDomains`, `urlFilter` with `||` / `^` / `*`, `domainType`, initiator and resource-type conditions; an unknown
+   condition never matches). It never counts on a site the user switched off. Per tab, reset by the next top-level
+   document (`onSendHeaders`, main frame — not `onBeforeRequest`, which review A5 keeps unregistered), kept in
+   `storage.session` (memory only) so a suspended background does not restart it at zero.
+3. **The lifetime per-site counters** (`stats.blocked`, categories, tracker domains — the report and the cross-site map)
+   are fed by the same attributed reports wherever `onRuleMatchedDebug` is absent, i.e. in every store build of every
+   browser; unpacked Chrome/Edge keep `onRuleMatchedDebug` and never count a block twice. Cookie strips are still
+   counted only in unpacked builds — no browser reports a header change to `webRequest`.
+
+**Measured agreement, real sites, Chrome for Testing 149, packed-equivalent copy (`onRuleMatchedDebug` unused —
+measurement only):** Nullecho's tally equals Chrome's own `getMatchedRules` blocked count, total AND per category, on all
+eight: theguardian.com 2/2, edition.cnn.com 4/4, reddit.com/r/technology 0/0, stackoverflow.com 1/1, bbc.com/news 4/4,
+amazon.com 1/1, wired.com 35/35 (social 28, ads 6, analytics 1), forbes.com 0/0. **Real Firefox 156** (instrumented copy
+reading the worker's own site report): `live` 7 from `webRequest`, lifetime 7, tracker domains amplitude.com,
+doubleclick.net, facebook.net, google-analytics.com; with RFP on, 7–8 per page (the preloader varies).
+
+**Limits.** (a) Attribution: a request another blocker cancelled that one of Nullecho's rules also covers is counted as
+Nullecho's (it would have been blocked anyway); one Nullecho blocked under a condition the matcher does not model would be
+missed — none on the eight sites. (b) A freshly learned rule is picked up on the next unmatched report (dynamic rules
+re-read at most once a second). (c) Firefox counts every cancelled request, preloads included. (d) A page restored from
+the back/forward cache shows the count of the page that replaced it until it reloads. (e) The popup's per-category panel
+uses the page count; the domain list is per site. (f) Edge was not run (not installed here); it is the Chrome package.
+
+**Tests.** `src/blocked-count-packed-2026-10-14.test.js` (12, a stub with NO `onRuleMatchedDebug`, the measured 11
+matches and quota message; two cover the options page's "Clear saved price notices" and two D54's popup/options
+sentence) — the ten that existed then all fail on the pre-D55 background/popup; `src/blocked-count-firefox-2026-10-14.test.js` (2,
+no `getMatchedRules`; the measured seven `NS_ERROR_ABORT`s) — fail before; `src/block-counter.test.js` (8: every shipped
+block rule covers a request built from its own condition under its own ruleset, lookalikes, `||`/`^`/`*`, third party,
+learned exclusions, non-block actions, Firefox's request shape); `background.test.js` +1 (unpacked: no double count).
+Mutants killed: no rule check, double count in unpacked, headline back on `stats.blocked`, no allowlist check, no reset
+on navigation, `NS_BINDING_ABORTED` counted, quota error uncaught, `domainType` ignored, GPC rule counted as a block.
