@@ -1802,7 +1802,10 @@ function shoppingVerdict(site, loads) {
   const allOffFail = both.every((l) => !l.off.ok);
   if (onWall && !offWall) return { ...out, verdict: 'FAIL', reason: `bot wall ON only in ${onWall}/${usable.length} pair(s)` };
   if (novelPrice.length) return { ...out, verdict: 'FAIL', reason: `ON read a price OFF never read: ${novelPrice.join(', ')} — ${out.priceNotes.slice(0, 2).join(' | ')}` };
-  if (lostPairs * 2 > both.length + onOnlyErr.length) return { ...out, verdict: allOffFail ? 'NOT-OURS' : 'FAIL', reason: out.functionalNotes.slice(0, 3).join(' | ') };
+  // A loss is a check that PASSED OFF and failed ON in the same pair, so it is the extension's whatever else OFF failed.
+  // (Attacked 2026-10-15: with a block planted on Algolia and Constructor, gymshark's and jcpenney's search went
+  // from 60 product links to 0 — and the row read NOT-OURS, because OFF had also missed an unrelated add-to-cart.)
+  if (lostPairs * 2 > both.length + onOnlyErr.length) return { ...out, verdict: 'FAIL', reason: out.functionalNotes.slice(0, 3).join(' | ') };
   if (out.priceNotes.length && offVaries) return { ...out, verdict: 'INCONCLUSIVE', reason: `price varies with the extension OFF too (OFF ${s.declaredOff.join('/')}${s.visibleOff.length > 1 ? `, rendered ${s.visibleOff.join('/')}` : ''}) — ${out.priceNotes.slice(0, 2).join(' | ')}` };
   if (allOffFail && both.every((l) => !l.on.ok)) return { ...out, verdict: 'NOT-OURS', reason: `fails with the extension OFF too — off: ${(both[0].off.reasons || []).join('; ') || both[0].off.error || 'check failed'}` };
   const notes = [...out.priceNotes, ...out.functionalNotes];
