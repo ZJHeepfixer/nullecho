@@ -379,13 +379,13 @@ function runChecks(project) {
     return [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
   };
 
-  check('tipjar-products', `the three consumable product ids are identical in ${STOREKIT_FILE} and in code, and appear in code in one place`, () => {
+  check('tipjar-products', `the four consumable product ids are identical in ${STOREKIT_FILE} and in code, and appear in code in one place`, () => {
     const json = storekit();
     const ids = codeProductIDs();
-    if (ids.length !== 3) fail(`code lists ${ids.length} product ids, expected exactly 3: ${ids.join(', ')}`);
-    if (new Set(ids).size !== 3) fail(`duplicate product id in code: ${ids.join(', ')}`);
+    if (ids.length !== 4) fail(`code lists ${ids.length} product ids, expected exactly 4: ${ids.join(', ')}`);
+    if (new Set(ids).size !== 4) fail(`duplicate product id in code: ${ids.join(', ')}`);
     const products = json.products;
-    if (products.length !== 3) fail(`${STOREKIT_FILE} has ${products.length} products, expected exactly 3`);
+    if (products.length !== 4) fail(`${STOREKIT_FILE} has ${products.length} products, expected exactly 4`);
     const fileIDs = products.map((p) => p.productID);
     if ([...ids].sort().join() !== [...fileIDs].sort().join()) fail(`product ids differ: code [${ids.join(', ')}] vs ${STOREKIT_FILE} [${fileIDs.join(', ')}]`);
     for (const p of products) {
@@ -401,7 +401,7 @@ function runChecks(project) {
     const prefix = ids[0].split('.').slice(0, -1).join('.') + '.';
     for (const f of appSwiftFiles()) {
       const n = (fs.readFileSync(f, 'utf8').match(new RegExp(prefix.replace(/\./g, '\\.'), 'g')) || []).length;
-      const expected = path.relative(project, f) === TIPJAR_SOURCE ? 3 : 0;
+      const expected = path.relative(project, f) === TIPJAR_SOURCE ? ids.length : 0;
       if (n !== expected) fail(`${path.relative(project, f)} mentions "${prefix}" ${n} time(s); expected ${expected} (ids live only in TipJar.productIDs)`);
     }
     return ids.join(', ');
@@ -528,7 +528,7 @@ const MUTATIONS = [
   { id: 'no-network', apply: (p) => replaceIn(p, 'App/ContentView.swift', 'import SwiftUI\n', 'import SwiftUI\nimport StoreKit\n', 1), label: 'import StoreKit outside TipJar.swift' },
   { id: 'tipjar-products', apply: (p) => replaceIn(p, STOREKIT_FILE, '"productID" : "org.nullecho.tip.medium"', '"productID" : "org.nullecho.tip.middle"'), label: 'rename a product id in the .storekit only' },
   { id: 'tipjar-products', apply: (p) => replaceIn(p, STOREKIT_FILE, '"type" : "Consumable"', '"type" : "NonConsumable"', 1), label: 'make one tip non-consumable' },
-  { id: 'tipjar-products', apply: (p) => replaceIn(p, TIPJAR_SOURCE, '        "org.nullecho.tip.large",\n', '        "org.nullecho.tip.large",\n        "org.nullecho.tip.huge",\n'), label: 'a fourth id in code' },
+  { id: 'tipjar-products', apply: (p) => replaceIn(p, TIPJAR_SOURCE, '        "org.nullecho.tip.large",\n', '        "org.nullecho.tip.large",\n        "org.nullecho.tip.huge",\n'), label: 'a fifth id in code' },
   { id: 'tipjar-products', apply: (p) => fs.appendFileSync(path.join(p, 'App/ContentView.swift'), '\nlet favourite = "org.nullecho.tip.small"\n'), label: 'a product id literal in a second place' },
   { id: 'tipjar-scheme', apply: (p) => replaceIn(p, SCHEMES['Nullecho (iOS)'], /\s*<StoreKitConfigurationFileReference[\s\S]*?<\/StoreKitConfigurationFileReference>/, ''), label: 'detach the .storekit from the iOS Run action' },
   { id: 'tipjar-scheme', apply: (p) => replaceIn(p, SCHEMES['Nullecho (macOS)'], /<Testables>[\s\S]*?<\/Testables>/, '<Testables>\n      </Testables>'), label: 'drop the macOS test bundle from the scheme' },

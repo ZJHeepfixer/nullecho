@@ -48,6 +48,21 @@
       "productID" : "org.nullecho.tip.large",
       "referenceName" : "Large tip",
       "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "5.00",
+      "familyShareable" : false,
+      "internalID" : "4E43A7E5",
+      "localizations" : [
+        {
+          "description" : "Huge thanks to the people who build Nullecho.",
+          "displayName" : "Extra-large tip",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.nullecho.tip.xlarge",
+      "referenceName" : "Extra-large tip",
+      "type" : "Consumable"
     }
   ],
   "settings" : {
