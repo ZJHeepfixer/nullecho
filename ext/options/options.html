@@ -35,6 +35,12 @@
 
 <main class="page">
 
+  <!-- D54: shown only when the newest page the shim reported from said Firefox's
+       resistFingerprinting is on. Text from browser-kind.js RFP_ON. -->
+  <section class="card accent" id="rfp-banner" hidden>
+    <p class="lede" id="rfp-text"></p>
+  </section>
+
   <section class="totals" aria-label="Totals since install">
     <div class="tot"><span class="num" id="t-blocked">0</span><span class="lab">requests blocked</span></div>
     <div class="tot"><span class="num" id="t-fp">0</span><span class="lab">fingerprint reads seen</span></div>
@@ -278,6 +284,7 @@
         <tbody id="pool-body"></tbody>
       </table>
     </div>
+    <p class="note" id="pool-note" hidden></p>
   </section>
 
   <!-- ── DROP ─────────────────────────────────────────────────────────── -->
@@ -376,8 +383,12 @@
       fails the build if any code that could send something is ever added. The
       stored record holds the page address without its query string, the date,
       the price the page published, and up to 200 characters of the text around
-      the sentence — nothing about you.
+      the sentence — nothing else.
     </p>
+    <div class="rowactions">
+      <button class="btn" id="clear-pricing" type="button">Clear saved price notices</button>
+      <span class="note inline" id="pricing-count">—</span>
+    </div>
   </section>
 
   <section class="card accent" id="delete">
@@ -431,8 +442,8 @@
         <p>About ten lines of JavaScript will do it — filling a canvas with one colour and noticing the pixels are not quite uniform is enough. Nullecho breaks the link <em>between</em> sites; it does not hide that you are using it. Anyone claiming an extension can do that is guessing or selling something.</p>
       </div>
       <div class="limit">
-        <h3>Firefox and Brave do this better</h3>
-        <p>Firefox's <code>resistFingerprinting</code> and Brave's built-in protections work below the JavaScript layer, where an extension simply cannot reach — so they cover things Nullecho never will. If you can use either, they are the stronger choice. Nullecho exists for Chrome, where neither is available, and makes a different trade: a different device profile per site instead of one identical profile for everyone.</p>
+        <h3 id="limit-stronger-title">Browsers with built-in protection do this better</h3>
+        <p id="limit-stronger-body">Fingerprinting protection built into a browser works below the JavaScript layer, where an extension simply cannot reach — so it covers things Nullecho never will. Where your browser offers it, it is the stronger choice. Nullecho makes a different trade: a different device profile per site instead of one identical profile for everyone.</p>
       </div>
       <div class="limit">
         <h3>Your screen size and display</h3>
@@ -440,7 +451,7 @@
       </div>
       <div class="limit">
         <h3>Your browser and its version</h3>
-        <p>Sites see the browser you actually run — its name, version and brand list — exactly as it reports them. Your browser's network connection and its background workers state the real version anyway, so claiming a different one only added a contradiction a site could check, and went out of date with every browser update. What differs per site is the device underneath: processor, memory, graphics, fonts and operating-system version.</p>
+        <p>Sites see the browser you actually run — its name, version and brand list — exactly as it reports them. Your browser's network connection and its background workers state the real version anyway, so claiming a different one only added a contradiction a site could check, and went out of date with every browser update. <span id="limit-differs">What differs per site is the device underneath: processor, memory, graphics, fonts and operating-system version.</span></p>
       </div>
       <div class="limit">
         <h3>Your IP address</h3>

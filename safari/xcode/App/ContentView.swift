@@ -14,6 +14,7 @@ enum ExternalLink {
 
 struct ContentView: View {
     private let embedded = EmbeddedExtension.load()
+    @Environment(TipJar.self) private var tipJar
 
     var body: some View {
         NavigationStack {
@@ -27,6 +28,10 @@ struct ContentView: View {
                 WhatItDoesSection(embedded: embedded)
                 LimitsSection()
                 SiteTroubleSection()
+                // Hidden entirely, with no explanation, where purchases are not allowed (Screen Time, MDM).
+                if tipJar.canMakePayments {
+                    SupportSection()
+                }
                 LinksSection()
             }
 #if os(iOS)
@@ -237,7 +242,7 @@ private struct LimitsSection: View {
                  detail: "Nullecho does not route your traffic anywhere. On Apple devices, hiding your IP address is the job of iCloud Private Relay, part of iCloud+.")
             Fact(symbol: "lock.shield", tint: .secondary,
                  title: "Collects nothing",
-                 detail: "No account, no analytics, no crash reports, no server. This app opens no network connections; the two links below are handed to your browser.")
+                 detail: "No account, no analytics, no crash reports, no server. This app opens no network connections of its own; the two links below are handed to your browser, and a tip is handled by the App Store’s own purchase service, not by this app.")
         } header: {
             Text("What it does not do in Safari")
         } footer: {
@@ -355,4 +360,5 @@ private struct AdaptiveStack<Content: View>: View {
 
 #Preview {
     ContentView()
+        .environment(TipJar())
 }

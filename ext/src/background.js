@@ -37,6 +37,7 @@ import './gpc.js';
 import * as heuristics from './heuristics.js';
 import { personaFor, newSalt, hashString, personasForFamily, hostFamily } from './personas.js';
 import { buildLinkageGraph, reachByOwner } from './linkage.js';
+import { EXTENSION_BLOCK_ERRORS, buildMatcher, requestFacts } from './block-counter.js';
 import {
   MSG,
   GPC_MSG,
@@ -109,11 +110,21 @@ const STRICT_FP_RANGE = [4500, 4699];
  * nobody meant to touch the day someone adds one at 4508.
  */
 let strictFpRuleIds = null;
+
+/**
+ * A ruleset Nullecho ships, read out of the package. The one `fetch` in this
+ * file, and always a bundled file (`manifest.test.js` fails the build otherwise):
+ * the tier-B ids below and the block counter (D55) both read from here.
+ */
+async function loadRuleset(id) {
+  const res = await fetch(chrome.runtime.getURL(`rules/${id}.json`));
+  return res.json();
+}
+
 async function strictFingerprintingRuleIds() {
   if (strictFpRuleIds) return strictFpRuleIds;
   try {
-    const res = await fetch(chrome.runtime.getURL('rules/fingerprinting.json'));
-    const rules = await res.json();
+    const rules = await loadRuleset('fingerprinting');
     strictFpRuleIds = rules
       .map((r) => r.id)
       .filter((id) => id >= STRICT_FP_RANGE[0] && id <= STRICT_FP_RANGE[1]);
@@ -424,23 +435,33 @@ async function syncAllowlistRules() {
 
 // ── blocked-request accounting ──────────────────────────────────────────────
 //
-// Chrome: `onRuleMatchedDebug` gives us the request URL *and* the ruleset id, but
-// it only fires for UNPACKED extensions. In a packed build the popup falls back
-// to `getMatchedRules()`, which gives counts + ruleset ids but no URLs — so the
-// tracker *list* degrades to a per-category breakdown. The popup labels which of
-// the two it is showing rather than silently implying it has the full list.
+// Three sources, and which one a build has decides what the UI may say (D55).
 //
-// BOTH APIs report every rule that ACTED on a request, not just blocking ones,
-// and neither reports the action type. Feeding them straight into a counter
-// called "requests blocked" therefore counts the wrong things — most of all
-// `gpc.json` rule 5000, which sets Sec-GPC on nearly every request, and the
-// allowlist's `allowAllRequests` rules, which fire exactly where Nullecho blocked
-// nothing. `classifyMatchedRule()` in protocol.js sorts a match into blocked /
-// stripped / ignored by rule id; every path into these counters goes through it.
+//  1. `onRuleMatchedDebug` — the request URL and the rule. Chrome and Edge give it
+//     to UNPACKED builds only; Firefox has no such event. Feeds the lifetime
+//     per-site counters (and the cookie-strip counters) when it exists.
+//  2. `getMatchedRules({ tabId })` — Chrome and Edge, packed or not: every rule
+//     that acted in the tab's current document (measured: a same-tab navigation
+//     drops the previous page's matches), rule ids only, no URLs, and a QUOTA of
+//     20 calls per 10 minutes shared by the whole extension (measured: call 21
+//     fails "exceeds the MAX_GETMATCHEDRULES_CALLS_PER_INTERVAL quota"; calls
+//     made inside a user gesture are exempt). The popup's "blocked on this page".
+//  3. `webRequest.onErrorOccurred` — every engine, packed or not: the browser
+//     reports each request an extension rule cancelled (`net::ERR_BLOCKED_BY_CLIENT`
+//     in Chrome, `NS_ERROR_ABORT` in Firefox), and `block-counter.js` attributes it
+//     to one of Nullecho's own block rules or not at all. Feeds the per-tab tally
+//     (the popup's number in Firefox, and Chrome's when the quota is spent) and,
+//     where (1) is absent, the lifetime per-site counters.
 //
-// Firefox: `webRequest` is available (the heuristics layer already uses it), so
-// precise per-request attribution is possible there. Wiring that into these
-// counters is a v0.2 item; the shape of `recordBlocked()` is already right for it.
+// BOTH DNR APIs report every rule that ACTED on a request, not just blocking ones,
+// and neither reports the action type: `gpc.json` rule 5000 sets Sec-GPC on nearly
+// every request and the allowlist's `allowAllRequests` rules fire exactly where
+// Nullecho blocked nothing. `classifyMatchedRule()` in protocol.js sorts a match
+// into blocked / stripped / ignored by rule id; every path into these counters,
+// including (3), goes through it. Chrome's own action-count badge
+// (`setExtensionActionOptions({ displayActionCountAsBadgeText })`) is NOT used:
+// measured, it counted 11 on a page where Nullecho blocked 4 — the other 7 were
+// rule 5000 adding the GPC header.
 
 /** Bump a domain's count in a per-site table, respecting the table's size cap. */
 function bumpTracker(table, domain) {
@@ -449,7 +470,7 @@ function bumpTracker(table, domain) {
   table[domain] = (table[domain] || 0) + 1;
 }
 
-/** A request Nullecho cancelled. This is what the popup's "requests blocked" counts. */
+/** A request Nullecho cancelled. This is what the lifetime "requests blocked" counts. */
 function recordBlocked({ site, trackerDomain, category }) {
   if (!site) return;
   const s = siteStats(site);
@@ -490,34 +511,181 @@ function recordMatch(rule, request) {
   else recordCookieStripped({ site, trackerDomain, category });
 }
 
-if (api.declarativeNetRequest?.onRuleMatchedDebug) {
+/** Source (1). Present in unpacked Chrome/Edge builds only. */
+const HAS_DEBUG_MATCHES = !!api.declarativeNetRequest?.onRuleMatchedDebug;
+if (HAS_DEBUG_MATCHES) {
   api.declarativeNetRequest.onRuleMatchedDebug.addListener(async (info) => {
     await ready();
     recordMatch(info.rule, info.request);
   });
 }
 
-/** Live per-tab matched rules, used by the popup. Packed-build fallback path. */
-async function matchedRulesForTab(tabId) {
-  try {
-    const res = await api.declarativeNetRequest.getMatchedRules({ tabId });
-    const byCategory = {};
-    let total = 0;
-    let stripped = 0;
-    for (const m of res?.rulesMatchedInfo ?? []) {
-      const { outcome, category } = classifyMatchedRule(m.rule);
-      if (outcome === OUTCOME.BLOCKED) {
-        total += 1;
-        byCategory[category] = (byCategory[category] || 0) + 1;
-      } else if (outcome === OUTCOME.STRIPPED) {
-        stripped += 1;
-      }
+// ── source (3): the browser's own "an extension blocked this", attributed ────
+
+/**
+ * Nullecho's block rules as the browser runs them: the ENABLED static blocking
+ * rulesets plus the dynamic rules (the learner's blocks). The static half is
+ * re-read after a settings change (`invalidateBlockMatcher()`) and every 5 min;
+ * the dynamic half is re-read, at most once a second, whenever a reported block
+ * matches nothing — which is what a freshly promoted learned rule looks like.
+ */
+let blockMatcher = null;
+let blockMatcherAt = 0;
+let staticBlockRules = null;
+let dynamicBlockRules = [];
+let dynamicCheckedAt = 0;
+let blockMatcherWork = null;
+
+function invalidateBlockMatcher() { blockMatcher = null; staticBlockRules = null; }
+
+async function rebuildBlockMatcher({ refreshDynamic }) {
+  if (!staticBlockRules || Date.now() - blockMatcherAt > 5 * 60_000) {
+    const enabled = new Set(await api.declarativeNetRequest.getEnabledRulesets());
+    const rulesets = [];
+    for (const id of BLOCKING_RULESET_IDS) {
+      if (enabled.has(id)) rulesets.push({ id, rules: await loadRuleset(id) });
     }
-    return { total, byCategory, stripped };
-  } catch {
-    // Quota exhausted, unsupported, or no host access for the tab.
-    return null;
+    staticBlockRules = rulesets;
+    refreshDynamic = true;
+    blockMatcher = null;
   }
+  if (refreshDynamic) {
+    const dynamic = await api.declarativeNetRequest.getDynamicRules();
+    dynamicCheckedAt = Date.now();
+    if (blockMatcher && JSON.stringify(dynamic) === JSON.stringify(dynamicBlockRules)) return blockMatcher;
+    dynamicBlockRules = dynamic;
+    blockMatcher = null;
+  }
+  if (!blockMatcher) {
+    blockMatcher = buildMatcher({ rulesets: staticBlockRules, dynamic: dynamicBlockRules });
+    blockMatcherAt = Date.now();
+  }
+  return blockMatcher;
+}
+
+async function getBlockMatcher({ fresh = false } = {}) {
+  const needStatic = !blockMatcher || !staticBlockRules || Date.now() - blockMatcherAt > 5 * 60_000;
+  const needDynamic = fresh && Date.now() - dynamicCheckedAt > 1000;
+  if (!needStatic && !needDynamic) return blockMatcher;
+  if (!blockMatcherWork) {
+    blockMatcherWork = rebuildBlockMatcher({ refreshDynamic: needDynamic }).finally(() => { blockMatcherWork = null; });
+  }
+  return blockMatcherWork;
+}
+
+/**
+ * Per-tab tally of requests Nullecho blocked on the page now open in each tab.
+ * Kept in `storage.session` (memory only — cleared when the browser closes, never
+ * written to disk, never synced) because the background is suspended when idle
+ * in both engines, and an in-memory count would silently restart at zero. A
+ * top-level navigation starts the tab's count again; a closed tab's is dropped.
+ */
+const TAB_TALLY_KEY = 'nullecho:tab-blocked';
+const TAB_TALLY_MAX = 300;
+let tabTallies = null;
+let tabTallyTimer = null;
+
+async function tallies() {
+  if (tabTallies) return tabTallies;
+  let stored = null;
+  try { stored = (await api.storage.session?.get(TAB_TALLY_KEY))?.[TAB_TALLY_KEY] ?? null; } catch { stored = null; }
+  if (!tabTallies) tabTallies = stored && typeof stored === 'object' ? stored : {};
+  return tabTallies;
+}
+
+function saveTallies() {
+  if (tabTallyTimer) return;
+  tabTallyTimer = setTimeout(async () => {
+    tabTallyTimer = null;
+    try { await api.storage.session?.set({ [TAB_TALLY_KEY]: tabTallies }); } catch (e) { warn('tab tally')(e); }
+  }, 500);
+}
+
+async function resetTab(tabId) {
+  const t = await tallies();
+  if (t[tabId]) { delete t[tabId]; saveTallies(); }
+}
+
+async function countBlockedInTab(tabId, category) {
+  const t = await tallies();
+  const keys = Object.keys(t);
+  if (!t[tabId] && keys.length >= TAB_TALLY_MAX) delete t[keys[0]];
+  const rec = t[tabId] ?? (t[tabId] = { total: 0, byCategory: {} });
+  rec.total += 1;
+  rec.byCategory[category] = (rec.byCategory[category] || 0) + 1;
+  saveTallies();
+}
+
+/**
+ * One request the browser says an extension cancelled. Counted only if one of
+ * Nullecho's own block rules covers it, and never on a site the user switched
+ * Nullecho off for (another blocker's work there is not ours).
+ */
+export async function onRequestError(details) {
+  if (!EXTENSION_BLOCK_ERRORS.has(details?.error)) return;
+  const req = requestFacts(details);
+  if (req.tabId < 0 || !req.host) return;
+  await ready();
+  const site = siteKeyFor(req.initiatorUrl || req.url);
+  if (site && allowlist.has(site)) return;
+  let rule = (await getBlockMatcher()).match(req);
+  if (!rule) rule = (await getBlockMatcher({ fresh: true })).match(req);
+  if (!rule) return;
+  const { outcome, category } = classifyMatchedRule(rule);
+  if (outcome !== OUTCOME.BLOCKED) return;
+  await countBlockedInTab(req.tabId, category);
+  if (!HAS_DEBUG_MATCHES) recordBlocked({ site, trackerDomain: siteKeyFor(req.url), category });
+}
+
+/** MUST NOT throw: it runs on the worker's top level, above the message listener (D42). */
+function installBlockCounter() {
+  const wr = api.webRequest;
+  const urls = ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'];
+  try {
+    wr?.onErrorOccurred?.addListener((d) => { onRequestError(d).catch(warn('block counter')); }, { urls });
+    // A new top-level document starts the tab's count again. `onSendHeaders`, not
+    // `onBeforeRequest`: no URL-only observer is registered anywhere in this
+    // worker (review A5 — a page writes every byte of a URL), and this one reads
+    // nothing but the tab id.
+    wr?.onSendHeaders?.addListener((d) => { if (d.tabId >= 0) resetTab(d.tabId).catch(() => {}); },
+      { urls, types: ['main_frame'] });
+    api.tabs?.onRemoved?.addListener((tabId) => { resetTab(tabId).catch(() => {}); });
+  } catch (e) {
+    warn('installBlockCounter')(e);
+  }
+}
+installBlockCounter();
+
+/**
+ * The page count the popup shows (D55). Chrome/Edge: `getMatchedRules` for the
+ * tab — the browser's own account — sorted by `classifyMatchedRule`. Where that
+ * API is absent (Firefox) or its quota is spent, the webRequest tally for the
+ * tab, which says so in `source`; `error` carries why the first one failed.
+ */
+async function blockedOnPage(tabId) {
+  let error = null;
+  if (api.declarativeNetRequest?.getMatchedRules) {
+    try {
+      const res = await api.declarativeNetRequest.getMatchedRules({ tabId });
+      const byCategory = {};
+      let total = 0;
+      let stripped = 0;
+      for (const m of res?.rulesMatchedInfo ?? []) {
+        const { outcome, category } = classifyMatchedRule(m.rule);
+        if (outcome === OUTCOME.BLOCKED) {
+          total += 1;
+          byCategory[category] = (byCategory[category] || 0) + 1;
+        } else if (outcome === OUTCOME.STRIPPED) {
+          stripped += 1;
+        }
+      }
+      return { total, byCategory, stripped, source: 'getMatchedRules' };
+    } catch (e) {
+      error = /quota/i.test(String(e?.message ?? e)) ? 'quota' : 'unavailable';
+    }
+  }
+  const t = (await tallies())[tabId];
+  return { total: t?.total ?? 0, byCategory: { ...(t?.byCategory ?? {}) }, stripped: null, source: 'webRequest', error };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -693,7 +861,7 @@ async function onGetSiteReport(msg) {
   }
   const s = stats[site] ?? blankSite();
   const persona = personaFor(identity.salt, site);
-  const live = Number.isInteger(msg.tabId) ? await matchedRulesForTab(msg.tabId) : null;
+  const live = Number.isInteger(msg.tabId) ? await blockedOnPage(msg.tabId) : null;
 
   const byCount = (t) => Object.entries(t ?? {})
     .sort((a, b) => b[1] - a[1])
@@ -754,6 +922,13 @@ async function onGetSiteReport(msg) {
       trackerListComplete: trackers.length > 0,
     },
     live,
+    /**
+     * Where the lifetime per-site counters come from in this build (D55):
+     * 'debug' = onRuleMatchedDebug (unpacked Chrome/Edge, cookie strips included);
+     * 'webRequest' = attributed browser block reports (every packed build; no
+     * cookie strips, which the browser does not report).
+     */
+    lifetimeSource: HAS_DEBUG_MATCHES ? 'debug' : 'webRequest',
   };
 }
 
@@ -819,12 +994,29 @@ function onGetOverview() {
       memory: p.memory,
       screen: `${p.screen.width}×${p.screen.height} @${p.screen.dpr}x`,
     })),
+    /**
+     * D54 — did the most recent page the shim reported from say Firefox's
+     * resistFingerprinting is on? Read from the persisted per-site statuses, so it
+     * survives the worker being suspended.
+     */
+    resistFingerprinting: latestShimReason() === 'resist-fingerprinting',
+    lifetimeSource: HAS_DEBUG_MATCHES ? 'debug' : 'webRequest',
     totals: {
       blocked: Object.values(stats).reduce((a, s) => a + (s.blocked || 0), 0),
       fp: Object.values(stats).reduce((a, s) => a + (s.fp || 0), 0),
       sites: Object.keys(stats).length,
     },
   };
+}
+
+/** The reason in the newest `lastShimStatus` across every site, or null. */
+function latestShimReason() {
+  let best = null;
+  for (const s of Object.values(stats)) {
+    const st = s?.lastShimStatus;
+    if (st && (!best || (st.at ?? 0) > (best.at ?? 0))) best = st;
+  }
+  return best?.reason ?? null;
 }
 
 function summarisePersona(p) {
@@ -867,6 +1059,7 @@ async function onSetSettings(msg) {
   };
   await api.storage.local.set({ settings });
   await applyRulesets().catch(warn('applyRulesets'));
+  invalidateBlockMatcher();   // the enabled rulesets may have changed (D55)
 
   // GPC is owned by gpc.js — header rule, JS property and per-site exceptions
   // move together, so route the toggle through it rather than flipping the
@@ -1017,7 +1210,12 @@ async function onPricingForSite(msg) {
   return { ok: true, observation: best };
 }
 
-/** The user's own delete. Whole list, or one site. */
+/** How many observations are stored — the options page shows it next to its clear button. */
+async function onPricingCount() {
+  return { ok: true, count: (await pricingList()).length };
+}
+
+/** The user's own delete. Whole list, or one site. Called by the options page's "Clear saved price notices". */
 async function onPricingForget(msg) {
   const site = msg?.site ? String(msg.site) : null;
   await savePricingList(site ? (await pricingList()).filter((e) => e?.siteKey !== site) : []);
@@ -1030,6 +1228,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case PRICING_MSG.OBSERVED:     work = onPricingObserved(message, sender); break;
     case PRICING_MSG.GET_FOR_SITE: work = onPricingForSite(message); break;
     case PRICING_MSG.FORGET:       work = onPricingForget(message); break;
+    case PRICING_MSG.COUNT:        work = onPricingCount(); break;
     default: return false;
   }
   work.then(sendResponse).catch(() => sendResponse({ ok: false }));

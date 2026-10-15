@@ -12,6 +12,24 @@ cannot reach (`docs/THREAT-MODEL.md`, "Known gaps").
 
 There is still an honest feature here. It is not a savings feature. See §7.
 
+> **Errata, 2026-10-14** (counter-program workstream B, `nullecho-growth/counter-program/B-COUNTERMEASURES-EVIDENCE.md`
+> §10a; corrections are made inline and marked):
+> - **E1** FTC statement: released 2026-08-19, not 08-21; the comment window has closed.
+> - **E2** Instacart: 193 analyzed submissions out of 400+ participants; "about" $1,200/yr.
+> - **E3** House Oversight: the ranking member's letter came first (2025-12-17); the Committee investigation opened in March 2026.
+> - **E4** Kroger "62-page profiles": that was **one** shopper's profile (CR, via Oregon's privacy law). Don't generalize the page count.
+> - **E5** Field measurement didn't stop in 2018: CR Instacart (2025) and CR Uber/Lyft (2026).
+> - **E6** Legislation, add: Maryland's ban in force 2026-10-01; CT P.A. 26-130 (2027-07-01); NJ c. 55; Colorado HB26-1210
+>   **vetoed** 2026-06-02; NY One Fair Price Act passed 2026-06-04 and not yet delivered to the governor; federal
+>   H.R. 4640 and S. 3892 in committee.
+> - **E7** NY AG request (2026-01-08); the FTC $60M Instacart settlement is about fees, not pricing.
+> - **E8** 2025–26 evidence puts personal-data pricing mainly in the **discount** layer (Uber/Lyft discounts, Kroger
+>   loyalty tiers, personalized cash-back): the strongest levers stay out of an extension's reach.
+> Sources: ag.ny.gov 2026-01-08 · ftc.gov 2026-08-19 (+08-31) · regulations.gov FTC-2026-1057 · congress.gov H.R. 4640 ·
+> govinfo S. 3892 · consumerreports.org 2025-12-09 and 2026-06-16 · advocacy.consumerreports.org 2026-03-06 ·
+> Colorado Newsline / EPIC on the HB26-1210 veto (secondary) · nyassembly.gov A09349.
+
+
 ### Confidence in each claim, up front
 
 | Claim | Confidence | Basis |
@@ -114,7 +132,8 @@ should not launder it.
 ### The 2026 turn — this got legally live two days ago
 
 **FTC Proposed Enforcement Policy Statement Regarding Personalized Pricing, dated 2026-08-19**,
-released for comment 2026-08-21, Commission vote 2–0
+released 2026-08-19 (updated 2026-08-31), Commission vote 2–0; comments closed (deadline 2026-09-18 per the release,
+2026-09-25 per regulations.gov), no final statement as of 2026-10-14 [erratum E1]
 (`p034101-ftc-enforcement-policy-statement-re-personalized-pricing-proposed-for-public-comment.pdf`).
 
 Its logic, which is directly useful to us:
@@ -176,12 +195,15 @@ Enforce Surveillance Pricing. It Won't."* (2026-08-21) — I could not fetch it 
 ### The strongest recent case, and why it still isn't clean
 
 **Instacart, December 2025.** Consumer Reports with Groundwork Collaborative and More Perfect
-Union: ~400 consumers shopped the same basket at the same time; **~75% of grocery items were
+Union: more than 400 shoppers took part and 193 high-quality submissions were analyzed [erratum E2]; **~75% of grocery items were
 offered at different prices** to different customers buying from the same store at the same
-time, variation up to **23%**, extrapolated to >$1,200/year for a family. Instacart ended the
+time, variation up to **23%**, about $1,200/year for a family of four from an average basket gap of ~7% [E2]. Instacart ended the
 program on 2025-12-22, saying the tests "missed the mark," while **disputing the framing and
 stating it does not use customers' personal information, including demographic or behavioral
-data, to set prices**. House Oversight opened an investigation.
+data, to set prices**. The Oversight Committee's ranking member wrote to Instacart on 2025-12-17; the Committee's
+investigation opened 2026-03-05/06 (Booking, Expedia, Uber, Lyft, Instacart) [E3]. The NY AG requested information on
+2026-01-08. Instacart's $60M FTC settlement (2025-12-18) is about fees, not algorithmic pricing; don't cite it as a
+pricing case [E7].
 
 So: real price variation between real people, confirmed, at scale — but characterized by the
 operator as **retailer-run A/B price testing**, i.e. category (d). If that characterization is
@@ -198,7 +220,7 @@ Ranked by strength of *published measurement*, not by how often the signal gets 
 | Rank | Signal | Evidence | Extension reach |
 |---|---|---|---|
 | **1** | **IP / geolocation** | **Strong, repeatedly replicated.** Mikians 2012 (Amazon Kindle ≥21% and up to 166%; Steam 20% of titles; Staples up to 11% within one state across 200 ZIPs). Princeton Review 2015: 32,989 ZIPs queried, three price tiers, $2,760 / $3,000 / $3,240 for the identical online SAT package. Iordanou 2017 found cross-border PD. SFGate 2025 reported $200–$511/night hotel swings on IP change. | **None.** Unreachable from a WebExtension. |
-| **2** | **Logged-in account / loyalty ID** | **Strong — and it usually makes prices LOWER.** Hannak 2014: Cheaptickets and Orbitz gave logged-in members hotels **$12 cheaper on average** ("Members Only" prices). FTC 6(b) names purchase history and loyalty as core inputs. Kroger builds 62-page profiles of loyalty members (CR, May 2025) but denies personalizing *prices*. | **None**, by design. `THREAT-MODEL.md`: "A logged-in account… you are identified by the login." |
+| **2** | **Logged-in account / loyalty ID** | **Strong — and it usually makes prices LOWER.** Hannak 2014: Cheaptickets and Orbitz gave logged-in members hotels **$12 cheaper on average** ("Members Only" prices). FTC 6(b) names purchase history and loyalty as core inputs. CR obtained one Kroger loyalty member's 62-page profile (May 2025, via Oregon's privacy law) [E4]; Kroger denies personalizing *prices*. | **None**, by design. `THREAT-MODEL.md`: "A logged-in account… you are identified by the login." |
 | **3** | **Referrer / arrival path** | **Moderate, one solid finding.** Mikians 2012: arriving at shoplet.com via the nextag.com aggregator produced **23% lower** prices than arriving direct, because the aggregator sets a cookie mid-redirect. This is the only browser-side lever with a measured downward effect — and it works by **adding** a commercial signal, not removing one. | Technically yes. **We should not.** See §7. |
 | **4** | **Device type / OS** | **Weak and directionally confusing.** Hannak 2014: Travelocity gave **iOS users lower** prices (no visual cue); Home Depot's Android delta averaged **$0.41**. Travelocity told the researchers the discount was for all mobile, not iOS. Orbitz never varied the price of the same room by OS. Hupperich et al. found UA changes moved prices in **0.10–0.95%** of cases. | Yes — and the evidence says it buys ~nothing, or points the wrong way. |
 | **5** | **Language / locale** | **Weak.** Hupperich et al.: language settings were, with UA, "the most influential of all features" — but in **8.88%** of cases at best, usually far under 1%, and non-systematic. Confounded with currency conversion. | Yes. Also a breakage and consistency risk (D2). |
@@ -297,7 +319,9 @@ saw you search twice so it raised the price* — has never been demonstrated in 
 
 ### The state of the field, stated plainly
 
-The serious measurement work is **2012–2018 and then it stops.** Mikians (2012/2013), Hannak
+The serious measurement work was **2012–2018**, and it has resumed: CR's Instacart study (Dec 2025) and CR's Uber/Lyft
+study (2026-06-16; all 30 routes split into price groups, median gap 42.4%) are real-world measurements. Neither
+attributes the gaps to personal data [erratum E5]. Mikians (2012/2013), Hannak
 (2014), Vissers (2014), Princeton Review (2015), Iordanou (2017), Hupperich (2018), EC (2018). I
 found no comparable large-scale field measurement after that. The 2019–2026 literature is
 overwhelmingly *theoretical* (welfare models: Dubé & Misra JPE 2023, Rhodes & Zhou AER 2024,

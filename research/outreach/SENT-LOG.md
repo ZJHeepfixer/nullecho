@@ -40,3 +40,11 @@ still carry the struck § 13-322"), 1–2 paragraphs, non-promotional per their 
 parenthetical, that Maryland's statute text "renders client-side". It does not: curl returns the §13-321 text; what fools scripts
 is an `alert("File not Found")` string present in every section's raw HTML. The legal claim (§13-322 was struck; the endpoint
 shows "File Not Found" for it in a browser) is unaffected and re-verified daily by compliance-monitor's statute watch.
+
+**2026-10-09 16:12 PDT — IAPP follow-up STAGED (not sent).** Silent since 9/24 (auto-reply only). Gate re-run the same
+afternoon: compliance-monitor `watch/run.mjs --only md-cl-13-322` → ABSENT-AS-EXPECTED with md-cl-13-321 UNCHANGED, in-run
+controls 6/6 (run 2026-10-09T23-08-57Z); the Ballard May 5 post still quotes the struck string (dateModified 2026-05-05, curl
+2026-10-09). The "AI answers" line from the first email was NOT repeated (not re-verified). Draft `r4616132412073824375` in
+rockpros, reply in thread 1a0d091d3f5e8565 to writeforus@iapp.org — the only outreach draft staged. Jason sends. Their only
+follow-up. Status of the others: Law360 forwarded to editors 9/28, nothing since (no nudge — a person already answered);
+Ballard = Schuster out-of-office only (9/30); Retail Dive = silent after the 9/30 follow-up. Round one is closed after IAPP.

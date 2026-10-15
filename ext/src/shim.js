@@ -262,6 +262,20 @@
   const rawFuncToString = uncurry(Function.prototype.toString);
   const NATIVE_MODEL_METHOD = Object.prototype.hasOwnProperty;
   const NATIVE_MODEL_ACCESSOR = Object.getOwnPropertyDescriptor(Object.prototype, '__proto__');
+  // D53 — the clock Firefox's resistFingerprinting fixes, read once at boot
+  // (`GECKO_RFP`). Captured here so the reads below the block name no global.
+  const RawDate = Date;
+  const dateGetTimezoneOffset = uncurry(Date.prototype.getTimezoneOffset);
+  const RawDateTimeFormat = typeof Intl === 'object' && Intl && typeof Intl.DateTimeFormat === 'function' ? Intl.DateTimeFormat : null;
+  const dtfResolvedOptions = RawDateTimeFormat ? uncurry(RawDateTimeFormat.prototype.resolvedOptions) : null;
+  // D54 — the page clock's resolution, the fifth RFP signal (`rfpTimerVeto`).
+  const perfNow = (() => {
+    try {
+      const perf = globalThis.performance;
+      const now = perf && perf.now;
+      return typeof now === 'function' ? () => apply(now, perf, []) : null;
+    } catch (_) { return null; }
+  })();
   // ─── END CAPTURED BUILTINS ────────────────────────────────────────────────
 
   // ── small helpers built only from the captures above ──────────────────────
@@ -713,6 +727,97 @@
     if (ownField(ownField(persona, 'uaData'), 'platform') !== FAMILY_UAD_PLATFORM[fam]) return false;
     return REAL_UA.uadPlatform === null || REAL_UA.uadPlatform === FAMILY_UAD_PLATFORM[fam];
   }
+
+  /**
+   * THE ENGINE, AND FIREFOX'S OWN FINGERPRINTING DEFENCE — DECISIONS.md D53.
+   *
+   * Every persona's GPU block is Chrome's: ANGLE renderer strings, a
+   * "Google Inc. (…)" vendor, Chromium VERSION strings, the 16384 limits Chrome
+   * reports. Firefox prints none of that. Measured in real Firefox 156 on an
+   * M2 Max (D53): VENDOR "Mozilla", RENDERER and UNMASKED_RENDERER
+   * "Apple M1, or similar" (Firefox sanitises the model into a bucket), vendor
+   * "Apple", VERSION "WebGL 1.0", MAX_TEXTURE_SIZE 8192, and a WebGPU adapter
+   * that names no vendor at all. A Gecko engine answering in Chrome's words is
+   * a combination no real browser produces. So on Gecko the GPU identity is the
+   * engine's own — already in Firefox's format, and already coarsened by
+   * Firefox — and the persona's GPU applies on Chromium only.
+   *
+   * `ENGINE_GECKO` is STRUCTURAL: `Navigator.prototype` carries `oscpu` and
+   * `buildID` in Gecko and in no other engine. A user-agent override cannot fake
+   * it, and a page cannot have defined it before this line (G9).
+   *
+   * `GECKO_RFP` — `privacy.resistFingerprinting` is on. Under it Firefox already
+   * reports "Mozilla" for every WebGL string, 2048 for the texture limits and
+   * random bytes for every canvas/WebGL read-back; a persona on top only makes
+   * this user differ from every other RFP user. No page-visible flag says "RFP",
+   * so it is inferred from four things RFP fixes, ALL of which must hold:
+   *   1. the engine is Gecko (above);
+   *   2. the user agent is RFP's template — one of the three spoofed desktop OS
+   *      strings, `rv:N.0`, `Gecko/20100101`, `Firefox/N.0`;
+   *   3. the clock is RFP's: time zone "Atlantic/Reykjavik" (measured, Firefox
+   *      156) or a UTC/GMT name (older RFP), offset 0 in January AND July;
+   *   4. the screen is RFP's: available area == the whole screen at (0,0), and a
+   *      24-bit colour depth.
+   * Read once, here, before any page script — so a page cannot steer it.
+   * Limits (D53): a Firefox user in Iceland or on UTC, with nothing reserved at
+   * the screen edge, a 24-bit display and a stock UA, is taken for RFP; that only
+   * costs them the WebGL read-back noise (the WebGL identity is the engine's on
+   * Gecko anyway). `privacy.fingerprintingProtection` (FPP) moves none of 2–4 by
+   * default and is not RFP; an FPP override that spoofs both the clock and the
+   * screen is taken for RFP. RFP with this site exempted reads as off — correct.
+   */
+  const ENGINE_GECKO = (() => {
+    try {
+      const NP = globalThis.Navigator && globalThis.Navigator.prototype;
+      return !!(NP && (getterOf(NP, 'oscpu') || getterOf(NP, 'buildID')));
+    } catch (_) { return false; }
+  })();
+
+  const RFP_TIME_ZONES = setOf(['Atlantic/Reykjavik', 'UTC', 'Etc/UTC', 'GMT', 'Etc/GMT']);
+  const RE_RFP_UA = /^Mozilla\/5\.0 \((?:Windows NT 10\.0; Win64; x64|Macintosh; Intel Mac OS X 10\.15|X11; Linux x86_64); rv:(\d+)\.0\) Gecko\/20100101 Firefox\/\1\.0$/;
+
+  function rfpClock() {
+    if (!dtfResolvedOptions) return false;
+    const zone = ownField(dtfResolvedOptions(new RawDateTimeFormat()), 'timeZone');
+    if (typeof zone !== 'string' || !setHas(RFP_TIME_ZONES, zone)) return false;
+    return dateGetTimezoneOffset(new RawDate(2026, 0, 15)) === 0 &&
+      dateGetTimezoneOffset(new RawDate(2026, 6, 15)) === 0;
+  }
+
+  function rfpScreen() {
+    const S = globalThis.Screen;
+    const scr = globalThis.screen;
+    if (!S || !S.prototype || !scr) return false;
+    const read = (prop) => { const g = getterOf(S.prototype, prop); return g ? apply(g, scr, []) : undefined; };
+    const w = read('width');
+    const h = read('height');
+    return typeof w === 'number' && typeof h === 'number' &&
+      read('availWidth') === w && read('availHeight') === h &&
+      read('availLeft') === 0 && read('availTop') === 0 && read('colorDepth') === 24;
+  }
+
+  /**
+   * D54 — a VETO, not a fifth vote. RFP rounds the page clock to 16.667 ms, so at
+   * document_start `performance.now()` reads 0 or 16.667 (measured, Firefox 156,
+   * top and child frames); a normal Firefox rounds to 1 ms and reads a small
+   * positive integer (6–16 ms measured). A positive whole number that is not a
+   * multiple of 100 (the older 100 ms RFP clamp) is therefore never RFP, and
+   * vetoes the other four signals — which matters since D54 made the cost of a
+   * false positive the whole device profile. Unreadable, 0, or fractional (RFP,
+   * or a cross-origin-isolated page's 20 µs clock): no veto, the four decide.
+   */
+  function rfpTimerVeto() {
+    if (!perfNow) return false;
+    const t = perfNow();
+    return typeof t === 'number' && t > 0 && t === mathFloor(t) && t % 100 !== 0;
+  }
+
+  const GECKO_RFP = (() => {
+    if (!ENGINE_GECKO) return false;
+    try {
+      return reTest(RE_RFP_UA, REAL_UA.userAgent) && rfpClock() && rfpScreen() && !rfpTimerVeto();
+    } catch (_) { return false; }
+  })();
 
   /**
    * HOST OS FAMILY — DECISIONS.md D12. Mirrors `familyFromPlatformString()` and
@@ -2028,6 +2133,20 @@
     safe('navigator.globalPrivacyControl', () => installGpc(win));
 
     // ────────────────────────────────────────────────────────────────────────
+    // D54 — UNDER resistFingerprinting THE DEVICE PROFILE IS FIREFOX'S.
+    //
+    // RFP makes every Firefox that uses it report the same values; that sameness
+    // IS the protection, and any persona value on top makes this user the one RFP
+    // user who differs (measured: 10 cores where RFP says 8). So with `GECKO_RFP`
+    // every group below that overrides a value is skipped: cores, platform, the
+    // high-entropy hints, canvas, WebGL, WebGPU (limits included), audio, fonts.
+    // What stays is what is not a device value: the `toString` mask above, the GPC
+    // signal (Global Privacy Control stays on), and the two child-realm doors,
+    // which only carry those two into frames. Blocking is the worker's, untouched.
+    // ────────────────────────────────────────────────────────────────────────
+    const personaSafe = GECKO_RFP ? () => false : safe;
+
+    // ────────────────────────────────────────────────────────────────────────
     // THE BROWSER'S IDENTITY — DELIBERATELY NOT SPOOFED  (D51, 2026-09-28)
     //
     // `userAgent`, `appVersion` and `vendor` are the engine's own getters, and so
@@ -2043,7 +2162,7 @@
     // stopped rewriting them in the same change (rules/gen-ua.mjs), so JS and the
     // wire say the same thing: what the browser says.
     // ────────────────────────────────────────────────────────────────────────
-    safe('navigator.platform', () => {
+    personaSafe('navigator.platform', () => {
       const N = ownerOf(win.navigator, 'platform');
       // The persona's value only where the real UA already carries the persona
       // family's frozen platform token (D51, `personaUaFits`) — on a Linux-on-ARM
@@ -2052,13 +2171,13 @@
       // contradiction, so the real value stands there.
       spoofGetter(N, 'platform', 'navigator', (origGet, real) => (D().uaFits ? D().platform : real));
     });
-    safe('navigator.hardwareConcurrency', () => {
+    personaSafe('navigator.hardwareConcurrency', () => {
       const N = ownerOf(win.navigator, 'hardwareConcurrency');
       // Never below 4: WASM/worker pools size themselves off this and 1 breaks them
       // (ARCHITECTURE.md, compatibility posture). The pool never goes below 8 anyway.
       spoofGetter(N, 'hardwareConcurrency', 'navigator', () => mathMax(4, D().cores | 0));
     });
-    safe('navigator.deviceMemory', () => {
+    personaSafe('navigator.deviceMemory', () => {
       const N = ownerOf(win.navigator, 'deviceMemory');
       if (!N) return; // absent in Firefox — not a failure
       // No ceiling assumed. BASELINE.md records Chrome 151 returning the true 32,
@@ -2109,7 +2228,7 @@
     // navigator.userAgentData — ONLY `getHighEntropyValues()` is wrapped (D51).
     // `brands`, `mobile`, `platform` and `toJSON()` are the engine's: they carry
     // the browser's real identity, which is what the page is shown now.
-    safe('navigator.userAgentData', () => {
+    personaSafe('navigator.userAgentData', () => {
       const UAD = win.NavigatorUAData;
       if (!UAD || !UAD.prototype) return; // not a Chromium build, or an insecure context
       const P = UAD.prototype;
@@ -2372,13 +2491,13 @@
       });
     }
 
-    safe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', ctxCanvas, canvasWidth, canvasHeight));
-    safe('offscreenCanvas.getImageData', () => {
+    personaSafe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', ctxCanvas, canvasWidth, canvasHeight));
+    personaSafe('offscreenCanvas.getImageData', () => {
       if (!OffCtx2D || !OffCtx2D.prototype) return;
       patchGetImageData(OffCtx2D.prototype, 'offscreenCanvas.getImageData', offCtxCanvas, offWidth, offHeight);
     });
 
-    safe('canvas.toDataURL', () => {
+    personaSafe('canvas.toDataURL', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toDataURL', (orig) => function toDataURL() {
         if (state.standingDown) return apply(orig, this, arguments);
         // The native brand check FIRST, outside the try: a wrong receiver throws
@@ -2394,7 +2513,7 @@
       });
     });
 
-    safe('canvas.toBlob', () => {
+    personaSafe('canvas.toBlob', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toBlob', (orig) => function toBlob() {
         if (state.standingDown) return apply(orig, this, arguments);
         canvasWidth(this);                              // brand check first — see toDataURL
@@ -2406,7 +2525,7 @@
       });
     });
 
-    safe('offscreenCanvas.convertToBlob', () => {
+    personaSafe('offscreenCanvas.convertToBlob', () => {
       const OC = win.OffscreenCanvas;
       if (!OC || !OC.prototype || !OC.prototype.convertToBlob) return;
       replaceMethod(OC.prototype, 'convertToBlob', (orig) => function convertToBlob() {
@@ -2456,10 +2575,25 @@
     // just relocate the contradiction: `getSupportedExtensions()` omitting a name
     // that `getExtension()` still hands back is a two-line detector.
     // ────────────────────────────────────────────────────────────────────────
+    //
+    // ON GECKO (D53) only `readPixels` is wrapped. `getParameter`,
+    // `getSupportedExtensions` and `getExtension` are left native, so every
+    // string, limit and extension is Firefox's own: the persona's GPU block is
+    // Chrome's (ANGLE renderer, "Google Inc. (…)" vendor, Chromium VERSION,
+    // 16384 limits) and Firefox prints none of it — measured, Firefox 156:
+    // "Mozilla" / "Apple M1, or similar" / "Apple" / "WebGL 1.0" / 8192. Under
+    // resistFingerprinting (`GECKO_RFP`) nothing here is installed at all; see
+    // the call site.
     function patchGLContext(Ctor, label, isGL2) {
       if (!Ctor || !Ctor.prototype) return;
       const P = Ctor.prototype;
 
+      if (!ENGINE_GECKO) patchGLIdentity(P, isGL2);
+      patchGLReadPixels(P, label);
+    }
+
+    /** Chromium only (D53): the persona's GPU strings, limits and extension list. */
+    function patchGLIdentity(P, isGL2) {
       replaceMethod(P, 'getParameter', (orig) => function getParameter(pname) {
         // Always delegate first, even for parameters we fully replace: it performs
         // the native brand check, so `getParameter.call({}, 0x9245)` throws
@@ -2525,7 +2659,10 @@
         touch('webgl');
         return setHas(D().glExtensionDeny, lower(name)) ? null : real;
       });
+    }
 
+    /** Every engine but Gecko-under-RFP: content-keyed read-back noise, as for canvas. */
+    function patchGLReadPixels(P, label) {
       replaceMethod(P, 'readPixels', (orig) => function readPixels(x, y, width, height, format) {
         const r = apply(orig, this, arguments);
         if (state.standingDown) return r;
@@ -2571,15 +2708,26 @@
       });
     }
 
-    safe('WebGLRenderingContext', () => patchGLContext(win.WebGLRenderingContext, 'webgl', false));
-    safe('WebGL2RenderingContext', () => patchGLContext(win.WebGL2RenderingContext, 'webgl2', true));
+    // Firefox with resistFingerprinting (D53): Firefox already answers every
+    // WebGL string with "Mozilla", clamps the limits and randomises read-back.
+    // Nothing here is installed, so all four methods stay the engine's natives.
+    personaSafe('WebGLRenderingContext', () => patchGLContext(win.WebGLRenderingContext, 'webgl', false));
+    personaSafe('WebGL2RenderingContext', () => patchGLContext(win.WebGL2RenderingContext, 'webgl2', true));
 
     // ────────────────────────────────────────────────────────────────────────
     // WEBGPU — per current research a bigger surface than WebGL (~25-35 bits),
     // most of it in `limits`, not `info`. Patching the prototypes covers every
     // adapter, including ones obtained before we were asked.
+    //
+    // The adapter IDENTITY (vendor, architecture, subgroup sizes, device,
+    // description), the feature filter and the `requestAdapter` fix-up are
+    // the persona's GPU, so on Gecko they are the engine's own (D53). Firefox
+    // 156 names no vendor or architecture (both "") where the persona said
+    // "apple" / "metal-3", and with the WebGL renderer now real, a persona
+    // vendor here would contradict it. `webgpu.limits` clamps to the spec
+    // defaults on every engine — it is not a persona value — and is unchanged.
     // ────────────────────────────────────────────────────────────────────────
-    safe('webgpu.adapterInfo', () => {
+    if (!ENGINE_GECKO) personaSafe('webgpu.adapterInfo', () => {
       const AI = win.GPUAdapterInfo;
       if (!AI || !AI.prototype) return; // no WebGPU on this build
       const P = AI.prototype;
@@ -2612,7 +2760,7 @@
       }
     });
 
-    safe('webgpu.limits', () => {
+    personaSafe('webgpu.limits', () => {
       const SL = win.GPUSupportedLimits;
       if (!SL || !SL.prototype) return;
       const P = SL.prototype;
@@ -2634,7 +2782,7 @@
       }
     });
 
-    safe('webgpu.features', () => {
+    if (!ENGINE_GECKO) personaSafe('webgpu.features', () => {
       const SF = win.GPUSupportedFeatures;
       if (!SF || !SF.prototype) return;
       const P = SF.prototype;
@@ -2731,8 +2879,8 @@
     });
 
     // Defensive belt for builds where the GPU* constructors are not exposed as
-    // globals: fix up `adapter.info` on the instance we hand back.
-    safe('webgpu.requestAdapter', () => {
+    // globals: fix up `adapter.info` on the instance we hand back. Chromium only (D53).
+    if (!ENGINE_GECKO) personaSafe('webgpu.requestAdapter', () => {
       const gpu = win.navigator.gpu;
       if (!gpu) return;
       const GP = ownerOf(gpu, 'requestAdapter');
@@ -2787,7 +2935,7 @@
       noiseFloat(arr, contentKey(D().audioKey, channel, abLength(buffer) | 0, facts.digest));
     }
 
-    safe('AudioBuffer.getChannelData', () => {
+    personaSafe('AudioBuffer.getChannelData', () => {
       const AB = win.AudioBuffer;
       if (!AB || !AB.prototype) return;
       // The NATIVE getChannelData, captured before the patch below replaces it.
@@ -2822,7 +2970,7 @@
       }
     });
 
-    safe('AnalyserNode frequency data', () => {
+    personaSafe('AnalyserNode frequency data', () => {
       const AN = win.AnalyserNode;
       if (!AN || !AN.prototype) return;
 
@@ -3215,7 +3363,7 @@
       return result;
     }
 
-    safe('HTMLElement.offsetWidth/offsetHeight', () => {
+    personaSafe('HTMLElement.offsetWidth/offsetHeight', () => {
       const H = win.HTMLElement.prototype;
       replaceGetter(H, 'offsetWidth', function (origGet) { return fontMetric(this, 'offsetWidth', origGet); });
       replaceGetter(H, 'offsetHeight', function (origGet) { return fontMetric(this, 'offsetHeight', origGet); });
@@ -3246,7 +3394,7 @@
      * `getBBox()` are also unpatched. A tracker that uses any of those still gets the
      * true font list.
      */
-    safe('Element.getBoundingClientRect (font-metric agreement)', () => {
+    personaSafe('Element.getBoundingClientRect (font-metric agreement)', () => {
       const E = win.Element.prototype;
       replaceMethod(E, 'getBoundingClientRect', (orig) => function getBoundingClientRect() {
         const r = apply(orig, this, arguments);
@@ -3268,7 +3416,7 @@
 
     // measureText: same logic, but the fallback can be measured exactly by
     // re-running the native call with a rewritten font shorthand — no DOM involved.
-    safe('CanvasRenderingContext2D.measureText', () => {
+    personaSafe('CanvasRenderingContext2D.measureText', () => {
       const TM = win.TextMetrics;
       const adjust = new RawWeakMap();
       let nativeTMWidth = null;     // the NATIVE TextMetrics.width getter, for our own reads below
@@ -4001,6 +4149,14 @@
       state.standingDown = true;
       restoreAll();
       status({ upgraded: false, lockedToFallback: false, reason: 'allowlisted' });
+      return;
+    }
+
+    // D54 — resistFingerprinting: nothing persona-shaped was installed, so there
+    // is nothing to upgrade. Said out loud, so the popup can say it too; GPC was
+    // applied above, before every early return.
+    if (GECKO_RFP) {
+      status({ upgraded: false, lockedToFallback: false, reason: 'resist-fingerprinting' });
       return;
     }
 
