@@ -151,7 +151,6 @@ const MUST_BLOCK = [
   [6002, 'https://st.dynamicyield.com/uia?x=1'],
   [6100, 'https://p.brsrvr.com/pix.gif?acct_id=5073'], [6101, 'https://cdns.brsrvr.com/v1/br-trk-6489.js'], [6102, 'https://cdn.brcdn.com/v1/br-trk-5073.js'],
   [6200, 'https://apps.rokt-api.com/webevents/v3/JS/us2-x/events'], [6201, 'https://apps.roktecommerce.com/webevents/v3/JS/us2-x/events'],
-  [6202, 'https://apps.rokt.com/wsdk/integrations/launcher.js'], [6203, 'https://apps.rokt.com/wsdk/integrations/snippet.js'],
   [6300, 'https://cdn.attn.tv/gap/dtag.js'], [6300, 'https://cdn.attn.tv/allbirds/dtag.js?shop=weareallbirds.myshopify.com'],
   [6301, 'https://cdn.attn.tv/tag/2026-latest/unified-tag.js?v=1'], [6302, 'https://events.attentivemobile.com/ct-ev'],
   [6400, 'https://tag.wknd.ai/123/i.js'], [6400, 'https://assets.bounceexchange.com/x.js'], [6400, 'https://events.bouncex.net/track'],
@@ -170,6 +169,15 @@ test('the tracking endpoints the lab saw are blocked, each by the rule meant for
     assert.ok(hit, `${url} is not blocked`);
     assert.equal(hit.ruleId, id, `${url} is blocked by ${hit.ruleId}, expected ${id}`);
   }
+});
+
+test('nothing qualifies through DuckDuckGo alone: the DDG-only candidates (Rokt launcher/snippet, Black Crow core script) stay out', () => {
+  // Tracker Radar is CC BY-NC-SA 4.0 (counter-program H, 2026-10-15): a corroborating reference, never the reason
+  // a personalization rule exists. These three were planned and qualified only through it.
+  for (const url of ['https://apps.rokt.com/wsdk/integrations/launcher.js', 'https://apps.rokt.com/wsdk/integrations/snippet.js', 'https://cdn.blackcrow.ai/js/core/x.js']) {
+    assert.equal(PZ.match(req(url, 'script')), null, `${url} is blocked, but only DuckDuckGo lists it`);
+  }
+  assert.ok(!RULES.some((r) => [6202, 6203, 6511].includes(r.id)));
 });
 
 test('the Rokt fallback (D56) is blocked at the event path the primary is listed for, not at the SDK', () => {

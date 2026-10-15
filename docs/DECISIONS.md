@@ -3521,10 +3521,13 @@ variants, the A1 controls, and the D56 tests.
 
 ## D57 — `apps.roktecommerce.com/webevents/` is blocked although no list names it: it is the Rokt SDK's own fallback for a listed path. 2026-10-15.
 
-**The bar it fails.** `ext/rules/README.md` admits a domain only if DuckDuckGo's Tracker Radar default-blocks it, or
-EasyPrivacy or AdGuard lists it. `roktecommerce.com` appears in none of the three (EasyPrivacy 202610150153, AdGuard
-Tracking Protection 2.1.13.53, DDG `extension-tds.json` v6, checked by script 2026-10-14/15). EasyPrivacy lists only
-`||apps.rokt-api.com/webevents/` — the event upload of "mParticle by Rokt", the CDP Rokt bought in January 2025.
+**The bar it fails.** A rule in `personalization.json` must be on EasyPrivacy, EasyList or AdGuard, or be admitted on
+first-hand evidence recorded here (DuckDuckGo's Tracker Radar is CC BY-NC-SA 4.0 and may only corroborate — license
+review, 2026-10-15; three DDG-only candidates were left out of the ruleset for that reason, see `ext/rules/README.md`).
+`roktecommerce.com` appears on none of the lists (EasyPrivacy 202610150153 and 202610152312, AdGuard Tracking
+Protection 2.1.13.53 and 2.1.13.61, EasyList 202610152312, and DDG `extension-tds.json` v6 as well; checked by script
+2026-10-14/15). EasyPrivacy lists
+only `||apps.rokt-api.com/webevents/` — the event upload of "mParticle by Rokt", the CDP Rokt bought in January 2025.
 
 **First-hand evidence (curl and in-browser, 2026-10-14/15).**
 - **Sephora and Gap load the SDK from the primary host** (`apps.rokt-api.com/js/v2/<key>/app.js`) and post to

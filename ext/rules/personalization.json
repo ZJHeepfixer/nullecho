@@ -161,26 +161,6 @@
     }
   },
   {
-    "id": 6202,
-    "priority": 1,
-    "action": {
-      "type": "block"
-    },
-    "condition": {
-      "urlFilter": "||rokt.com/wsdk/integrations/launcher.js"
-    }
-  },
-  {
-    "id": 6203,
-    "priority": 1,
-    "action": {
-      "type": "block"
-    },
-    "condition": {
-      "urlFilter": "||rokt.com/wsdk/integrations/snippet.js"
-    }
-  },
-  {
     "id": 6204,
     "priority": 1,
     "action": {
@@ -281,16 +261,6 @@
         "init.blackcrow.ai",
         "monitor-api.blackcrow.ai"
       ]
-    }
-  },
-  {
-    "id": 6511,
-    "priority": 1,
-    "action": {
-      "type": "block"
-    },
-    "condition": {
-      "urlFilter": "||blackcrow.ai/js/core/"
     }
   },
   {
@@ -467,7 +437,7 @@
       "type": "block"
     },
     "condition": {
-      "urlFilter": "||richrelevance.com/rrserver/api/engage/trackExperienceEvent?",
+      "urlFilter": "||recs.richrelevance.com/rrserver/api/engage/trackExperienceEvent?",
       "excludedInitiatorDomains": [
         "blue-tomato.com",
         "askul.co.jp"
