@@ -26,6 +26,7 @@ const CATEGORY_BLURB = {
   analytics: 'Page-view, session-replay and product-telemetry endpoints.',
   social: 'Share buttons, embeds and conversion pixels.',
   fingerprinting: 'Scripts whose main job is identifying the device.',
+  personalization: 'Shopper-profiling, offer-targeting and price-test tracking on shopping pages. Never what shows a price, cart or search results.',
 };
 
 let state = null;
@@ -74,7 +75,7 @@ async function patchSettings(patch) {
 function render(s) {
   state = s;
 
-  const version = LIVE ? api.runtime.getManifest().version : '0.9.2';
+  const version = LIVE ? api.runtime.getManifest().version : '0.9.3';
   $('ver').textContent = `v${version}`;
   $('ver-foot').textContent = `v${version}`;
   renderBrowserCopy(copyFor(browserKind()));
@@ -264,7 +265,7 @@ async function runLinkageRemedy(action) {
   switch (action) {
     case 'enable-blocking':
       await patchSettings({
-        categories: { ads: true, analytics: true, social: true, fingerprinting: true },
+        categories: { ads: true, analytics: true, social: true, fingerprinting: true, personalization: true },
       });
       render(await loadOverview());
       return;
@@ -286,7 +287,7 @@ async function runLinkageRemedy(action) {
 function renderCategories(s) {
   const box = $('category-toggles');
   box.replaceChildren();
-  for (const key of ['ads', 'analytics', 'social', 'fingerprinting']) {
+  for (const key of ['ads', 'analytics', 'social', 'fingerprinting', 'personalization']) {
     const row = document.createElement('div');
     row.className = 'toggle-row';
 
@@ -514,7 +515,7 @@ $('allow-form').addEventListener('submit', async (e) => {
 // ── demo fixtures (static-server / design-review only) ──────────────────────
 
 const DEMO_SETTINGS = {
-  categories: { ads: true, analytics: true, social: true, fingerprinting: true },
+  categories: { ads: true, analytics: true, social: true, fingerprinting: true, personalization: true },
   gpc: true,
   isCalifornian: false,
   autoRotateDays: 0,

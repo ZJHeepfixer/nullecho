@@ -1,0 +1,623 @@
+[
+  {
+    "id": 6000,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "async-px.dynamicyield.com",
+        "async-px-eu.dynamicyield.com",
+        "px.dynamicyield.com"
+      ]
+    }
+  },
+  {
+    "id": 6001,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "direct-collect.dy-api.com"
+      ]
+    }
+  },
+  {
+    "id": 6002,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||dynamicyield.com/uia?"
+    }
+  },
+  {
+    "id": 6003,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||dynamicyield.com/batch?"
+    }
+  },
+  {
+    "id": 6004,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||dynamicyield.com/imp?"
+    }
+  },
+  {
+    "id": 6005,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||dynamicyield.com/clog"
+    }
+  },
+  {
+    "id": 6006,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||dynamicyield.com/rcomEvent?"
+    }
+  },
+  {
+    "id": 6090,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "Cookie",
+          "operation": "remove"
+        }
+      ],
+      "responseHeaders": [
+        {
+          "header": "Set-Cookie",
+          "operation": "remove"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": [
+        "dynamicyield.com",
+        "dy-api.com"
+      ],
+      "domainType": "thirdParty"
+    }
+  },
+  {
+    "id": 6100,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "p.brsrvr.com",
+        "p-eu.brsrvr.com"
+      ],
+      "domainType": "thirdParty"
+    }
+  },
+  {
+    "id": 6101,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "cdns.brsrvr.com"
+      ]
+    }
+  },
+  {
+    "id": 6102,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "brcdn.com"
+      ],
+      "domainType": "thirdParty"
+    }
+  },
+  {
+    "id": 6200,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||apps.rokt-api.com/webevents/"
+    }
+  },
+  {
+    "id": 6201,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||apps.roktecommerce.com/webevents/"
+    }
+  },
+  {
+    "id": 6202,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||rokt.com/wsdk/integrations/launcher.js"
+    }
+  },
+  {
+    "id": 6203,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||rokt.com/wsdk/integrations/snippet.js"
+    }
+  },
+  {
+    "id": 6204,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||rokt.com/v1/events^"
+    }
+  },
+  {
+    "id": 6205,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||rokt.com/v2/metrics^"
+    }
+  },
+  {
+    "id": 6206,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||pps.rokt.com/v1/timings/events"
+    }
+  },
+  {
+    "id": 6300,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||attn.tv/*/dtag.js"
+    }
+  },
+  {
+    "id": 6301,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||attn.tv/tag/"
+    }
+  },
+  {
+    "id": 6302,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "events.attentivemobile.com"
+      ]
+    }
+  },
+  {
+    "id": 6400,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "bounceexchange.com",
+        "bouncex.net",
+        "wknd.ai"
+      ]
+    }
+  },
+  {
+    "id": 6500,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "granify.com"
+      ],
+      "domainType": "thirdParty"
+    }
+  },
+  {
+    "id": 6510,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "api.blackcrow.ai",
+        "init.blackcrow.ai",
+        "monitor-api.blackcrow.ai"
+      ]
+    }
+  },
+  {
+    "id": 6511,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||blackcrow.ai/js/core/"
+    }
+  },
+  {
+    "id": 6600,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "evergage.com"
+      ],
+      "domainType": "thirdParty",
+      "excludedInitiatorDomains": [
+        "mbusa.com"
+      ]
+    }
+  },
+  {
+    "id": 6601,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "p.cquotient.com"
+      ]
+    }
+  },
+  {
+    "id": 6700,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "insights.algolia.io"
+      ]
+    }
+  },
+  {
+    "id": 6701,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||cnstrc.com/behavior?"
+    }
+  },
+  {
+    "id": 6702,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||ac.cnstrc.com/v2/behavioral_action/"
+    }
+  },
+  {
+    "id": 6703,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "analytics.cloud.coveo.com",
+        "analytics.org.coveo.com",
+        "usageanalytics.coveo.com"
+      ]
+    }
+  },
+  {
+    "id": 6704,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||nosto.com/analytics/"
+    }
+  },
+  {
+    "id": 6705,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "beacon.searchspring.io"
+      ]
+    }
+  },
+  {
+    "id": 6706,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "tracker.unbxdapi.com"
+      ]
+    }
+  },
+  {
+    "id": 6707,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||rfksrv.com/rfkj/",
+      "resourceTypes": [
+        "image"
+      ]
+    }
+  },
+  {
+    "id": 6708,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||groupbycloud.com/wisdom/v2/pixel"
+    }
+  },
+  {
+    "id": 6709,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||sitecorecloud.io/v1/events/"
+    }
+  },
+  {
+    "id": 6710,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "onsitestats.bluecore.com"
+      ]
+    }
+  },
+  {
+    "id": 6711,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||richrelevance.com/rrserver/tracking?",
+      "excludedInitiatorDomains": [
+        "blue-tomato.com",
+        "askul.co.jp"
+      ]
+    }
+  },
+  {
+    "id": 6712,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||richrelevance.com/rrserver/api/engage/trackExperienceEvent?",
+      "excludedInitiatorDomains": [
+        "blue-tomato.com",
+        "askul.co.jp"
+      ]
+    }
+  },
+  {
+    "id": 6713,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||listrakbi.com/activity/"
+    }
+  },
+  {
+    "id": 6714,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||listrakbi.com/api/ActivityEvents/"
+    }
+  },
+  {
+    "id": 6715,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||rebuyengine.com/api/*/analytics/event/"
+    }
+  },
+  {
+    "id": 6800,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "convertexperiments.com"
+      ],
+      "domainType": "thirdParty",
+      "excludedInitiatorDomains": [
+        "skratchlabs.com"
+      ]
+    }
+  },
+  {
+    "id": 6801,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "ariane.abtasty.com",
+        "dcinfos-cache.abtasty.com"
+      ]
+    }
+  },
+  {
+    "id": 6900,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||api.intelligems.io/v3/track"
+    }
+  },
+  {
+    "id": 6901,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||intelligems.io/track"
+    }
+  },
+  {
+    "id": 6910,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "triptease.io"
+      ],
+      "domainType": "thirdParty"
+    }
+  },
+  {
+    "id": 6950,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "static-tracking.klaviyo.com"
+      ]
+    }
+  },
+  {
+    "id": 6951,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "requestDomains": [
+        "telemetrics.klaviyo.com"
+      ]
+    }
+  },
+  {
+    "id": 6952,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||a.klaviyo.com/onsite/track-analytics"
+    }
+  },
+  {
+    "id": 6953,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||fast.a.klaviyo.com/media/js/analytics/klaviyo_analytics.js"
+    }
+  },
+  {
+    "id": 6954,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||a.klaviyo.com/client/events/"
+    }
+  }
+]
