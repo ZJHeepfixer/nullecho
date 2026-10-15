@@ -11,7 +11,7 @@ the owner's step after signing (TestFlight + a Sandbox Apple Account); nothing h
 |---|---|
 | `xcode/App/TipJar.swift` | `TipJar` model (`@Observable`): `Product.products(for:)` sorted by price; `AppStore.canMakePayments` gate; `Transaction.updates` listener started in `init` (the app creates one jar at launch); `tip(_:using:)` takes the SwiftUI `PurchaseAction`; `.success(.verified)` → thanked then `finish()`; `.unverified` → nothing, not finished; `.pending` → "Waiting for approval."; `.userCancelled` → nothing; revoked (refund) → finished, not thanked. No persistence of any kind. `SupportSection` + `TipRow` views (name = `displayName`, button = `displayPrice`, VoiceOver label carries both). |
 | `xcode/App/ContentView.swift`, `NullechoApp.swift` | Section placed after "If a site misbehaves", before "More"; hidden entirely when purchases are disallowed. "Collects nothing" now reads: "This app opens no network connections of its own; the two links below are handed to your browser, and a tip is handled by the App Store's own purchase service, not by this app." (the measured truth, `audit/04`). |
-| `xcode/Nullecho.storekit` | Three consumables `org.nullecho.tip.small` / `.medium` / `.large`, USD 1.99 / 4.99 / 9.99 (working values), names ≤ 30 chars, descriptions ≤ 45. Attached to both shared schemes' Run action (the Test action inherits it). |
+| `xcode/Nullecho.storekit` | Three consumables `org.nullecho.tip.small` / `.medium` / `.large`, USD 1.00 / 2.00 / 3.00 (the owner's choice of 2026-10-14; the runs below were made at the earlier 1.99 / 4.99 / 9.99 working values, which is why those figures appear in the recorded outputs), names ≤ 30 chars, descriptions ≤ 45. Attached to both shared schemes' Run action (the Test action inherits it). |
 | `xcode/Tests/TipJarTests.swift` | 8 hosted XCTests using `SKTestSession` (iOS and macOS test bundles; see the macOS note under Not verified). |
 | `xcode/UITests/TipJarUITests.swift` | 3 XCUITests: the purchase-sheet flow with screenshots; a failed-transaction negative; outside purchase → listener thanks → relaunch shows no phantom thank-you. |
 | `tools/check-container.mjs` | 6 new assertions (18 total): product ids match between code and `.storekit` (three consumables); both schemes attach the file; no banned words (donate/charity/fundraiser/cause/unlock/upgrade/premium/pro/remove ads) in app copy or product strings; no persistence API; `ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO` still; the new network sentence present and the old absolute one gone. `--self-test`: 35 mutations, each caught by exactly the intended check. |
@@ -80,6 +80,12 @@ and the Simulator's StoreKit daemon keeps that per bundle id, so a tap purchased
 on SpringBoard but the purchase did not complete within the test's 30 s window, so **confirming Apple's sheet by
 automation is unverified**; the thank-you path itself is proven by the silent-purchase runs and the listener run.
 The owner's TestFlight pass uses the real sheet.
+
+## Tier change, 2026-10-14
+
+The owner changed the tiers to round amounts ($1.00 / $2.00 / $3.00). Measured the same day on the iPhone 17 Pro
+simulator (`testProductsLoadSortedByPriceWithDisplayPrices`, PASS): StoreKit formats them as `$1.00`, `$2.00`,
+`$3.00` (not `$1`), which is what the UI test's tier predicate and the app's buttons show. Product ids unchanged.
 
 ## Not verified
 
