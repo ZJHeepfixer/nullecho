@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nullecho — privacy policy</title>
-<meta name="description" content="Nullecho's privacy policy. The extension collects nothing and has no network endpoint; this website is hosted on GitHub Pages, which logs visitor IP addresses. Both answers, stated separately.">
+<meta name="description" content="Nullecho's privacy policy for Chrome, Microsoft Edge and Firefox. The extension collects nothing and has no network endpoint; what it keeps stays in your browser. This website is hosted on GitHub Pages, which logs visitor IP addresses. Both answers, stated separately.">
 <style>
   :root{
     --bg:#0c0f14; --panel:#141922; --line:#242c3a; --raise:#1b2230;
@@ -88,8 +88,9 @@
       is hosted by someone else who keeps server logs. Saying only the first half would be the kind of
       claim this project exists not to make.
     </p>
-    <p class="meta">Effective 2026-09-19. Every claim about the extension was checked against the
-      source in <code>ext/</code>, not asserted from memory — the grep citations are below.</p>
+    <p class="meta">Effective 2026-10-14 (Nullecho 0.9.2). It covers the extension in Chrome, Microsoft
+      Edge and Firefox — the same code runs in all three. Every claim about the extension was checked
+      against the source in <code>ext/</code>, not asserted from memory — the grep citations are below.</p>
   </div>
 </header>
 
@@ -98,7 +99,8 @@
   <p class="body">
     Nullecho blocks trackers (ads, analytics, social pixels, known fingerprinting vendors), sends the
     Global Privacy Control signal, shows each site a different but internally-consistent device
-    profile, and offers a guided link to California's data-broker deletion platform (DROP).
+    profile, points out when a shopping page has displayed one of the algorithmic-pricing sentences a
+    U.S. state mandates, and offers a guided link to California's data-broker deletion platform (DROP).
   </p>
   <p>Two qualifications belong here rather than in a footnote.</p>
   <div class="box">
@@ -135,7 +137,7 @@
     page or extension can reach the network finds exactly two <code>fetch()</code> calls in the whole
     codebase:
   </p>
-<pre>ext/src/background.js   fetch(chrome.runtime.getURL('rules/fingerprinting.json'))
+<pre>ext/src/background.js   fetch(chrome.runtime.getURL(`rules/${id}.json`))
 ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   <p>
     Cited by file and expression rather than by line number, deliberately — a line number in a
@@ -145,8 +147,8 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   </p>
   <p>
     Both read a JSON file bundled <em>inside</em> the extension package —
-    <code>chrome.runtime.getURL(...)</code> resolves to <code>chrome-extension://…</code>, never a
-    remote host. There is no other <code>fetch</code>, <code>XMLHttpRequest</code>,
+    <code>chrome.runtime.getURL(...)</code> resolves to <code>chrome-extension://…</code> (in Firefox,
+    <code>moz-extension://…</code>), never a remote host. There is no other <code>fetch</code>, <code>XMLHttpRequest</code>,
     <code>navigator.sendBeacon</code>, <code>WebSocket</code>, <code>EventSource</code>, or
     <code>importScripts</code> anywhere in the shipped source — enforced by an automated test
     (<code>ext/src/manifest.test.js</code>) that fails the build if any of those appear, or if a
@@ -163,29 +165,71 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
 <section><div class="wrap">
   <h2>Data stored locally</h2>
   <p class="body">
-    Everything Nullecho stores in an installed build lives only in <code>chrome.storage.local</code> —
-    a private, per-browser-profile store on your own machine that Chrome and Firefox delete
-    automatically when you uninstall the extension. Nothing is synced to your Google or Firefox
-    account (<code>chrome.storage.sync</code> is never used, enforced by the same build-failing test).
-    Grepping every <code>storage.local.set</code> call in the source gives this exact list:
+    Nullecho keeps what it stores in three places, all inside your browser profile on your own machine,
+    and Chrome, Microsoft Edge and Firefox delete all three automatically when you uninstall the
+    extension. Nothing is synced to your Google, Microsoft or Mozilla account: <code>storage.sync</code>
+    is never used, and the same build-failing test fails the build if <code>storage.sync</code> appears
+    in any shipped file.
+  </p>
+  <p>
+    <strong>1. <code>chrome.storage.local</code></strong> (in Firefox, the same store under
+    <code>browser.storage.local</code>). Grepping every <code>storage.local.set</code> call in the source
+    gives this exact list:
   </p>
   <div class="tablewrap">
   <table>
     <thead><tr><th>Key</th><th>What it holds</th></tr></thead>
     <tbody>
-      <tr><td class="k">identity</td><td>A random session salt (seeds which device persona each site sees) and when it was last rotated. Never leaves this key.</td></tr>
-      <tr><td class="k">settings</td><td>Which tracker categories you block, whether GPC is on, salt auto-rotation interval, loud-failure logging.</td></tr>
+      <tr><td class="k">identity</td><td>A random salt — it decides which device profile each site sees — and when it was last rotated. The salt itself is never shown or sent anywhere; the popup and settings page show only a six-character tag derived from it.</td></tr>
+      <tr><td class="k">settings</td><td>Which tracker categories you block, whether GPC is on, whether you said you live in California (it only decides whether the DROP step is suggested), the salt auto-rotation interval, and loud-failure logging.</td></tr>
       <tr><td class="k">allowlist</td><td>Sites where you've turned Nullecho off.</td></tr>
-      <tr><td class="k">stats</td><td>Per-site counters — blocked count, fingerprint-read attempts by API, categories seen, last visit, persona shown, last shim status. Capped at 500 sites / 60 tracker entries per site.</td></tr>
-      <tr><td class="k">nullecho:heuristics:v1</td><td>Per-domain "strike" counts the passive tracker-detection observer has built (3 cross-site appearances → learned tracker).</td></tr>
+      <tr><td class="k">stats</td><td>One entry per site whose pages — or frames embedded in a page — you load, by site name (for example <code>example.com</code>), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and how many requests were blocked and to which tracker domains (in a store install, taken from the browser's own report that an extension cancelled a request, and counted only when one of Nullecho's own rules covers it). Requests that went through with their cookies removed are counted only in unpacked developer builds of Chrome and Edge, the one place the browser reports them. At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site.</td></tr>
+      <tr><td class="k">nullecho:heuristics:v1</td><td>The tracker learner. For each third-party domain seen setting or sending an identifying cookie: the names of the sites it was seen on, whether it has been learned as a tracker (three different sites), and when it was first and last seen. It keeps domain names, never a cookie's value.</td></tr>
       <tr><td class="k">nullecho:gpc:v1</td><td>Sites where you've manually excepted the GPC signal because it broke something.</td></tr>
       <tr><td class="k">nullecho.drop.residency<br>nullecho.drop.submittedAt</td><td>Your California-residency answer and a date you typed, only if you use the DROP guide. Deliberately excludes name, birthdate, ZIP, and the state's deletion-request ID — those live only on California's own site, which Nullecho links to.</td></tr>
+      <tr><td class="k">pricingObservations</td><td>Shopping pages that displayed one of the two algorithmic-pricing sentences a U.S. state mandates <strong>and</strong> published a machine-readable price. For each: the site, the page address with its query string removed, the time, which state's wording it was, the price and currency the page published, and up to 200 characters of the page's own text around the sentence. At most 200 entries. Details below.</td></tr>
     </tbody>
   </table>
   </div>
   <p>
-    None of these keys contain your browsing history, page content, or anything identifying beyond a
-    random salt and domains you've explicitly interacted with.
+    <strong>What that adds up to, plainly.</strong> <code>stats</code> and the tracker learner are, between
+    them, a list of the sites you have loaded — by site name, with when each was last seen — and
+    <code>pricingObservations</code> holds a page address and a short excerpt of page text for each of the
+    (rare) pages it describes. All of it stays in this browser profile on this machine.
+  </p>
+  <h3>The price-disclosure observations</h3>
+  <p>
+    <strong>What is stored, and when.</strong> Nothing, on almost every page. A page is recorded only if it
+    shows one of the two sentences — New York's <em>"this price was set by an algorithm using your personal
+    data"</em> or Connecticut's <em>"this price was increased using your personal data"</em> — and also
+    publishes a price in structured product data. The check runs on the top-level page in Chrome, Edge and
+    Firefox alike, once when the page has loaded and once about three seconds later.
+  </p>
+  <p>
+    <strong>How long it is kept.</strong> There is no time limit. An entry stays until there are more than
+    200, when the oldest is dropped, or until you uninstall the extension. Seeing the same page, wording and
+    price again replaces the earlier entry instead of adding one. The settings page's <strong>"Clear saved
+    price notices"</strong> button deletes them all, and shows how many there were and how many are left;
+    uninstalling removes them too.
+  </p>
+  <p>
+    <strong>Whether it leaves your device.</strong> It does not. No code in the shipped extension can send
+    it anywhere — the build-failing test above covers it like everything else. The popup shows the latest
+    entry for the site you are on, and its "Copy receipt" button puts that entry's text on your clipboard
+    when you click it; where it goes from there is up to you.
+  </p>
+  <p>
+    <strong>2. The browser's own rule list</strong> (<code>declarativeNetRequest</code> dynamic rules).
+    Blocking and header changes are rules the browser itself applies, and three kinds of rule that
+    Nullecho adds hold domain names: the sites you turned Nullecho off on, the sites you turned GPC off
+    on, and the tracker domains the learner promoted.
+  </p>
+  <p>
+    <strong>3. <code>storage.session</code></strong> — memory only, never written to disk and never
+    synced. One key, <code>nullecho:tab-blocked</code>: for each open tab, how many requests Nullecho
+    blocked on the page in it, by category — numbers, no addresses. It is how the popup's "blocked on
+    this page" survives the background script being put to sleep. A tab's entry is dropped when it loads
+    a new page or closes, and all of it when the browser closes.
   </p>
   <p>
     One honest footnote, because this list is presented as a grep result and a grep for
@@ -206,28 +250,39 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   <h3>Permissions, and why each is needed</h3>
   <ul>
     <li><strong><code>declarativeNetRequest</code> / <code>declarativeNetRequestFeedback</code></strong> —
-      runs the static tracker-blocking rules and reports what was blocked for the popup's count. The
-      browser evaluates these rules; Nullecho's own code never sees the URL of a request it didn't
-      block.</li>
+      the rules that block trackers, add the GPC header, strip cookies from some requests and remove
+      some client-hint headers. The browser applies them itself. In Chrome and Edge the popup's
+      per-tab count asks the browser which rules acted in the current tab; in a store-installed build
+      the browser answers with rule numbers, not request addresses. Firefox offers no such report; there
+      the count comes from the <code>webRequest</code> report described next.</li>
     <li><strong><code>storage</code></strong> — the local-only data above.
-      <strong><code>alarms</code></strong> — wakes the background service worker to rotate your salt
-      if you've turned that optional feature on.</li>
+      <strong><code>alarms</code></strong> — wakes the background script to rotate your salt if you've
+      turned that optional feature on.</li>
     <li><strong><code>webRequest</code></strong> (observation only, not <code>webRequestBlocking</code>) —
-      lets the tracker-detection observer watch which domains a site loads, to learn trackers not
-      already on the blocklists. It only reads request headers; it can't block anything itself, and
-      nothing it sees is ever transmitted anywhere.</li>
+      lets the tracker learner look at the requests your pages make: each request's address, the page
+      that made it, the <code>Cookie</code> header sent and any <code>Set-Cookie</code> header returned.
+      It ignores page loads themselves and first-party requests, it can't block anything itself, it keeps
+      only what the learner's row above describes, and nothing it sees is ever transmitted anywhere. The
+      same permission delivers the browser's report that an extension cancelled a request — Nullecho counts
+      it as blocked only when one of its own rules covers it, keeping the site name and tracker domain
+      shown in <code>stats</code> — and the start of each new page in a tab, which resets that tab's count.</li>
     <li><strong><code>host_permissions: ["&lt;all_urls&gt;"]</code></strong> — needed on every site so
-      blocking, the GPC signal, and the persona shim all work everywhere, not just a list you'd have
-      to remember to maintain.</li>
+      blocking, the GPC signal, the device-profile script and the price-disclosure check all work
+      everywhere, not just a list you'd have to remember to maintain.</li>
   </ul>
 </div></section>
 
 <section><div class="wrap">
   <h2>How to delete everything</h2>
   <ul>
-    <li><strong>Uninstall the extension.</strong> Chrome and Firefox both delete an extension's
-      <code>chrome.storage.local</code> data automatically on uninstall — there is nothing left
-      behind, because there was never anywhere else for it to go.</li>
+    <li><strong>Uninstall the extension.</strong> Chrome, Microsoft Edge and Firefox all delete an
+      extension's <code>storage.local</code> data and the rules it added automatically on uninstall —
+      there is nothing left behind, because there was never anywhere else for it to go.</li>
+    <li><strong>Clear the site list without uninstalling.</strong> "Clear site history" on the settings
+      page empties <code>stats</code>. It does not touch the tracker learner or the price-disclosure
+      observations.</li>
+    <li><strong>Clear the price-disclosure observations.</strong> "Clear saved price notices" on the
+      settings page deletes every entry in <code>pricingObservations</code>.</li>
     <li><strong>Get a "new identity" without uninstalling.</strong> The popup's "New identity" button
       generates a fresh random salt and writes it over the old one. Every site then sees a brand-new,
       unrelated device persona going forward. This does not touch your blocking stats or allowlist —
@@ -293,7 +348,7 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   <div class="wrap">
     <p>
       Canonical URL: <code>https://nullecho.org/privacy/</code> — this is the
-      privacy-policy link given on both store listings. The source of truth is
+      privacy-policy link Nullecho gives on its store listings. The source of truth is
       <a href="https://github.com/ZJHeepfixer/nullecho/blob/main/docs/PRIVACY-POLICY.md" target="_blank" rel="noopener noreferrer">docs/PRIVACY-POLICY.md</a>
       in the repository; this page renders it.
     </p>
