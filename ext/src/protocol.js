@@ -64,6 +64,7 @@ export const PRICING_MSG = {
   OBSERVED: 'nullecho:pricing:observed',        // { level, context, price, currency }
   GET_FOR_SITE: 'nullecho:pricing:get-for-site', // { site } → { ok, observation }
   FORGET: 'nullecho:pricing:forget',            // { site? }  omit site = all
+  COUNT: 'nullecho:pricing:count',              // → { ok, count }  how many are stored
 };
 
 /**

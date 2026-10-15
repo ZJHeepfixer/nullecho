@@ -91,3 +91,25 @@ test('both documents cover Chrome, Microsoft Edge and Firefox, and no longer say
     assert.doesNotMatch(doc, /both store listings/, `${name} still says "both" store listings`);
   }
 });
+
+test('storage.session holds exactly one key, the per-tab blocked tally, and both documents describe it (D55)', () => {
+  const sites = [];
+  for (const f of shipped()) {
+    const src = fs.readFileSync(f, 'utf8');
+    for (const m of src.matchAll(/storage\.session\??\.set\(\s*([^)]*)\)/g)) sites.push(`${path.relative(EXT, f)}: ${m[1].replace(/\s+/g, ' ')}`);
+  }
+  assert.deepEqual(sites, ['src/background.js: { [TAB_TALLY_KEY]: tabTallies }']);
+  assert.match(fs.readFileSync(path.join(EXT, 'src', 'background.js'), 'utf8'), /const TAB_TALLY_KEY = 'nullecho:tab-blocked';/);
+  for (const [name, doc] of [['site', PAGE], ['policy', POLICY]]) {
+    assert.ok(doc.includes('storage.session') && doc.includes('nullecho:tab-blocked'), `${name} omits the session tally`);
+  }
+});
+
+test('both documents point at the "Clear saved price notices" button, and no longer say there is none', () => {
+  const html = fs.readFileSync(path.join(EXT, 'options', 'options.html'), 'utf8');
+  assert.match(html, />Clear saved price notices</);
+  for (const [name, doc] of [['site', PAGE], ['policy', POLICY]]) {
+    assert.match(doc, /Clear saved\s+price notices/, `${name} does not mention the button`);
+    assert.doesNotMatch(doc, /no button to\s+clear/, `${name} still says there is no button`);
+  }
+});

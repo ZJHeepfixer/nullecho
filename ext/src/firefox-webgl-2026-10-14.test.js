@@ -157,7 +157,8 @@ const WIN_PERSONA = 'win11-chrome-rtx3060';
 function boot({ real = FIREFOX, persona = MAC_PERSONA, ...engine } = {}) {
   const r = bootRealm({ real, engine: engineSrc(engine) });
   r.upgrade({ persona: delivered(persona) });
-  assert.ok(r.statuses.some((s) => s.upgraded === true), 'the authenticated persona was accepted');
+  // Accepted — or, under resistFingerprinting (D54), declined out loud.
+  assert.ok(r.statuses.some((s) => s.upgraded === true || s.reason === 'resist-fingerprinting'), 'the authenticated handshake was answered');
   return r;
 }
 
@@ -239,6 +240,7 @@ test('D53: on Firefox the WebGPU adapter identity is the engine\'s ("" vendor), 
 test('D53: under resistFingerprinting nothing WebGL is touched — RFP\'s "Mozilla", 2048 and read-back stand', () => {
   for (const clock of [RFP_CLOCK, UTC_CLOCK]) {
     const r = boot({ gl: FF_RFP_GL, clock, screen: RFP_SCREEN });
+    assert.ok(r.statuses.some((s) => s.reason === 'resist-fingerprinting'), 'the shim says why it stood down (D54)');
     for (const [kind, i] of [['webgl', 0], ['webgl2', 1]]) {
       const g = readGL(r, kind);
       const where = `${clock.zone} ${kind}`;

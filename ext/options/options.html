@@ -35,6 +35,12 @@
 
 <main class="page">
 
+  <!-- D54: shown only when the newest page the shim reported from said Firefox's
+       resistFingerprinting is on. Text from browser-kind.js RFP_ON. -->
+  <section class="card accent" id="rfp-banner" hidden>
+    <p class="lede" id="rfp-text"></p>
+  </section>
+
   <section class="totals" aria-label="Totals since install">
     <div class="tot"><span class="num" id="t-blocked">0</span><span class="lab">requests blocked</span></div>
     <div class="tot"><span class="num" id="t-fp">0</span><span class="lab">fingerprint reads seen</span></div>
@@ -377,8 +383,12 @@
       fails the build if any code that could send something is ever added. The
       stored record holds the page address without its query string, the date,
       the price the page published, and up to 200 characters of the text around
-      the sentence — nothing about you.
+      the sentence — nothing else.
     </p>
+    <div class="rowactions">
+      <button class="btn" id="clear-pricing" type="button">Clear saved price notices</button>
+      <span class="note inline" id="pricing-count">—</span>
+    </div>
   </section>
 
   <section class="card accent" id="delete">

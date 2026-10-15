@@ -5,8 +5,8 @@
  * design review; it falls back to a fixture when there is no service worker.
  */
 
-import { MSG, CATEGORY_LABELS } from '../src/protocol.js';
-import { browserKind, copyFor } from '../src/browser-kind.js';
+import { MSG, PRICING_MSG, CATEGORY_LABELS } from '../src/protocol.js';
+import { browserKind, copyFor, RFP_ON } from '../src/browser-kind.js';
 import {
   buildLinkageGraph,
   headline as linkageHeadline,
@@ -78,6 +78,10 @@ function render(s) {
   $('ver').textContent = `v${version}`;
   $('ver-foot').textContent = `v${version}`;
   renderBrowserCopy(copyFor(browserKind()));
+  $('rfp-banner').hidden = !s.resistFingerprinting;
+  $('rfp-text').textContent = s.resistFingerprinting
+    ? `${RFP_ON} Blocking and Global Privacy Control stay on; the profile pool below is not used while it is.`
+    : '';
 
   $('t-blocked').textContent = nf.format(s.totals?.blocked ?? 0);
   $('t-fp').textContent = nf.format(s.totals?.fp ?? 0);
@@ -96,6 +100,35 @@ function render(s) {
   $('auto-rotate').value = String(s.settings.autoRotateDays ?? 0);
 
   if (LIVE) $('drop-link').href = api.runtime.getURL('options/drop.html');
+  renderPricingCount();
+}
+
+// ── saved price notices ─────────────────────────────────────────────────────
+//
+// `pricingObservations` (background.js §3) has had a delete handler since it was
+// written and, until 0.9.2, no caller — the privacy page had to say "uninstall to
+// remove them". The count is read from the worker before and after, so the page
+// shows what was there and what is left rather than assuming the delete worked.
+
+const noticeCount = (n) => `${nf.format(n)} saved price ${n === 1 ? 'notice' : 'notices'}`;
+
+/** `send` is the message function; returns `{ before, after }`, either null when the worker did not answer. */
+async function clearPricingNotices(send) {
+  const read = async () => {
+    const r = await send({ type: PRICING_MSG.COUNT });
+    return r?.ok && Number.isInteger(r.count) ? r.count : null;
+  };
+  const before = await read();
+  if (before === null) return { before: null, after: null };
+  await send({ type: PRICING_MSG.FORGET });
+  return { before, after: await read() };
+}
+
+async function renderPricingCount() {
+  const r = await sendMessage({ type: PRICING_MSG.COUNT });
+  $('pricing-count').textContent = r?.ok && Number.isInteger(r.count)
+    ? `${noticeCount(r.count)} on this device.`
+    : 'Saved price notices: not available here.';
 }
 
 /**
@@ -445,6 +478,13 @@ $('rotate').addEventListener('click', async () => {
   btn.textContent = 'New identity';
   btn.classList.add('primary');
   toast('New identity. Reload open tabs to apply.');
+});
+
+$('clear-pricing').addEventListener('click', async () => {
+  const { before, after } = await clearPricingNotices(sendMessage);
+  if (before === null) { toast('Saved price notices are only available in the installed extension.'); return; }
+  $('pricing-count').textContent = after === null ? '—' : `${noticeCount(after)} on this device.`;
+  toast(`Deleted ${noticeCount(before)} — ${after === null ? 'the count could not be read back' : `${nf.format(after)} left`}.`);
 });
 
 $('clear-stats').addEventListener('click', async () => {

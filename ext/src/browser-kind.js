@@ -19,6 +19,16 @@
  * (Firefox has no `userAgentData`). Pure — `browser-kind.test.js` imports it.
  */
 
+/**
+ * D54 — what the popup and the options page say, in these words, when the page
+ * shim reports that Firefox's resistFingerprinting is on and the device profile
+ * has been left to Firefox.
+ */
+export const RFP_ON = "Firefox's resistFingerprinting is on, so Nullecho leaves your device profile to Firefox.";
+
+/** The shim's status reason for that state (shim.js `applyAuthenticated`). */
+export const RFP_REASON = 'resist-fingerprinting';
+
 /** @returns {'chrome' | 'edge' | 'firefox' | 'other'} */
 export function browserKind(nav = globalThis.navigator) {
   try {
@@ -52,31 +62,26 @@ const NEUTRAL = {
   differs: 'What differs per site is the device underneath: processor, memory, graphics, fonts and operating-system version.',
   /** options → under the profile pool. Empty = no note. */
   poolNote: '',
-  /** popup → blocked-in-this-tab fallback (packed build, no per-URL report). */
-  blockedUrls: 'Your browser only reports the individual blocked URLs to extensions loaded for development (unpacked), so this is a per-category count for the current tab, not a domain list.',
+  /** popup → the per-category panel shown when this site has no recorded domain list yet (D55). */
+  blockedUrls: 'A per-category count for the page open in this tab. The domain list for this site fills in as Nullecho records blocks made by its own pages.',
 };
 
 export const BROWSER_COPY = {
   other: NEUTRAL,
-  edge: {
-    ...NEUTRAL,
-    blockedUrls: 'Microsoft Edge only reports the individual blocked URLs to unpacked (developer) builds, so this is a per-category count for the current tab, not a domain list.',
-  },
+  edge: NEUTRAL,
   chrome: {
     ...NEUTRAL,
     stronger: 'On Firefox or Brave, their built-in protections are stronger.',
     limitTitle: 'Firefox and Brave do this better',
     limitBody: 'Firefox\'s resistFingerprinting and Brave\'s built-in protections work below the JavaScript layer, where an extension simply cannot reach — so they cover things Nullecho never will. If you can use either, they are the stronger choice. Nullecho exists for Chrome, where neither is available, and makes a different trade: a different device profile per site instead of one identical profile for everyone.',
-    blockedUrls: 'Chrome only reports the individual blocked URLs to unpacked (developer) builds, so this is a per-category count for the current tab, not a domain list.',
   },
   firefox: {
     ...NEUTRAL,
     stronger: 'Firefox’s own resistFingerprinting setting is stronger.',
     limitTitle: 'Firefox’s resistFingerprinting does this better',
-    limitBody: 'Firefox’s privacy.resistFingerprinting setting works below the JavaScript layer, where an extension simply cannot reach — so it covers things Nullecho never will, and it is the stronger choice. It gives every Firefox that uses it the same profile; Nullecho makes a different trade: a different device profile per site. When Nullecho recognises that resistFingerprinting is on, it leaves WebGL to Firefox, but its other per-site values still apply on top — which sets you apart from other resistFingerprinting users.',
-    differs: 'In Firefox, what differs per site is the processor core count and the fonts, plus a small per-site noise in canvas, audio and WebGL read-backs. Graphics, memory and operating-system version are reported exactly as Firefox reports them.',
+    limitBody: 'Firefox’s privacy.resistFingerprinting setting works below the JavaScript layer, where an extension simply cannot reach — so it covers things Nullecho never will, and it is the stronger choice. It gives every Firefox that uses it the same profile; Nullecho makes a different trade: a different device profile per site. When Nullecho recognises that resistFingerprinting is on, it leaves your whole device profile to Firefox — overriding any of RFP’s shared values would make you the one RFP user who differs — and keeps blocking trackers and sending Global Privacy Control.',
+    differs: 'In Firefox, what differs per site is the processor core count and the fonts, plus a small per-site noise in canvas, audio and WebGL read-backs — unless resistFingerprinting is on, when none of it does. Graphics, memory and operating-system version are reported exactly as Firefox reports them.',
     poolNote: 'In Firefox only each profile’s core count and fonts apply: sites see your graphics card as Firefox itself reports it (a generalised model), Firefox does not expose memory, and it reports a frozen operating-system version.',
-    blockedUrls: 'Firefox does not report individual blocked URLs to this extension, so this is a per-category count for the current tab, not a domain list.',
   },
 };
 

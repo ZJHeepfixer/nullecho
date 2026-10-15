@@ -46,7 +46,7 @@ to anyone, ever.
 can reach the network finds exactly two `fetch()` calls in the whole codebase:
 
 ```
-ext/src/background.js   fetch(chrome.runtime.getURL('rules/fingerprinting.json'))
+ext/src/background.js   fetch(chrome.runtime.getURL(`rules/${id}.json`))
 ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))
 ```
 
@@ -68,8 +68,8 @@ belongs to, shown only to you, locally. None of that data leaves your device.
 
 ## Data stored locally
 
-Nullecho keeps what it stores in two places, both inside your browser profile on
-your own machine, and Chrome, Microsoft Edge and Firefox all delete both
+Nullecho keeps what it stores in three places, all inside your browser profile on
+your own machine, and Chrome, Microsoft Edge and Firefox delete all three
 automatically when you uninstall the extension. Nothing is synced to your Google,
 Microsoft or Mozilla account: `storage.sync` is never used, and the same
 build-failing test above fails the build if `storage.sync` appears in any shipped
@@ -88,7 +88,7 @@ gives this exact list:
 | `identity` | A random salt — it decides which device profile each site sees — and when it was last rotated. The salt itself is never shown or sent anywhere; the popup and settings page show only a six-character tag derived from it (`publicIdentity()`). |
 | `settings` | Which tracker categories you block, whether GPC is on, whether you said you live in California (it only decides whether the DROP step is suggested), the salt auto-rotation interval, and loud-failure logging (`DEFAULT_SETTINGS` in `ext/src/protocol.js`) |
 | `allowlist` | Sites where you've turned Nullecho off |
-| `stats` | One entry per site whose pages — or frames embedded in a page — you load, by site name (e.g. `example.com`), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and blocked-request and cookie-strip counts with the tracker domains involved (Chrome and Edge report those only to unpacked developer builds and Firefox not at all, so in a store install they stay empty). At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site (`MAX_SITES`, `MAX_TRACKERS_PER_SITE`). |
+| `stats` | One entry per site whose pages — or frames embedded in a page — you load, by site name (e.g. `example.com`), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and how many requests were blocked and to which tracker domains (in a store install, taken from the browser's own report that an extension cancelled a request, and counted only when one of Nullecho's own rules covers it). Requests that went through with their cookies removed are counted only in unpacked developer builds of Chrome and Edge, the one place the browser reports them. (`ext/src/block-counter.js`, DECISIONS.md D55) At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site (`MAX_SITES`, `MAX_TRACKERS_PER_SITE`). |
 | `nullecho:heuristics:v1` | The tracker learner. For each third-party domain seen setting or sending an identifying cookie: the names of the sites it was seen on, whether it has been learned as a tracker (three different sites), and when it was first and last seen. It keeps domain names, never a cookie's value. |
 | `nullecho:gpc:v1` | Sites where you've manually excepted the GPC signal because it broke something |
 | `nullecho.drop.residency`, `nullecho.drop.submittedAt` | Your California-residency answer and a date you typed, only if you use the DROP guide. Deliberately excludes name, birthdate, ZIP, or the state's deletion-request ID — those live only on California's own site, which Nullecho links to (`ext/options/drop.js`). |
@@ -117,9 +117,9 @@ Attorney General's office if you ever wanted to.
 - **How long it is kept.** There is no time limit. An entry stays until there are
   more than 200 (`RECEIPT_CAP`), when the oldest is dropped, or until you uninstall
   the extension. Seeing the same page, wording and price again replaces the earlier
-  entry instead of adding one (`pushReceipt()`). This version has no button to
-  clear these entries — the worker has a handler for it (`onPricingForget`) that no
-  page calls yet — so uninstalling is what removes them.
+  entry instead of adding one (`pushReceipt()`). The settings page's **"Clear saved
+  price notices"** button deletes them all (`onPricingForget`) and shows how many
+  there were and how many are left (`onPricingCount`); uninstalling removes them too.
 - **Whether it leaves your device.** It does not. There is no code in the shipped
   tree that could send it anywhere, and the build-failing test cited earlier is what
   holds that. The popup shows the latest entry for the site you are on and renders
@@ -132,6 +132,13 @@ Blocking and header changes are rules the browser itself applies, and three kind
 of rule that Nullecho adds hold domain names: the sites you turned Nullecho off on
 (`syncAllowlistRules()`), the sites you turned GPC off on (`gpc.js`), and the tracker
 domains the learner promoted (`heuristics.js`).
+
+**3. `storage.session`** — memory only, never written to disk and never synced. One
+key, `nullecho:tab-blocked`: for each open tab, how many requests Nullecho blocked on
+the page in it, by category — numbers, no addresses. It is how the popup's "blocked on
+this page" survives the background script being put to sleep. A tab's entry is
+dropped when it loads a new page or closes, and all of it when the browser closes
+(`background.js`, `TAB_TALLY_KEY`).
 
 ## Data shared: none
 
@@ -149,7 +156,8 @@ Full reasoning: [`../ext/PERMISSIONS.md`](../ext/PERMISSIONS.md). Summary:
   popup's per-tab count asks the browser which rules acted in the current tab
   (`getMatchedRules()`); in a store-installed build the browser answers with rule
   numbers, not request addresses. Firefox offers no such report (neither
-  `getMatchedRules` nor `onRuleMatchedDebug` exists there as of Firefox 156).
+  `getMatchedRules` nor `onRuleMatchedDebug` exists there as of Firefox 156); there
+  the count comes from the `webRequest` report described next.
 - **`storage`** — the local-only data above. **`alarms`** — wakes the background
   script to rotate your salt if you've turned that optional feature on.
 - **`webRequest`** (observation only, not `webRequestBlocking`) — lets the tracker
@@ -157,7 +165,11 @@ Full reasoning: [`../ext/PERMISSIONS.md`](../ext/PERMISSIONS.md). Summary:
   that made it, the `Cookie` header sent and any `Set-Cookie` header returned. It
   ignores page loads themselves and first-party requests, it can't block anything
   itself, it keeps only what the learner's row above describes, and nothing it sees
-  is ever transmitted anywhere.
+  is ever transmitted anywhere. The same permission delivers the browser's report
+  that an extension cancelled a request (`onErrorOccurred`) — Nullecho counts it as
+  blocked only when one of its own rules covers it, keeping the site name and
+  tracker domain shown in `stats` — and the start of each new page in a tab
+  (`onSendHeaders`, top-level documents only), which resets that tab's count.
 - **`host_permissions: ["<all_urls>"]`** — needed on every site so blocking, the
   GPC signal, the device-profile script and the price-disclosure check all work
   everywhere, not just a list you'd have to remember to maintain.
@@ -171,6 +183,8 @@ Full reasoning: [`../ext/PERMISSIONS.md`](../ext/PERMISSIONS.md). Summary:
 - **Clear the site list without uninstalling.** "Clear site history" on the
   settings page empties `stats`. It does not touch the tracker learner or the
   price-disclosure observations.
+- **Clear the price-disclosure observations.** "Clear saved price notices" on the
+  settings page deletes every entry in `pricingObservations`.
 - **Get a "new identity" without uninstalling.** The popup's "New identity"
   button generates a fresh random salt and writes it over the old one
   (`ext/src/background.js`, `newSalt()`). Every site then sees a brand-new,

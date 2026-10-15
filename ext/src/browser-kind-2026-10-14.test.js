@@ -68,7 +68,7 @@ test('Chrome keeps its wording', () => {
   const c = copyFor('chrome');
   assert.equal(c.stronger, 'On Firefox or Brave, their built-in protections are stronger.');
   assert.match(c.limitBody, /Nullecho exists for Chrome, where neither is available/);
-  assert.match(c.blockedUrls, /^Chrome only reports the individual blocked URLs to unpacked \(developer\) builds/);
+  assert.equal(c.blockedUrls, copyFor('other').blockedUrls, 'the per-category note names no browser (D55)');
   assert.equal(c.poolNote, '');
 });
 

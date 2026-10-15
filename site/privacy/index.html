@@ -137,7 +137,7 @@
     page or extension can reach the network finds exactly two <code>fetch()</code> calls in the whole
     codebase:
   </p>
-<pre>ext/src/background.js   fetch(chrome.runtime.getURL('rules/fingerprinting.json'))
+<pre>ext/src/background.js   fetch(chrome.runtime.getURL(`rules/${id}.json`))
 ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   <p>
     Cited by file and expression rather than by line number, deliberately — a line number in a
@@ -165,8 +165,8 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
 <section><div class="wrap">
   <h2>Data stored locally</h2>
   <p class="body">
-    Nullecho keeps what it stores in two places, both inside your browser profile on your own machine,
-    and Chrome, Microsoft Edge and Firefox all delete both automatically when you uninstall the
+    Nullecho keeps what it stores in three places, all inside your browser profile on your own machine,
+    and Chrome, Microsoft Edge and Firefox delete all three automatically when you uninstall the
     extension. Nothing is synced to your Google, Microsoft or Mozilla account: <code>storage.sync</code>
     is never used, and the same build-failing test fails the build if <code>storage.sync</code> appears
     in any shipped file.
@@ -183,7 +183,7 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
       <tr><td class="k">identity</td><td>A random salt — it decides which device profile each site sees — and when it was last rotated. The salt itself is never shown or sent anywhere; the popup and settings page show only a six-character tag derived from it.</td></tr>
       <tr><td class="k">settings</td><td>Which tracker categories you block, whether GPC is on, whether you said you live in California (it only decides whether the DROP step is suggested), the salt auto-rotation interval, and loud-failure logging.</td></tr>
       <tr><td class="k">allowlist</td><td>Sites where you've turned Nullecho off.</td></tr>
-      <tr><td class="k">stats</td><td>One entry per site whose pages — or frames embedded in a page — you load, by site name (for example <code>example.com</code>), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and blocked-request and cookie-strip counts with the tracker domains involved (Chrome and Edge report those only to unpacked developer builds and Firefox not at all, so in a store install they stay empty). At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site.</td></tr>
+      <tr><td class="k">stats</td><td>One entry per site whose pages — or frames embedded in a page — you load, by site name (for example <code>example.com</code>), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and how many requests were blocked and to which tracker domains (in a store install, taken from the browser's own report that an extension cancelled a request, and counted only when one of Nullecho's own rules covers it). Requests that went through with their cookies removed are counted only in unpacked developer builds of Chrome and Edge, the one place the browser reports them. At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site.</td></tr>
       <tr><td class="k">nullecho:heuristics:v1</td><td>The tracker learner. For each third-party domain seen setting or sending an identifying cookie: the names of the sites it was seen on, whether it has been learned as a tracker (three different sites), and when it was first and last seen. It keeps domain names, never a cookie's value.</td></tr>
       <tr><td class="k">nullecho:gpc:v1</td><td>Sites where you've manually excepted the GPC signal because it broke something.</td></tr>
       <tr><td class="k">nullecho.drop.residency<br>nullecho.drop.submittedAt</td><td>Your California-residency answer and a date you typed, only if you use the DROP guide. Deliberately excludes name, birthdate, ZIP, and the state's deletion-request ID — those live only on California's own site, which Nullecho links to.</td></tr>
@@ -208,8 +208,9 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   <p>
     <strong>How long it is kept.</strong> There is no time limit. An entry stays until there are more than
     200, when the oldest is dropped, or until you uninstall the extension. Seeing the same page, wording and
-    price again replaces the earlier entry instead of adding one. This version has no button to clear these
-    entries; uninstalling removes them.
+    price again replaces the earlier entry instead of adding one. The settings page's <strong>"Clear saved
+    price notices"</strong> button deletes them all, and shows how many there were and how many are left;
+    uninstalling removes them too.
   </p>
   <p>
     <strong>Whether it leaves your device.</strong> It does not. No code in the shipped extension can send
@@ -222,6 +223,13 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
     Blocking and header changes are rules the browser itself applies, and three kinds of rule that
     Nullecho adds hold domain names: the sites you turned Nullecho off on, the sites you turned GPC off
     on, and the tracker domains the learner promoted.
+  </p>
+  <p>
+    <strong>3. <code>storage.session</code></strong> — memory only, never written to disk and never
+    synced. One key, <code>nullecho:tab-blocked</code>: for each open tab, how many requests Nullecho
+    blocked on the page in it, by category — numbers, no addresses. It is how the popup's "blocked on
+    this page" survives the background script being put to sleep. A tab's entry is dropped when it loads
+    a new page or closes, and all of it when the browser closes.
   </p>
   <p>
     One honest footnote, because this list is presented as a grep result and a grep for
@@ -245,7 +253,8 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
       the rules that block trackers, add the GPC header, strip cookies from some requests and remove
       some client-hint headers. The browser applies them itself. In Chrome and Edge the popup's
       per-tab count asks the browser which rules acted in the current tab; in a store-installed build
-      the browser answers with rule numbers, not request addresses. Firefox offers no such report.</li>
+      the browser answers with rule numbers, not request addresses. Firefox offers no such report; there
+      the count comes from the <code>webRequest</code> report described next.</li>
     <li><strong><code>storage</code></strong> — the local-only data above.
       <strong><code>alarms</code></strong> — wakes the background script to rotate your salt if you've
       turned that optional feature on.</li>
@@ -253,7 +262,10 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
       lets the tracker learner look at the requests your pages make: each request's address, the page
       that made it, the <code>Cookie</code> header sent and any <code>Set-Cookie</code> header returned.
       It ignores page loads themselves and first-party requests, it can't block anything itself, it keeps
-      only what the learner's row above describes, and nothing it sees is ever transmitted anywhere.</li>
+      only what the learner's row above describes, and nothing it sees is ever transmitted anywhere. The
+      same permission delivers the browser's report that an extension cancelled a request — Nullecho counts
+      it as blocked only when one of its own rules covers it, keeping the site name and tracker domain
+      shown in <code>stats</code> — and the start of each new page in a tab, which resets that tab's count.</li>
     <li><strong><code>host_permissions: ["&lt;all_urls&gt;"]</code></strong> — needed on every site so
       blocking, the GPC signal, the device-profile script and the price-disclosure check all work
       everywhere, not just a list you'd have to remember to maintain.</li>
@@ -269,6 +281,8 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
     <li><strong>Clear the site list without uninstalling.</strong> "Clear site history" on the settings
       page empties <code>stats</code>. It does not touch the tracker learner or the price-disclosure
       observations.</li>
+    <li><strong>Clear the price-disclosure observations.</strong> "Clear saved price notices" on the
+      settings page deletes every entry in <code>pricingObservations</code>.</li>
     <li><strong>Get a "new identity" without uninstalling.</strong> The popup's "New identity" button
       generates a fresh random salt and writes it over the old one. Every site then sees a brand-new,
       unrelated device persona going forward. This does not touch your blocking stats or allowlist —

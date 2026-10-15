@@ -6,7 +6,7 @@
  *     would have to be defensible against the measurement protocol in
  *     BASELINE.md, and nothing here measures a per-site outcome, so there is no
  *     honest number to put behind one.
- *   - "requests blocked" and "fingerprint reads seen" are things we literally
+ *   - "blocked on this page" and "fingerprint reads seen" are things we literally
  *     counted. Everything else on screen is a description, not a claim.
  *   - the footer states the three biggest non-goals every time the popup opens,
  *     rather than hiding them behind a link.
@@ -21,7 +21,7 @@ import {
   FINDING,
 } from '../src/linkage.js';
 import '../src/pricing.js';
-import { browserKind, copyFor } from '../src/browser-kind.js';
+import { browserKind, copyFor, RFP_ON, RFP_REASON } from '../src/browser-kind.js';
 
 const api = globalThis.chrome ?? globalThis.browser;
 /** True when running as a real extension popup; false when opened as a plain page. */
@@ -138,6 +138,26 @@ function prettyCpuRow(p, kind) {
   return `${p.cores} cores · ${p.memory} GB`;
 }
 
+/**
+ * The headline count (D55). It used to be `stats.blocked`, the lifetime per-site
+ * counter, which until 0.9.2 only `onRuleMatchedDebug` fed — an event Chrome and
+ * Edge give to unpacked builds only and Firefox does not have — so every store
+ * install said "0 requests blocked". It is now the count for the page open in the
+ * tab, which every build can know: Chrome/Edge's own `getMatchedRules`, or, where
+ * that is absent (Firefox) or its quota is spent, Nullecho's tally of the blocks
+ * the browser reported. No tab, no count: a dash, never a zero we did not measure.
+ */
+function blockedHeadline(s) {
+  const live = s?.live;
+  if (live && Number.isFinite(live.total)) {
+    const how = live.source === 'getMatchedRules'
+      ? 'Counted by the browser for the page open in this tab.'
+      : 'Counted by Nullecho from the browser’s own block reports, for the page open in this tab.';
+    return { value: live.total, label: 'blocked on this page', title: how };
+  }
+  return { value: null, label: 'blocked on this page', title: 'Not available for this tab.' };
+}
+
 /** ANGLE renderer strings are long and mostly boilerplate. Keep the part a human reads. */
 function prettyGpu(renderer = '') {
   const angle = /^ANGLE \(([^,]+),\s*(.+?)(?:\s+Direct3D11.*|,\s*(?:OpenGL|Unspecified|ANGLE).*)?\)$/.exec(renderer);
@@ -195,7 +215,10 @@ function render(s) {
   $('site-toggle').checked = enabled;
   $('site-toggle-label').textContent = enabled ? 'On' : 'Off';
 
-  $('stat-blocked').textContent = nf.format(s.stats?.blocked ?? 0);
+  const head = blockedHeadline(s);
+  $('stat-blocked').textContent = head.value === null ? '—' : nf.format(head.value);
+  $('stat-blocked-label').textContent = head.label;
+  $('stat-blocked').title = head.title;
   $('stat-fp').textContent = nf.format(s.stats?.fp ?? 0);
 
   renderPricingNotice(s);
@@ -442,8 +465,26 @@ async function runRemedy(action) {
   }
 }
 
+/** D54: the page shim on this site reported that Firefox's resistFingerprinting is on. */
+function rfpOn(s) {
+  return s?.stats?.lastShimStatus?.reason === RFP_REASON;
+}
+
 function renderPersona(s, enabled) {
   const p = s.persona;
+  if (p && rfpOn(s)) {
+    // Nothing persona-shaped was installed on this page (shim.js, D54): every
+    // row is Firefox's own, and the profile id names nothing a site sees.
+    $('persona-id').textContent = 'Firefox’s own (resistFingerprinting)';
+    $('p-system').textContent = prettySystem(p, undefined, 'firefox');
+    $('p-gpu').textContent = 'as Firefox reports it — not changed';
+    $('p-cpu').textContent = 'as Firefox reports it — not changed';
+    $('p-screen').textContent = realDisplay();
+    $('persona').style.opacity = '';
+    const note = document.querySelector('.persona + .note');
+    if (note) note.textContent = RFP_ON;
+    return;
+  }
   if (!p) {
     $('persona-id').textContent = 'none';
     for (const k of ['p-system', 'p-gpu', 'p-cpu', 'p-screen']) $(k).textContent = '—';
@@ -532,8 +573,9 @@ function renderTrackers(s) {
   }
 
   if (live && live.total > 0) {
-    // Packed Chrome build: getMatchedRules() gives ruleset + count but no URLs.
-    // `live.total` counts blocking rules only — see classifyMatchedRule().
+    // No domain list for this site yet (its blocks so far came from embedded
+    // frames of other sites, or the list was just cleared): the page's count by
+    // category. `live.total` counts blocks only — see classifyMatchedRule().
     $('trackers-summary').textContent = `Blocked in this tab (${live.total})`;
     for (const [cat, n] of Object.entries(live.byCategory)) {
       ul.append(row(CATEGORY_LABELS[cat] ?? cat, n));
@@ -608,6 +650,8 @@ function renderAlerts(s, enabled) {
   if (!enabled) {
     add([b('Nullecho is off for this site.'), txt(' Blocking and the device shim are disabled here.')], 'info');
   }
+
+  if (enabled && rfpOn(s)) add([b(RFP_ON), txt(' Blocking and Global Privacy Control stay on.')], 'info');
 
   const st = s.stats?.lastShimStatus;
   if (enabled && st?.reason === 'shim-never-booted') {
@@ -862,7 +906,8 @@ const DEMO = {
     ],
     trackerListComplete: true,
   },
-  live: null,
+  live: { total: 14, byCategory: { ads: 8, analytics: 4, social: 2 }, stripped: 1, source: 'getMatchedRules' },
+  lifetimeSource: 'webRequest',
 };
 
 // ── boot ────────────────────────────────────────────────────────────────────

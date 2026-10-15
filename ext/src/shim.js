@@ -268,6 +268,14 @@
   const dateGetTimezoneOffset = uncurry(Date.prototype.getTimezoneOffset);
   const RawDateTimeFormat = typeof Intl === 'object' && Intl && typeof Intl.DateTimeFormat === 'function' ? Intl.DateTimeFormat : null;
   const dtfResolvedOptions = RawDateTimeFormat ? uncurry(RawDateTimeFormat.prototype.resolvedOptions) : null;
+  // D54 — the page clock's resolution, the fifth RFP signal (`rfpTimerVeto`).
+  const perfNow = (() => {
+    try {
+      const perf = globalThis.performance;
+      const now = perf && perf.now;
+      return typeof now === 'function' ? () => apply(now, perf, []) : null;
+    } catch (_) { return null; }
+  })();
   // ─── END CAPTURED BUILTINS ────────────────────────────────────────────────
 
   // ── small helpers built only from the captures above ──────────────────────
@@ -788,10 +796,26 @@
       read('availLeft') === 0 && read('availTop') === 0 && read('colorDepth') === 24;
   }
 
+  /**
+   * D54 — a VETO, not a fifth vote. RFP rounds the page clock to 16.667 ms, so at
+   * document_start `performance.now()` reads 0 or 16.667 (measured, Firefox 156,
+   * top and child frames); a normal Firefox rounds to 1 ms and reads a small
+   * positive integer (6–16 ms measured). A positive whole number that is not a
+   * multiple of 100 (the older 100 ms RFP clamp) is therefore never RFP, and
+   * vetoes the other four signals — which matters since D54 made the cost of a
+   * false positive the whole device profile. Unreadable, 0, or fractional (RFP,
+   * or a cross-origin-isolated page's 20 µs clock): no veto, the four decide.
+   */
+  function rfpTimerVeto() {
+    if (!perfNow) return false;
+    const t = perfNow();
+    return typeof t === 'number' && t > 0 && t === mathFloor(t) && t % 100 !== 0;
+  }
+
   const GECKO_RFP = (() => {
     if (!ENGINE_GECKO) return false;
     try {
-      return reTest(RE_RFP_UA, REAL_UA.userAgent) && rfpClock() && rfpScreen();
+      return reTest(RE_RFP_UA, REAL_UA.userAgent) && rfpClock() && rfpScreen() && !rfpTimerVeto();
     } catch (_) { return false; }
   })();
 
@@ -2109,6 +2133,20 @@
     safe('navigator.globalPrivacyControl', () => installGpc(win));
 
     // ────────────────────────────────────────────────────────────────────────
+    // D54 — UNDER resistFingerprinting THE DEVICE PROFILE IS FIREFOX'S.
+    //
+    // RFP makes every Firefox that uses it report the same values; that sameness
+    // IS the protection, and any persona value on top makes this user the one RFP
+    // user who differs (measured: 10 cores where RFP says 8). So with `GECKO_RFP`
+    // every group below that overrides a value is skipped: cores, platform, the
+    // high-entropy hints, canvas, WebGL, WebGPU (limits included), audio, fonts.
+    // What stays is what is not a device value: the `toString` mask above, the GPC
+    // signal (Global Privacy Control stays on), and the two child-realm doors,
+    // which only carry those two into frames. Blocking is the worker's, untouched.
+    // ────────────────────────────────────────────────────────────────────────
+    const personaSafe = GECKO_RFP ? () => false : safe;
+
+    // ────────────────────────────────────────────────────────────────────────
     // THE BROWSER'S IDENTITY — DELIBERATELY NOT SPOOFED  (D51, 2026-09-28)
     //
     // `userAgent`, `appVersion` and `vendor` are the engine's own getters, and so
@@ -2124,7 +2162,7 @@
     // stopped rewriting them in the same change (rules/gen-ua.mjs), so JS and the
     // wire say the same thing: what the browser says.
     // ────────────────────────────────────────────────────────────────────────
-    safe('navigator.platform', () => {
+    personaSafe('navigator.platform', () => {
       const N = ownerOf(win.navigator, 'platform');
       // The persona's value only where the real UA already carries the persona
       // family's frozen platform token (D51, `personaUaFits`) — on a Linux-on-ARM
@@ -2133,13 +2171,13 @@
       // contradiction, so the real value stands there.
       spoofGetter(N, 'platform', 'navigator', (origGet, real) => (D().uaFits ? D().platform : real));
     });
-    safe('navigator.hardwareConcurrency', () => {
+    personaSafe('navigator.hardwareConcurrency', () => {
       const N = ownerOf(win.navigator, 'hardwareConcurrency');
       // Never below 4: WASM/worker pools size themselves off this and 1 breaks them
       // (ARCHITECTURE.md, compatibility posture). The pool never goes below 8 anyway.
       spoofGetter(N, 'hardwareConcurrency', 'navigator', () => mathMax(4, D().cores | 0));
     });
-    safe('navigator.deviceMemory', () => {
+    personaSafe('navigator.deviceMemory', () => {
       const N = ownerOf(win.navigator, 'deviceMemory');
       if (!N) return; // absent in Firefox — not a failure
       // No ceiling assumed. BASELINE.md records Chrome 151 returning the true 32,
@@ -2190,7 +2228,7 @@
     // navigator.userAgentData — ONLY `getHighEntropyValues()` is wrapped (D51).
     // `brands`, `mobile`, `platform` and `toJSON()` are the engine's: they carry
     // the browser's real identity, which is what the page is shown now.
-    safe('navigator.userAgentData', () => {
+    personaSafe('navigator.userAgentData', () => {
       const UAD = win.NavigatorUAData;
       if (!UAD || !UAD.prototype) return; // not a Chromium build, or an insecure context
       const P = UAD.prototype;
@@ -2453,13 +2491,13 @@
       });
     }
 
-    safe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', ctxCanvas, canvasWidth, canvasHeight));
-    safe('offscreenCanvas.getImageData', () => {
+    personaSafe('canvas.getImageData', () => patchGetImageData(Ctx2D.prototype, 'canvas.getImageData', ctxCanvas, canvasWidth, canvasHeight));
+    personaSafe('offscreenCanvas.getImageData', () => {
       if (!OffCtx2D || !OffCtx2D.prototype) return;
       patchGetImageData(OffCtx2D.prototype, 'offscreenCanvas.getImageData', offCtxCanvas, offWidth, offHeight);
     });
 
-    safe('canvas.toDataURL', () => {
+    personaSafe('canvas.toDataURL', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toDataURL', (orig) => function toDataURL() {
         if (state.standingDown) return apply(orig, this, arguments);
         // The native brand check FIRST, outside the try: a wrong receiver throws
@@ -2475,7 +2513,7 @@
       });
     });
 
-    safe('canvas.toBlob', () => {
+    personaSafe('canvas.toBlob', () => {
       replaceMethod(win.HTMLCanvasElement.prototype, 'toBlob', (orig) => function toBlob() {
         if (state.standingDown) return apply(orig, this, arguments);
         canvasWidth(this);                              // brand check first — see toDataURL
@@ -2487,7 +2525,7 @@
       });
     });
 
-    safe('offscreenCanvas.convertToBlob', () => {
+    personaSafe('offscreenCanvas.convertToBlob', () => {
       const OC = win.OffscreenCanvas;
       if (!OC || !OC.prototype || !OC.prototype.convertToBlob) return;
       replaceMethod(OC.prototype, 'convertToBlob', (orig) => function convertToBlob() {
@@ -2673,10 +2711,8 @@
     // Firefox with resistFingerprinting (D53): Firefox already answers every
     // WebGL string with "Mozilla", clamps the limits and randomises read-back.
     // Nothing here is installed, so all four methods stay the engine's natives.
-    if (!GECKO_RFP) {
-      safe('WebGLRenderingContext', () => patchGLContext(win.WebGLRenderingContext, 'webgl', false));
-      safe('WebGL2RenderingContext', () => patchGLContext(win.WebGL2RenderingContext, 'webgl2', true));
-    }
+    personaSafe('WebGLRenderingContext', () => patchGLContext(win.WebGLRenderingContext, 'webgl', false));
+    personaSafe('WebGL2RenderingContext', () => patchGLContext(win.WebGL2RenderingContext, 'webgl2', true));
 
     // ────────────────────────────────────────────────────────────────────────
     // WEBGPU — per current research a bigger surface than WebGL (~25-35 bits),
@@ -2691,7 +2727,7 @@
     // vendor here would contradict it. `webgpu.limits` clamps to the spec
     // defaults on every engine — it is not a persona value — and is unchanged.
     // ────────────────────────────────────────────────────────────────────────
-    if (!ENGINE_GECKO) safe('webgpu.adapterInfo', () => {
+    if (!ENGINE_GECKO) personaSafe('webgpu.adapterInfo', () => {
       const AI = win.GPUAdapterInfo;
       if (!AI || !AI.prototype) return; // no WebGPU on this build
       const P = AI.prototype;
@@ -2724,7 +2760,7 @@
       }
     });
 
-    safe('webgpu.limits', () => {
+    personaSafe('webgpu.limits', () => {
       const SL = win.GPUSupportedLimits;
       if (!SL || !SL.prototype) return;
       const P = SL.prototype;
@@ -2746,7 +2782,7 @@
       }
     });
 
-    if (!ENGINE_GECKO) safe('webgpu.features', () => {
+    if (!ENGINE_GECKO) personaSafe('webgpu.features', () => {
       const SF = win.GPUSupportedFeatures;
       if (!SF || !SF.prototype) return;
       const P = SF.prototype;
@@ -2844,7 +2880,7 @@
 
     // Defensive belt for builds where the GPU* constructors are not exposed as
     // globals: fix up `adapter.info` on the instance we hand back. Chromium only (D53).
-    if (!ENGINE_GECKO) safe('webgpu.requestAdapter', () => {
+    if (!ENGINE_GECKO) personaSafe('webgpu.requestAdapter', () => {
       const gpu = win.navigator.gpu;
       if (!gpu) return;
       const GP = ownerOf(gpu, 'requestAdapter');
@@ -2899,7 +2935,7 @@
       noiseFloat(arr, contentKey(D().audioKey, channel, abLength(buffer) | 0, facts.digest));
     }
 
-    safe('AudioBuffer.getChannelData', () => {
+    personaSafe('AudioBuffer.getChannelData', () => {
       const AB = win.AudioBuffer;
       if (!AB || !AB.prototype) return;
       // The NATIVE getChannelData, captured before the patch below replaces it.
@@ -2934,7 +2970,7 @@
       }
     });
 
-    safe('AnalyserNode frequency data', () => {
+    personaSafe('AnalyserNode frequency data', () => {
       const AN = win.AnalyserNode;
       if (!AN || !AN.prototype) return;
 
@@ -3327,7 +3363,7 @@
       return result;
     }
 
-    safe('HTMLElement.offsetWidth/offsetHeight', () => {
+    personaSafe('HTMLElement.offsetWidth/offsetHeight', () => {
       const H = win.HTMLElement.prototype;
       replaceGetter(H, 'offsetWidth', function (origGet) { return fontMetric(this, 'offsetWidth', origGet); });
       replaceGetter(H, 'offsetHeight', function (origGet) { return fontMetric(this, 'offsetHeight', origGet); });
@@ -3358,7 +3394,7 @@
      * `getBBox()` are also unpatched. A tracker that uses any of those still gets the
      * true font list.
      */
-    safe('Element.getBoundingClientRect (font-metric agreement)', () => {
+    personaSafe('Element.getBoundingClientRect (font-metric agreement)', () => {
       const E = win.Element.prototype;
       replaceMethod(E, 'getBoundingClientRect', (orig) => function getBoundingClientRect() {
         const r = apply(orig, this, arguments);
@@ -3380,7 +3416,7 @@
 
     // measureText: same logic, but the fallback can be measured exactly by
     // re-running the native call with a rewritten font shorthand — no DOM involved.
-    safe('CanvasRenderingContext2D.measureText', () => {
+    personaSafe('CanvasRenderingContext2D.measureText', () => {
       const TM = win.TextMetrics;
       const adjust = new RawWeakMap();
       let nativeTMWidth = null;     // the NATIVE TextMetrics.width getter, for our own reads below
@@ -4113,6 +4149,14 @@
       state.standingDown = true;
       restoreAll();
       status({ upgraded: false, lockedToFallback: false, reason: 'allowlisted' });
+      return;
+    }
+
+    // D54 — resistFingerprinting: nothing persona-shaped was installed, so there
+    // is nothing to upgrade. Said out loud, so the popup can say it too; GPC was
+    // applied above, before every early return.
+    if (GECKO_RFP) {
+      status({ upgraded: false, lockedToFallback: false, reason: 'resist-fingerprinting' });
       return;
     }
 
