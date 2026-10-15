@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask a company what it knows about you — Nullecho</title>
+<meta name="description" content="Plain-language guide to US privacy rights: see the profile a company built on you (including your loyalty profile), delete it, opt out of its sale, or correct it. Copy-and-send templates, a sourced table of 20 state laws, and California's DROP. Nothing on this page is sent anywhere.">
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141922; --line:#242c3a; --raise:#1b2230;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#7d8a9f;
+    --accent:#5eead4; --accent-dim:#2dd4bf; --warn:#fbbf24; --on-accent:#04211c;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#fbfcfd; --panel:#fff; --line:#e2e8f0; --raise:#f1f5f9;
+      --text:#0f172a; --dim:#475569; --faint:#5b6878;
+      --accent:#0f766e; --accent-dim:#0b5f58; --warn:#a16207; --on-accent:#fff;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--text); font:16px/1.65 var(--sans); -webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px; margin:0 auto; padding:0 20px}
+  .wide{max-width:1040px}
+
+  nav{padding:16px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+  nav .wrap{display:flex; gap:6px 18px; flex-wrap:wrap; align-items:center}
+  nav a{color:var(--dim); text-decoration:none}
+  nav a:hover{color:var(--text)}
+  nav .brand{color:var(--text); font-weight:700; letter-spacing:.02em; margin-right:4px}
+
+  header{padding:52px 0 32px; border-bottom:1px solid var(--line)}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:16px}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent)}
+  h1{font:600 clamp(30px,5.2vw,44px)/1.15 var(--serif); margin:0 0 16px; letter-spacing:-.02em}
+  .lede{font-size:18.5px; color:var(--dim); margin:0 0 18px; line-height:1.6}
+  .lede b{color:var(--text); font-weight:600}
+  .local{padding:12px 16px; border-left:3px solid var(--accent); background:var(--panel);
+    border-radius:0 8px 8px 0; font-size:14.5px; color:var(--dim); margin:0 0 12px}
+  .local b{color:var(--text)}
+  .notlegal{font-size:13.5px; color:var(--faint); margin:0}
+  .notlegal b{color:var(--dim)}
+
+  .toc{display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 0; padding:0; list-style:none}
+  .toc a{display:inline-block; font-size:13.5px; padding:6px 11px; border:1px solid var(--line);
+    border-radius:999px; color:var(--dim); text-decoration:none; background:var(--panel)}
+  .toc a:hover{color:var(--text); border-color:var(--faint)}
+
+  section{padding:40px 0; border-bottom:1px solid var(--line)}
+  h2{font:600 24px/1.3 var(--serif); margin:0 0 10px; letter-spacing:-.01em}
+  h3{font-size:16.5px; margin:24px 0 6px; font-weight:650}
+  p{margin:0 0 14px; color:var(--dim)}
+  p.body{color:var(--text)}
+  p b, li b{color:var(--text); font-weight:600}
+  ul{margin:8px 0 14px; padding-left:20px; color:var(--dim)}
+  li{margin-bottom:8px}
+  a{color:var(--accent); text-underline-offset:3px; overflow-wrap:anywhere}
+  code{font-family:var(--mono); font-size:13.5px; color:var(--text)}
+
+  /* Inline source citations: every legal statement carries one. */
+  a.src{font-size:12.5px; color:var(--faint); text-decoration:none; overflow-wrap:normal;
+    border:1px solid var(--line); border-radius:5px; padding:0 5px; margin-left:2px; vertical-align:1px;
+    -webkit-box-decoration-break:clone; box-decoration-break:clone}
+  a.src:hover{color:var(--accent); border-color:var(--accent)}
+
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:18px 20px; margin:18px 0}
+  .box.warn{border-left:3px solid var(--warn)}
+  .box.good{border-left:3px solid var(--accent)}
+  .box h3{margin:0 0 8px}
+  .box p{font-size:15px}
+  .box p:last-child, .box ul:last-child{margin-bottom:0}
+
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:18px 0}
+  .fact{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px}
+  .fact .n{font:700 22px/1.1 var(--mono); color:var(--accent)}
+  .fact .l{font-size:13px; color:var(--dim); margin-top:6px; line-height:1.45}
+
+  /* ── templates ── */
+  .fields{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px 14px; margin:16px 0 6px}
+  label.f{display:block; font-size:13px; color:var(--dim); font-weight:600}
+  label.f span{display:block; font-weight:400; color:var(--faint); font-size:12px}
+  input[type=text], select, textarea{
+    width:100%; margin-top:5px; font:15px/1.4 var(--sans); color:var(--text); background:var(--bg);
+    border:1px solid var(--line); border-radius:8px; padding:9px 11px}
+  input[type=text]:focus, select:focus, textarea:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:transparent}
+  input::placeholder{color:var(--faint); opacity:1}
+  .check{display:flex; gap:9px; align-items:flex-start; font-size:14px; color:var(--dim); margin:10px 0 0}
+  .check input{margin-top:4px; accent-color:var(--accent)}
+
+  .tpl{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; margin:18px 0}
+  .tpl h3{margin:0 0 4px; font-size:17px}
+  .tpl .what{font-size:14.5px; margin:0 0 12px}
+  .tpl textarea{font:13.5px/1.6 var(--mono); min-height:300px; resize:vertical; background:var(--raise)}
+  .row{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin-top:12px}
+  button.copy{background:var(--accent); color:var(--on-accent); border:0; padding:11px 18px; border-radius:9px;
+    font:700 15px var(--sans); cursor:pointer}
+  button.copy:hover{background:var(--accent-dim)}
+  .status{font-size:13.5px; color:var(--dim); min-height:1.2em}
+  .where{font-size:13.5px; color:var(--faint); margin:12px 0 0}
+  .where b{color:var(--dim)}
+  .nojs .copy{display:none}
+
+  /* ── states table: a table on wide screens, stacked cards on phones ── */
+  table.states{width:100%; border-collapse:collapse; font-size:14px; margin:16px 0 8px}
+  table.states th, table.states td{text-align:left; padding:10px 9px; border-bottom:1px solid var(--line); vertical-align:top}
+  table.states th{font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:650}
+  table.states td.st{font-weight:650; color:var(--text); white-space:nowrap}
+  table.states td.st .cite{display:block; font-weight:400; font-size:12.5px; color:var(--faint); white-space:normal}
+  table.states td{color:var(--dim)}
+  table.states .yes{color:var(--text)}
+  table.states .no{color:var(--warn); font-weight:600}
+  table.states tr.narrow td{background:color-mix(in srgb, var(--warn) 6%, transparent)}
+  table.states td.s a{display:inline-block; margin:0 6px 2px 0; font-size:12.5px; white-space:nowrap}
+  table.states td.d{white-space:nowrap}
+  @media (max-width: 760px){
+    table.states thead{display:none}
+    table.states, table.states tbody, table.states tr, table.states td{display:block; width:100%}
+    table.states tr{border:1px solid var(--line); border-radius:10px; margin:0 0 12px; padding:6px 12px; background:var(--panel)}
+    table.states tr.narrow td{background:transparent}
+    table.states td{border:0; padding:5px 0; display:grid; grid-template-columns:108px 1fr; gap:10px}
+    table.states td::before{content:attr(data-label); font-size:11.5px; text-transform:uppercase;
+      letter-spacing:.05em; color:var(--faint); font-weight:650; padding-top:2px}
+    table.states td.s a{grid-column:2; justify-self:start}
+    table.states td.st{display:block; font-size:16.5px; padding-top:8px; white-space:normal}
+    table.states td.st::before{content:none}
+  }
+  .small{font-size:13.5px; color:var(--faint)}
+
+  ol.srcs{font-size:13px; color:var(--faint); padding-left:22px; line-height:1.6}
+  ol.srcs li{margin-bottom:6px}
+  ol.srcs a{color:var(--dim)}
+  ol.srcs .acc{white-space:nowrap}
+
+  footer{padding:34px 0 64px; font-size:13.5px; color:var(--faint)}
+  footer p{color:var(--faint); font-size:13.5px}
+  footer a{color:var(--dim)}
+</style>
+</head>
+<body class="nojs">
+
+<nav><div class="wrap">
+  <a class="brand" href="/">Nullecho</a>
+  <a href="/">Measure it yourself</a>
+  <a href="/drop/">California DROP guide</a>
+  <a href="/research/">Research</a>
+  <a href="/privacy/">Privacy</a>
+  <a href="https://github.com/ZJHeepfixer/nullecho">Source</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="eyebrow"><span class="dot"></span>Your data rights</div>
+  <h1>Ask a company what it knows about you.</h1>
+  <p class="lede">
+    In 19 US states (and in Florida, against a handful of very large companies), a privacy law lets you make a
+    company <b>show you</b> the data it holds on you. You can ask for your <b>loyalty-program profile</b>
+    and the conclusions it drew about you, which some states expressly cover. You can also make it
+    <b>delete</b> that data, <b>stop selling or sharing</b> it, and in most of those states <b>correct</b> it.
+    Below is what each right does, which states have it, and four letters you can copy and send yourself.
+  </p>
+  <p class="local">
+    <b>Nothing on this page is sent anywhere.</b> The letters fill in on your own device. You copy them and
+    send them from your own email or through the company's own privacy-request page. Nullecho never sees,
+    stores or forwards them. There is no form here that submits, no analytics and no cookie.
+  </p>
+  <p class="notlegal"><b>This is information, not legal advice.</b> Every legal statement links to its source
+    (a statute, a regulation, or a state attorney general's page). We read every source on October 14, 2026.
+    Laws change, so check the linked text before relying on a detail.</p>
+  <ul class="toc">
+    <li><a href="#what">What this does and doesn't do</a></li>
+    <li><a href="#know">Right to know</a></li>
+    <li><a href="#delete">Delete</a></li>
+    <li><a href="#optout">Opt out &amp; GPC</a></li>
+    <li><a href="#correct">Correct</a></li>
+    <li><a href="#deadlines">Deadlines</a></li>
+    <li><a href="#drop">California DROP</a></li>
+    <li><a href="#states">Which states</a></li>
+    <li><a href="#templates">Templates</a></li>
+  </ul>
+</div></header>
+
+<section id="what"><div class="wrap">
+  <h2>What these requests do, and what they don't</h2>
+  <p class="body">
+    They let you <b>see</b> the data a company uses to profile you, <b>delete</b> it, <b>stop it being sold or
+    shared</b>, or <b>fix</b> it when it's wrong. That's all. They are not a way to get lower prices, and
+    nothing here claims they are.
+  </p>
+  <ul>
+    <li><b>Loyalty discounts aren't banned.</b> California's law says it doesn't stop businesses offering
+      "loyalty, rewards, premium features, discounts, or club card programs" consistent with the law
+      <a class="src" href="#s-ca125" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.125(a)(3)</a>, and
+      Virginia's carves out a "bona fide loyalty, rewards … or club card program"
+      <a class="src" href="#s-va" title="Source accessed 2026-10-14">Va. Code §&nbsp;59.1-578(A)(4)</a>. Connecticut's
+      and Rhode Island's say the same
+      <a class="src" href="#s-ct" title="Source accessed 2026-10-14">Conn. Gen. Stat. §&nbsp;42-520(b)</a>
+      <a class="src" href="#s-ri" title="Source accessed 2026-10-14">R.I. Gen. Laws §&nbsp;6-48.1-5(d)</a>.</li>
+    <li><b>California, Virginia and Rhode Island bar punishing you for asking.</b> In California a business may not charge you different
+      prices, including "through the use of discounts or other benefits", because you used these rights
+      <a class="src" href="#s-ca125" title="Source accessed 2026-10-14">§&nbsp;1798.125(a)(1)(B)</a>. Virginia's and
+      Rhode Island's laws have similar rules
+      <a class="src" href="#s-va" title="Source accessed 2026-10-14">§&nbsp;59.1-578(A)(4)</a>
+      <a class="src" href="#s-ri" title="Source accessed 2026-10-14">§&nbsp;6-48.1-5(b)–(c)</a>.</li>
+    <li><b>Not every company is covered.</b> Most of these laws apply only above a size threshold. Rhode
+      Island's, for example, starts at companies holding data on 35,000 customers
+      <a class="src" href="#s-ri" title="Source accessed 2026-10-14">R.I. Gen. Laws §&nbsp;6-48.1-5(a)</a>. Each law also
+      exempts some kinds of data and organizations. A company that says it isn't covered may be right.</li>
+  </ul>
+</div></section>
+
+<section id="know"><div class="wrap">
+  <h2>Right to know: ask for the profile, not just the file</h2>
+  <p class="body">
+    Every law in the table below gives you a right to access the data a company holds on you (Minnesota's
+    covers the <em>categories</em> of data, a copy of what you gave the company, and a list of the third
+    parties it went to). In California you can ask for the specific pieces of personal information a business
+    collected about you, plus the categories of sources it came from, why it's used, and the categories of
+    third parties it went to
+    <a class="src" href="#s-ca110" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.110(a)</a>.
+  </p>
+  <h3>Inferences: the conclusions a company drew about you</h3>
+  <ul>
+    <li><b>California</b> counts "inferences drawn … to create a profile about a consumer" as personal
+      information <a class="src" href="#s-ca140" title="Source accessed 2026-10-14">§&nbsp;1798.140(v)(1)(K)</a>. The
+      Attorney General's formal opinion is that you have the right to know internally generated
+      inferences about you, unless a business shows a statutory exception applies
+      <a class="src" href="#s-caop" title="Source accessed 2026-10-14">Cal. AG Op. No. 20-303 (2022)</a>.</li>
+    <li><b>Connecticut</b>: since July 1, 2026, the access right expressly includes "any inferences about the
+      consumer derived from such personal data", plus a list of third parties the company sold your data to
+      <a class="src" href="#s-ct26" title="Source accessed 2026-10-14">Conn. Gen. Stat. §&nbsp;42-518(a) (P.A. 25-113)</a>.</li>
+    <li><b>Oregon</b> defines personal data to include "derived data"
+      <a class="src" href="#s-or" title="Source accessed 2026-10-14">ORS 646A.570(13)(a)</a>, and lets you get a list
+      of specific third parties your data was disclosed to (the company chooses whether to list those that got
+      yours or those that got anyone's) <a class="src" href="#s-or" title="Source accessed 2026-10-14">ORS 646A.574(1)(a)</a>.</li>
+    <li><b>Minnesota</b> lets you get a list of the specific third parties, and where a profiling decision had a
+      legal or similarly significant effect on you, to question it and be told why
+      <a class="src" href="#s-mn" title="Source accessed 2026-10-14">Minn. Stat. §&nbsp;325M.14, subd. 1(g)–(h)</a>.</li>
+    <li><b>Other states</b> give a right to access "personal data" without saying whether inferences count. The
+      template asks for them by name anyway. The worst answer is no.</li>
+  </ul>
+  <h3>Your loyalty-program profile</h3>
+  <p>
+    Purchase histories are personal information under California's definition
+    <a class="src" href="#s-ca140" title="Source accessed 2026-10-14">§&nbsp;1798.140(v)(1)(D)</a>, and a loyalty
+    account is built from them. It's worth asking for by name because the clearest 2025–26 evidence we found of
+    personal data affecting what people pay is in <b>discounts and offers</b>, not the shelf price:
+  </p>
+  <ul>
+    <li>In a June 2026 investigation, Consumer Reports reported that two ride-hail companies say they don't use
+      personal data to set base prices but acknowledge using it for discounts and promotions
+      <a class="src" href="#s-cr26" title="Source accessed 2026-10-14">Consumer Reports, 2026-06-16</a>.</li>
+    <li>In 2025, Consumer Reports obtained one shopper's 62-page grocery loyalty profile through a request under
+      Oregon's privacy law. It labeled him "non-loyal", which CR says likely means fewer of the chain's best
+      discounts, and it had his education and income wrong
+      <a class="src" href="#s-cr25" title="Source accessed 2026-10-14">Consumer Reports, 2025-05-21</a>.</li>
+  </ul>
+  <p>
+    Seeing the profile doesn't change the discounts. It shows you the label, tier or segment you were put in, and
+    gives you something specific to correct or delete.
+  </p>
+</div></section>
+
+<section id="delete"><div class="wrap">
+  <h2>Right to delete</h2>
+  <p class="body">
+    You can ask a company to delete the data it holds about you. How far that reaches depends on the state:
+  </p>
+  <ul>
+    <li><b>California</b> covers information the business "collected from the consumer", and the business must
+      also tell its service providers, contractors and anyone it sold or shared the data with to delete it,
+      unless that "proves impossible or involves disproportionate effort"
+      <a class="src" href="#s-ca105" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.105(a), (c)(1)</a>.
+      There are exceptions, for example where a business needs the data to comply with a legal obligation
+      <a class="src" href="#s-ca105" title="Source accessed 2026-10-14">§&nbsp;1798.105(d)</a>.</li>
+    <li><b>Most other states</b> cover data "provided by, or obtained about" you
+      <a class="src" href="#s-va" title="Source accessed 2026-10-14">e.g. Va. Code §&nbsp;59.1-577(A)(3)</a>.
+      <b>Oregon</b> spells out that this includes data obtained from another source and derived data
+      <a class="src" href="#s-or" title="Source accessed 2026-10-14">ORS 646A.574(1)(c)</a>.</li>
+    <li><b>Iowa and Utah</b> cover only data you provided yourself
+      <a class="src" href="#s-ia" title="Source accessed 2026-10-14">Iowa Code §&nbsp;715D.3(1)(b)</a>
+      <a class="src" href="#s-ut201" title="Source accessed 2026-10-14">Utah Code §&nbsp;13-61-201(2)</a>.</li>
+  </ul>
+  <div class="box warn">
+    <h3>Before you delete a loyalty account</h3>
+    <p>Deleting your loyalty data can close the account and lose points or member prices. If you want to know
+      what's in it, send the right-to-know request first and decide after you've read the answer.</p>
+  </div>
+</div></section>
+
+<section id="optout"><div class="wrap">
+  <h2>Right to opt out of sale and sharing</h2>
+  <p class="body">
+    Every law in the table lets you tell a company to stop selling your data. Most also cover targeted
+    advertising and some kinds of profiling; Iowa's rights list names only the sale of data
+    <a class="src" href="#s-ia" title="Source accessed 2026-10-14">Iowa Code §&nbsp;715D.3(1)(d)</a>. In California the
+    right covers selling or "sharing" your personal information
+    <a class="src" href="#s-ca120" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.120(a)</a>.
+  </p>
+  <h3>What Global Privacy Control does automatically</h3>
+  <p>
+    Global Privacy Control (GPC) is a signal your browser sends to every site you visit. Nullecho sends it
+    (<a href="/privacy/">see our privacy page</a>), and so do some browsers.
+  </p>
+  <ul>
+    <li><b>California:</b> a business that sells or shares personal information must treat a qualifying signal as
+      a valid opt-out "for that browser or device and any consumer profile associated with that browser or
+      device", and, if it knows who you are, for you
+      <a class="src" href="#s-ccr" title="Source accessed 2026-10-14">Cal. Code Regs. tit. 11, §&nbsp;7025(b), (c)(1)</a>.</li>
+    <li><b>Colorado:</b> the Attorney General lists GPC as a recognized universal opt-out mechanism
+      <a class="src" href="#s-coopt" title="Source accessed 2026-10-14">Colorado AG, Universal Opt-Out</a>.</li>
+    <li><b>Connecticut and Minnesota</b> also require companies to accept opt-out preference signals for targeted
+      advertising and sales <a class="src" href="#s-ct" title="Source accessed 2026-10-14">Conn. Gen. Stat. §&nbsp;42-520</a>
+      <a class="src" href="#s-mn" title="Source accessed 2026-10-14">Minn. Stat. §&nbsp;325M.14, subd. 3</a>.</li>
+  </ul>
+  <p>
+    Its limits: GPC covers only the browser that sends it, so your phone and other browsers need their own. It
+    only matters to companies that sell or share data or use it for targeted ads, and your browser can't see
+    whether a company honored it.
+    A written opt-out (template 3) names you, so it can also cover your account and records that aren't tied
+    to one browser.
+  </p>
+  <div class="box good">
+    <h3>In California, you don't have to prove who you are to opt out</h3>
+    <p>"A business shall not require a verifiable consumer request for a request to opt-out of sale/sharing." It
+      may ask only for what it needs to find your records, and must stop selling or sharing no later than
+      15 business days after it gets the request
+      <a class="src" href="#s-ccr" title="Source accessed 2026-10-14">Cal. Code Regs. tit. 11, §&nbsp;7026(d), (f)(1)</a>.
+      Requests to know, delete or correct are different: the business may verify your identity first
+      <a class="src" href="#s-ca140" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.140(ak)</a>. Use the
+      company's own portal for that, and don't email copies of ID documents.</p>
+  </div>
+</div></section>
+
+<section id="correct"><div class="wrap">
+  <h2>Right to correct</h2>
+  <p class="body">
+    You can ask a company to correct inaccurate personal information in California
+    <a class="src" href="#s-ca106" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.106</a> and in most of the
+    other states below. The exceptions:
+  </p>
+  <ul>
+    <li><b>Iowa</b>: its list of consumer rights has no right to correct
+      <a class="src" href="#s-ia" title="Source accessed 2026-10-14">Iowa Code §&nbsp;715D.3(1)</a>.</li>
+    <li><b>Utah</b>: added, in force since July 1, 2026
+      <a class="src" href="#s-ut201" title="Source accessed 2026-10-14">Utah Code §&nbsp;13-61-201(4)</a>.</li>
+    <li><b>Indiana</b>: limited to data you provided to the company
+      <a class="src" href="#s-in" title="Source accessed 2026-10-14">Ind. Code §&nbsp;24-15-3-1(b)(2)</a>.</li>
+  </ul>
+  <p>Ask for corrections to carry through to any profile or segment built from the wrong data. The template does.</p>
+</div></section>
+
+<section id="deadlines"><div class="wrap">
+  <h2>How long a company has to answer</h2>
+  <div class="facts">
+    <div class="fact"><div class="n">45 days</div><div class="l">California: to answer a request to know, delete or correct, extendable once by 45 more with notice</div></div>
+    <div class="fact"><div class="n">10 bus. days</div><div class="l">California: to confirm it received the request</div></div>
+    <div class="fact"><div class="n">15 bus. days</div><div class="l">California: to stop selling or sharing after an opt-out</div></div>
+    <div class="fact"><div class="n">90 days</div><div class="l">Iowa: the longest in the table, extendable by 45</div></div>
+  </div>
+  <p>
+    California's 45 days runs from when the business receives your request, even while it verifies who you are
+    <a class="src" href="#s-ca130" title="Source accessed 2026-10-14">Cal. Civ. Code §&nbsp;1798.130(a)(2)(A)</a>; the
+    10-day confirmation and the 15-day opt-out rule are in the regulations
+    <a class="src" href="#s-ccr" title="Source accessed 2026-10-14">Cal. Code Regs. tit. 11, §§&nbsp;7021(a), 7026(f)(1)</a>.
+    A business doesn't have to answer a right-to-know request from the same person more than twice in 12 months
+    <a class="src" href="#s-ca130" title="Source accessed 2026-10-14">§&nbsp;1798.130(b)</a>.
+  </p>
+  <p>
+    Most other states use 45 days plus one 45-day extension; Iowa allows 90 plus 45
+    <a class="src" href="#s-ia" title="Source accessed 2026-10-14">Iowa Code §&nbsp;715D.3(2)(a)</a> and Florida 45 plus 15
+    <a class="src" href="#s-fl" title="Source accessed 2026-10-14">Fla. Stat. §&nbsp;501.706(2)</a>. Each state's is in the
+    table. If a company refuses, these laws generally require it to tell you why and how to appeal, for example
+    <a class="src" href="#s-va" title="Source accessed 2026-10-14">Va. Code §&nbsp;59.1-577(B)(2)</a>. Keep a copy of what
+    you sent and the date.
+  </p>
+</div></section>
+
+<section id="drop"><div class="wrap">
+  <h2>California DROP: one request to every registered data broker</h2>
+  <p class="body">
+    The templates on this page go to one company at a time. If you live in California, the state's
+    <b>Delete Request and Opt-out Platform (DROP)</b> sends one deletion request to all registered data brokers.
+    It's free, and it's run by CalPrivacy, the state privacy agency.
+  </p>
+  <ul>
+    <li><b>Status, per CalPrivacy:</b> DROP opened to Californians on January 1, 2026. Since August 1, 2026, data
+      brokers must access it at least once every 45 days to process requests, and status updates can take up to
+      90 days to appear. CalPrivacy expects every broker to have finished its first cycle by November 2026
+      <a class="src" href="#s-drop" title="Source accessed 2026-10-14">privacy.ca.gov/drop</a>.</li>
+    <li><b>Who can file:</b> California residents; in some cases you can file for another California resident,
+      such as a parent for a child <a class="src" href="#s-drop" title="Source accessed 2026-10-14">privacy.ca.gov/drop</a>.</li>
+    <li><b>What it doesn't reach:</b> companies you deal with directly. For those, use the templates.</li>
+  </ul>
+  <p>
+    <a href="https://consumer.drop.privacy.ca.gov">Open DROP (consumer.drop.privacy.ca.gov)</a> ·
+    <a href="/drop/">Our step-by-step DROP guide</a>
+  </p>
+</div></section>
+
+<section id="states"><div class="wrap wide">
+  <h2>Which states have these rights</h2>
+  <p>
+    US states with a comprehensive consumer privacy law in force on October 14, 2026: 19 broad laws plus
+    Florida's narrow one. We checked every row against the statute, the enacted bill, or the state attorney
+    general's page, linked in the last column. "Profiling" here means profiling used for decisions with legal or
+    similarly significant effects, such as housing, credit or jobs; the exact wording differs by state.
+  </p>
+  <table class="states">
+    <thead><tr><th>State</th><th>In force since</th><th>Know / access</th><th>Delete</th><th>Opt out of</th><th>Correct</th><th>Deadline (days)</th><th>Sources</th></tr></thead>
+    <tbody>
+      <tr><td class="st">California<span class="cite">Cal. Civ. Code § 1798.100 et seq.</span></td><td data-label="In force" class="d">2020-01-01</td><td data-label="Know" class="yes">Yes, incl. inferences</td><td data-label="Delete" class="yes">Data collected from you</td><td data-label="Opt out">Sale, sharing</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45; opt-out 15 business days</td><td data-label="Sources" class="s"><a href="#s-ca110">§ 1798.110</a><a href="#s-ca198">§ 1798.198</a><a href="#s-ccr">regs</a></td></tr>
+      <tr><td class="st">Colorado<span class="cite">Colo. Rev. Stat. § 6-1-1301 et seq.</span></td><td data-label="In force" class="d">2023-07-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-coag">AG</a><a href="#s-co">SB21-190</a></td></tr>
+      <tr><td class="st">Connecticut<span class="cite">Conn. Gen. Stat. § 42-515 et seq.</span></td><td data-label="In force" class="d">2023-07-01</td><td data-label="Know" class="yes">Yes, incl. inferences (since 2026-07-01)</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-ct">§ 42-518</a><a href="#s-ct26">2026 supp.</a></td></tr>
+      <tr><td class="st">Delaware<span class="cite">Del. Code tit. 6, ch. 12D</span></td><td data-label="In force" class="d">2025-01-01</td><td data-label="Know" class="yes">Yes, plus categories of third parties</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-de">§ 12D-104</a><a href="#s-deag">AG</a></td></tr>
+      <tr class="narrow"><td class="st">Florida<span class="cite">Fla. Stat. § 501.701 et seq. · narrow</span></td><td data-label="In force" class="d">2024-07-01</td><td data-label="Know" class="yes">Yes, <b>but only against companies with over $1 billion in revenue</b> that also meet an online-ads, smart-speaker or app-store test</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling, more</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 15</td><td data-label="Sources" class="s"><a href="#s-fl">§ 501.702–.706</a><a href="#s-fl2">ch. 2023-201</a></td></tr>
+      <tr><td class="st">Indiana<span class="cite">Ind. Code art. 24-15</span></td><td data-label="In force" class="d">2026-01-01</td><td data-label="Know" class="yes">Yes (copy or summary)</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct">Data you provided</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-in">SEA 5 (2023)</a></td></tr>
+      <tr><td class="st">Iowa<span class="cite">Iowa Code ch. 715D</span></td><td data-label="In force" class="d">2025-01-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete">Data you provided</td><td data-label="Opt out">Sale</td><td data-label="Correct" class="no">No</td><td data-label="Deadline">90 + 45</td><td data-label="Sources" class="s"><a href="#s-ia">§ 715D.3</a><a href="#s-ia2">SF 262 § 10</a></td></tr>
+      <tr><td class="st">Kentucky<span class="cite">Ky. Rev. Stat. § 367.3611 et seq.</span></td><td data-label="In force" class="d">2026-01-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-ky">§ 367.3615</a></td></tr>
+      <tr><td class="st">Maryland<span class="cite">Md. Code, Com. Law § 14-4701 et seq.</span></td><td data-label="In force" class="d">2025-10-01</td><td data-label="Know" class="yes">Yes, plus categories of third parties</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-md">§ 14-4705</a><a href="#s-md2">SB 541</a></td></tr>
+      <tr><td class="st">Minnesota<span class="cite">Minn. Stat. § 325M.10 et seq.</span></td><td data-label="In force" class="d">2025-07-31</td><td data-label="Know" class="yes">Categories, plus specific third parties</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-mn">§ 325M.14</a><a href="#s-mn2">2024 c. 121</a></td></tr>
+      <tr><td class="st">Montana<span class="cite">Mont. Code Ann. § 30-14-2801 et seq.</span></td><td data-label="In force" class="d">2024-10-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-mt">§ 30-14-2808</a><a href="#s-mt2">SB 384</a></td></tr>
+      <tr><td class="st">Nebraska<span class="cite">Neb. Rev. Stat. § 87-1101 et seq.</span></td><td data-label="In force" class="d">2025-01-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-ne">§ 87-1107</a><a href="#s-ne2">LB1074</a></td></tr>
+      <tr><td class="st">New Hampshire<span class="cite">N.H. Rev. Stat. ch. 507-H</span></td><td data-label="In force" class="d">2025-01-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-nh">§ 507-H:4</a></td></tr>
+      <tr><td class="st">New Jersey<span class="cite">N.J. Stat. § 56:8-166.4 et seq.</span></td><td data-label="In force" class="d">2025-01-15</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-nj">P.L.2023, c.266</a></td></tr>
+      <tr><td class="st">Oregon<span class="cite">ORS 646A.570 et seq.</span></td><td data-label="In force" class="d">2024-07-01</td><td data-label="Know" class="yes">Yes, incl. derived data, plus specific third parties</td><td data-label="Delete" class="yes">Yes, incl. data from other sources and derived data</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-or">ORS 646A</a><a href="#s-orag">DOJ</a></td></tr>
+      <tr><td class="st">Rhode Island<span class="cite">R.I. Gen. Laws ch. 6-48.1</span></td><td data-label="In force" class="d">2026-01-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-ri">§ 6-48.1-5</a><a href="#s-ri2">§ 6-48.1-6</a></td></tr>
+      <tr><td class="st">Tennessee<span class="cite">Tenn. Code Ann. § 47-18-3201 et seq.</span></td><td data-label="In force" class="d">2025-07-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-tn">Pub. Ch. 408</a></td></tr>
+      <tr><td class="st">Texas<span class="cite">Tex. Bus. &amp; Com. Code ch. 541</span></td><td data-label="In force" class="d">2024-07-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-tx">§ 541.051–.052</a></td></tr>
+      <tr><td class="st">Utah<span class="cite">Utah Code ch. 13-61</span></td><td data-label="In force" class="d">2023-12-31</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete">Data you provided</td><td data-label="Opt out">Sale, targeted ads</td><td data-label="Correct" class="yes">Yes, since 2026-07-01</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-ut201">§ 13-61-201</a><a href="#s-ut203">§ 13-61-203</a></td></tr>
+      <tr><td class="st">Virginia<span class="cite">Va. Code § 59.1-575 et seq.</span></td><td data-label="In force" class="d">2023-01-01</td><td data-label="Know" class="yes">Yes</td><td data-label="Delete" class="yes">Yes</td><td data-label="Opt out">Sale, targeted ads, profiling</td><td data-label="Correct" class="yes">Yes</td><td data-label="Deadline">45 + 45</td><td data-label="Sources" class="s"><a href="#s-va">§ 59.1-577</a><a href="#s-va2">2021 ch. 36</a></td></tr>
+    </tbody>
+  </table>
+  <p class="small">
+    "45 + 45" means 45 days, which the company may extend once by 45 more if it tells you within the first 45.
+    <b>Passed but not yet in force</b>: Louisiana (Act 502, from 2027-01-01)
+    <a class="src" href="#s-la" title="Source accessed 2026-10-14">legis.la.gov</a>, Oklahoma (SB 546, from 2027-01-01)
+    <a class="src" href="#s-ok" title="Source accessed 2026-10-14">enrolled text</a>, Alabama (HB 351, from 2027-05-01
+    per its enrolled text; we did not confirm the governor's signature on an official page, so check your state AG)
+    <a class="src" href="#s-al" title="Source accessed 2026-10-14">enrolled text</a>, and Vermont (Act 145, from
+    2028-01-01) <a class="src" href="#s-vt" title="Source accessed 2026-10-14">Act 145</a>.
+    <b>Not listed?</b> If your state isn't in this table, it had no comprehensive privacy law in force on
+    October 14, 2026, as far as we found. Some companies honor requests from everyone anyway, so it can still be
+    worth asking. Check your state attorney general's site for anything newer.
+  </p>
+</div></section>
+
+<section id="templates"><div class="wrap">
+  <h2>Four letters you can send yourself</h2>
+  <p class="body">
+    Fill in the blanks once and all four letters update. Then copy one and paste it into an email to the
+    company's privacy address, or into its own request form. The text stays on your device: nothing you type
+    is sent, saved or seen by anyone until you send it yourself.
+  </p>
+  <div class="fields" id="fields">
+    <label class="f">Company<span>As it appears on its site</span><input type="text" id="f-company" autocomplete="off" placeholder="[COMPANY]"></label>
+    <label class="f">Your full name<span>As the company knows you</span><input type="text" id="f-name" autocomplete="off" placeholder="[YOUR NAME]"></label>
+    <label class="f">Email you use with them<span>Send from this address if you can</span><input type="text" id="f-email" autocomplete="off" placeholder="[YOUR EMAIL]"></label>
+    <label class="f">Loyalty or account number<span>Optional</span><input type="text" id="f-loyalty" autocomplete="off" placeholder="[optional]"></label>
+    <label class="f">Your state<span>Adds your state's law to the letter</span>
+      <select id="f-state">
+        <option value="">Not listed / not sure</option>
+        <option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option>
+        <option value="DE">Delaware</option><option value="FL">Florida</option><option value="IN">Indiana</option>
+        <option value="IA">Iowa</option><option value="KY">Kentucky</option><option value="MD">Maryland</option>
+        <option value="MN">Minnesota</option><option value="MT">Montana</option><option value="NE">Nebraska</option>
+        <option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="OR">Oregon</option>
+        <option value="RI">Rhode Island</option><option value="TN">Tennessee</option><option value="TX">Texas</option>
+        <option value="UT">Utah</option><option value="VA">Virginia</option>
+      </select></label>
+  </div>
+
+  <div class="tpl" id="t-know">
+    <h3>1. "Tell me what you know about me"</h3>
+    <p class="what">Asks for your data, the inferences and segments drawn from it, and your loyalty profile.</p>
+    <textarea readonly aria-label="Right-to-know letter" rows="16">Subject: Privacy request – what personal information you hold about me
+
+To the privacy team at [COMPANY]:
+
+I am making a request to know and access my personal information under the consumer privacy law of the state where I live. Please send me:
+
+1. A copy of the specific personal information you have collected about me, from any source.
+2. Any inferences, scores, segments, audiences, labels or profiles you have created about me or obtained from others, including anything that estimates my interests, habits, income, price sensitivity or likelihood to buy.
+3. My loyalty or rewards program profile, including my purchase history, any tier, segment or label I am in, and the offers, coupons and discounts you have shown or sent me.
+4. Where you got my information, what you use it for, and the third parties you have disclosed, sold or shared it to (by name, where the law allows).
+
+To find my records: name [YOUR NAME], email [YOUR EMAIL]. I am sending this from that address. If you need more to verify my identity, please tell me exactly what and why, and I will use your own request page to provide it.
+
+Please confirm you received this request and respond within the time the law allows. If you deny any part, please tell me which part, the reason, and how to appeal.
+
+[YOUR NAME]
+[DATE]</textarea>
+    <div class="row"><button class="copy" type="button" data-for="t-know">Copy letter</button><span class="status" aria-live="polite"></span></div>
+    <p class="where"><b>Where to send it:</b> look for "Your Privacy Choices", "Privacy request" or "Do Not Sell or Share" in the company's site footer or privacy policy. A California business must offer at least two ways to send this, usually including a toll-free number <a class="src" href="#s-ca130" title="Source accessed 2026-10-14">§&nbsp;1798.130(a)(1)(A)</a>.</p>
+  </div>
+
+  <div class="tpl" id="t-delete">
+    <h3>2. "Delete my data"</h3>
+    <p class="what">Asks the company, and the companies it passed your data to, to delete it.</p>
+    <label class="check"><input type="checkbox" id="f-delloyalty"> Include my loyalty or rewards data (this may close the account and lose points)</label>
+    <textarea readonly aria-label="Deletion letter" rows="14">Subject: Privacy request – delete my personal information
+
+To the privacy team at [COMPANY]:
+
+I am requesting that you delete the personal information you hold about me, under the consumer privacy law of the state where I live. This includes any inferences, scores, segments and profiles about me.
+
+Please also tell your service providers, contractors, and anyone you sold or shared my information with to delete it. If you keep any of it under a legal exception, please tell me what you are keeping and why.
+
+To find my records: name [YOUR NAME], email [YOUR EMAIL]. I am sending this from that address.
+
+Please confirm when this is done, within the time the law allows.
+
+[YOUR NAME]
+[DATE]</textarea>
+    <div class="row"><button class="copy" type="button" data-for="t-delete">Copy letter</button><span class="status" aria-live="polite"></span></div>
+    <p class="where"><b>Where to send it:</b> the same privacy-request page or address. Some companies ask you to confirm a deletion request a second time; watch for that email.</p>
+  </div>
+
+  <div class="tpl" id="t-optout">
+    <h3>3. "Don't sell or share my data"</h3>
+    <p class="what">Opts you out of the sale or sharing of your data, targeted advertising and covered profiling.</p>
+    <textarea readonly aria-label="Opt-out letter" rows="14">Subject: Privacy request – do not sell or share my personal information
+
+To the privacy team at [COMPANY]:
+
+Under the consumer privacy law of the state where I live, I am opting out of the sale and sharing of my personal information, its use for targeted advertising, and profiling that produces legal or similarly significant effects, to the full extent the law gives me those rights.
+
+Please apply this to every account, device and record you associate with me. If you receive a Global Privacy Control signal from my browser, please treat it as applying to my account as well.
+
+To find my records: name [YOUR NAME], email [YOUR EMAIL].
+
+Please confirm when this has taken effect.
+
+[YOUR NAME]
+[DATE]</textarea>
+    <div class="row"><button class="copy" type="button" data-for="t-optout">Copy letter</button><span class="status" aria-live="polite"></span></div>
+    <p class="where"><b>Where to send it:</b> the "Do Not Sell or Share My Personal Information" or "Your Privacy Choices" link, usually in the site footer. In California a business that sells or shares must offer that link, unless it honors opt-out signals like GPC instead <a class="src" href="#s-ca135" title="Source accessed 2026-10-14">§&nbsp;1798.135(a)–(b)</a>.</p>
+  </div>
+
+  <div class="tpl" id="t-correct">
+    <h3>4. "Correct my data"</h3>
+    <p class="what">Asks the company to fix what's wrong, including in profiles built from it.</p>
+    <div class="fields">
+      <label class="f">What's wrong<span>e.g. "my income bracket"</span><input type="text" id="f-wrong" autocomplete="off" placeholder="[WHAT IS WRONG]"></label>
+      <label class="f">What it should say<input type="text" id="f-right" autocomplete="off" placeholder="[WHAT IT SHOULD SAY]"></label>
+    </div>
+    <textarea readonly aria-label="Correction letter" rows="14">Subject: Privacy request – correct my personal information
+
+To the privacy team at [COMPANY]:
+
+Under the consumer privacy law of the state where I live, I am requesting that you correct inaccurate personal information you hold about me.
+
+What is wrong: [WHAT IS WRONG]
+What it should say: [WHAT IT SHOULD SAY]
+
+Please correct it everywhere you hold it, including in any profile, segment or score built from it, and confirm when it is done.
+
+To find my records: name [YOUR NAME], email [YOUR EMAIL]. I am sending this from that address.
+
+[YOUR NAME]
+[DATE]</textarea>
+    <div class="row"><button class="copy" type="button" data-for="t-correct">Copy letter</button><span class="status" aria-live="polite"></span></div>
+    <p class="where"><b>Where to send it:</b> the same privacy-request page. The company may ask for documents to show the correct value; send them only through its own portal.</p>
+  </div>
+</div></section>
+
+<section id="sources"><div class="wrap">
+  <h2>Sources</h2>
+  <p class="small">Every source was read on <b>October 14, 2026</b>. "As enacted" means the bill as passed; later amendments may change details.</p>
+  <ol class="srcs">
+    <li id="s-ca105"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.105">Cal. Civ. Code § 1798.105</a> (right to delete). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca106"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.106">Cal. Civ. Code § 1798.106</a> (right to correct). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca110"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.110">Cal. Civ. Code § 1798.110</a> (right to know). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca120"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.120">Cal. Civ. Code § 1798.120</a> (opt out of sale or sharing). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca125"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.125">Cal. Civ. Code § 1798.125</a> (no retaliation; loyalty programs). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca130"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.130">Cal. Civ. Code § 1798.130</a> (request methods, 45-day deadline, twice per 12 months). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca135"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.135">Cal. Civ. Code § 1798.135</a> ("Do Not Sell or Share" link; opt-out preference signals). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca140"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.140">Cal. Civ. Code § 1798.140</a> (definitions: (v)(1)(K) inferences, (ak) verifiable consumer request). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ca198"><a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&amp;sectionNum=1798.198">Cal. Civ. Code § 1798.198</a> (operative January 1, 2020). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ccr"><a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Cal. Code Regs. tit. 11, §§ 7021, 7025, 7026</a>, CalPrivacy's approved regulation text (package approved September 2025). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-caop"><a href="https://oag.ca.gov/system/files/opinions/pdfs/20-303.pdf">California Attorney General, Opinion No. 20-303 (March 10, 2022)</a> (right to know covers internally generated inferences). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-drop"><a href="https://privacy.ca.gov/drop/">CalPrivacy, Delete Request and Opt-out Platform (DROP)</a> (status and timeline). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-coag"><a href="https://coag.gov/resources/colorado-privacy-act/">Colorado Attorney General, Colorado Privacy Act</a> (rights; in effect July 1, 2023). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-co"><a href="https://leg.colorado.gov/sites/default/files/2021a_190_signed.pdf">Colorado SB21-190 as enacted</a>, § 6-1-1306 (rights; 45 + 45 days). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-coopt"><a href="https://coag.gov/opt-out/">Colorado Attorney General, Universal Opt-Out Mechanisms</a> (GPC recognized). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ct"><a href="https://www.cga.ct.gov/current/pub/chap_743jj.htm">Conn. Gen. Stat. ch. 743jj</a>, §§ 42-518, 42-520 (P.A. 22-15 effective July 1, 2023). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ct26"><a href="https://www.cga.ct.gov/2026/sup/chap_743jj.htm">Conn. Gen. Stat. ch. 743jj, 2026 Supplement</a>, § 42-518 as amended by P.A. 25-113, effective July 1, 2026 (inferences). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-de"><a href="https://delcode.delaware.gov/title6/c012d/index.html">Del. Code tit. 6, ch. 12D</a>, § 12D-104. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-deag"><a href="https://attorneygeneral.delaware.gov/fraud/personal-data-privacy-portal/consumer/">Delaware DOJ, Personal Data Privacy Portal: Consumers</a> (in effect January 1, 2025). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-fl"><a href="http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&amp;URL=0500-0599/0501/0501.html">Fla. Stat. ch. 501, part V</a>, §§ 501.702(9), 501.705, 501.706. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-fl2"><a href="https://laws.flrules.org/2023/201">Laws of Florida ch. 2023-201</a> (takes effect July 1, 2024). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-in"><a href="https://iga.in.gov/pdf-documents/123/2023/senate/bills/SB0005/SB0005.05.ENRH.pdf">Indiana Senate Enrolled Act 5 (2023) as enacted</a>, IC 24-15-3-1 ("effective January 1, 2026"). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ia"><a href="https://web.archive.org/web/20260810012500/https://www.legis.iowa.gov/docs/code/715D.pdf">Iowa Code 2026, ch. 715D</a>, § 715D.3. The official site, legis.iowa.gov, did not respond on October 14, 2026, so this links the Internet Archive's copy of its PDF (captured 2026-08-10). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ia2"><a href="https://web.archive.org/web/20261011115506/https://www.legis.iowa.gov/docs/publications/LGE/90/SF262.pdf">Iowa Senate File 262 (2023), enrolled</a>, § 10 (takes effect January 1, 2025). Internet Archive copy of legis.iowa.gov, captured 2026-10-11. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ky"><a href="https://apps.legislature.ky.gov/law/statutes/statute.aspx?id=55838">Ky. Rev. Stat. § 367.3615</a> (effective January 1, 2026). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-md"><a href="https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText?article=gcl&amp;section=14-4705&amp;enactments=false&amp;archived=false">Md. Code, Com. Law § 14-4705</a> (opens only with JavaScript on). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-md2"><a href="https://mgaleg.maryland.gov/mgawebsite/Legislation/Details/sb0541?ys=2024RS">Maryland SB 541 (2024), Chapter 455</a> (effective October 1, 2025). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-mn"><a href="https://www.revisor.mn.gov/statutes/cite/325M.14">Minn. Stat. § 325M.14</a>. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-mn2"><a href="https://www.revisor.mn.gov/laws/2024/0/121/">Minn. Laws 2024, ch. 121</a>, art. 5, § 14 (effective July 31, 2025). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-mt"><a href="https://mca.legmt.gov/bills/mca/title_0300/chapter_0140/part_0280/section_0080/0300-0140-0280-0080.html">Mont. Code Ann. § 30-14-2808</a>. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-mt2"><a href="https://archive.legmt.gov/content/Committees/Interim/2023-2024/Economic-Affairs/Meetings/May-2024/8.1-SB384-Memo.pdf">Montana Legislative Services memo on SB 384 (2023)</a>, which attaches the enacted text ("[This act] is effective October 1, 2024"). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ne"><a href="https://nebraskalegislature.gov/laws/statutes.php?statute=87-1107">Neb. Rev. Stat. § 87-1107</a> and <a href="https://nebraskalegislature.gov/laws/statutes.php?statute=87-1108">§ 87-1108</a>. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ne2"><a href="https://nebraskalegislature.gov/FloorDocs/108/PDF/Slip/LB1074.pdf">Nebraska LB1074 (2024) slip law</a>, § 100 (operative January 1, 2025). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-nh"><a href="https://gc.nh.gov/rsa/html/LII/507-H/507-H-mrg.htm">N.H. Rev. Stat. ch. 507-H</a> (2024, 5:1, eff. January 1, 2025). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-nj"><a href="https://pub.njleg.state.nj.us/Bills/2022/PL23/266_.PDF">N.J. P.L.2023, c.266 as enacted</a> (approved January 16, 2024; takes effect on the 365th day after). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-or"><a href="https://www.oregonlegislature.gov/bills_laws/ors/ors646A.html">ORS chapter 646A</a>, §§ 646A.570, 646A.574, 646A.576. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-orag"><a href="https://www.doj.state.or.us/consumer-protection/id-theft-data-breaches/privacy/">Oregon DOJ, Privacy</a> (takes effect July 1, 2024). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ri"><a href="https://webserver.rilegislature.gov/Statutes/TITLE6/6-48.1/6-48.1-5.htm">R.I. Gen. Laws § 6-48.1-5</a> (effective January 1, 2026). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ri2"><a href="https://webserver.rilegislature.gov/Statutes/TITLE6/6-48.1/6-48.1-6.htm">R.I. Gen. Laws § 6-48.1-6</a>. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-tn"><a href="https://publications.tnsosfiles.com/acts/113/pub/pc0408.pdf">Tennessee Public Chapter 408 (2023) as enacted</a>, § 47-18-3203 ("takes effect July 1, 2025"). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-tx"><a href="https://statutes.capitol.texas.gov/Docs/BC/htm/BC.541.htm">Tex. Bus. &amp; Com. Code ch. 541</a> (eff. July 1, 2024). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ut201"><a href="https://le.utah.gov/xcode/Title13/Chapter61/13-61-S201.html">Utah Code § 13-61-201</a> (effective July 1, 2026), <a href="https://le.utah.gov/xcode/Title13/Chapter61/13-61.html">ch. 13-61</a> (effective December 31, 2023), and <a href="https://le.utah.gov/~2025/bills/static/HB0418.html">H.B. 418 (2025)</a>, which added the right to correct as subsection (4), effective July 1, 2026 (§ 10). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ut203"><a href="https://le.utah.gov/xcode/Title13/Chapter61/13-61-S203.html">Utah Code § 13-61-203</a>. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-va"><a href="https://law.lis.virginia.gov/vacodefull/title59.1/chapter53/">Va. Code tit. 59.1, ch. 53</a>, §§ 59.1-577, 59.1-578. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-va2"><a href="https://legacylis.virginia.gov/cgi-bin/legp604.exe?212+ful+CHAP0036">Va. Acts 2021 Sp. Sess. I, ch. 36</a>, enactment 4 (effective January 1, 2023). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-la"><a href="https://legis.la.gov/legis/BillInfo.aspx?s=26RS&amp;b=SB386&amp;sbi=y">Louisiana SB 386 (2026)</a>, Act 502, effective January 1, 2027. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-ok"><a href="https://www.oklegislature.gov/cf_pdf/2025-26%20ENR/SB/SB546%20ENR.PDF">Oklahoma SB 546, enrolled</a> ("effective January 1, 2027"); approved by the governor March 20, 2026 per the <a href="https://www.oklegislature.gov/BillInfo.aspx?Bill=SB546&amp;Session=2600">bill page</a>. <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-al"><a href="https://alison.legislature.state.al.us/files/pdf/SearchableInstruments/2026RS/HB351-enr.pdf">Alabama HB 351 (2026), enrolled</a>, § 12 ("effective on May 1, 2027"). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-vt"><a href="https://legislature.vermont.gov/Documents/2026/Docs/ACTS/ACT145/ACT145%20As%20Enacted.pdf">Vermont Act 145 (2026), as enacted</a>, § 4 ("take effect on January 1, 2028"). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-cr26"><a href="https://www.consumerreports.org/media-room/press-releases/2026/06/consumer-reports-investigation-reveals-uber-and-lyft-ai-driven-pricing-tactics-lead-to-significantly-different-prices/">Consumer Reports press release, June 16, 2026</a> (ride-hail pricing investigation). <span class="acc">Accessed 2026-10-14.</span></li>
+    <li id="s-cr25"><a href="https://www.consumerreports.org/money/questionable-business-practices/kroger-secret-grocery-shopper-profiles-unfair-a1011215563/">Consumer Reports, May 21, 2025</a> (grocery loyalty profile obtained under Oregon's law). <span class="acc">Accessed 2026-10-14.</span></li>
+  </ol>
+</div></section>
+
+<footer><div class="wrap">
+  <p>
+    Information, not legal advice. Written by the developer of Nullecho, a free, open-source browser extension,
+    not by a lawyer. Last checked October 14, 2026. If you find an error, please
+    <a href="https://github.com/ZJHeepfixer/nullecho/issues">open an issue</a>.
+  </p>
+  <p>
+    This page has no analytics, no cookie, no tracker and no form that submits anywhere. Its one script fills
+    in the letters and copies them to your clipboard; it makes no network request. The host is a different
+    question: GitHub Pages serves this site and logs visitors' IP addresses, as our
+    <a href="/privacy/">privacy page</a> explains.
+  </p>
+  <p><a href="/">Home</a> · <a href="/drop/">California DROP guide</a> · <a href="/research/">Research</a> · <a href="/privacy/">Privacy</a> · <a href="https://github.com/ZJHeepfixer/nullecho">Source on GitHub</a></p>
+</div></footer>
+
+<script>
+/* Fills the four letters from the blanks above and copies them to the clipboard.
+   Local only: no fetch, no XMLHttpRequest, no form submission, no storage. */
+(function(){
+  'use strict';
+  document.body.classList.remove('nojs');
+  var LAWS = {
+    CA:["California","Cal. Civ. Code § 1798.100 et seq.",45], CO:["Colorado","Colo. Rev. Stat. § 6-1-1301 et seq.",45],
+    CT:["Connecticut","Conn. Gen. Stat. § 42-515 et seq.",45], DE:["Delaware","Del. Code tit. 6, ch. 12D",45],
+    FL:["Florida","Fla. Stat. § 501.701 et seq.",45], IN:["Indiana","Ind. Code art. 24-15",45],
+    IA:["Iowa","Iowa Code ch. 715D",90], KY:["Kentucky","Ky. Rev. Stat. § 367.3611 et seq.",45],
+    MD:["Maryland","Md. Code, Com. Law § 14-4701 et seq.",45], MN:["Minnesota","Minn. Stat. § 325M.10 et seq.",45],
+    MT:["Montana","Mont. Code Ann. § 30-14-2801 et seq.",45], NE:["Nebraska","Neb. Rev. Stat. § 87-1101 et seq.",45],
+    NH:["New Hampshire","N.H. Rev. Stat. ch. 507-H",45], NJ:["New Jersey","N.J. Stat. § 56:8-166.4 et seq.",45],
+    OR:["Oregon","ORS 646A.570 et seq.",45], RI:["Rhode Island","R.I. Gen. Laws ch. 6-48.1",45],
+    TN:["Tennessee","Tenn. Code Ann. § 47-18-3201 et seq.",45], TX:["Texas","Tex. Bus. & Com. Code ch. 541",45],
+    UT:["Utah","Utah Code ch. 13-61",45], VA:["Virginia","Va. Code § 59.1-575 et seq.",45]
+  };
+  var $ = function(id){ return document.getElementById(id); };
+  function val(id, blank){ var v = ($(id).value || '').trim(); return v || blank; }
+  function today(){
+    var d = new Date();
+    return d.toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+  }
+  function lawPhrase(st){
+    return st ? st[0] + "'s consumer privacy law (" + st[1] + ")" : 'the consumer privacy law of the state where I live';
+  }
+  function timePhrase(st, optout, code){
+    if (optout && code === 'CA') return 'within 15 business days, as California regulations require (Cal. Code Regs. tit. 11, § 7026(f)(1))';
+    if (st) return 'within the ' + st[2] + ' days the law sets';
+    return 'within the time the law allows';
+  }
+
+  function build(){
+    var code = $('f-state').value, st = LAWS[code] || null;
+    var co = val('f-company','[COMPANY]'), nm = val('f-name','[YOUR NAME]'), em = val('f-email','[YOUR EMAIL]');
+    var loy = val('f-loyalty',''), date = today();
+    var ids = 'To find my records: name ' + nm + ', email ' + em + (loy ? ', loyalty/account number ' + loy : '') + '.';
+    var sign = nm + '\n' + date;
+    var law = lawPhrase(st);
+
+    var know =
+      'Subject: Privacy request – what personal information you hold about me\n\n' +
+      'To the privacy team at ' + co + ':\n\n' +
+      'I am making a request to know and access my personal information under ' + law + '. Please send me:\n\n' +
+      '1. A copy of the specific personal information you have collected about me, from any source.\n' +
+      '2. Any inferences, scores, segments, audiences, labels or profiles you have created about me or obtained from others, including anything that estimates my interests, habits, income, price sensitivity or likelihood to buy.\n' +
+      '3. My loyalty or rewards program profile' + (loy ? ' (number ' + loy + ')' : '') + ', including my purchase history, any tier, segment or label I am in, and the offers, coupons and discounts you have shown or sent me.\n' +
+      '4. Where you got my information, what you use it for, and the third parties you have disclosed, sold or shared it to (by name, where the law allows).\n\n' +
+      ids + ' I am sending this from that address. If you need more to verify my identity, please tell me exactly what and why, and I will use your own request page to provide it.\n\n' +
+      'Please confirm you received this request and respond ' + timePhrase(st, false, code) + '. If you deny any part, please tell me which part, the reason, and how to appeal.\n\n' + sign;
+
+    var del =
+      'Subject: Privacy request – delete my personal information\n\n' +
+      'To the privacy team at ' + co + ':\n\n' +
+      'I am requesting that you delete the personal information you hold about me, under ' + law + '. This includes any inferences, scores, segments and profiles about me' +
+      ($('f-delloyalty').checked ? ', and my loyalty or rewards program data' + (loy ? ' (number ' + loy + ')' : '') + '. I understand this may close that account' : '') + '.\n\n' +
+      'Please also tell your service providers, contractors, and anyone you sold or shared my information with to delete it. If you keep any of it under a legal exception, please tell me what you are keeping and why.\n\n' +
+      ids + ' I am sending this from that address.\n\n' +
+      'Please confirm when this is done, ' + timePhrase(st, false, code) + '.\n\n' + sign;
+
+    var opt =
+      'Subject: Privacy request – do not sell or share my personal information\n\n' +
+      'To the privacy team at ' + co + ':\n\n' +
+      'Under ' + law + ', I am opting out of the sale and sharing of my personal information, its use for targeted advertising, and profiling that produces legal or similarly significant effects, to the full extent the law gives me those rights.\n\n' +
+      'Please apply this to every account, device and record you associate with me' + (loy ? ', including loyalty/account number ' + loy : '') + '. If you receive a Global Privacy Control signal from my browser, please treat it as applying to my account as well.\n\n' +
+      ids + (code === 'CA' ? ' Under Cal. Code Regs. tit. 11, § 7026(d), an opt-out does not require identity verification; please use these details only to find my records.' : '') + '\n\n' +
+      'Please confirm when this has taken effect, ' + timePhrase(st, true, code) + '.\n\n' + sign;
+
+    var cor =
+      'Subject: Privacy request – correct my personal information\n\n' +
+      'To the privacy team at ' + co + ':\n\n' +
+      'Under ' + law + ', I am requesting that you correct inaccurate personal information you hold about me.\n\n' +
+      'What is wrong: ' + val('f-wrong','[WHAT IS WRONG]') + '\n' +
+      'What it should say: ' + val('f-right','[WHAT IT SHOULD SAY]') + '\n\n' +
+      'Please correct it everywhere you hold it, including in any profile, segment or score built from it, and confirm when it is done, ' + timePhrase(st, false, code) + '.\n\n' +
+      ids + ' I am sending this from that address.\n\n' + sign;
+
+    $('t-know').querySelector('textarea').value = know;
+    $('t-delete').querySelector('textarea').value = del;
+    $('t-optout').querySelector('textarea').value = opt;
+    $('t-correct').querySelector('textarea').value = cor;
+  }
+
+  function copy(btn){
+    var box = $(btn.getAttribute('data-for'));
+    var ta = box.querySelector('textarea'), status = box.querySelector('.status');
+    var text = ta.value;
+    function done(ok){
+      status.textContent = ok ? 'Copied. Paste it into your email or the company’s form.' : 'Couldn’t copy automatically. The text is selected: press Ctrl+C or ⌘C.';
+    }
+    function fallback(){
+      ta.focus(); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      done(ok);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  ['f-company','f-name','f-email','f-loyalty','f-wrong','f-right'].forEach(function(id){ $(id).addEventListener('input', build); });
+  $('f-state').addEventListener('change', build);
+  $('f-delloyalty').addEventListener('change', build);
+  Array.prototype.forEach.call(document.querySelectorAll('button.copy'), function(b){
+    b.addEventListener('click', function(){ copy(b); });
+  });
+  build();
+})();
+</script>
+</body>
+</html>
