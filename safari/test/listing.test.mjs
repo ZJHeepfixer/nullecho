@@ -8,6 +8,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { REPO } from './helpers.mjs';
@@ -78,7 +79,8 @@ test('every screenshot file exists in safari/store with the set\'s pixel size an
 });
 
 test('loadListing rejects a broken file (over-long subtitle, missing screenshot)', () => {
-  const tmp = path.join(fs.mkdtempSync(path.join(REPO, 'dist', 'listing-test-')), 'listing.json');
+  // os.tmpdir(), not dist/: dist is build output and does not exist on a clean checkout.
+  const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nullecho-listing-')), 'listing.json');
   const broken = JSON.parse(fs.readFileSync(LISTING_FILE, 'utf8'));
   broken.app.subtitle = 'x'.repeat(31);
   fs.writeFileSync(tmp, JSON.stringify(broken));

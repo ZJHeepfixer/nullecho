@@ -12,7 +12,7 @@
  *
  * Credentials come from the environment, never from this file or the repo:
  *   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH (the .p8)            — same names as archive-testflight.sh
- *   ASC_REVIEW_CONTACT_JSON (optional) = {"contactFirstName":..,"contactLastName":..,"contactPhone":..,"contactEmail":..}
+ *   ASC_REVIEW_CONTACT_JSON (optional, normally unset: the owner types the review contact in App Store Connect, director 2026-10-15)
  *
  * The API shapes (JWT, appInfos/categories, appInfoLocalizations, appStoreVersions, appStoreVersionLocalizations,
  * ageRatingDeclarations with the unknown-attribute retry, appStoreReviewDetails, appScreenshotSets with the
@@ -128,7 +128,7 @@ export function describePlan(l) {
     lines.push(`4.${plat}. appStoreVersions[${plat}]: versionString ${v.versionString}, releaseType ${v.releaseType}, copyright "${v.copyright}"${plat === 'MAC_OS' ? ' (created if the record has no MAC_OS version yet — unverified path, the API decides)' : ''}`);
     lines.push(`5.${plat}. appStoreVersionLocalizations[${l.primaryLocale}]: description ${v.description.length}/${LIMITS.description} chars, keywords ${Buffer.byteLength(v.keywords)}/${LIMITS.keywordsBytes} bytes, promotionalText ${v.promotionalText.length}/${LIMITS.promotionalText}, supportUrl ${v.supportUrl}, marketingUrl ${v.marketingUrl}; whatsNew omitted (first version)`);
     lines.push(`6.${plat}. ageRatingDeclaration: ${Object.keys(l.ageRating).length} attributes, all NONE / false (4+); unknown attributes are dropped on the API's word and reported`);
-    lines.push(`7.${plat}. appStoreReviewDetail: demoAccountRequired ${l.review.demoAccountRequired}, notes ${Buffer.byteLength(l.review.notes)}/${LIMITS.notesBytes} bytes (3 paragraphs), contact from ASC_REVIEW_CONTACT_JSON${process.env.ASC_REVIEW_CONTACT_JSON ? ' (present)' : ' (ABSENT: the owner fills the contact fields in App Store Connect)'}`);
+    lines.push(`7.${plat}. appStoreReviewDetail: demoAccountRequired ${l.review.demoAccountRequired}, notes ${Buffer.byteLength(l.review.notes)}/${LIMITS.notesBytes} bytes (3 paragraphs), contact: the owner types it in App Store Connect${process.env.ASC_REVIEW_CONTACT_JSON ? ' (ASC_REVIEW_CONTACT_JSON is set and will be used instead)' : ''}`);
   }
   for (const set of l.screenshots) {
     const skip = typeof set.status === 'string' && set.status.startsWith('stale');

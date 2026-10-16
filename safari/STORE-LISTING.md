@@ -424,8 +424,8 @@ node safari/tools/asc-listing.mjs --plan --offline    # the same with no network
 node safari/tools/asc-listing.mjs --apply             # idempotent PATCHes; never deletes; stops at the first error
 ```
 
-Credentials come from the environment only (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH`; optional
-`ASC_REVIEW_CONTACT_JSON` for the owner's review contact, which is never stored in the repo). The tool refuses to
+Credentials come from the environment only (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH`). The App Review contact
+is the owner's to type in App Store Connect (director, 2026-10-15); it is kept out of the repo and the environment. The tool refuses to
 run `--apply` until `GET /v1/apps` finds `org.nullecho.app`, i.e. after the owner's script A has created the record;
 it never creates the record, the in-app purchases or the agreements.
 
