@@ -3597,7 +3597,12 @@ dell, macys), 4 failed on both sides with HTTP/2 or QUIC protocol errors (office
   OFF either in r2–r3, so the row is INCONCLUSIVE. Reported for completeness from the first, unseeded one-round debug
   run (88fd0e4 + uncommitted harness, not a release measurement): walmart.com read `$169.99` OFF and `$149.99` ON, in
   both microdata and the rendered price, with **zero** personalization-rule matches on the page; in the three-round lab
-  walmart read `$149.99` on both sides in its one unwalled pair. Unexplained, unattributed, not reproduced.
+  walmart read `$149.99` on both sides in its one unwalled pair. **Seen again** in the seeded-gate re-run on the tip
+  (`980d532`, 2026-10-15 evening, log only — the run crashed before writing a report): walmart r1 OFF `$169.99`, ON
+  `$149.99`, again with zero personalization matches. A rule that matches nothing cannot change a page, so this is not
+  the new ruleset; whether it is Walmart rotating the offer it shows or something else Nullecho does (the persona, GPC,
+  the older rulesets, the seeded learned rules) is **unknown and owed** — re-run walmart with `--drop-rules all` and with
+  the extension's other layers off before anyone draws a conclusion, and never quote it as Nullecho lowering a price.
 - **Verdicts:** 17 PASS, 14 NOT-OURS (the page's own add-to-cart or price could not be confirmed with the extension
   OFF either, and ON was never worse), 2 BLOCKED, 1 INCONCLUSIVE, **0 FAIL.** Add-to-cart was confirmed on both sides in
   32 pairs and lost ON in none; search was compared in 63 pairs and never lost.
