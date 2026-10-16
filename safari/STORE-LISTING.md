@@ -47,7 +47,7 @@ Things only the owner can decide are marked **OWNER**. Nothing here was entered 
 | **Primary language** | English (U.S.) | Store text below uses US spellings ("honored", "license") per the director's call of 2026-10-15; the in-app copy stays British. The owner can switch to English (U.K.) in his chat. |
 | **Primary category** | Utilities | Apple's definition ("solve a problem or complete a specific task", examples include web browsing) covers a tracker blocker, and it is the category the brief chose. **OWNER, recommended alternative:** Apple's category page also lists **Safari Extensions** ("adblockers" are its example); if App Store Connect offers it for this record, it is the closest fit. The page does not say which platforms get it (unverified). |
 | **Secondary category** | Productivity (optional) | Or Utilities if Safari Extensions becomes primary. Secondary is optional in practice; the categories page says you "can assign two categories" and does not call the second required (unverified wording). |
-| **Content rights** | **HOLD** (director, 2026-10-15): the rule lists derive from third-party tracker research with attribution / share-alike / non-commercial terms, and a license review is open. Do not attest "you have the rights" until it concludes; the outcome is either the answer to give here or a rule-list change for the Safari build. | |
+| **Content rights** | **Yes / Yes** (director, 2026-10-15 evening, HOLD lifted after the licence-hygiene pass): *Does your app contain, show, or access third-party content?* **Yes.** *Do you have all necessary rights to that content, or are you otherwise permitted to use it?* **Yes.** | Basis in §2.10: PR #15 removed from the Safari build the 14 entries whose only published source was DuckDuckGo (CC BY-NC-SA) or a verbatim AdGuard GPL-only pattern; what ships is Nullecho's own selection, checked against GPL / CC BY-SA lists, credited in the app (Acknowledgements) with NOTICE and the licence texts bundled (PR #14). The Review Notes paragraph is in §8. |
 | **Age rating** | 4+ (all answers None / No; §6) | Set once at app level. |
 | **Privacy Policy URL** | `https://nullecho.org/privacy/` | Required. The page carries a section "The Safari app (iPhone, iPad and Mac)" since 2026-10-15 (PR #10, live; verified with curl): what the extension and app store (nothing), the no-network app, the tip jar handled by Apple, the "Data Not Collected" label, and how to delete. |
 | **Privacy choices URL** | leave empty | Optional; there is nothing to choose. |
@@ -183,17 +183,18 @@ connections of its own.
 
 ### 2.10 Content rights (version level)
 
-Same answer as §1: the bundled rule lists are derived from third-party published lists used under their
-licenses. Still HOLD until the director's licence-hygiene pass lands. Prepared for that moment (from the
-licence review §7.2; not yet approved store text): answer *Yes* to "contains, show, or access third-party
-content" and *Yes* to "have all necessary rights", and keep this paragraph ready for Review Notes or a
-Guideline 5.2 request:
+**Answer: Yes, Yes.** *Does your app contain, show, or access third-party content?* Yes. *Do you have all necessary
+rights to that content, or are you otherwise permitted to use it?* Yes. HOLD lifted by the director on 2026-10-15
+(evening) once the licence-hygiene pass landed: PR #15 (`safari/extension/rules-exclude.json`) keeps the 8
+DuckDuckGo-only hosts, the 3 DuckDuckGo-only path rules and the 3 verbatim AdGuard GPL-only path rules out of the
+Safari build, and PR #14 put the credit in the app ("What it does" ▸ Acknowledgements) with `NOTICE.txt`, the MIT
+licence and the GPL-3.0 text bundled. "Yes" to the first question, not "No": some remaining patterns match EasyPrivacy
+verbatim, so "No" would be the answer that is hard to defend later (H-LICENSE-REVIEW §7.2). Apple's exact UI wording
+was taken from its reference page, not the live form (unverified).
 
-> Nullecho bundles its own list of tracker domain names and URL patterns. Entries were checked against
-> EasyPrivacy/EasyList (GPL-3.0-or-later or CC BY-SA 3.0-or-later) and AdGuard filters (GPL-3.0). Both
-> licences permit redistribution, including commercial, with attribution. Credits and licence texts are in
-> the app under What it does ▸ Acknowledgements ▸ Full credits and licence texts (NOTICE, the MIT licence and
-> the GPL-3.0 text ship inside the app). The app does not access any third-party service at runtime.
+Review Notes paragraph (H-LICENSE-REVIEW §7.2; it is the third paragraph of §8 and the answer to any Guideline 5.2 question):
+
+> Nullecho bundles its own list of tracker domain names and URL patterns. Entries were checked against EasyPrivacy/EasyList (GPL-3.0-or-later or CC BY-SA 3.0-or-later) and AdGuard filters (GPL-3.0). Both licences permit redistribution, including commercial, with attribution. Credits and licence texts are in the app under What it does, Acknowledgements, Full credits and licence texts (NOTICE, the MIT licence and the GPL-3.0 text ship inside the app). The app does not access any third-party service at runtime.
 
 ---
 
@@ -255,8 +256,8 @@ Per product, also:
 
 - **Availability**: same territories as the app.
 - **Family Sharing**: off (consumables cannot be shared; the `.storekit` file has `familyShareable: false`).
-- **Review screenshot** (required, review-only): `safari/store/iphone-69-4-support.png` (or the iPad shot
-  `ipad-13-3-limits-support.png`); both show the four tiers with their prices in the real app.
+- **Review screenshot** (required, review-only): `safari/store/iphone-63-4-support.png` (or the iPad shot
+  `ipad-13-3-limits.png`); both show the four tiers with their prices in the real app.
 - **Review notes** (≤ 4000): "Optional tip in a free app. Nothing is unlocked or changed by the purchase; the
   only effect is a one-line thank-you that disappears when the app quits. No account, no server, no restore
   (consumable). See the app's review notes."
@@ -319,7 +320,7 @@ of `TipJarTests/testProductsLoadSortedByPriceWithDisplayPrices` on that simulato
 | File | Size | Device / class | Shows |
 |---|---|---|---|
 | `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.2", "Turn it on in Safari" steps |
-| `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "200 block rules on", the collapsed "Acknowledgements" row |
+| `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "186 block rules on" (200 before PR #15's 14 exclusions), the collapsed "Acknowledgements" row |
 | `iphone-63-3-limits.png` | 1206×2622 | same | "What it does not do in Safari" and "Collects nothing" |
 | `iphone-63-4-support.png` | 1206×2622 | same | "If a site misbehaves" and "Support the project" with the four tips at $1.00 / $2.00 / $3.00 / $5.00 |
 | `ipad-13-1-top.png` | 2064×2752 | iPad Pro 13-inch (M5) = the required iPad 13-inch class | as iPhone 1 |
@@ -335,24 +336,28 @@ are accepted but not required, so none are provided. A light-mode Mac shot needs
 The in-app "What it does" text visible in shots 2 no longer names any third-party list (since the licence
 review: the blocking row says the entries were "checked against the published tracker lists credited under
 Acknowledgements below", and a collapsed "Acknowledgements" row follows "Rule lists in this build"); the store
-*text* names none either (director's rule). The sets were re-shot after that change. If the copy changes again,
+*text* names none either (director's rule). The sets were re-shot after that change, and again from main 7753ed7 after PR #15's exclusions changed the
+counted row to "186 block rules on" (the app counts the rule files it ships). If the copy or the lists change again,
 re-run the screenshot test.
 
-## 8. Notes for App Review (1955 characters; limit 4000 bytes)
+## 8. Notes for App Review (2443 characters, 2447 bytes with the optional paragraph; limit 4000 bytes)
 
 The first paragraph is `safari/TIP-JAR.md` "Review notes", verbatim. The second adds the two sentences the brief
-asked for (enabling the extension; no account). The third is optional and pre-empts 4.4.2 as
-`audit/03-packaging.md` §6 recommends.
+asked for (enabling the extension; no account). The third is the Content Rights basis (§2.10). The fourth is optional
+and pre-empts 4.4.2 as `audit/03-packaging.md` §6 recommends.
 
 ```
 Nullecho is a free Safari web extension with no accounts, no sign-in and no server. This version adds an optional tip jar, "Support the project", at the bottom of the app's single screen (scroll down past "What it does not do in Safari" and "If a site misbehaves"). It offers four consumable in-app purchases — Small tip, Medium tip, Large tip, Extra-large tip — through StoreKit. A tip unlocks nothing and changes no feature: the only thing that happens after a purchase is a one-line thank-you, which disappears when the app quits. Every feature of the app and the extension works identically before and after a tip, so there is nothing to restore and no restore button. The app stores no record of a purchase (no UserDefaults, no file, no keychain item, no appAccountToken) and sends nothing to any server of ours; the privacy label remains "Data Not Collected" (the purchase itself is handled by the App Store's purchase service). To test: scroll to "Support the project", tap any price, complete the purchase with a Sandbox account, and observe the thank-you line and that nothing else changes. If Screen Time or a management profile disallows purchases on the review device, the section is hidden entirely, by design.
 
 To enable the extension on the review device: on iPhone or iPad open Settings, Apps, Safari, Extensions, Nullecho and turn on Allow Extension (tracker blocking starts at once; set All Websites to Allow to also see the Global Privacy Control signal); on Mac open Safari's Settings, Extensions, tick Nullecho, and allow it on every website. There is no account and no sign-in anywhere in the app or the extension, so no demo credentials exist.
 
-Optional third sentence: The extension requests access to all websites because Global Privacy Control is a per-request header and a per-page signal that Safari only lets an extension apply on sites the user has allowed; blocking works without it, and nothing is sent to us from any site.
+Nullecho bundles its own list of tracker domain names and URL patterns. Entries were checked against EasyPrivacy/EasyList (GPL-3.0-or-later or CC BY-SA 3.0-or-later) and AdGuard filters (GPL-3.0). Both licences permit redistribution, including commercial, with attribution. Credits and licence texts are in the app under What it does, Acknowledgements, Full credits and licence texts (NOTICE, the MIT licence and the GPL-3.0 text ship inside the app). The app does not access any third-party service at runtime.
+
+Optional fourth paragraph: The extension requests access to all websites because Global Privacy Control is a per-request header and a per-page signal that Safari only lets an extension apply on sites the user has allowed; blocking works without it, and nothing is sent to us from any site.
 ```
 
-(When pasting, delete the words "Optional third sentence:" or the whole third paragraph.)
+(When pasting, delete the words "Optional fourth paragraph:" or the whole fourth paragraph. The third paragraph is the
+Content Rights basis, H-LICENSE-REVIEW §7.2, approved by the director 2026-10-15.)
 
 ---
 
@@ -361,7 +366,7 @@ Optional third sentence: The extension requests access to all websites because G
 | Listing claim | Supported by |
 |---|---|
 | "blocks requests to known trackers on every site" / "Blocking applies on every site as soon as the extension is on, before any website permission is granted" | In-app: "Blocks requests to known trackers … Applies on every site as soon as the extension is on, before any website permission is granted." (`ContentView.swift`, WhatItDoesSection). Measured: `CAPABILITY-AUDIT.md` verdict table and §3.1; `VERIFY-IPHONE.md` (6/6 blocked with no website access). |
-| "Ad, analytics, social-pixel and fingerprinting-vendor domains from published lists (DuckDuckGo Tracker Radar, EasyPrivacy, AdGuard)" | Same in-app sentence; `README.md` "What it does". |
+| The store text names no third-party list (director's rule); the in-app blocking row says "from Nullecho's own list; every entry was checked against the published tracker lists credited under Acknowledgements below" | In-app Acknowledgements row (EasyPrivacy, EasyList, AdGuard, with licences) and the bundled `NOTICE.txt` (PR #14); the 14 entries whose only source was DuckDuckGo or a verbatim AdGuard GPL pattern are excluded from the Safari build (PR #15, `rules-exclude.json`). |
 | "The app shows the number of block rules, counted from the rule files inside it" | In-app row "Rule lists in this build … block rules on" with footer "Counted from the rule files inside this app, not typed in." (`EmbeddedExtension.swift`). No number is stated in the listing because it is read from the build. |
 | "sends Global Privacy Control on the sites you allow" / "legally meaningful in some US states and honoured inconsistently" / "a request, not a block" / "nobody can see from a browser whether a site complied" | In-app: "Sends Global Privacy Control on the sites you allow … Legally meaningful in some US states, honoured inconsistently. It is a request, not a block, and nobody can see from a browser whether a site complied." `ext/src/gpc.js` HONEST LIMITS block. |
 | "Safari attaches the GPC header to image and script requests only, never to the page itself, and only on sites where you have allowed Nullecho. A site's own scripts still see the signal" | In-app "About Safari's limits" (same words). Measured: `CAPABILITY-AUDIT.md` §2 (`modifyHeaders` image/script only) and §3.1–3.2; `VERIFY-IPHONE.md` / `VERIFY-MACOS.md` (`Sec-GPC` on image and script, absent on document, fetch, XHR; `navigator.globalPrivacyControl === true`). |
@@ -391,7 +396,7 @@ Phrases checked as absent from every field (script run on the final strings): "p
 ## 10. Open items and unverified points (for the owner)
 
 1. ~~Bundle IDs and product IDs are working values~~ — confirmed by the owner 2026-10-09/14 (org.nullecho.app; tips small/medium/large/xlarge).
-1b. **Content Rights answer on HOLD** pending the director's license review of the rule-list sources (attribution / share-alike / non-commercial terms). Blocks submission, not the TestFlight upload.
+1b. ~~Content Rights answer on HOLD pending the director's license review~~ — lifted 2026-10-15 (evening) after PR #14 + #15; answer Yes / Yes with the §8 third paragraph (§2.10).
 2. ~~Privacy policy page needs its Safari paragraph~~ — done 2026-10-15 (PR #10, live at https://nullecho.org/privacy/).
 3. **EU availability and trader status** are the owner's call (§3).
 4. **Price points** 1.00 / 2.00 / 3.00 / 5.00 USD: existence on the US storefront not verified here.
