@@ -334,13 +334,18 @@ One change, and the lab that gates it:
 4. **Version 0.9.3** in both manifests and the options page's offline fallback. What is stored does not change in kind
    (one more key inside `settings.categories`, which the privacy page already describes), so the privacy page is unchanged.
 
-Gates (on the branch rebased onto main `d729d7f`): `npm test` **582/582**, exit 0 (563 on main + 19); `node ext/rules/validate.mjs` exit 0 (229 rules, 229 unique ids;
+Gates (on the branch rebased onto main `d729d7f`): `npm test` **592/592**, exit 0 (563 on main + 29); `node ext/rules/validate.mjs` exit 0 (229 rules, 229 unique ids;
 80 never-block, 32 cookie-block-only); `web-ext lint` on the unzipped Firefox package **0 errors / 0 warnings / 0 notices**;
 `harness/personalization-attack.mjs` exit 0 (49/49 counted once, each removal −1, 32 protected URLs unmatched). Shopping lab
 (34 pages × 3 rounds, seeded): 0 FAIL, no price difference in 64 declared / 39 rendered / 15 cart comparisons —
-`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`, controls in D58. The seeded smoke (§3d,
-which now includes the 34 shopping rows once each) was running on `96adfbe` when this entry was written; its result is
-recorded in the PR.
+`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`, controls in D58. **Seeded smoke (§3d,
+now with the 34 shopping rows once each) on `96adfbe`: exit 1** — `docs/breakage-runs/2026-10-15-site-smoke-seeded-96adfbe.md`:
+40 PASS, 16 NOT-OURS, 5 BLOCKED, 1 ERROR (bestbuy, HTTP/2 errors both sides) and **1 FAIL that was the harness's**:
+harborfreight's OFF page loaded (HTTP 200) with no price while ON read `$59.99`, and the verdict called that "a price OFF
+never read". The verdict now judges novelty only against a price OFF actually read (`harness/shopping-verdict.mjs`, with a
+regression test that fails on the old rule); re-judged, that run has 0 FAIL. The 28 standard rows, the seeding positive
+control (all ✅) and the D50 invariant (0 protected-host blocks) were clean. **A clean re-run of the gate on the tip is
+still owed.**
 
 Still owed before upload: the seeded gate's exit code on the final commit; the real-Chrome battery (§3); a look at the new
 options toggle in real Chrome and Firefox; uploading the updated store-listing text.

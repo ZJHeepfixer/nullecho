@@ -3633,6 +3633,12 @@ of the 49 block rules is counted exactly once (per-tab tally 49, `getMatchedRule
 the count by exactly one; 32 price/cart/search/form URLs match no block rule in any ruleset; 13 tracking URLs match the
 rule meant for them. (4) Planting bad rules in the source makes `validate.mjs` (check 11) and the unit tests fail.
 
+**The seeded gate** (`2026-10-15-site-smoke-seeded-96adfbe.md`, the 28 standard rows plus the 34 shopping rows once each)
+exited 1 on one row, and the row was the harness's: harborfreight's OFF page loaded with HTTP 200 and no price, ON read
+`$59.99`, and the verdict called that "a price OFF never read". Novelty is now judged only against a price OFF actually
+read; the verdict logic moved to `harness/shopping-verdict.mjs` under unit tests (`shopping-verdict-2026-10-15.test.js`,
+whose two regression tests fail on the old rules). Re-judged, the gate run has 0 FAIL; a clean re-run is owed.
+
 **Which code the lab ran.** The lab ran on `f841733` and the controls on `f841733` / `96adfbe` — this branch's commits
 before it was rebased onto main `d729d7f` (their hashes in the report names no longer exist on the branch). The rebase
 brought in PR #11/#12, whose changes to shipped files (`src/shim.js`, `src/personas.js`) are comments only (checked by
