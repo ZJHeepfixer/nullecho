@@ -180,7 +180,7 @@ test('nothing qualifies through DuckDuckGo alone: the DDG-only candidates (Rokt 
   assert.ok(!RULES.some((r) => [6202, 6203, 6511].includes(r.id)));
 });
 
-test('the Rokt fallback (D56) is blocked at the event path the primary is listed for, not at the SDK', () => {
+test('the Rokt fallback (D57) is blocked at the event path the primary is listed for, not at the SDK', () => {
   for (const host of ['apps.rokt-api.com', 'apps.roktecommerce.com']) {
     assert.ok(PZ.match(req(`https://${host}/webevents/v3/JS/us2-6a2d0e4dc6b9e749870271a2f16058a1/events`)), `${host} event upload not blocked`);
     assert.equal(PZ.match(req(`https://${host}/js/v2/us2-6a2d0e4dc6b9e749870271a2f16058a1/app.js?env=0&`, 'script')), null, `${host} SDK blocked`);

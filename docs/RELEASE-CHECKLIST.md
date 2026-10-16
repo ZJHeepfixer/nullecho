@@ -321,24 +321,24 @@ header change to webRequest).
 
 One change, and the lab that gates it:
 
-1. **"Pricing & personalization" — D57.** A sixth blocking category, `rules/personalization.json` (ids 6000–6999, 50
+1. **"Pricing & personalization" — D58.** A sixth blocking category, `rules/personalization.json` (ids 6000–6999, 50
    rules, on by default, its own toggle): the collection, identity and event endpoints of shopper-profiling,
    offer-targeting and price-testing vendors — Dynamic Yield (its rendering hosts cookie-strip only), Bloomreach, Rokt /
-   mParticle-by-Rokt (and its fallback host, D56), Attentive, Wunderkind, Granify, Black Crow, Salesforce, search/recs
+   mParticle-by-Rokt (and its fallback host, D57), Attentive, Wunderkind, Granify, Black Crow, Salesforce, search/recs
    behaviour beacons, Convert, AB Tasty, Intelligems `/track` only, Triptease, Klaviyo's tracking hosts. Never what renders
    a price, a cart, search results, a product grid or a sign-up form. Every rule is on EasyPrivacy, EasyList or AdGuard
-   (DuckDuckGo only corroborates — license review) except 6201, admitted on first-hand evidence (D56).
+   (DuckDuckGo only corroborates — license review) except 6201, admitted on first-hand evidence (D57).
 2. **Klaviyo narrowed** from whole-domain NEVER_BLOCK to its form hosts and paths; `klaviyo.com` is COOKIE_BLOCK_ONLY;
    `validate.mjs` check 11 fails a block rule that reaches a path-scoped NEVER_BLOCK entry.
 3. **Shopping lab** (§3e): `site-smoke.mjs --shopping`, `--drop-rules`, `--plant-block`; `harness/personalization-attack.mjs`.
 4. **Version 0.9.3** in both manifests and the options page's offline fallback. What is stored does not change in kind
    (one more key inside `settings.categories`, which the privacy page already describes), so the privacy page is unchanged.
 
-Gates: `npm test` **579/579**, exit 0 (560 at 0.9.2 + 19); `node ext/rules/validate.mjs` exit 0 (229 rules, 229 unique ids;
+Gates (on the branch rebased onto main `d729d7f`): `npm test` **582/582**, exit 0 (563 on main + 19); `node ext/rules/validate.mjs` exit 0 (229 rules, 229 unique ids;
 80 never-block, 32 cookie-block-only); `web-ext lint` on the unzipped Firefox package **0 errors / 0 warnings / 0 notices**;
 `harness/personalization-attack.mjs` exit 0 (49/49 counted once, each removal −1, 32 protected URLs unmatched). Shopping lab
 (34 pages × 3 rounds, seeded): 0 FAIL, no price difference in 64 declared / 39 rendered / 15 cart comparisons —
-`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`, controls in D57. The seeded smoke (§3d,
+`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`, controls in D58. The seeded smoke (§3d,
 which now includes the 34 shopping rows once each) was running on `96adfbe` when this entry was written; its result is
 recorded in the PR.
 

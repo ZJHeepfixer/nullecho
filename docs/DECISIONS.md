@@ -3555,7 +3555,7 @@ listed rule and adds no vendor. A future exception needs its own entry and its o
 `/js/v2/<key>/app.js` and `/identity/v1/identify` are not. `harness/personalization-attack.mjs`: removing 6201 drops the
 per-tab count by exactly one.
 
-## D57 — "Pricing & personalization": its own ruleset, blocking only what collects; Klaviyo narrowed to its forms; nothing ships without the shopping lab. 2026-10-15.
+## D58 — "Pricing & personalization": its own ruleset, blocking only what collects; Klaviyo narrowed to its forms; nothing ships without the shopping lab. 2026-10-15.
 
 **Evidence.** Counter-program workstream A (`nullecho-growth/counter-program/A-VENDOR-MAP.md`, 2026-10-14) mapped the
 vendors that profile shoppers, target offers and run price tests in the browser; Nullecho blocked none of Dynamic
@@ -3576,7 +3576,7 @@ than the vendor map's curl saw (gap.com: Rokt, Granify, Attentive, Bluecore on o
    test against every shipped ruleset.
 3. **Qualifying sources: EasyPrivacy, EasyList, AdGuard, or first-hand evidence in a D-entry.** DuckDuckGo's Tracker
    Radar is CC BY-NC-SA 4.0 and only corroborates (license review, 2026-10-15). Three DDG-only candidates were left out
-   (Rokt's launcher and snippet, Black Crow's `/js/core/`); one rule rests on first-hand evidence (6201, D56).
+   (Rokt's launcher and snippet, Black Crow's `/js/core/`); one rule rests on first-hand evidence (6201, D57).
 4. **Klaviyo narrowed.** NEVER_BLOCK keeps only what its forms need: `static.klaviyo.com`, `static-forms.klaviyo.com`,
    `fast.a.klaviyo.com/custom-fonts/` and `/forms/`, and on `a.klaviyo.com` the subscription, back-in-stock,
    legacy-subscribe, consent-page, form and onsite-module paths (AdGuard's own `@@` list for the host it blocks).
