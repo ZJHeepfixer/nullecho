@@ -81,7 +81,7 @@ failed that bar and were dropped rather than guessed at — including
 `snap.licdn.com`, `an.facebook.com` and `atlassolutions.com`. A blocklist of
 plausible-sounding wrong domains is worse than a shorter correct one.
 
-**One recorded exception (0.9.3, DECISIONS.md D56):** `||apps.roktecommerce.com/webevents/` (rule 6201) is on
+**One recorded exception (0.9.3, DECISIONS.md D57):** `||apps.roktecommerce.com/webevents/` (rule 6201) is on
 no list. It is the Rokt SDK's own fallback host for `apps.rokt-api.com`, whose `/webevents/` path EasyPrivacy
 lists; the two hosts serve byte-identical SDKs and answer the event upload identically (curl, 2026-10-15). It is
 admitted at exactly the listed path, not as a host. Any further exception needs its own D-entry with evidence.
@@ -231,13 +231,13 @@ search; `harness/personalization-attack.mjs` proves each rule moves the per-tab 
 **Its own, stricter bar (license review, 2026-10-15).** DuckDuckGo's Tracker Radar data is CC BY-NC-SA 4.0, so for
 this ruleset it is a corroborating reference only, never the reason a rule exists: every rule here is on
 **EasyPrivacy, EasyList or AdGuard**, or is admitted on first-hand evidence recorded per URL in a DECISIONS entry
-(one rule: 6201, D56). Three planned rules qualified through DDG alone and were left out: Rokt's
+(one rule: 6201, D57). Three planned rules qualified through DDG alone and were left out: Rokt's
 `rokt.com/wsdk/integrations/launcher.js` and `…/snippet.js`, and Black Crow's `blackcrow.ai/js/core/`. The older
 rulesets above still cite DDG; a separate license pass re-qualifies them.
 
 **What it blocks, per vendor, and why each one clears the bar** (checked by script against EasyPrivacy 202610152312,
 EasyList 202610152312 and AdGuard Tracking Protection 2.1.13.61 on 2026-10-15 — every block rule's own URL matched a
-list rule except 6201 (D56) and 6954, which AdGuard covers with `://a.klaviyo.com^`; DDG `extension-tds.json` v6 shown
+list rule except 6201 (D57) and 6954, which AdGuard covers with `://a.klaviyo.com^`; DDG `extension-tds.json` v6 shown
 in brackets where it agrees):
 
 | Ids | Vendor | Blocked | Source |
@@ -245,7 +245,7 @@ in brackets where it agrees):
 | 6000–6006 | Dynamic Yield (Mastercard) | `async-px`, `async-px-eu`, `px.dynamicyield.com`; `direct-collect.dy-api.com`; `/uia?` `/batch?` `/imp?` `/clog` `/rcomEvent?` on any DY host | EP, AG |
 | 6090 | Dynamic Yield | **cookie strip only** (Cookie / Set-Cookie removed, third-party) on all of `dynamicyield.com` and `dy-api.com` — `st.`, `cdn.`, `rcom.` render page content | director decision; AG carries ~14 per-site `@@` exceptions for `st.` — a record of breakage |
 | 6100–6102 | Bloomreach | pixel `p.`/`p-eu.brsrvr.com` (third-party), tracker `cdns.brsrvr.com`, `brcdn.com` (third-party) | AG `brsrvr.com$3p`, EP `cdns.brsrvr.com`, EP+AG `brcdn.com$3p` |
-| 6200, 6201, 6204–6206 | Rokt / mParticle by Rokt | `apps.rokt-api.com/webevents/` (the SDK's event upload); `apps.roktecommerce.com/webevents/` (**D56** — on no list; the SDK's own fallback host, admitted on first-hand evidence); `rokt.com/v1/events`, `/v2/metrics`; `pps.rokt.com/v1/timings/events`. Not the launcher or snippet (DDG only) | EP; D56; AG |
+| 6200, 6201, 6204–6206 | Rokt / mParticle by Rokt | `apps.rokt-api.com/webevents/` (the SDK's event upload); `apps.roktecommerce.com/webevents/` (**D57** — on no list; the SDK's own fallback host, admitted on first-hand evidence); `rokt.com/v1/events`, `/v2/metrics`; `pps.rokt.com/v1/timings/events`. Not the launcher or snippet (DDG only) | EP; D57; AG |
 | 6300–6302 | Attentive | `attn.tv/*/dtag.js`, `attn.tv/tag/`, `events.attentivemobile.com` — never `main_frame`, so SMS landing links on `<brand>.attn.tv` still open | EP, AG [DDG] |
 | 6400 | Wunderkind | `bounceexchange.com`, `bouncex.net`, `wknd.ai` (the tag hosts; `wunderkind.co` is the company site and on no list) | EP, AG [DDG] |
 | 6500 | Granify (Bazaarvoice) | `granify.com`, third-party | EP, AG |

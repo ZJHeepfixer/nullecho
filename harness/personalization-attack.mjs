@@ -97,7 +97,7 @@ const MUST_BLOCK = [
   ['Bloomreach pixel', 'https://p.brsrvr.com/pix.gif?acct_id=5073', 'image', 6100],
   ['Bloomreach tracker script', 'https://cdns.brsrvr.com/v1/br-trk-6489.js', 'script', 6101],
   ['Rokt/mParticle event upload', 'https://apps.rokt-api.com/webevents/v3/JS/us2-6a2d0e4dc6b9e749870271a2f16058a1/events', 'xmlhttprequest', 6200],
-  ['Rokt fallback event upload (D56)', 'https://apps.roktecommerce.com/webevents/v3/JS/us2-6a2d0e4dc6b9e749870271a2f16058a1/events', 'xmlhttprequest', 6201],
+  ['Rokt fallback event upload (D57)', 'https://apps.roktecommerce.com/webevents/v3/JS/us2-6a2d0e4dc6b9e749870271a2f16058a1/events', 'xmlhttprequest', 6201],
   ['Attentive tag', 'https://cdn.attn.tv/gap/dtag.js', 'script', 6300],
   ['Granify', 'https://matching.granify.com/match', 'xmlhttprequest', 6500],
   ['Intelligems tracking', 'https://api.intelligems.io/v3/track', 'xmlhttprequest', 6900],
