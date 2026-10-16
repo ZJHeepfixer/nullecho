@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Nullecho — personalization rule probe</title>
+<!--
+  harness/personalization-attack.mjs serves this page from 127.0.0.1 next to `urls.json`: one URL per block rule in the
+  packaged rules/personalization.json, built from that rule's own condition. The page requests each one ONCE, as the
+  resource type the rule matches, so the per-tab count Nullecho keeps (D55) has exactly one blocked request per rule.
+  It sends nothing anywhere else and reads no response: a blocked request never leaves the browser, and with a rule
+  switched off the request is a bare GET to the vendor host with no cookie of ours and no payload.
+-->
+<body>
+<pre id="log">loading urls.json…</pre>
+<script>
+(async () => {
+  const log = document.getElementById('log');
+  const list = await (await fetch('urls.json', { cache: 'no-store' })).json();
+  const done = [];
+  await Promise.all(list.map((e) => new Promise((resolve) => {
+    let settled = false;
+    const finish = (r) => { if (settled) return; settled = true; done.push(`${e.id} ${r} ${e.url}`); resolve(); };
+    if (e.type === 'image') {
+      const img = new Image();
+      img.onload = () => finish('loaded');
+      img.onerror = () => finish('error');
+      img.src = e.url;
+    } else {
+      fetch(e.url, { mode: 'no-cors', cache: 'no-store', credentials: 'omit' }).then(() => finish('loaded'), () => finish('failed'));
+    }
+    setTimeout(() => finish('timeout'), 8000);
+  })));
+  log.textContent = done.sort().join('\n');
+  document.title = 'done';
+})();
+</script>
+</body>

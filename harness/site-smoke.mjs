@@ -86,7 +86,9 @@ import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+// The shopping lab's verdicts live apart so a unit test can hold them (0.9.3).
+import { compareShopping, shoppingVerdict, uniq, normErr } from './shopping-verdict.mjs';
 // The learned-rule id ranges come from the extension's own protocol table, never a copy (seeded mode).
 import { DYNAMIC_RULE_RANGES } from '../ext/src/protocol.js';
 // …and the protected lists are the CURRENT policy, read from the source tree (also in a control run: the
@@ -106,10 +108,25 @@ const OFF_ONLY = flag('--off');
 const SEEDED = flag('--seeded');
 const THIRD_PARTY = SEEDED || flag('--third-party');
 const LEARNER_FROM = opt('--learner-from', null);
+// SHOPPING LAB (0.9.3, rules/personalization.json). `--shopping` runs only the shopping rows, `--rounds` times each,
+// OFF and ON loading the same page at the same moment. The seeded gate runs them too, once each (retried once on FAIL).
+const SHOPPING = flag('--shopping');
+const ROUNDS = Math.max(1, Number(opt('--rounds', SHOPPING ? '3' : '1')) || 1);
+// NEGATIVE CONTROLS for the shopping lab, applied to the unpacked store zip in the temp dir only (never to ext/):
+//   --plant-block a.com,b.com   add a block rule (id 6999) for those hosts to personalization.json — a lab that cannot
+//                               see a price or search grid disappear when a rendering host is blocked proves nothing;
+//   --drop-rules 6300,6301      remove those ids — the per-tab count must fall by what they matched;
+//   --drop-rules all            remove the whole personalization ruleset — the 0.9.2 blocking on the 0.9.3 code: a
+//                               difference that persists without a single personalization rule is not theirs.
+const PLANT_BLOCK = (opt('--plant-block', null) || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+const DROP_ALL = opt('--drop-rules', null) === 'all';
+// `--label shard1` is appended to the report name, so several shards of one lab run in parallel without overwriting.
+const LABEL = (opt('--label', '') || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 24);
+const DROP_RULES = DROP_ALL ? [] : (opt('--drop-rules', null) || '').split(',').map((x) => x.trim()).filter(Boolean).map(Number).filter((x) => Number.isInteger(x));
 const ONLY = (opt('--only', null) || '').split(',').filter(Boolean);
-const MAX_RUNTIME_MS = Number(opt('--max-runtime', String((SEEDED || THIRD_PARTY ? 35 : 23) * 60 * 1000)));
-if (OFF_ONLY && (SEEDED || LEARNER_FROM)) {
-  console.error('--off cannot be combined with --seeded / --learner-from: seeding needs the extension.');
+const MAX_RUNTIME_MS = Number(opt('--max-runtime', String((SHOPPING ? 40 + 25 * ROUNDS : SEEDED ? 75 : THIRD_PARTY ? 35 : 23) * 60 * 1000)));
+if (OFF_ONLY && (SEEDED || LEARNER_FROM || PLANT_BLOCK.length || DROP_RULES.length || DROP_ALL)) {
+  console.error('--off cannot be combined with --seeded / --learner-from / --plant-block / --drop-rules: they need the extension.');
   process.exit(2);
 }
 const START = Date.now();
@@ -197,6 +214,35 @@ function swapLearner(unpackDir, rev) {
   if (!changed) throw new Error(`--learner-from ${rev}: both files are identical to the package — that is not a control`);
   console.error(`[site-smoke] ⚠ CONTROL BUILD: src/heuristics.js + src/allowlist.js swapped for ${rev} (${revSha.slice(0, 7)}) in ${unpackDir}`);
   return { rev, revSha, files };
+}
+
+/**
+ * NEGATIVE CONTROLS for the shopping lab (`--plant-block`, `--drop-rules`): rewrite the UNPACKED store zip's
+ * rules/personalization.json in the temp dir. Nothing is committed; the report says CONTROL in its name and title.
+ * A drop that removes nothing, or a plant onto an empty host list, is not a control and aborts.
+ */
+function applyRuleControls(unpackDir) {
+  if (!PLANT_BLOCK.length && !DROP_RULES.length && !DROP_ALL) return null;
+  const file = path.join(unpackDir, 'rules', 'personalization.json');
+  const before = fs.readFileSync(file, 'utf8');
+  let rules = JSON.parse(before);
+  const out = { plantBlock: PLANT_BLOCK.slice(), dropRules: [], dropAll: DROP_ALL, packagedSha256: sha256Of(before) };
+  if (DROP_ALL) DROP_RULES.push(...rules.map((r) => r.id));
+  if (DROP_RULES.length) {
+    const missing = DROP_RULES.filter((id) => !rules.some((r) => r.id === id));
+    if (missing.length) throw new Error(`--drop-rules: ${missing.join(',')} not in the packaged personalization.json — that is not a control`);
+    rules = rules.filter((r) => !DROP_RULES.includes(r.id));
+    out.dropRules = DROP_RULES.slice();
+  }
+  if (PLANT_BLOCK.length) {
+    if (rules.some((r) => r.id === 6999)) throw new Error('--plant-block: id 6999 is taken in the packaged ruleset');
+    rules.push({ id: 6999, priority: 1, action: { type: 'block' }, condition: { requestDomains: PLANT_BLOCK } });
+  }
+  const after = JSON.stringify(rules, null, 2) + '\n';
+  fs.writeFileSync(file, after);
+  out.controlSha256 = sha256Of(after);
+  console.error(`[site-smoke] ⚠ CONTROL BUILD: personalization.json in ${unpackDir}${PLANT_BLOCK.length ? ` + planted block on ${PLANT_BLOCK.join(',')}` : ''}${DROP_ALL ? ' − ALL personalization rules' : DROP_RULES.length ? ` − rules ${DROP_RULES.join(',')}` : ''}`);
+  return out;
 }
 
 // ── 2. browser launch / page setup ──────────────────────────────────────────
@@ -339,7 +385,7 @@ async function seedLearnedState(browser, unpackDir) {
   const pc = report.positiveControl;
   const check = (ok, what) => { pc.push({ ok: !!ok, what }); return ok; };
   check(report.rulesBeforeReload.length === 0, `no learned-range rule existed before the reload (found ${report.rulesBeforeReload.length}) — so every rule below was written by the extension's reconcile(), not left over`);
-  const blockingSets = ['ads', 'analytics', 'social', 'fingerprinting'];
+  const blockingSets = ['ads', 'analytics', 'social', 'fingerprinting', 'personalization'];
   check(Array.isArray(report.enabledRulesetsAfterReload) && blockingSets.every((id) => report.enabledRulesetsAfterReload.includes(id)),
     `the reloaded extension still has its static blocking rulesets on (${JSON.stringify(report.enabledRulesetsAfterReload)}) — the seeded ON pass is the whole extension plus the learned rules, not a lesser one`);
   for (const d of SEED_DOMAINS) {
@@ -486,6 +532,18 @@ async function freshPage(browser, ua) {
   }
   const consoleLines = [];
   page.on('console', (msg) => { const l = consoleLineOf(msg); if (l) consoleLines.push(l); });
+  // An open alert/confirm/beforeunload dialog freezes every page.evaluate until it is closed. Close it (the
+  // dismiss button: cancel, never confirm) and note it, identically in both passes.
+  page.on('dialog', (d) => { pageErrors.push(`dialog ${d.type()}: ${d.message().slice(0, 120)}`); d.dismiss().catch(() => {}); });
+  // Every uncaught exception and console error, for the shopping rows' "no NEW errors under the extension" check.
+  // A resource the extension blocked logs `net::ERR_BLOCKED_BY_CLIENT` as a console error in Chrome: that is the
+  // block itself, kept but sorted apart (`blockedResourceErrors`) from errors the page's own code threw.
+  const pageErrors = [];
+  // Klaviyo's form definitions are fetched during navigation, before any check runs (shopping rows' form check).
+  const klaviyoForms = [];
+  page.on('response', (res) => { if (klaviyoForms.length < 8 && /static-forms\.klaviyo\.com\/forms\/api\/|fast\.a\.klaviyo\.com\/forms\//.test(res.url())) klaviyoForms.push(`${res.status()} ${res.url().replace(/\?.*$/, '').slice(0, 100)}`); });
+  page.on('pageerror', (e) => { if (pageErrors.length < 80) pageErrors.push('uncaught: ' + String(e && e.message || e).replace(/\s+/g, ' ').slice(0, 200)); });
+  page.on('console', (msg) => { if (msg.type() === 'error' && pageErrors.length < 80) pageErrors.push('console: ' + msg.text().replace(/\s+/g, ' ').slice(0, 200)); });
   // A request an extension blocked has NO HTTP status — it fails with net::ERR_BLOCKED_BY_CLIENT. That error
   // text is the evidence; a "status" from any tool that reports failed requests is not (2026-09-28: a tool
   // printed 503 for every blocked request and sent a whole triage after response headers).
@@ -506,7 +564,7 @@ async function freshPage(browser, ua) {
   });
   page.on('response', (res) => { const d = docOf.get(res.request()); if (d) d.status = res.status(); });
   page.on('requestfailed', (req) => { const d = docOf.get(req); if (d) d.failed = (req.failure() && req.failure().errorText) || 'failed'; });
-  return { page, consoleLines, blockedByClient, documents };
+  return { page, consoleLines, blockedByClient, documents, pageErrors, klaviyoForms };
 }
 
 async function assertVisible(page) {
@@ -544,6 +602,19 @@ async function detectBotWall(page, httpStatus) {
   const wallPhrase = /access denied|pardon our interruption|request unsuccessful|unusual traffic|verify you are human|are you a robot|forbidden|reference #/i.test(text + ' ' + title);
   if (httpStatus === 403 || wallPhrase) return { evidence: `HTTP ${httpStatus} — ${title ? title + ' — ' : ''}${text.slice(0, 300)}`.trim() };
   return null;
+}
+
+/**
+ * A challenge served with HTTP 200 (walmart.com "Robot or human?" — PerimeterX's press-and-hold, 2026-10-15): the
+ * page is a wall whatever the status says. Recorded as BLOCKED, never solved or evaded. Shopping rows only — the
+ * standard rows keep the status-gated check the earlier runs were made with.
+ */
+async function detectChallengePage(page) {
+  await sleep(1500);
+  const title = await page.title().catch(() => '');
+  const text = await page.evaluate(() => (document.body ? document.body.innerText.slice(0, 600) : '')).catch(() => '');
+  const m = /robot or human|press (&|and) hold|verify you are (a )?human|are you a robot|pardon our interruption|access denied|access to this page has been denied|unusual (traffic|activity)|checking your browser|request unsuccessful/i.exec(`${title}\n${text}`);
+  return m ? { evidence: `challenge page (HTTP 200): "${m[0]}" — ${title} — ${text.replace(/\s+/g, ' ').slice(0, 200)}` } : null;
 }
 
 async function probes(page) {
@@ -1005,10 +1076,402 @@ async function mapsEmbedCheck(page) {
   return { ok: map.ok, detail: { map } };
 }
 
-const ALL_SITES = [...SITES, ...THIRD_PARTY_SITES];
+// ── 4c. shopping rows — the breakage lab for rules/personalization.json (0.9.3) ─────────────────────────────
+// What the "Pricing & personalization" category must never do: change the price a shopper is shown, stop the
+// cart, empty the search results or the product grid. Each row loads a real product page and checks, OFF and ON:
+//   · the declared price, read the way research/device-pricing/ reads it (ext/src/pricing.js's JSON-LD →
+//     microdata → meta, zeros fall through, a page declaring several offers compared as the SET of prices), AND
+//     the rendered price under the row's `priceSelector` — client-side price tests (Intelligems) rewrite the DOM,
+//     never the server's JSON-LD, so a lab that read only markup would be blind to the one way a block could
+//     raise a price;
+//   · add-to-cart: the row's button is clicked (after a size/variant pick where the row says so) and the cart has
+//     to say so — Shopify's own /cart.js count, a same-site cart request answered 2xx, an "added to bag" message,
+//     or a cart badge that went up. Nothing is bought; no account, no form, no address;
+//   · search: the row's search page must list product links;
+//   · errors: every uncaught exception and console error, so the report can name the ones seen ON and never OFF;
+//   · ON only: which personalization rules matched (`onRuleMatchedDebug`) and the D55 per-tab tally — the count
+//     the popup shows — so "the new rules fire" is a measurement, not an inference.
+// `vendors` is what the 2026-10-14 vendor map and exploration saw on the page; it is a label for the report, the
+// rules that actually matched are measured. `klaviyo: true` adds the sign-up-form render check (Klaviyo's form
+// hosts are protected by NEVER_BLOCK; its tracking hosts are blocked — the form has to keep rendering).
+const SHOPIFY_PRICE = '.price-item--sale, .price-item--regular, .price__current, [data-product-price], .product__price, .product-price, .price';
+const PICK_SIZE = [
+  '[data-testid*="size" i] button:not([disabled]):not([aria-disabled="true"])',
+  'button[data-testid*="size" i]:not([disabled]):not([aria-disabled="true"])',
+  'button[aria-label*="size" i]:not([disabled]):not([aria-disabled="true"])',
+  '[role="radiogroup"] [role="radio"]:not([aria-disabled="true"]):not([disabled])',
+  'fieldset input[type="radio"]:not(:disabled) + label',
+].join(', ');
+const shop = (n, key, label, url, o = {}) => ({
+  n, key, label, url, settleMs: 3000, shopping: true, checkTimeoutMs: 150000, ...o,
+  async check(page, ctx) { return shoppingCheck(page, ctx, this); },
+});
+const SHOPPING_SITES = [
+  // Pages where the vendor map (curl, 2026-10-14) or the in-browser exploration saw a vendor this ruleset blocks.
+  shop(29, 'shop-gymshark', 'gymshark.com product', 'https://www.gymshark.com/products/gymshark-arrival-5-shorts-black-ss22',
+    { vendors: 'Dynamic Yield (consent-gated), mParticle', priceSelector: '[data-testid="pdp-totalValue-read"]', atc: { pick: PICK_SIZE, button: '[data-testid="pdp-addToBag-submit"]' }, search: { url: 'https://www.gymshark.com/search?q=shorts', link: '/products/' } }),
+  shop(30, 'shop-jetblue', 'jetblue.com home (Dynamic Yield content)', 'https://www.jetblue.com/',
+    { vendors: 'Dynamic Yield (render hosts: cookie-strip only)', expectPrice: false, render: 'img[src*="dynamicyield.com"]' }),
+  shop(31, 'shop-llbean', 'llbean.com product', 'https://www.llbean.com/llb/shop/129613',
+    { vendors: 'Dynamic Yield', priceSelector: '.ProductPage_price, .ProductPrice_price', atc: { pick: PICK_SIZE, button: 'button.AddToBag_add-to-bag-button' }, search: { url: 'https://www.llbean.com/llb/search/?freeText=fleece', link: '/llb/shop/' } }),
+  shop(32, 'shop-harborfreight', 'harborfreight.com product', 'https://www.harborfreight.com/20v-cordless-12-in-drilldriver-kit-with-2-ah-battery-and-charger-73216.html',
+    { vendors: 'Dynamic Yield (collection + render)', priceSelector: '[data-testid="priceWrap"]', atc: { button: '[data-testid="atcButtonWrap"]' }, search: { url: 'https://www.harborfreight.com/search?q=drill', link: /-\d{5}\.html/ } }),
+  shop(33, 'shop-gap', 'gap.com product', 'https://www.gap.com/browse/product.do?pid=403540002&vid=REGULAR',
+    { vendors: 'Rokt/mParticle, Granify, Attentive, Bluecore', priceSelector: '[data-testid="pdp-title-price-wrapper"]', atc: { pick: PICK_SIZE, button: '#pdp-atb-btn' }, search: { url: 'https://www.gap.com/browse/search.do?searchText=jeans', link: 'product.do?pid=' } }),
+  shop(34, 'shop-staples', 'staples.com product', 'https://www.staples.com/hammermill-copy-plus-8-5-x-11-copy-paper-20-lbs-92-brightness-5000-sheets-carton-105007/product_122374',
+    { vendors: 'Bloomreach, Rokt, Attentive', priceSelector: '.price-info__final_price_sku', atc: { button: '#ctaButton' }, search: { url: 'https://www.staples.com/paper/directory_paper', link: '/product_' } }),
+  shop(35, 'shop-sephora', 'sephora.com product', 'https://www.sephora.com/product/mac-cosmetics-m-a-cximal-silky-matte-lipstick-P510799?skuId=2837425',
+    { vendors: 'Rokt/mParticle, Bluecore, Constructor beacon', atc: { button: 'button[data-at="add_to_basket_btn"]' }, search: { url: 'https://www.sephora.com/search?keyword=lipstick', link: '/product/' } }),
+  shop(36, 'shop-officedepot', 'officedepot.com product', 'https://www.officedepot.com/a/products/196517/Office-Depot-Copy-And-Print-Paper/',
+    { vendors: 'Bloomreach', priceSelector: '.od-graphql-price-big-price', atc: { button: 'button.common-add-to-cart' }, search: { url: 'https://www.officedepot.com/catalog/search.do?Ntt=copy%20paper', link: '/a/products/' } }),
+  shop(37, 'shop-allbirds', 'allbirds.com product', 'https://www.allbirds.com/products/mens-tree-runners',
+    { vendors: 'Attentive', shopify: true, atc: { pick: PICK_SIZE, button: '[data-testid="pdp-atc-button"]' }, search: { url: 'https://www.allbirds.com/search?q=runner', link: '/products/' } }),
+  shop(38, 'shop-target', 'target.com product', 'https://www.target.com/p/delilah-home-100-organic-cotton-bath-towel-collection/-/A-93159262?preselect=93048164',
+    { vendors: 'Attentive', priceSelector: '[data-test="product-price"], [data-test="price-cdui"]', atc: { button: '[data-test="shippingButton"]' }, search: { url: 'https://www.target.com/s?searchTerm=towel', link: '/p/' } }),
+  shop(39, 'shop-petsmart', 'petsmart.com product', 'https://www.petsmart.com/dog/food/dry-food/pedigree-grilled-steak-and-vegetable-flavor-dry-dog-food-70826.html',
+    { vendors: 'Granify', priceSelector: '.pdp__price', atc: { button: '[data-testid="add-to-cart-button"]' }, search: { url: 'https://www.petsmart.com/search/?q=dog%20food', link: '/dog/' } }),
+  shop(40, 'shop-jcpenney', 'jcpenney.com product', 'https://www.jcpenney.com/p/worthington-womens-modern-perfect-trouser/ppr5008151662',
+    { vendors: 'Attentive, Constructor', atc: { pick: PICK_SIZE }, search: { url: 'https://www.jcpenney.com/s?searchTerm=jeans', link: '/p/' } }),
+  shop(41, 'shop-bathandbodyworks', 'bathandbodyworks.com product', 'https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548',
+    { vendors: 'Attentive, Monetate (not blocked), Einstein recs (not blocked)', atc: {}, search: { url: 'https://www.bathandbodyworks.com/search?q=candle', link: '/p/' } }),
+  shop(42, 'shop-instacart', 'instacart.com home', 'https://www.instacart.com/',
+    { vendors: 'Rokt', expectPrice: false }),
+  // Shopify stores carrying Klaviyo sign-up forms and/or Intelligems price tests (in-browser exploration, 2026-10-14).
+  shop(43, 'shop-drsquatch', 'drsquatch.com product (Klaviyo)', 'https://www.drsquatch.com/products/mountain-meadow',
+    { vendors: 'Klaviyo, Constructor beacon', shopify: true, klaviyo: true, priceSelector: '[data-testid="price-current"]', atc: { button: '[data-testid="add-to-cart-button"]' }, search: { url: 'https://www.drsquatch.com/search?q=soap', link: '/products/' } }),
+  shop(44, 'shop-beardbrand', 'beardbrand.com product (Klaviyo)', 'https://www.beardbrand.com/products/tree-ranger-beard-oil',
+    { vendors: 'Klaviyo', shopify: true, klaviyo: true, priceSelector: SHOPIFY_PRICE, atc: {}, search: { url: 'https://beardbrand.com/search?q=oil', link: '/products/' } }),
+  shop(45, 'shop-puravida', 'puravidabracelets.com product (Klaviyo, Intelligems)', 'https://www.puravidabracelets.com/products/solid-original?variant=40140395479126',
+    { vendors: 'Klaviyo, Intelligems', shopify: true, klaviyo: true, priceSelector: SHOPIFY_PRICE, atc: {}, search: { url: 'https://www.puravidabracelets.com/search?q=bracelet', link: '/products/' } }),
+  shop(46, 'shop-colourpop', 'colourpop.com product (Klaviyo, Intelligems)', 'https://colourpop.com/products/eeveelution-shadow-palette',
+    { vendors: 'Klaviyo, Intelligems, Attentive, Nosto', shopify: true, klaviyo: true, priceSelector: SHOPIFY_PRICE, atc: {}, search: { url: 'https://colourpop.com/search?q=lipstick', link: '/products/' } }),
+  shop(47, 'shop-rothys', "rothys.com product (Intelligems)", 'https://rothys.com/products/womens-pointed-toe-flat-black',
+    { vendors: 'Intelligems, Attentive, Constructor', shopify: true, priceSelector: '.price-item--sale, .js-price-item--sale', atc: { pick: PICK_SIZE }, search: { url: 'https://rothys.com/search?q=flat', link: '/products/' } }),
+  shop(48, 'shop-brooklinen', 'brooklinen.com product', 'https://www.brooklinen.com/products/classic-core-sheet-set?variant=41405018112090',
+    { vendors: 'Dynamic Yield, Attentive', shopify: true, priceSelector: '.Price__Discounted, .Price__Default, ' + SHOPIFY_PRICE, atc: {}, search: { url: 'https://www.brooklinen.com/search?q=sheets', link: '/products/' } }),
+  // Major retailers with none of these vendors seen (the "at least 10 other" product pages). A walled page is BLOCKED.
+  shop(49, 'shop-walmart', 'walmart.com product', 'https://www.walmart.com/ip/AirPods-Pro-2nd-generation-with-MagSafe-Case-USB-C/5689919121',
+    { priceSelector: '[data-testid="price-wrap"]', atc: {}, search: { url: 'https://www.walmart.com/search?q=towel', link: '/ip/' } }),
+  shop(50, 'shop-bestbuy', 'bestbuy.com product', 'https://www.bestbuy.com/product/apple-airpods-pro-2-wireless-active-noise-cancelling-earbuds-with-hearing-aid-feature-white/JJGCQ88C8X',
+    { atc: {}, search: { url: 'https://www.bestbuy.com/site/searchpage.jsp?st=usb+c+cable', link: '/product/' } }),
+  shop(51, 'shop-ikea', 'ikea.com product', 'https://www.ikea.com/us/en/p/lack-side-table-white-30449908/',
+    { atc: {}, search: { url: 'https://www.ikea.com/us/en/search/?q=lamp', link: '/us/en/p/' } }),
+  shop(52, 'shop-nike', 'nike.com product', 'https://www.nike.com/t/air-force-1-07-mens-shoes-jBrhbr/CW2288-111',
+    { priceSelector: '[data-testid="currentPrice-container"]', atc: { pick: PICK_SIZE, button: '[data-testid="atb-button"]' }, search: { url: 'https://www.nike.com/w?q=socks', link: '/t/' } }),
+  shop(53, 'shop-zappos', 'zappos.com product', 'https://www.zappos.com/p/converse-chuck-taylor-all-star-high-top-sneaker-black/product/107999/color/3',
+    { atc: { pick: PICK_SIZE }, search: { url: 'https://www.zappos.com/socks', link: '/p/' } }),
+  shop(54, 'shop-ulta', 'ulta.com product', 'https://www.ulta.com/p/lash-sensational-sky-high-mascara-pimprod2020260?sku=2574523',
+    { priceSelector: '.pal-c-Price--PDP', atc: {}, search: { url: 'https://www.ulta.com/search?search=mascara', link: '/p/' } }),
+  shop(55, 'shop-apple', 'apple.com Buy iPad (many offers)', 'https://www.apple.com/shop/buy-ipad/ipad', {}),
+  shop(56, 'shop-dell', 'dell.com product', 'https://www.dell.com/en-us/shop/laptop-computers/spd/xps13dx13260', {}),
+  shop(57, 'shop-away', 'awaytravel.com product', 'https://www.awaytravel.com/suitcases/bigger-carry-on', { atc: {} }),
+  shop(58, 'shop-costco', 'costco.com bath towels', 'https://www.costco.com/bath-towels.html',
+    { priceSelector: '[data-testid^="Text_Price_"]', search: { url: 'https://www.costco.com/s?keyword=towel', link: '.product.' } }),
+  shop(59, 'shop-lowes', 'lowes.com search', 'https://www.lowes.com/search?searchTerm=hammer', {}),
+  shop(60, 'shop-homedepot', 'homedepot.com search', 'https://www.homedepot.com/s/hammer', {}),
+  shop(61, 'shop-kohls', 'kohls.com search', 'https://www.kohls.com/search.jsp?search=towel', {}),
+  shop(62, 'shop-macys', 'macys.com search', 'https://www.macys.com/shop/featured/towel', {}),
+];
+
+// The extractor is the extension's own (`ext/src/pricing.js`), loaded once, exactly as harness/device-price-probe.mjs does.
+let PRICING = null;
+async function loadPricing() {
+  if (PRICING) return PRICING;
+  await import(pathToFileURL(path.join(EXT, 'src', 'pricing.js')).href);
+  PRICING = globalThis.NullechoPricing;
+  if (!PRICING || typeof PRICING.jsonLdPrices !== 'function') throw new Error('ext/src/pricing.js did not install NullechoPricing');
+  return PRICING;
+}
+
+const isZeroPrice = (p) => p !== null && /^0+(?:[.,]0+)?$/.test(p);
+const money = (p) => { const n = Number(String(p).replace(/,/g, '')); return Number.isFinite(n) ? n.toFixed(2) : String(p); };
+
+/** research/device-pricing METHOD §1.4: JSON-LD → microdata → meta, zeros fall through; several offers → the sorted set. */
+function declaredPrice(c) {
+  const P = PRICING;
+  const first = (cands, source) => {
+    for (const x of cands) {
+      const price = P.cleanPrice(x?.price);
+      if (price === null || isZeroPrice(price)) continue;
+      return { price: money(price), currency: P.cleanCurrency(x?.currency, x?.price), source };
+    }
+    return null;
+  };
+  const ld = P.jsonLdPrices(c.jsonLd || []);
+  const ctx = first(ld, 'json-ld')
+    ?? first((c.microdata || []).map((m) => ({ price: m?.value, currency: m?.currency })), 'microdata')
+    ?? first([{ price: c.meta?.amount, currency: c.meta?.currency }], 'meta');
+  if (!ctx) return null;
+  if (ctx.source === 'json-ld') {
+    const distinct = [...new Set(ld.map((x) => P.cleanPrice(x.price)).filter((p) => p !== null && !isZeroPrice(p)).map(money))];
+    if (distinct.length > 1) return { ...ctx, price: distinct.map(Number).sort((a, b) => a - b).map((n) => n.toFixed(2)).join('/'), source: `json-ld-set(${distinct.length})` };
+  }
+  return ctx;
+}
+
+/** "$59 . 99", "Now $169.99", "Regular price $125 Sale price $109" (the selector names the sale element) → "59.99". */
+function visibleAmount(text) {
+  const m = /\$\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\s?\.\s?(\d{2}))?/.exec(text || '');
+  return m ? `${m[1].replace(/,/g, '')}.${m[2] ?? '00'}` : null;
+}
+
+async function collectPriceSources(page, selector) {
+  return page.evaluate((sel) => {
+    const out = { jsonLd: [], microdata: [], meta: {}, visibleText: null };
+    for (const n of Array.from(document.querySelectorAll('script[type="application/ld+json"]')).slice(0, 24)) {
+      const t = n.textContent; if (t && t.length < 300000) out.jsonLd.push(t);
+    }
+    for (const el of Array.from(document.querySelectorAll('[itemprop="price"]')).slice(0, 8)) {
+      const cur = el.parentElement?.querySelector('[itemprop="priceCurrency"]');
+      out.microdata.push({ value: el.getAttribute('content') ?? el.textContent, currency: cur?.getAttribute('content') ?? cur?.textContent ?? null });
+    }
+    const amt = document.querySelector('meta[property="og:price:amount"], meta[property="product:price:amount"]');
+    const cur = document.querySelector('meta[property="og:price:currency"], meta[property="product:price:currency"]');
+    out.meta = { amount: amt?.getAttribute('content') ?? null, currency: cur?.getAttribute('content') ?? null };
+    if (sel) {
+      try {
+        for (const el of document.querySelectorAll(sel)) {
+          const r = el.getBoundingClientRect();
+          const t = (el.innerText || '').replace(/\s+/g, ' ').trim();
+          if (r.width && r.height && /\$\s?\d/.test(t)) { out.visibleText = t.slice(0, 120); break; }
+        }
+      } catch (e) { out.visibleError = String(e.message || e).slice(0, 100); }
+    }
+    return out;
+  }, selector || null);
+}
+
+/** Poll for the declared and rendered price (client-rendered pages need the wait), then read again after hydration. */
+async function readPrices(page, site) {
+  await loadPricing();
+  const read = async () => {
+    const c = await collectPriceSources(page, site.priceSelector).catch(() => ({ jsonLd: [] }));
+    return { declared: declaredPrice(c), visible: c.visibleText ? { price: visibleAmount(c.visibleText), text: c.visibleText } : null };
+  };
+  let r = await read();
+  const deadline = Date.now() + 12000;
+  while (Date.now() < deadline && (!r.declared || (site.priceSelector && !r.visible))) { await sleep(700); r = await read(); }
+  await sleep(1500);
+  const again = await read();
+  const changed = JSON.stringify(again) !== JSON.stringify(r);
+  const final = (again.declared || again.visible) ? again : r;
+  return { ...final, changedAfterHydration: changed ? { first: r } : false };
+}
+
+const ADDED_RE = /added to (your )?(cart|bag|basket)|item(s)? added|added!|view (cart|bag|basket)|added to cart|in your (cart|bag)/i;
+const registrableOf = (host) => String(host || '').split('.').slice(-2).join('.');
+
+async function cartSignals(page, shopify) {
+  return withTimeout(page.evaluate(async (isShopify) => {
+    const out = { added: false, badge: null, shopify: null };
+    out.added = /added to (your )?(cart|bag|basket)|item(s)? added|added!|view (cart|bag|basket)|added to cart|in your (cart|bag)/i.test(document.body ? document.body.innerText : '');
+    let max = null;
+    for (const el of document.querySelectorAll('[aria-label*="cart" i], [aria-label*="bag" i], [aria-label*="basket" i], [data-test*="cart" i], [data-testid*="cart" i], [class*="cart-count" i], [class*="cartCount" i], [class*="bag-count" i], [class*="CartCount" i], [id*="cart-count" i]')) {
+      // A badge is a bare 1–2 digit number, or "N item(s)" in an aria-label — never a price ("$55").
+      const inner = (el.innerText || '').trim();
+      const aria = el.getAttribute('aria-label') || '';
+      const m = /^\d{1,2}$/.test(inner) ? [null, inner] : aria.match(/\b(\d{1,2})\s*(items?|products?)\b/i);
+      if (m) max = Math.max(max ?? 0, Number(m[1]));
+    }
+    out.badge = max;
+    if (isShopify) {
+      try {
+        const ac = new AbortController(); setTimeout(() => ac.abort(), 5000);
+        const c = await (await fetch('/cart.js', { credentials: 'same-origin', cache: 'no-store', signal: ac.signal })).json();
+        out.shopify = { count: c.item_count, totalPrice: c.total_price, currency: c.currency };
+      } catch (e) { out.shopify = { error: String(e.message || e).slice(0, 80) }; }
+    }
+    return out;
+  }, !!shopify), 9000, 'cartSignals').catch((e) => ({ error: String(e.message || e).slice(0, 100) }));
+}
+
+/** Click add-to-cart and require the cart to say so. Never goes past the cart: no checkout, no account, no form. */
+async function addToCart(page, site) {
+  const a = site.atc;
+  if (!a) return { attempted: false };
+  const base = registrableOf(new URL(page.url()).hostname);
+  const net = [];
+  let armed = false;
+  const onResp = (res) => {
+    if (!armed) return;
+    const req = res.request();
+    if (req.method() === 'GET' || req.method() === 'OPTIONS') return;
+    let u; try { u = new URL(res.url()); } catch { return; }
+    if (registrableOf(u.hostname) !== base) return;
+    // The cart by its PATH (`/cart/add.js`, `/api/cart`, `/baskets`, `cart_items`), or a GraphQL mutation that names
+    // it. Never an analytics or logging beacon that merely REPORTS an add (measured 2026-10-15: Adobe `/b/ss/`,
+    // nike `/g/collect`, zappos `/kratos/api/log/ingest` all fire on the add OFF, and are blocked or never loaded ON,
+    // so counting them made the cart look broken ON when only the beacon was gone).
+    if (/\/b\/ss\/|\/collect\b|\/log\b|ingest|\/events?\b|\/track|analytics|metrics|beacon|pixel|monorail|sst-ev/i.test(u.pathname)) return;
+    const body = (() => { try { return String(req.postData() || '').slice(0, 4000); } catch { return ''; } })();
+    const byPath = /\/cart|\/basket|\/bag(\/|$)|add-?to-?(cart|bag|basket)|addtocart|cart_items|\/atc\b/i.test(u.pathname);
+    const byBody = /mutation[^{]{0,80}\{[^}]{0,200}(cart|basket|bag)|"operationName"\s*:\s*"[^"]*(cart|basket|bag)[^"]*"/i.test(body);
+    if (!byPath && !byBody) return;
+    net.push({ status: res.status(), method: req.method(), url: (u.origin + u.pathname).slice(0, 140), by: byPath ? 'path' : 'body' });
+  };
+  page.on('response', onResp);
+  try {
+    let picked = null;
+    if (a.pick) {
+      picked = await withTimeout(page.evaluate((sel) => {
+        // A size/variant control has a short label ("M", "10.5", "28W") and is not a guide, a chart or a sold-out size.
+        for (const el of document.querySelectorAll(sel)) {
+          const r = el.getBoundingClientRect();
+          const text = (el.innerText || el.value || '').replace(/\s+/g, ' ').trim();
+          const label = `${text} ${el.getAttribute('aria-label') || ''}`;
+          if (!r.width || !r.height || el.disabled || /sold out|unavailable|notify|out of stock|guide|chart|find your|fit/i.test(label)) continue;
+          if (text.length === 0 || text.length > 8) continue;
+          el.scrollIntoView({ block: 'center' }); el.click();
+          return text;
+        }
+        return null;
+      }, a.pick), 8000, 'size pick').catch(() => null);
+      if (picked) await sleep(1200);
+    }
+    const before = await cartSignals(page, site.shopify);
+    // The button: the row's selector, else the first visible, enabled "add to cart/bag/basket" control.
+    const handle = await withTimeout(page.evaluateHandle((sel) => {
+      const visible = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.disabled && el.getAttribute('aria-disabled') !== 'true'; };
+      const pool = sel ? Array.from(document.querySelectorAll(sel)) : [];
+      const byText = Array.from(document.querySelectorAll('button, input[type="submit"], [role="button"]'))
+        .filter((b) => /add to (cart|bag|basket)/i.test((b.innerText || b.value || b.getAttribute('aria-label') || '').trim()));
+      return [...pool, ...byText].find(visible) || null;
+    }, a.button || null), 8000, 'find add-to-cart');
+    const el = handle.asElement();
+    if (!el) return { attempted: true, ok: false, picked, reason: 'no visible, enabled add-to-cart control' };
+    const label = await withTimeout(el.evaluate((b) => (b.innerText || b.value || b.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 40)), 5000, 'label').catch(() => '');
+    armed = true;
+    await withTimeout(el.evaluate((b) => b.scrollIntoView({ block: 'center' })), 5000, 'scroll').catch(() => {});
+    await withTimeout(el.click(), 8000, 'click').catch(async () => { await withTimeout(el.evaluate((b) => b.click()), 5000, 'click()').catch(() => {}); });
+    let after = null;
+    const evidence = [];
+    // A Shopify store whose /cart.js answers is judged by that count alone — the cart's own record. Elsewhere any
+    // one of: a same-site cart request answered 2xx, an "added" message that was not there before, a badge going up.
+    const shopifyCart = !!(before.shopify && Number.isInteger(before.shopify.count));
+    let decided = false;
+    const deadline = Date.now() + 12000;
+    while (Date.now() < deadline) {
+      await sleep(1000);
+      after = await cartSignals(page, site.shopify);
+      evidence.length = 0;
+      const countUp = after.shopify && Number.isInteger(after.shopify.count) && after.shopify.count > before.shopify?.count;
+      if (countUp) evidence.push(`Shopify /cart.js item_count ${before.shopify.count}→${after.shopify.count}`);
+      const okNet = net.filter((n) => n.status >= 200 && n.status < 300);
+      if (okNet.length) evidence.push(`same-site cart request ${okNet[0].status} ${okNet[0].method} ${okNet[0].url}`);
+      if (after.added && !before.added) evidence.push('"added to cart/bag" message appeared');
+      if (after.badge != null && after.badge > (before.badge ?? 0)) evidence.push(`cart badge ${before.badge ?? 0}→${after.badge}`);
+      decided = shopifyCart ? !!countUp : evidence.length > 0;
+      if (decided) break;
+    }
+    // The cart's price for ONE unit, and only from a cart that holds the item: an empty cart's 0.00 is not a price.
+    const count = after && after.shopify && after.shopify.count;
+    const unit = shopifyCart && decided && Number.isInteger(count) && count > 0 && Number.isInteger(after.shopify.totalPrice)
+      ? (after.shopify.totalPrice / 100 / count).toFixed(2) : null;
+    return { attempted: true, ok: decided, picked, clicked: label, evidence: evidence.slice(), cartRequests: net.slice(0, 6), before, after, cartTotal: unit };
+  } catch (e) {
+    return { attempted: true, ok: false, error: String(e.message || e).slice(0, 160) };
+  } finally {
+    page.off('response', onResp);
+  }
+}
+
+/** The search page must list product links (unique hrefs containing the row's marker). */
+async function searchCheck(page, site, ctx) {
+  const s = site.search;
+  if (!s) return null;
+  const out = { url: s.url, httpStatus: null, count: 0, ok: false };
+  try {
+    const resp = await page.goto(s.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    out.httpStatus = resp ? resp.status() : null;
+    const wall = await detectBotWall(page, out.httpStatus) || await detectChallengePage(page);
+    if (wall) { out.blocked = true; out.blockedEvidence = wall.evidence; return out; }
+    const re = s.link instanceof RegExp ? s.link.source : null;
+    const deadline = Date.now() + 15000;
+    let last = -1;
+    while (Date.now() < deadline) {
+      await sleep(1000);
+      out.count = await page.evaluate((marker, reSrc) => {
+        const rx = reSrc ? new RegExp(reSrc) : null;
+        const set = new Set();
+        for (const a of document.querySelectorAll('a[href]')) {
+          const h = a.href.split('#')[0];
+          if (rx ? rx.test(h) : h.includes(marker)) set.add(h);
+        }
+        return set.size;
+      }, typeof s.link === 'string' ? s.link : '', re).catch(() => 0);
+      if (out.count >= 3 && out.count === last) break;
+      last = out.count;
+    }
+    out.ok = out.count > 0;
+    if (ctx.ext) { await sleep(1200); out.tally = await ctx.ext.tally(page.url()).catch(() => null); }
+  } catch (e) { out.error = String(e.message || e).slice(0, 160); }
+  return out;
+}
+
+/** Klaviyo's sign-up forms: klaviyo.js present, the form definitions fetched, a form or its email field rendered. */
+async function klaviyoCheck(page, formResponses) {
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2)).catch(() => {});
+  await sleep(6000);
+  const dom = await page.evaluate(() => {
+    const forms = document.querySelectorAll('[class*="klaviyo-form"], [class*="kl-private-reset-css"], [data-testid="POPUP"], [data-testid="FLYOUT"], [data-testid="modal-form-container"]');
+    const emails = Array.from(document.querySelectorAll('input[type="email"], input[name="email"]')).filter((i) => i.closest('[class*="klaviyo"], [class*="kl-private"]'));
+    return { klaviyo: typeof window.klaviyo, formNodes: forms.length, klaviyoEmailInputs: emails.length, enabledEmailInputs: emails.filter((i) => !i.disabled).length };
+  }).catch(() => ({}));
+  return { ...dom, formDefinitions: formResponses.slice(0, 4) };
+}
+
+/** The shopping row's check. ctx.offRecord (standard passes) adds the ON-vs-OFF comparison to `reasons`. */
+async function shoppingCheck(page, ctx, site) {
+  // Written into ctx.partial as it fills, so a row that runs out of time still reports what it measured and
+  // which step it was on (`trace`), instead of a bare timeout.
+  const detail = ctx.partial || {};
+  detail.vendors = site.vendors || null;
+  const t0 = Date.now();
+  detail.trace = [];
+  const step = (name) => detail.trace.push(`${name}@${Math.round((Date.now() - t0) / 100) / 10}s`);
+  const formResponses = ctx.klaviyoForms || [];
+  {
+    step('start');
+    detail.title = (await page.title().catch(() => '')).slice(0, 90);
+    detail.bodyLen = await page.evaluate(() => (document.body ? document.body.innerText.length : 0)).catch(() => 0);
+    step('prices');
+    const prices = await readPrices(page, site);
+    detail.declared = prices.declared;
+    detail.visible = prices.visible;
+    if (prices.changedAfterHydration) detail.changedAfterHydration = prices.changedAfterHydration;
+    if (site.render) detail.render = await page.evaluate((sel) => document.querySelectorAll(sel).length, site.render).catch(() => null);
+    step('klaviyo');
+    if (site.klaviyo) detail.klaviyo = await klaviyoCheck(page, formResponses);
+    if (ctx.ext) { await sleep(1000); detail.productTally = await ctx.ext.tally(page.url()).catch(() => null); }
+    step('atc');
+    detail.atc = await addToCart(page, site);
+    step('search');
+    detail.search = await searchCheck(page, site, ctx);
+    step('done');
+  }
+  const reasons = [];
+  const priced = !!(detail.declared || detail.visible);
+  if (site.expectPrice !== false && !priced) reasons.push('no declared or rendered price read');
+  if (detail.atc && detail.atc.attempted && !detail.atc.ok) reasons.push(`add-to-cart not confirmed (${detail.atc.reason || detail.atc.error || 'no cart evidence'})`);
+  if (detail.search && !detail.search.ok && !detail.search.blocked) reasons.push(`search listed ${detail.search.count} product links`);
+  if (detail.klaviyo && detail.klaviyo.klaviyo !== 'object') reasons.push('klaviyo.js did not load');
+  // `ok` is this load doing its job. ON-vs-OFF is judged across the paired loads (shoppingVerdict), not here.
+  const ok = reasons.length === 0;
+  return { ok, detail, reasons };
+}
+
+
+const ALL_SITES = [...SITES, ...THIRD_PARTY_SITES, ...SHOPPING_SITES];
+/** The OFF-pass-then-ON-pass rows. `--shopping` runs none of them. */
 const selectedSites = () => {
-  const pool = THIRD_PARTY ? ALL_SITES : SITES;
-  return ONLY.length ? ALL_SITES.filter((s) => ONLY.includes(s.key)) : pool;
+  if (SHOPPING) return [];
+  const pool = THIRD_PARTY ? [...SITES, ...THIRD_PARTY_SITES] : SITES;
+  return ONLY.length ? [...SITES, ...THIRD_PARTY_SITES].filter((s) => ONLY.includes(s.key)) : pool;
+};
+/** The shopping rows: always with `--shopping`, and in the seeded release gate (once each). */
+const selectedShoppingSites = () => {
+  if (!SHOPPING && !SEEDED) return [];
+  return ONLY.length ? SHOPPING_SITES.filter((s) => ONLY.includes(s.key)) : SHOPPING_SITES;
 };
 
 /** Serves harness/fixtures/ on 127.0.0.1:<ephemeral> — the third-party embedding site for the fixture rows. */
@@ -1026,10 +1489,11 @@ function startFixtureServer() {
 
 // ── 5. run one site ──────────────────────────────────────────────────────────
 async function runSite(browser, site, ctxIn, ua) {
-  const { page, consoleLines, blockedByClient, documents } = await freshPage(browser, ua);
+  const { page, consoleLines, blockedByClient, documents, pageErrors, klaviyoForms } = await freshPage(browser, ua);
   const url = urlOf(site);
   const record = { site: site.key, withExtension: ctxIn.withExtension, url, ok: false, blocked: false, blockedEvidence: null, skipped: false, skipReason: null, void: false, reasons: [], detail: {}, probes: null, visibility: null, consoleLines: [], httpStatus: null, error: null, blockedByClient: [], learnedHits: null };
   if (ctxIn.seed) await ctxIn.seed.drain().catch(() => {});   // hits from before this row belong to no row
+  if (ctxIn.ext) await ctxIn.ext.drain().catch(() => {});
   try {
     let resp;
     try {
@@ -1043,14 +1507,17 @@ async function runSite(browser, site, ctxIn, ua) {
       return record;   // `finally` closes the page and collects console lines, blocked requests and learned hits
     }
     record.httpStatus = resp ? resp.status() : null;
-    const wall = await detectBotWall(page, record.httpStatus);
+    const wall = await detectBotWall(page, record.httpStatus) || (site.shopping ? await detectChallengePage(page) : null);
     if (wall) {
       record.probes = await probes(page).catch(() => null);
       record.blocked = true;
       record.blockedEvidence = wall.evidence;
       return record;   // `finally` does the rest — and drains the learned hits exactly once
     }
-    await dismissCookieBanner(page).catch(() => {});
+    // Shopping rows leave a consent banner exactly as it is — neither accepted nor declined. Declining would switch
+    // off the very vendors under test on consent-managed sites (measured: gap.com loaded no Rokt, Granify or
+    // Attentive after "Reject all"), and accepting is not ours to do. ON and OFF see the same banner.
+    if (!site.shopping) await dismissCookieBanner(page).catch(() => {});
     if (site.settleMs) await sleep(site.settleMs);
     record.visibility = await assertVisible(page);
     if (record.visibility !== 'visible') {
@@ -1061,8 +1528,8 @@ async function runSite(browser, site, ctxIn, ua) {
       return record;
     }
     record.probes = await probes(page);
-    const ctx = { ...ctxIn, probes: record.probes, httpStatus: record.httpStatus, documents };
-    const result = await withTimeout(site.check(page, ctx), 45000, site.key).catch((e) => ({ ok: false, error: String(e.message || e).slice(0, 300) }));
+    const ctx = { ...ctxIn, probes: record.probes, httpStatus: record.httpStatus, documents, klaviyoForms, partial: {} };
+    const result = await withTimeout(site.check(page, ctx), site.checkTimeoutMs || 45000, site.key).catch((e) => ({ ok: false, error: String(e.message || e).slice(0, 300), detail: ctx.partial }));
     record.ok = !!result.ok;
     record.detail = result.detail || {};
     record.reasons = result.reasons || [];
@@ -1076,8 +1543,10 @@ async function runSite(browser, site, ctxIn, ua) {
   } finally {
     record.consoleLines = consoleLines.slice(0, 20);
     record.blockedByClient = blockedByClient.slice(0, 30);
+    record.pageErrors = pageErrors.slice(0, 60);
     await page.close().catch(() => {});
     if (ctxIn.seed) record.learnedHits = await ctxIn.seed.drain().catch((e) => ({ hits: [], note: 'drain failed: ' + e.message }));
+    if (ctxIn.ext) record.personalizationHits = await ctxIn.ext.drain().catch((e) => ({ hits: [], note: 'drain failed: ' + e.message }));
   }
   return record;
 }
@@ -1097,8 +1566,79 @@ async function openPassBrowser({ withExtension, unpackDir, label }) {
     if (!withExtension && presence.extensionTargets.length) throw new Error(`OFF pass is not OFF: extension targets present — ${presence.extensionTargets.join('; ')}`);
     if (withExtension && !presence.worker) throw new Error('ON pass is not ON: no Nullecho service worker target within 20 s');
     const seed = withExtension && SEEDED ? await seedLearnedState(browser, unpackDir) : null;
-    return { browser, version, presence, seed, close };
+    // After seeding (which reloads the extension): attach to the worker that is actually running.
+    const ext = withExtension ? await extHandle(browser, unpackDir) : null;
+    return { browser, version, presence, seed, ext, close };
   } catch (e) { await close(); throw e; }
+}
+
+/**
+ * The ON browser's view of what Nullecho did on a page (shopping rows): every match of a personalization rule
+ * (`onRuleMatchedDebug`, unpacked builds) and the D55 per-tab tally — the webRequest count the popup falls back to,
+ * read from `storage.session` under the key the loaded background.js uses. The tab is found by URL (Nullecho has
+ * <all_urls>, so `tabs.query` sees URLs). Re-attaches if the service worker restarted.
+ */
+async function extHandle(browser, unpackDir) {
+  const bg = fs.readFileSync(path.join(unpackDir, 'src', 'background.js'), 'utf8');
+  const keyMatch = bg.match(/const TAB_TALLY_KEY = '([^']+)'/);
+  if (!keyMatch) throw new Error('could not find `const TAB_TALLY_KEY = \'…\'` in the loaded src/background.js — the tally format drifted; update the harness');
+  const KEY = keyMatch[1];
+  const install = () => {
+    if (globalThis.__pzHits) return 'present';
+    // chrome.* is bound a beat after the worker target appears: return null (retry) until it is, and mark the
+    // recorder installed only once its listener is on — a half-installed recorder would report 0 matches forever.
+    if (!globalThis.chrome || !chrome.declarativeNetRequest) return null;
+    if (!chrome.declarativeNetRequest.onRuleMatchedDebug) return 'unavailable';
+    const hits = [];
+    chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((i) => {
+      if (i.rule.rulesetId !== 'personalization' || hits.length >= 5000) return;
+      hits.push({ ruleId: i.rule.ruleId, type: i.request.type, url: String(i.request.url).slice(0, 200), tabId: i.request.tabId });
+    });
+    globalThis.__pzHits = hits;
+    return 'installed';
+  };
+  let worker = null;
+  // After a seeded reload the PRE-reload worker's target can still be listed, and attaching to it never returns
+  // (measured 2026-10-15: three seeded shards sat at 0% CPU right after seeding). So: newest target first, and
+  // every step bounded.
+  const attach = async () => {
+    const deadline = Date.now() + 25000;
+    while (Date.now() < deadline) {
+      for (const t of browser.targets().filter(isExtensionWorker).reverse()) {
+        try {
+          const w = await withTimeout(t.worker(), 5000, 'worker()');
+          if (!w) continue;
+          const st = await withTimeout(w.evaluate(install), 5000, 'install recorder');
+          if (st) { worker = w; return st; }
+        } catch { /* stale or not ready: next */ }
+      }
+      await sleep(500);
+    }
+    return 'failed';
+  };
+  const status = await attach();
+  const readTally = (w, url) => w.evaluate(async (u, key) => {
+    const tabs = await chrome.tabs.query({});
+    const byUrl = tabs.find((t) => t.url === u);
+    const t = byUrl || tabs.find((x) => x.active);
+    if (!t) return null;
+    const all = (await chrome.storage.session.get(key))[key] || {};
+    return { tabId: t.id, matchedBy: byUrl ? 'url' : 'active-tab', total: all[t.id]?.total ?? 0, byCategory: all[t.id]?.byCategory ?? {} };
+  }, url, KEY);
+  return {
+    status,
+    async drain() {
+      try {
+        const h = await withTimeout(worker.evaluate(() => (globalThis.__pzHits ? globalThis.__pzHits.splice(0) : null)), 8000, 'drain');
+        if (h) return { hits: h };
+      } catch { /* worker gone */ }
+      const st = await attach().catch(() => 'failed');
+      return { hits: [], restarted: true, note: `worker restarted (${st}) — hits before this point lost` };
+    },
+    async tally(url) {
+      try { return await withTimeout(readTally(worker, url), 8000, 'tally'); } catch { await attach().catch(() => {}); return withTimeout(readTally(worker, url), 8000, 'tally'); }
+    },
+  };
 }
 
 async function runPass({ withExtension, unpackDir, offRecords, ua }) {
@@ -1111,7 +1651,7 @@ async function runPass({ withExtension, unpackDir, offRecords, ua }) {
     for (const site of sites) {
       if (budgetLeft() < 60000) { records[site.key] = { site: site.key, withExtension, skipped: true, skipReason: 'runtime budget exceeded', ok: false, detail: {}, reasons: [], probes: null, consoleLines: [] }; continue; }
       const off = offRecords ? offRecords[site.key] : null;
-      const ctx = { withExtension, seed: env.seed, hostCores: off ? off.probes?.cores : undefined, hostMem: off ? off.probes?.mem : undefined, offGpc: off ? off.probes?.gpc : undefined, offProbes: off ? off.probes : undefined };
+      const ctx = { withExtension, seed: env.seed, ext: env.ext, hostCores: off ? off.probes?.cores : undefined, hostMem: off ? off.probes?.mem : undefined, offGpc: off ? off.probes?.gpc : undefined, offProbes: off ? off.probes : undefined };
       console.error(`[site-smoke] ${withExtension ? 'ON ' : 'OFF'} ${site.label} …`);
       records[site.key] = await runSite(browser, site, ctx, ua);
       const r = records[site.key];
@@ -1129,6 +1669,56 @@ async function runPass({ withExtension, unpackDir, offRecords, ua }) {
 async function retryOnSite(browser, site, ctxIn, ua) {
   return runSite(browser, site, ctxIn, ua);
 }
+
+// ── 5b. the shopping lab: OFF and ON load the same page at the same moment, `rounds` times ────────────────────
+/**
+ * Two browsers stay open for the whole lab — OFF (no extension, proven) and ON (the store zip, seeded in a seeded
+ * run). For each round, for each row, both load the row's page CONCURRENTLY: a price that drifts over minutes then
+ * moves both sides at once instead of masquerading as an extension effect, which is the same time control as
+ * research/device-pricing's interleaving, made tighter. Rounds are the same-device repeat control: a page whose OFF
+ * price disagrees with itself across rounds is noise, and is reported as such rather than hidden.
+ */
+async function runShoppingLab({ unpackDir, ua, rounds, sites }) {
+  const offEnv = await openPassBrowser({ withExtension: false, unpackDir: null, label: 'shop-off' });
+  let onEnv;
+  try { onEnv = await openPassBrowser({ withExtension: true, unpackDir, label: 'shop-on' }); } catch (e) { await offEnv.close(); throw e; }
+  const loads = Object.fromEntries(sites.map((s) => [s.key, []]));
+  const pair = async (site, round) => {
+    console.error(`[site-smoke] shopping r${round} ${site.label} …`);
+    const [off, on] = await Promise.all([
+      runSite(offEnv.browser, site, { withExtension: false }, ua),
+      runSite(onEnv.browser, site, { withExtension: true, seed: onEnv.seed, ext: onEnv.ext }, ua),
+    ]);
+    loads[site.key].push({ round, off, on });
+    const diffs = off.blocked || on.blocked ? [] : compareShopping(off.detail || {}, on.detail || {});
+    console.error(`  → OFF ${off.blocked ? 'BLOCKED' : off.ok ? 'ok' : 'not-ok'} ${off.detail?.declared?.price ?? off.detail?.visible?.price ?? '-'} | ON ${on.blocked ? 'BLOCKED' : on.ok ? 'ok' : 'not-ok'} ${on.detail?.declared?.price ?? on.detail?.visible?.price ?? '-'}${diffs.length ? ' | ' + diffs.join('; ') : ''} | pz hits ${(on.personalizationHits?.hits || []).length}`);
+  };
+  let rulesAtEnd = null;
+  try {
+    for (let round = 1; round <= rounds; round++) {
+      for (const site of sites) {
+        if (budgetLeft() < 150000) { loads[site.key].push({ round, skipped: 'runtime budget exceeded' }); continue; }
+        await pair(site, round);
+      }
+    }
+    // The gate runs each row once; a row that FAILs there gets one more pair before it is reported (the retry the
+    // OFF-then-ON passes give a FAIL). With --rounds ≥ 2 the rounds are the control and nothing is retried.
+    if (rounds === 1) {
+      for (const site of sites) {
+        if (shoppingVerdict(site, loads[site.key]).verdict !== 'FAIL' || budgetLeft() < 150000) continue;
+        console.error(`[site-smoke] shopping retry: ${site.label}`);
+        await pair(site, 2);
+      }
+    }
+    if (onEnv.seed) rulesAtEnd = await onEnv.seed.dumpRules().catch(() => null);
+  } finally {
+    await offEnv.close();
+    await onEnv.close();
+  }
+  const rows = sites.map((site) => ({ site, loads: loads[site.key], ...shoppingVerdict(site, loads[site.key]) }));
+  return { rows, presence: { off: offEnv.presence, on: onEnv.presence }, seedReport: onEnv.seed ? onEnv.seed.report : null, rulesAtEnd, extStatus: onEnv.ext ? onEnv.ext.status : null };
+}
+
 
 // ── 6. self-test: prove the youtube + maps checks CAN fail ─────────────────
 async function selfTest(ua) {
@@ -1191,7 +1781,12 @@ async function main() {
   const code = codeProvenance();   // at the START: the code that runs, not whatever the tree holds when it ends
   const pkg = OFF_ONLY ? null : buildAndUnpackChromePackage();
   const control = pkg && LEARNER_FROM ? swapLearner(pkg.unpackDir, LEARNER_FROM) : null;
-  const fixture = THIRD_PARTY ? await startFixtureServer() : null;
+  const ruleControl = pkg ? applyRuleControls(pkg.unpackDir) : null;
+  const stdSites = selectedSites();
+  const shopSites = OFF_ONLY ? [] : selectedShoppingSites();
+  // The fixture page is also where the seeded positive control proves its rules are enforced — so a seeded
+  // shopping-only run needs it too.
+  const fixture = (THIRD_PARTY && stdSites.length) || (SEEDED && !OFF_ONLY) ? await startFixtureServer() : null;
   if (fixture) FIXTURE = { origin: fixture.origin };
 
   // probe browser version + build a stable desktop UA before any real pass
@@ -1201,14 +1796,18 @@ async function main() {
   fs.rmSync(probeProfile, { recursive: true, force: true });
   const ua = desktopUA(chromeVersion.split(' ')[0]);
 
-  const selfTestResult = await selfTest(ua);
-  const tpSelfTestBroken = Object.entries(selfTestResult.thirdParty || {}).filter(([, v]) => v.actuallyFailed !== true).map(([k]) => k);
-  if (selfTestResult.youtube.actuallyFailed !== true || selfTestResult.maps.actuallyFailed !== true || tpSelfTestBroken.length) {
+  // The youtube/maps/embed self-test guards the standard rows; a --shopping run has none (its negative control is
+  // --plant-block: a planted block on a rendering host must turn rows red).
+  const selfTestResult = stdSites.length ? await selfTest(ua) : null;
+  const tpSelfTestBroken = Object.entries(selfTestResult?.thirdParty || {}).filter(([, v]) => v.actuallyFailed !== true).map(([k]) => k);
+  if (selfTestResult && (selfTestResult.youtube.actuallyFailed !== true || selfTestResult.maps.actuallyFailed !== true || tpSelfTestBroken.length)) {
     console.error('⚠ SELF-TEST WARNING: a check did not fail when it should have' + (tpSelfTestBroken.length ? ` (${tpSelfTestBroken.join(', ')})` : '') + '. Trusting PASS verdicts from it is unsound this run.');
   }
 
+  let off = { records: {}, presence: null };
+  if (stdSites.length) {
   console.error('[site-smoke] OFF pass (no extension) — establishing host baseline…');
-  const off = await runPass({ withExtension: false, unpackDir: null, offRecords: null, ua });
+  off = await runPass({ withExtension: false, unpackDir: null, offRecords: null, ua });
   // OFF flakiness guard, the mirror of the ON one below: a row that failed OFF (not walled, not void) gets
   // one more OFF attempt in a fresh browser before it can turn into NOT-OURS — otherwise one slow third-party
   // embed on the OFF side hides whatever the ON side did (2026-09-28: Calendar, control run).
@@ -1229,9 +1828,10 @@ async function main() {
     } finally { await env.close(); }
   }
 
+  }
   let on = { records: {}, chromeVersion };
   const retrySeedReports = [];
-  if (!OFF_ONLY) {
+  if (!OFF_ONLY && stdSites.length) {
     console.error(`[site-smoke] ON pass (packaged extension loaded${SEEDED ? ', SEEDED learned state' : ''}${control ? `, ⚠ CONTROL learner from ${control.rev}` : ''})…`);
     try {
       on = await runPass({ withExtension: true, unpackDir: pkg.unpackDir, offRecords: off.records, ua });
@@ -1256,7 +1856,7 @@ async function main() {
         for (const r of retryCandidates) {
           const site = ALL_SITES.find((s) => s.key === r.site);
           const offR = off.records[r.site];
-          const ctx = { withExtension: true, seed: env.seed, hostCores: offR.probes?.cores, hostMem: offR.probes?.mem, offGpc: offR.probes?.gpc, offProbes: offR.probes };
+          const ctx = { withExtension: true, seed: env.seed, ext: env.ext, hostCores: offR.probes?.cores, hostMem: offR.probes?.mem, offGpc: offR.probes?.gpc, offProbes: offR.probes };
           console.error(`  retry: ${site.label} …`);
           const retry = await retryOnSite(env.browser, site, ctx, ua);
           if (retry.void) {
@@ -1274,6 +1874,19 @@ async function main() {
       }
     }
   }
+  // ── the shopping lab (0.9.3): its own OFF + ON browsers, the ON one seeded in a seeded run ──
+  let shopping = null;
+  if (shopSites.length) {
+    console.error(`[site-smoke] SHOPPING LAB — ${shopSites.length} rows × ${ROUNDS} round(s), OFF and ON concurrently${SEEDED ? ', ON seeded' : ''}${ruleControl ? ', ⚠ CONTROL rules' : ''}…`);
+    try {
+      shopping = await runShoppingLab({ unpackDir: pkg.unpackDir, ua, rounds: ROUNDS, sites: shopSites });
+    } catch (e) {
+      if (!(e instanceof SeedingError)) throw e;
+      console.error('\n✗✗✗ ' + e.message);
+      writeSeedingFailure({ pkg, control, chromeVersion, error: e.message, report: e.report || null });
+      process.exit(3);
+    }
+  }
   if (fixture) fixture.server.close();
 
   // verify the metadata-leak trap never fired
@@ -1283,7 +1896,7 @@ async function main() {
   // ── verdicts ────────────────────────────────────────────────────────────
   const ruleById = on.seedReport ? new Map((on.seedReport.rulesAfterReload || []).map((r) => [r.id, r])) : null;
   const learnedBlocks = (rec) => (rec && rec.learnedHits && rec.learnedHits.hits ? rec.learnedHits.hits.filter((h) => isLearnedBlockId(h.ruleId)) : []);
-  const sites = selectedSites();
+  const sites = stdSites;
   const results = sites.map((site) => {
     const onR = on.records[site.key];
     const offR = off.records[site.key];
@@ -1317,15 +1930,21 @@ async function main() {
     }
     return { site, on: onR, off: offR, verdict, reason };
   });
+  // Shopping rows join the same table: the first pair's records stand for the row, the verdict is the lab's.
+  for (const row of shopping ? shopping.rows : []) {
+    const first = row.loads.find((l) => l.off && l.on) || {};
+    results.push({ site: row.site, on: first.on || null, off: first.off || null, verdict: row.verdict, reason: row.reason, shop: row,
+      onLoads: row.loads.filter((l) => l.on).map((l) => l.on) });
+  }
 
   // D50 invariant over every row's traffic: a learned BLOCK on a protected host is a FAIL even when the row's
   // functional check did not notice (2026-09-28 control: the pre-D50 learner blocked reCAPTCHA Enterprise on
   // open.spotify.com and Google's sign-in frame on youtube.com while both rows' checks still passed).
   for (const res of results) {
-    const hits = learnedBlocks(res.on);
+    const hits = res.onLoads ? res.onLoads.flatMap((r) => learnedBlocks(r)) : learnedBlocks(res.on);
     const bad = hits.map((h) => ({ h, entry: protectedEntryFor(h.url) })).filter((x) => x.entry);
     res.protectedHostBlocks = bad.map(({ h, entry }) => `${describeHit(h, ruleById)} — protected by ${entry}`);
-    if (bad.length && (res.verdict === 'PASS' || res.verdict === 'POLICY-BLOCKED' || res.verdict === 'NOT-OURS' || res.verdict === 'BLOCKED')) {
+    if (bad.length && (res.verdict === 'PASS' || res.verdict === 'POLICY-BLOCKED' || res.verdict === 'NOT-OURS' || res.verdict === 'BLOCKED' || res.verdict === 'INCONCLUSIVE')) {
       res.verdict = 'FAIL';
       res.reason = `PROTECTED HOST BLOCKED by a learned rule (${bad.length}): ${res.protectedHostBlocks.slice(0, 2).join(' | ')}`;
     }
@@ -1344,12 +1963,16 @@ async function main() {
     if (ruleDrift.removed.length || ruleDrift.changed.length) console.error(`⚠ seeded learned rules changed DURING the ON pass — rows after that point did not run under the seed: ${JSON.stringify(ruleDrift)}`);
   }
 
-  const seedFindings = [...(on.seedReport ? on.seedReport.findings : []), ...retrySeedReports.flatMap((r) => r.findings.map((f) => `retry browser: ${f}`))];
+  const seedFindings = [...(on.seedReport ? on.seedReport.findings : []), ...retrySeedReports.flatMap((r) => r.findings.map((f) => `retry browser: ${f}`)),
+    ...(shopping && shopping.seedReport ? shopping.seedReport.findings.map((f) => `shopping-lab browser: ${f}`) : [])];
   const meta = {
     date: today(),
     code,
     package: pkg ? { version: pkg.version, zipName: pkg.zipName, sha256: pkg.sha256, size: pkg.size } : null,
     control,
+    ruleControl,
+    shoppingMode: SHOPPING, rounds: ROUNDS,
+    shoppingEnv: shopping ? { presence: shopping.presence, extStatus: shopping.extStatus, seed: shopping.seedReport, rulesAtEnd: shopping.rulesAtEnd } : null,
     seeded: SEEDED, thirdParty: THIRD_PARTY,
     chromeVersion, puppeteerVersion: PUPPETEER_VERSION,
     node: process.version,
@@ -1373,9 +1996,10 @@ async function main() {
   for (const r of results) console.error(`  ${String(r.site.n).padStart(2)}. ${r.site.label.padEnd(56)} ${r.verdict}${r.verdict !== 'PASS' && r.reason ? ' — ' + r.reason.slice(0, 160) : ''}`);
   for (const f of seedFindings) console.error('  ⚠ seeding finding: ' + f);
   if (control) console.error(`  ⚠ CONTROL RUN (learner from ${control.rev}) — this is NOT the store package; its FAILs are the point.`);
+  if (ruleControl) console.error(`  ⚠ CONTROL RUN (personalization rules ${ruleControl.plantBlock.length ? 'planted: ' + ruleControl.plantBlock.join(',') : ''}${ruleControl.dropAll ? ' dropped: ALL' : ruleControl.dropRules.length ? ' dropped: ' + ruleControl.dropRules.join(',') : ''}) — NOT the store package.`);
   // Seeded mode is a release GATE: a FAIL, a VOID measurement, a finding from the reload, or a seeded rule
   // disappearing mid-run all make it red. The default smoke keeps its report-only exit code.
-  if (SEEDED) {
+  if (SEEDED || SHOPPING) {
     const red = results.some((r) => r.verdict === 'FAIL' || r.verdict === 'VOID') || seedFindings.length > 0
       || (ruleDrift && (ruleDrift.removed.length || ruleDrift.changed.length)) || tpSelfTestBroken.length > 0;
     process.exitCode = red ? 1 : 0;
@@ -1395,8 +2019,9 @@ function writeSeedingFailure({ pkg, control, chromeVersion, error, report }) {
 function writeReports(meta, results) {
   const outDir = path.join(REPO, 'docs', 'breakage-runs');
   fs.mkdirSync(outDir, { recursive: true });
-  const suffix = (meta.seeded ? '-seeded' : meta.thirdParty ? '-thirdparty' : '') + (meta.control ? `-control-${meta.control.revSha.slice(0, 7)}` : '');
-  const base = `${meta.date}-site-smoke${suffix}-${meta.code.tag}`;
+  const suffix = (meta.shoppingMode ? '-shopping' : '') + (meta.seeded ? '-seeded' : meta.thirdParty ? '-thirdparty' : '') + (meta.control ? `-control-${meta.control.revSha.slice(0, 7)}` : '')
+    + (meta.ruleControl ? `-control-${meta.ruleControl.plantBlock.length ? 'plant' : ''}${meta.ruleControl.dropAll ? 'dropall' : meta.ruleControl.dropRules.length ? 'drop' + meta.ruleControl.dropRules.join('_') : ''}` : '');
+  const base = `${meta.date}-site-smoke${suffix}-${meta.code.tag}${LABEL ? '-' + LABEL : ''}`;
   const jsonPath = path.join(outDir, `${base}.json`);
   const mdPath = path.join(outDir, `${base}.md`);
 
@@ -1406,7 +2031,12 @@ function writeReports(meta, results) {
   const fmtVerdict = (ok, blocked, skipped, isVoid) => isVoid ? 'VOID' : skipped ? 'SKIPPED' : blocked ? 'BLOCKED' : ok ? 'PASS' : 'FAIL';
   const ruleById = meta.seed ? new Map((meta.seed.rulesAfterReload || []).map((x) => [x.id, x])) : null;
 
-  let md = `# Nullecho pre-release site smoke${meta.seeded ? ' — SEEDED learned state' : ''}${meta.control ? ' — ⚠ NEGATIVE CONTROL' : ''} — ${meta.date}\n\n`;
+  let md = `# Nullecho pre-release site smoke${meta.shoppingMode ? ` — SHOPPING LAB (${meta.rounds} rounds)` : ''}${meta.seeded ? ' — SEEDED learned state' : ''}${meta.control || meta.ruleControl ? ' — ⚠ NEGATIVE CONTROL' : ''} — ${meta.date}\n\n`;
+  if (meta.ruleControl) {
+    md += `> **⚠ CONTROL RUN — NOT THE STORE PACKAGE.** The unpacked store zip's \`rules/personalization.json\` was rewritten in the temp dir`;
+    md += `${meta.ruleControl.plantBlock.length ? ` with a planted block rule (id 6999) on \`${meta.ruleControl.plantBlock.join(', ')}\`` : ''}${meta.ruleControl.dropAll ? ' with EVERY personalization rule removed (0.9.2 blocking)' : meta.ruleControl.dropRules.length ? ` with rules ${meta.ruleControl.dropRules.join(', ')} removed` : ''} `;
+    md += `(sha256 packaged \`${meta.ruleControl.packagedSha256.slice(0, 16)}…\` → control \`${meta.ruleControl.controlSha256.slice(0, 16)}…\`). Its FAILs, or its lower counts, are the point.\n\n`;
+  }
   if (meta.control) {
     md += `> **⚠ CONTROL RUN — NOT THE STORE PACKAGE.** The store zip below was unpacked and its \`src/heuristics.js\` + \`src/allowlist.js\` `;
     md += `were replaced with \`${meta.control.rev}\` (\`${meta.control.revSha.slice(0, 7)}\`)'s copies (sha256 heuristics \`${meta.control.files['heuristics.js'].swappedSha256.slice(0, 16)}…\`, `;
@@ -1457,6 +2087,7 @@ function writeReports(meta, results) {
     }
   }
 
+  if (meta.selfTest) {
   md += `\n## Self-test — attacking our own checks before trusting a PASS\n\n`;
   const st = meta.selfTest;
   md += `| Check | Deliberately broken how | Expected | Actual | Result |\n|---|---|---|---|---|\n`;
@@ -1466,6 +2097,8 @@ function writeReports(meta, results) {
     md += `| ${k} | ran on the fixture page with NO embed (\`?e=none\`) | check should report FAIL | ${v.actuallyFailed ? 'FAILED (correct)' : 'PASSED (⚠ check is broken)'} | ${v.actuallyFailed ? '✅' : '❌'} |\n`;
   }
   md += `\nDetail: youtube ${JSON.stringify(st.youtube.detail)}; maps ${JSON.stringify(st.maps.detail)}\n`;
+  }
+  if (meta.shoppingEnv) md += shoppingReportSection(meta, results);
 
   md += `\n## Results\n\n`;
   md += `| # | Site | ON | OFF | Verdict | Notes |\n|---|---|---|---|---|---|\n`;
@@ -1489,6 +2122,7 @@ function writeReports(meta, results) {
 
   md += `\n## Per-site detail\n`;
   for (const r of results) {
+    if (r.shop) continue;   // shopping rows: "Every pair" in the shopping section
     md += `\n### ${r.site.n}. ${r.site.label} — **${r.verdict}**\n\n`;
     if (r.reason) md += `${r.reason}\n\n`;
     md += `- URL: \`${(r.on && r.on.url) || (r.off && r.off.url) || r.site.url}\`\n`;
@@ -1528,6 +2162,80 @@ function writeReports(meta, results) {
 
   fs.writeFileSync(mdPath, md);
   console.error(`[site-smoke] wrote ${path.relative(REPO, mdPath)} + ${path.relative(REPO, jsonPath)}`);
+}
+
+/** The shopping lab's own section: the price table first, then every difference, then every pair. */
+function shoppingReportSection(meta, results) {
+  const rows = results.filter((r) => r.shop);
+  const env = meta.shoppingEnv || {};
+  const esc = (x) => String(x ?? '').replace(/\|/g, '\\|');
+  const arrow = (a, b) => (a.join('/') === b.join('/') ? `${a.join('/')} = ${b.join('/')}` : `**${a.join('/')} → ${b.join('/')}**`);
+  let md = `\n## Shopping lab — the breakage lab for \`rules/personalization.json\`\n\n`;
+  md += `${rows.length} pages × ${meta.rounds} round(s). Each round loads each page in an OFF browser (no extension) and an ON browser `;
+  md += `(the store zip${meta.seeded ? ', seeded with the learned state above' : ''}) **at the same moment**, then: the declared price `;
+  md += `(ext/src/pricing.js: JSON-LD → microdata → meta, zeros skipped, several offers compared as a set — research/device-pricing METHOD §1.4) `;
+  md += `and the rendered price under the row's selector; add-to-cart (click, then Shopify's /cart.js count, a same-site cart request answered 2xx, `;
+  md += `an "added" message, or a cart badge going up — nothing bought, no account, no form); the row's search page; every uncaught `;
+  md += `exception and console error; and, ON only, each personalization-rule match (\`onRuleMatchedDebug\`) and the D55 per-tab tally.\n\n`;
+  md += `- OFF browser really OFF: ${env.presence && env.presence.off && env.presence.off.extensionTargets.length === 0 ? 'yes' : '⚠ ' + JSON.stringify(env.presence && env.presence.off)}; `;
+  md += `ON worker: ${env.presence && env.presence.on && env.presence.on.worker ? env.presence.on.worker : '⚠ none'}; personalization match recorder: \`${env.extStatus}\`\n`;
+  if (env.seed) md += `- ON browser seeded: positive control ${env.seed.ok ? '✅' : '❌'} (${env.seed.positiveControl.filter((c) => c.ok).length}/${env.seed.positiveControl.length}), ${env.seed.rulesAfterReload.length} learned rules live\n`;
+  md += `\n| # | Page | Vendors (map / exploration) | Verdict | Declared OFF → ON | Rendered OFF → ON | Cart total OFF → ON | Add-to-cart OFF / ON | Search links OFF / ON | Personalization rules matched ON (id×n) | Per-tab count, personalization (ON) | New ON page errors |\n`;
+  md += `|---|---|---|---|---|---|---|---|---|---|---|---|\n`;
+  for (const r of rows) {
+    const s = r.shop.summary;
+    if (!s) { md += `| ${r.site.n} | ${esc(r.site.label)} | ${esc(r.site.vendors || '—')} | **${r.verdict}** | ${esc(r.reason)} |  |  |  |  |  |  |  |\n`; continue; }
+    const fired = Object.entries(s.rulesFired).sort((a, b) => a[0] - b[0]).map(([id, n]) => `${id}×${n}`).join(' ') || '—';
+    md += `| ${r.site.n} | ${esc(r.site.label)} | ${esc(r.site.vendors || '—')} | **${r.verdict}** | ${arrow(s.declaredOff, s.declaredOn)} | ${arrow(s.visibleOff, s.visibleOn)} | ${arrow(s.cartOff, s.cartOn)} | ${s.atcOff || '·'} / ${s.atcOn || '·'} | ${s.searchOff} / ${s.searchOn} | ${fired} | ${s.tallyPersonalization.join(', ') || '—'} | ${s.newOnPageErrors.length} |\n`;
+  }
+  md += `\n✓ confirmed · ✗ not confirmed · · not attempted (one character per pair). W = the search page was walled. "—" = none read.\n`;
+  const totals = rows.reduce((a, r) => { a[r.verdict] = (a[r.verdict] || 0) + 1; return a; }, {});
+  md += `\n**Shopping totals:** ${Object.entries(totals).map(([k, v]) => `${v} ${k}`).join(', ')}\n`;
+  const notes = rows.flatMap((r) => (r.shop.priceNotes || []).map((n) => `${r.site.n}. ${r.site.label}: ${n}`));
+  md += `\n### Every price difference in every pair — including noise\n\n${notes.length ? notes.map((n) => `- ${n}`).join('\n') : '_None: in every pair where both sides loaded, ON read the same declared, rendered and cart price as OFF._'}\n`;
+  const fn = rows.flatMap((r) => (r.shop.functionalNotes || []).map((n) => `${r.site.n}. ${r.site.label}: ${n}`));
+  md += `\n### Every functional difference (cart, search, rendered vendor content, Klaviyo form)\n\n${fn.length ? fn.map((n) => `- ${n}`).join('\n') : '_None._'}\n`;
+  md += `\n### Errors seen ON and never OFF\n\nUncaught exceptions and console errors the page logged with the extension on and in no OFF load of the same page. `;
+  md += `\`net::ERR_BLOCKED_BY_CLIENT\` lines are the blocks themselves and are counted, not listed.\n\n`;
+  let anyErr = false;
+  for (const r of rows) {
+    const s = r.shop.summary;
+    if (!s) continue;
+    const blockedLines = s.newOnErrors.length - s.newOnPageErrors.length;
+    if (!s.newOnPageErrors.length && !blockedLines) continue;
+    anyErr = true;
+    md += `- **${r.site.n}. ${esc(r.site.label)}** (${blockedLines} blocked-resource line(s))${s.newOnPageErrors.length ? ':' : ''}\n`;
+    for (const e of s.newOnPageErrors.slice(0, 8)) md += `  - \`${e.replace(/`/g, "'")}\`\n`;
+  }
+  if (!anyErr) md += '_None._\n';
+  md += `\n### Every pair\n`;
+  for (const r of rows) {
+    md += `\n#### ${r.site.n}. ${esc(r.site.label)} — **${r.verdict}**${r.reason ? ` — ${esc(r.reason).slice(0, 300)}` : ''}\n\n\`${r.site.url}\`\n\n`;
+    for (const l of r.shop.loads) {
+      if (!l.off || !l.on) { md += `- r${l.round}: ${l.skipped || 'not run'}\n`; continue; }
+      for (const [side, rec] of [['OFF', l.off], ['ON', l.on]]) {
+        const d = rec.detail || {};
+        const parts = [`http ${rec.httpStatus}`];
+        if (rec.blocked) parts.push(`BLOCKED: ${String(rec.blockedEvidence || '').slice(0, 120)}`);
+        if (rec.void) parts.push(`VOID: ${rec.error}`);
+        if (rec.error && !rec.void) parts.push(`error: ${String(rec.error).slice(0, 120)}`);
+        if (d.declared) parts.push(`declared ${d.declared.price} ${d.declared.currency || ''} (${d.declared.source})`);
+        if (d.visible) parts.push(`rendered ${d.visible.price} ("${String(d.visible.text).slice(0, 50)}")`);
+        if (d.atc && d.atc.attempted) parts.push(`cart ${d.atc.ok ? '✓ ' + (d.atc.evidence || []).join('; ') : '✗ ' + (d.atc.reason || d.atc.error || 'no evidence')}${d.atc.cartTotal ? ` total ${d.atc.cartTotal}` : ''}${d.atc.picked ? ` (picked ${d.atc.picked})` : ''}`);
+        if (d.search) parts.push(`search ${d.search.blocked ? 'WALLED' : d.search.count + ' links'}`);
+        if (typeof d.render === 'number') parts.push(`vendor-rendered elements ${d.render}`);
+        if (d.klaviyo) parts.push(`klaviyo ${d.klaviyo.klaviyo}, form nodes ${d.klaviyo.formNodes}, form email inputs ${d.klaviyo.klaviyoEmailInputs}, definitions [${(d.klaviyo.formDefinitions || []).join(', ')}]`);
+        if (side === 'ON') {
+          const hits = rec.personalizationHits?.hits || [];
+          const hostOfHit = (h) => { try { return new URL(h.url).host; } catch { return '?'; } };
+          parts.push(`personalization matches ${hits.length}${hits.length ? ` [${uniq(hits.map((h) => `${h.ruleId} ${hostOfHit(h)}`)).slice(0, 10).join(', ')}]` : ''}${rec.personalizationHits?.restarted ? ' ⚠ ' + rec.personalizationHits.note : ''}`);
+          if (d.productTally) parts.push(`tab tally (${d.productTally.matchedBy}) total ${d.productTally.total}, personalization ${d.productTally.byCategory?.personalization ?? 0}`);
+        }
+        md += `- r${l.round} **${side}** — ${esc(parts.join(' · '))}\n`;
+      }
+    }
+  }
+  return md;
 }
 
 main().then(() => process.exit(process.exitCode ?? 0), (e) => { console.error(e && e.stack || e); process.exit(1); });

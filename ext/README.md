@@ -59,7 +59,7 @@ Run from `ext/`:
 
 ```bash
 npm test         # node --test — must be all-green; the count moves with every guard added
-npm run validate  # node rules/validate.mjs — 182 static rules, 182 unique ids, 0 errors
+npm run validate  # node rules/validate.mjs — 229 static rules, 229 unique ids, 0 errors (0.9.3)
 ```
 
 `npm run validate` also checks the GPC exclude-list stays identical across

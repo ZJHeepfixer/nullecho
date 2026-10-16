@@ -400,6 +400,7 @@ async function applyRulesets() {
  *     5 100 –     5 399  static per-family Client-Hint removal rulesets (ua-win/mac/linux:
  *                          one rule each at 5101/5201/5301; x100 was the User-Agent
  *                          rewrite D51 retired)
+ *     6 000 –     6 999  static personalization ruleset ("Pricing & personalization", 0.9.3)
  *   900 000 –   900 999  this allowlist            (ALLOW_RULE_ID_BASE)
  * 1 000 000 – 1 049 999  heuristics block rules
  * 1 050 000 – 1 099 999  heuristics cookie-block rules

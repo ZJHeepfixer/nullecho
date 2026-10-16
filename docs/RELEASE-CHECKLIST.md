@@ -171,6 +171,25 @@ X post embeds, and microsoft.com's own silent sign-in hand-off) OFF and ON.
 - Read the report: `docs/breakage-runs/<date>-site-smoke-seeded-<commit>.md` — the rule dump, the positive
   control table, and per row which learned rules matched (blocked or cookie-stripped).
 
+## 3e. Shopping lab — the "Pricing & personalization" category must never change a price (0.9.3)
+
+The seeded gate (§3d) now also loads 34 shopping pages (rows 29–62 of `harness/site-smoke.mjs`: product pages where
+the vendor map saw a vendor `rules/personalization.json` blocks, Klaviyo / Intelligems Shopify stores, and the big
+retailers) once each, OFF and ON at the same moment, and goes red if ON reads a declared, rendered or cart price OFF
+never read, loses add-to-cart or search in most pairs, or meets a bot wall OFF did not.
+
+- **Before any change to `rules/personalization.json`:** `npm run smoke:shopping` from `ext/` (= `--seeded --shopping`,
+  3 interleaved rounds; add `--label <x> --only <keys>` to shard it). Every price difference is listed in the report,
+  noise included. A row that differs must be re-run with `--drop-rules all` (the same zip with no personalization
+  rule) before anything is blamed on the new rules: a difference that survives it is not theirs.
+- **Its controls must still fail:** `--plant-block redsky.target.com,algolia.net,algolianet.com,ac.cnstrc.com --only
+  shop-target,shop-gymshark,shop-jcpenney,shop-rothys` (blocks hosts that render a price or a search grid) must turn
+  those rows red. `node harness/personalization-attack.mjs <unzipped zip>` must report every rule counted exactly once,
+  every removal dropping the per-tab count by one, and no protected price/cart/search/form URL matched.
+- **Wording:** the category "blocks known price-personalization and personalization trackers on shopping pages". It
+  never "gets you lower prices" (charter guardrail); a blocked price-test script can show a HIGHER price, which is why
+  Intelligems' scripts are not blocked.
+
 ---
 
 ## 4. Launch — after the gate, not before
@@ -297,3 +316,38 @@ store-installed (packed) Chrome — the packed case was reproduced by pinning `o
 The store-firefox-edge listing's "Hold" is answered by D53/D54, so its Chrome-format-GPU and "RFP users should not
 install" caveats can be dropped. Still open: cookie strips are counted only in unpacked builds (no browser reports a
 header change to webRequest).
+
+## 2026-10-15 — 0.9.3 built (branch `pricing-rules`; NOT submitted to any store)
+
+One change, and the lab that gates it:
+
+1. **"Pricing & personalization" — D58.** A sixth blocking category, `rules/personalization.json` (ids 6000–6999, 50
+   rules, on by default, its own toggle): the collection, identity and event endpoints of shopper-profiling,
+   offer-targeting and price-testing vendors — Dynamic Yield (its rendering hosts cookie-strip only), Bloomreach, Rokt /
+   mParticle-by-Rokt (and its fallback host, D57), Attentive, Wunderkind, Granify, Black Crow, Salesforce, search/recs
+   behaviour beacons, Convert, AB Tasty, Intelligems `/track` only, Triptease, Klaviyo's tracking hosts. Never what renders
+   a price, a cart, search results, a product grid or a sign-up form. Every rule is on EasyPrivacy, EasyList or AdGuard
+   (DuckDuckGo only corroborates — license review) except 6201, admitted on first-hand evidence (D57).
+2. **Klaviyo narrowed** from whole-domain NEVER_BLOCK to its form hosts and paths; `klaviyo.com` is COOKIE_BLOCK_ONLY;
+   `validate.mjs` check 11 fails a block rule that reaches a path-scoped NEVER_BLOCK entry.
+3. **Shopping lab** (§3e): `site-smoke.mjs --shopping`, `--drop-rules`, `--plant-block`; `harness/personalization-attack.mjs`.
+4. **Version 0.9.3** in both manifests and the options page's offline fallback. What is stored does not change in kind
+   (one more key inside `settings.categories`, which the privacy page already describes), so the privacy page is unchanged.
+
+Gates (on the branch rebased onto main `d729d7f`): `npm test` **592/592**, exit 0 (563 on main + 29); `node ext/rules/validate.mjs` exit 0 (229 rules, 229 unique ids;
+80 never-block, 32 cookie-block-only); `web-ext lint` on the unzipped Firefox package **0 errors / 0 warnings / 0 notices**;
+`harness/personalization-attack.mjs` exit 0 (49/49 counted once, each removal −1, 32 protected URLs unmatched). Shopping lab
+(34 pages × 3 rounds, seeded): 0 FAIL, no price difference in 64 declared / 39 rendered / 15 cart comparisons —
+`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`, controls in D58. **Seeded smoke (§3d,
+now with the 34 shopping rows once each) on `96adfbe`: exit 1** — `docs/breakage-runs/2026-10-15-site-smoke-seeded-96adfbe.md`:
+40 PASS, 16 NOT-OURS, 5 BLOCKED, 1 ERROR (bestbuy, HTTP/2 errors both sides) and **1 FAIL that was the harness's**:
+harborfreight's OFF page loaded (HTTP 200) with no price while ON read `$59.99`, and the verdict called that "a price OFF
+never read". The verdict now judges novelty only against a price OFF actually read (`harness/shopping-verdict.mjs`, with a
+regression test that fails on the old rule); re-judged, that run has 0 FAIL. The 28 standard rows, the seeding positive
+control (all ✅) and the D50 invariant (0 protected-host blocks) were clean. **A clean re-run of the gate on the tip is
+still owed:** a re-run on `980d532` crashed (Chrome `ConnectionClosedError`, battery at 16%) on the walmart retry after
+33 of 34 shopping rows, with no report; its log shows walmart r1 OFF `$169.99` vs ON `$149.99` with zero personalization
+matches (second sighting, see D58 — unattributed, owed).
+
+Still owed before upload: the seeded gate's exit code on the final commit; the real-Chrome battery (§3); a look at the new
+options toggle in real Chrome and Firefox; uploading the updated store-listing text.

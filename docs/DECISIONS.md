@@ -3518,3 +3518,138 @@ The paper's own recommendations do not rescue us:
 
 Any kernel change must be re-measured with all of these: the harness's translate and colour-shift
 variants, the A1 controls, and the D56 tests.
+
+## D57 — `apps.roktecommerce.com/webevents/` is blocked although no list names it: it is the Rokt SDK's own fallback for a listed path. 2026-10-15.
+
+**The bar it fails.** A rule in `personalization.json` must be on EasyPrivacy, EasyList or AdGuard, or be admitted on
+first-hand evidence recorded here (DuckDuckGo's Tracker Radar is CC BY-NC-SA 4.0 and may only corroborate — license
+review, 2026-10-15; three DDG-only candidates were left out of the ruleset for that reason, see `ext/rules/README.md`).
+`roktecommerce.com` appears on none of the lists (EasyPrivacy 202610150153 and 202610152312, AdGuard Tracking
+Protection 2.1.13.53 and 2.1.13.61, EasyList 202610152312, and DDG `extension-tds.json` v6 as well; checked by script
+2026-10-14/15). EasyPrivacy lists
+only `||apps.rokt-api.com/webevents/` — the event upload of "mParticle by Rokt", the CDP Rokt bought in January 2025.
+
+**First-hand evidence (curl and in-browser, 2026-10-14/15).**
+- **Sephora and Gap load the SDK from the primary host** (`apps.rokt-api.com/js/v2/<key>/app.js`) and post to
+  `apps.rokt-api.com/webevents/v3/JS/<key>/events` (Chrome for Testing 149, extension off: four posts on sephora.com's
+  homepage). Counter-program workstream A found that Sephora's loader assembles `apps.roktecommerce.com` from string
+  pieces and loads the same SDK from it when the first host fails.
+- **The SDK names the fallback itself:** the shipped bundle contains the constant `"apps.roktecommerce.com"`, and its
+  service URLs are built as `<domain> + CNAMEUrlPaths`, with `v3SecureServiceUrl: "/webevents/v3/JS/"` — so an SDK
+  running from the fallback posts to `apps.roktecommerce.com/webevents/…`.
+- **Same software on both hosts:** `GET /js/v2/us2-6a2d0e4dc6b9e749870271a2f16058a1/app.js?env=0&` returned 200,
+  `content-type: application/javascript`, `server: Kestrel`, 303,469 bytes from each host, and the two bodies hash to the
+  same sha256 `b13d16a4fea8604f91c27cbc5dc47a1c3553b363aa773157dc26739b06cf93c6`. A CORS preflight
+  (`OPTIONS /webevents/v3/JS/<key>/events`, `Origin: https://www.sephora.com`) got the same answer from both: `204`,
+  `access-control-allow-methods: POST`, `access-control-allow-origin: *`, `server: Kestrel`. DNS: both are Akamai
+  (`apps.rokt-api.com.akamaized.net` → `a1446.dscd.akamai.net`; `apps.roktecommerce.com.akamaized.net` →
+  `a910.dscd.akamai.net`).
+
+**Decision.** Rule 6201 blocks `||apps.roktecommerce.com/webevents/` — the exact path EasyPrivacy lists for the primary
+host, on the host the vendor's own code falls back to. Nothing else on `roktecommerce.com` is blocked, and neither host's
+SDK is: EasyPrivacy blocks only the upload, and its `@@` exceptions for mParticle's SDK (gymshark.com, cnbc.com, nbc.com
+and others) record that blocking the SDK breaks sites. The admission is narrow on purpose: it closes the route around a
+listed rule and adds no vendor. A future exception needs its own entry and its own evidence.
+
+**Checks.** `personalization-2026-10-15.test.js`: both hosts' `/webevents/v3/JS/<key>/events` are blocked; both hosts'
+`/js/v2/<key>/app.js` and `/identity/v1/identify` are not. `harness/personalization-attack.mjs`: removing 6201 drops the
+per-tab count by exactly one.
+
+## D58 — "Pricing & personalization": its own ruleset, blocking only what collects; Klaviyo narrowed to its forms; nothing ships without the shopping lab. 2026-10-15.
+
+**Evidence.** Counter-program workstream A (`nullecho-growth/counter-program/A-VENDOR-MAP.md`, 2026-10-14) mapped the
+vendors that profile shoppers, target offers and run price tests in the browser; Nullecho blocked none of Dynamic
+Yield, Bloomreach, Rokt's hosts, Granify, Attentive, Wunderkind, Evergage or Einstein's pixel, and `allowlist.js` put all
+of `klaviyo.com` on NEVER_BLOCK. Most of them keep their ID in a FIRST-party cookie, which the three-strike learner
+cannot see. In-browser exploration (Chrome for Testing 149, extension off, 2026-10-14) found far more of them loading
+than the vendor map's curl saw (gap.com: Rokt, Granify, Attentive, Bluecore on one page).
+
+**Decision.**
+1. **`rules/personalization.json`, ids 6000–6999, its own category ("Pricing & personalization"), on by default**, its
+   own options toggle, counted by `classifyMatchedRule` like any blocking ruleset, owners named in the site report.
+   50 rules: 49 blocks of collection, identity and event endpoints, and 6090, a third-party Cookie/Set-Cookie strip on
+   Dynamic Yield's hosts — the ones that render page content are cookie-strip only (director decision). The strip is not
+   counted (DNR reports the match whether or not a cookie was there).
+2. **Never what renders a price, a cart, search results, a product grid or a sign-up form.** Not Intelligems' scripts
+   (blocking them can show the HIGHER test price; only `/v3/track` and `/track` are blocked), not Rebuy, not search /
+   grid / recommendation APIs, not feature flags, not Rokt's SDK (only its event upload). 36 such URLs are pinned by a
+   test against every shipped ruleset.
+3. **Qualifying sources: EasyPrivacy, EasyList, AdGuard, or first-hand evidence in a D-entry.** DuckDuckGo's Tracker
+   Radar is CC BY-NC-SA 4.0 and only corroborates (license review, 2026-10-15). Three DDG-only candidates were left out
+   (Rokt's launcher and snippet, Black Crow's `/js/core/`); one rule rests on first-hand evidence (6201, D57).
+4. **Klaviyo narrowed.** NEVER_BLOCK keeps only what its forms need: `static.klaviyo.com`, `static-forms.klaviyo.com`,
+   `fast.a.klaviyo.com/custom-fonts/` and `/forms/`, and on `a.klaviyo.com` the subscription, back-in-stock,
+   legacy-subscribe, consent-page, form and onsite-module paths (AdGuard's own `@@` list for the host it blocks).
+   `klaviyo.com` moves to COOKIE_BLOCK_ONLY. Its tracking-only hosts and paths are blocked (6950–6954).
+   `validate.mjs` check 11 now fails any block rule that reaches a path-scoped NEVER_BLOCK entry — which also closes
+   a gap for the reCAPTCHA path (D50), never checked against static rules.
+5. **The shopping lab is a gate** (`site-smoke.mjs --shopping`; once per row in `--seeded`): no rule here ships, and
+   none changes, without ON-vs-OFF price, cart and search parity on real product pages. RELEASE-CHECKLIST §3e.
+
+**The lab, 2026-10-15** (`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`; Chrome for
+Testing 149, ON browsers seeded with the D50 learned state, consent banners untouched). 34 pages — 14 where the vendor
+map or exploration saw a newly blocked vendor, 6 Shopify stores with Klaviyo or Intelligems, 14 other big retailers — ×
+3 rounds, OFF and ON loading the same page at the same moment: 102 pairs, 80 where both sides loaded and finished,
+18 walled (BLOCKED, never evaded: lowes, kohls, and intermittently harborfreight, sephora, bathandbodyworks, walmart,
+dell, macys), 4 failed on both sides with HTTP/2 or QUIC protocol errors (officedepot, bestbuy).
+- **Price.** Declared price compared in 64 pairs, rendered price in 39, the cart's unit price in 15: **no difference
+  in any of them.** One rendered-price gap: target.com r1, `$119.99` OFF and nothing ON — Target's price did not render
+  OFF either in r2–r3, so the row is INCONCLUSIVE. Reported for completeness from the first, unseeded one-round debug
+  run (88fd0e4 + uncommitted harness, not a release measurement): walmart.com read `$169.99` OFF and `$149.99` ON, in
+  both microdata and the rendered price, with **zero** personalization-rule matches on the page; in the three-round lab
+  walmart read `$149.99` on both sides in its one unwalled pair. **Seen again** in the seeded-gate re-run on the tip
+  (`980d532`, 2026-10-15 evening, log only — the run crashed before writing a report): walmart r1 OFF `$169.99`, ON
+  `$149.99`, again with zero personalization matches. A rule that matches nothing cannot change a page, so this is not
+  the new ruleset; whether it is Walmart rotating the offer it shows or something else Nullecho does (the persona, GPC,
+  the older rulesets, the seeded learned rules) is **unknown and owed** — re-run walmart with `--drop-rules all` and with
+  the extension's other layers off before anyone draws a conclusion, and never quote it as Nullecho lowering a price.
+- **Verdicts:** 17 PASS, 14 NOT-OURS (the page's own add-to-cart or price could not be confirmed with the extension
+  OFF either, and ON was never worse), 2 BLOCKED, 1 INCONCLUSIVE, **0 FAIL.** Add-to-cart was confirmed on both sides in
+  32 pairs and lost ON in none; search was compared in 63 pairs and never lost.
+- **The rules fire on real pages:** 6000 (Dynamic Yield collection: jetblue, llbean, harborfreight), 6200 (Rokt event
+  upload: sephora), 6300 (Attentive: allbirds, colourpop, rothys, brooklinen), 6500 (Granify: petsmart), 6704 (Nosto:
+  colourpop), 6900 (Intelligems `/v3/track`: puravida, colourpop, rothys, away — prices identical on all four), 6950
+  and 6952 (Klaviyo tracking: drsquatch, beardbrand, puravida, colourpop, away) — 13 pages. The D55 per-tab count credits
+  them to "personalization" (harborfreight 27; puravida 16/7/7; colourpop 12/5/5; away 6/11/11). The rest of the
+  ruleset met no matching request on these pages (Bloomreach's and Bluecore's tags are loaded through tag managers the
+  older rulesets already block) and is proven on the attack fixture below.
+- **Klaviyo's forms still work as far as can be shown without submitting one:** klaviyo.js loaded on all four Klaviyo
+  stores in every load; the form definitions were fetched (200/304) identically OFF and ON on three of them (colourpop's
+were not captured on either side); puravidabracelets.com rendered
+  the same 35 form nodes and 6 Klaviyo email fields OFF and ON in all 3 rounds; and the submit, back-in-stock, consent
+  and form endpoints match no block rule (`testMatchOutcome`). No form was submitted (a third-party site's list).
+- **Errors seen ON and never OFF:** only sephora's mParticle-by-Rokt SDK logging that its blocked upload failed (two
+  console lines) is the new ruleset's; the page's price, basket and search were unchanged. Everything else (rothys'
+  "igData does not exist", drsquatch's CORS line, bathandbodyworks' `reading 'view'`, Optimizely/Clarity/Criteo
+  failures) persisted with EVERY personalization rule removed (control below), so it comes from the older rulesets.
+
+**Attacks.** (1) `--drop-rules all` (`…-control-dropall-f841733-dropall.md`, 8 pages × 2): the same zip without one
+personalization rule — the ON-only errors above persisted except sephora's mParticle lines. (2) `--plant-block` on
+Algolia and Constructor (`…-control-plant-96adfbe-plant2.md`): gymshark's and jcpenney's search went from 60/72 product
+links to 0 and both rows FAILED; the first run of this control (`…-plant-f841733-plant.md`) measured the same loss but
+labelled it NOT-OURS, because OFF had missed an unrelated add-to-cart — a verdict bug, fixed in 96adfbe; a re-read of
+the f841733 lab found no row it had masked. The `redsky.target.com` plant was not judgeable (OFF read no Target price),
+and a planted block on `cdn.intelligems.io` (`…-plant-96adfbe-plant-intelligems.md`, 4 stores × 2) changed no declared,
+rendered or cart price — no live Intelligems price test was visible to a fresh visitor that day. So the lab is proven to
+catch a lost search grid; that it would catch a changed PRICE is designed for (rendered and cart prices are read, not
+just markup) but has not been demonstrated by a control.
+(3) `harness/personalization-attack.mjs` (`2026-10-15-personalization-attack-f841733.json`): on a loopback fixture each
+of the 49 block rules is counted exactly once (per-tab tally 49, `getMatchedRules` 49) and removing each one alone drops
+the count by exactly one; 32 price/cart/search/form URLs match no block rule in any ruleset; 13 tracking URLs match the
+rule meant for them. (4) Planting bad rules in the source makes `validate.mjs` (check 11) and the unit tests fail.
+
+**The seeded gate** (`2026-10-15-site-smoke-seeded-96adfbe.md`, the 28 standard rows plus the 34 shopping rows once each)
+exited 1 on one row, and the row was the harness's: harborfreight's OFF page loaded with HTTP 200 and no price, ON read
+`$59.99`, and the verdict called that "a price OFF never read". Novelty is now judged only against a price OFF actually
+read; the verdict logic moved to `harness/shopping-verdict.mjs` under unit tests (`shopping-verdict-2026-10-15.test.js`,
+whose two regression tests fail on the old rules). Re-judged, the gate run has 0 FAIL; a clean re-run is owed.
+
+**Which code the lab ran.** The lab ran on `f841733` and the controls on `f841733` / `96adfbe` — this branch's commits
+before it was rebased onto main `d729d7f` (their hashes in the report names no longer exist on the branch). The rebase
+brought in PR #11/#12, whose changes to shipped files (`src/shim.js`, `src/personas.js`) are comments only (checked by
+diff), so the extension the lab tested is this branch's, byte for byte except comments.
+
+**Limits.** Headless Chrome for Testing on one residential IP, which the retailers walled more as the day went on;
+add-to-cart could not be confirmed with the extension OFF on 12 of the 34 pages, so parity there is unknown; no
+checkout, no account, no form submitted; whether any Intelligems store ran a live price test during the lab is not
+known; Firefox and Edge were not lab-tested (Firefox: `web-ext lint` only); travel sites were not covered.

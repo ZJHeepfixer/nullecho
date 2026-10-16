@@ -26,7 +26,12 @@ We can't see the result either.
 ## What it does
 
 - **Blocks trackers** — ads, analytics, social pixels, and commercial fingerprinting vendors
-  (182 rules, sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
+  (sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
+- **Pricing & personalization** (0.9.3) — blocks known price-personalization and personalization trackers on
+  shopping pages: the data-collection endpoints of shopper-profiling, offer-targeting and price-testing services
+  (Dynamic Yield, Bloomreach, Rokt, Attentive, Granify, Klaviyo's tracking hosts and others). It never blocks
+  what shows you a price, a cart or search results, and it is tested for that on real product pages
+  (`harness/site-smoke.mjs --shopping`). It does not change, and makes no claim about, the price you are shown.
 - **Per-origin device personas** — each site sees a *different but internally consistent* machine
   drawn from a pool of real, high-population configurations. That breaks the fingerprint join for
   trackers that hash the signals we cover: verified 2026-09-17 against FingerprintJS 5.2.0 and
