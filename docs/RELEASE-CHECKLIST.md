@@ -345,7 +345,9 @@ harborfreight's OFF page loaded (HTTP 200) with no price while ON read `$59.99`,
 never read". The verdict now judges novelty only against a price OFF actually read (`harness/shopping-verdict.mjs`, with a
 regression test that fails on the old rule); re-judged, that run has 0 FAIL. The 28 standard rows, the seeding positive
 control (all ✅) and the D50 invariant (0 protected-host blocks) were clean. **A clean re-run of the gate on the tip is
-still owed.**
+still owed:** a re-run on `980d532` crashed (Chrome `ConnectionClosedError`, battery at 16%) on the walmart retry after
+33 of 34 shopping rows, with no report; its log shows walmart r1 OFF `$169.99` vs ON `$149.99` with zero personalization
+matches (second sighting, see D58 — unattributed, owed).
 
 Still owed before upload: the seeded gate's exit code on the final commit; the real-Chrome battery (§3); a look at the new
 options toggle in real Chrome and Firefox; uploading the updated store-listing text.
