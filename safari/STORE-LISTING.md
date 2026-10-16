@@ -184,7 +184,16 @@ connections of its own.
 ### 2.10 Content rights (version level)
 
 Same answer as §1: the bundled rule lists are derived from third-party published lists used under their
-licenses.
+licenses. Still HOLD until the director's licence-hygiene pass lands. Prepared for that moment (from the
+licence review §7.2; not yet approved store text): answer *Yes* to "contains, show, or access third-party
+content" and *Yes* to "have all necessary rights", and keep this paragraph ready for Review Notes or a
+Guideline 5.2 request:
+
+> Nullecho bundles its own list of tracker domain names and URL patterns. Entries were checked against
+> EasyPrivacy/EasyList (GPL-3.0-or-later or CC BY-SA 3.0-or-later) and AdGuard filters (GPL-3.0). Both
+> licences permit redistribution, including commercial, with attribution. Credits and licence texts are in
+> the app under What it does ▸ Acknowledgements ▸ Full credits and licence texts (NOTICE, the MIT licence and
+> the GPL-3.0 text ship inside the app). The app does not access any third-party service at runtime.
 
 ---
 
@@ -310,23 +319,24 @@ of `TipJarTests/testProductsLoadSortedByPriceWithDisplayPrices` on that simulato
 | File | Size | Device / class | Shows |
 |---|---|---|---|
 | `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.2", "Turn it on in Safari" steps |
-| `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "200 block rules on" |
+| `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "200 block rules on", the collapsed "Acknowledgements" row |
 | `iphone-63-3-limits.png` | 1206×2622 | same | "What it does not do in Safari" and "Collects nothing" |
 | `iphone-63-4-support.png` | 1206×2622 | same | "If a site misbehaves" and "Support the project" with the four tips at $1.00 / $2.00 / $3.00 / $5.00 |
 | `ipad-13-1-top.png` | 2064×2752 | iPad Pro 13-inch (M5) = the required iPad 13-inch class | as iPhone 1 |
 | `ipad-13-2-what-it-does.png` | 2064×2752 | same | as iPhone 2 |
-| `ipad-13-3-limits.png` | 2064×2752 | same | as iPhone 3 |
-| `ipad-13-4-support.png` | 2064×2752 | same | as iPhone 4 |
+| `ipad-13-3-limits.png` | 2064×2752 | same | "What it does not do in Safari", "If a site misbehaves", "Support the project" with the four tips, "More": the 13-inch page ends here, so there is no fourth iPad shot (the test skips a frame identical to the previous one) |
 | `mac-1-top-2880x1800.jpg` | 2880×1800 (window 1120×1520 at 2×, centred on a flat dark background), JPEG so no alpha | Mac, the **signed** Release archive app (the unsigned Debug app cannot ask Safari and shows "Safari did not answer"); **dark appearance** — the Mac's system appearance; with light mode forced per-app the window could not be imaged | Top of the window: name, "Extension version 0.9.2", the live status card "Nullecho is off in Safari — Nothing is blocked until you turn it on" (the real state of the build machine), "What it does" |
 
-Upload order per device: 1 → 4. Apple's current requirements (§0): one iPhone medium-display set and one iPad
+Upload order per device: iPhone 1 → 4, iPad 1 → 3. Apple's current requirements (§0): one iPhone medium-display set and one iPad
 13-inch set are required for iOS; a Mac set is required for the Mac version; the large-display iPhone sizes
 are accepted but not required, so none are provided. A light-mode Mac shot needs the Mac's appearance switched
 (owner's setting); dark is acceptable to Apple and is what ships unless the owner wants it changed.
 
-The in-app "What it does" text visible in shots 2 names the three public tracker lists; the store *text* does
-not (director's rule). If the license review (§1, Content Rights) changes that sentence in the app, re-run the
-screenshot test.
+The in-app "What it does" text visible in shots 2 no longer names any third-party list (since the licence
+review: the blocking row says the entries were "checked against the published tracker lists credited under
+Acknowledgements below", and a collapsed "Acknowledgements" row follows "Rule lists in this build"); the store
+*text* names none either (director's rule). The sets were re-shot after that change. If the copy changes again,
+re-run the screenshot test.
 
 ## 8. Notes for App Review (1955 characters; limit 4000 bytes)
 

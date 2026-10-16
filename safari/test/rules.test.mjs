@@ -5,7 +5,9 @@
  * These tests read the ASSEMBLED files and hold them to three things: tier B is off by default,
  * every rule is valid and uniquely numbered, and the coverage is EXACTLY the Chrome lists' — every
  * domain Chrome blocks is blocked here with the same action, priority, domainType and
- * resourceTypes, and nothing more. `NULLECHO_SAFARI_DIST=<dir>` points the suite at another tree.
+ * resourceTypes, and nothing more — minus the Safari-only exclusions in safari/extension/rules-exclude.json,
+ * which must be absent from the output and are proved to work on a non-empty list (last section).
+ * `NULLECHO_SAFARI_DIST=<dir>` points the suite at another tree.
  *
  * Run: `node --test safari/test/*.test.mjs` from the repo root (Node 22; `node --test safari/test/` needs a newer Node).
  */
@@ -13,8 +15,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { distDir, readJson, EXT } from './helpers.mjs';
-import { SAFARI_RULESETS, ID_BLOCKS, TIER_B, inTierB, GPC_HEADER_RULE_ID, convertRules } from '../tools/safari-rules.mjs';
+import { build } from '../tools/build-extension.mjs';
+import { SAFARI_RULESETS, ID_BLOCKS, TIER_B, inTierB, GPC_HEADER_RULE_ID, convertRules, buildSafariRulesets,
+  loadExclusions, normaliseExclusions, excludeFromSource, staleExclusions, EXCLUDE_FILE } from '../tools/safari-rules.mjs';
 
 const DIST = await distDir();
 const manifest = readJson(path.join(DIST, 'manifest.json'));
@@ -22,6 +27,9 @@ const extRules = (f) => readJson(path.join(EXT, 'rules', f));
 const safariRules = (p) => readJson(path.join(DIST, p));
 const declared = manifest.declarative_net_request.rule_resources;
 const SAFARI = declared.map((r) => ({ ...r, rules: safariRules(r.path) }));
+/** The repo's Safari-only exclusion list; the Chrome side of every comparison below has it applied. */
+const EXCL = loadExclusions();
+const expected = (source) => excludeFromSource(source, extRules(source), EXCL);
 
 const RESOURCE_TYPES = new Set(['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object',
   'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'webtransport', 'webbundle', 'other']);
@@ -195,7 +203,7 @@ function targets(rules, side) {
 
 for (const [source, safariIds] of [['ads.json', ['ads']], ['analytics.json', ['analytics']], ['social.json', ['social']], ['fingerprinting.json', ['fingerprinting', 'fingerprinting-strict']]]) {
   test(`${source}: Safari covers every domain and filter, with identical semantics, and nothing extra`, () => {
-    const ext = targets(extRules(source), 'ext');
+    const ext = targets(expected(source), 'ext');
     const saf = targets(SAFARI.filter((r) => safariIds.includes(r.id)).flatMap((r) => r.rules), 'safari');
     const missing = ext.filter((t) => !saf.includes(t));
     const extra = saf.filter((t) => !ext.includes(t));
@@ -208,9 +216,16 @@ for (const [source, safariIds] of [['ads.json', ['ads']], ['analytics.json', ['a
 test('the first domain of every Chrome rule keeps its Chrome id; extra domains get ids from the block top', () => {
   for (const [source, safariIds] of [['ads.json', ['ads']], ['analytics.json', ['analytics']], ['social.json', ['social']], ['fingerprinting.json', ['fingerprinting', 'fingerprinting-strict']]]) {
     const saf = SAFARI.filter((r) => safariIds.includes(r.id)).flatMap((r) => r.rules);
+    const kept = new Map(expected(source).map((r) => [r.id, r]));
     for (const r of extRules(source)) {
       const first = r.condition.requestDomains?.[0];
       const same = saf.find((s) => s.id === r.id);
+      const survivor = kept.get(r.id);
+      // An excluded first domain (or an excluded whole rule) takes the Chrome id with it; nothing else may use it.
+      if (!survivor || (first && survivor.condition.requestDomains[0] !== first)) {
+        assert.equal(same, undefined, `${source}: Chrome rule ${r.id} is excluded in Safari, yet a Safari rule carries its id`);
+        continue;
+      }
       assert.ok(same, `${source}: Chrome rule ${r.id} has no Safari rule with that id`);
       if (first) assert.equal(domainOf(same.condition.urlFilter), first, `${source}: rule ${r.id} should keep ${first}`);
       else assert.deepEqual(same.condition, r.condition, `${source}: filter rule ${r.id} changed`);
@@ -221,11 +236,147 @@ test('the first domain of every Chrome rule keeps its Chrome id; extra domains g
   assert.equal(ads[0], 1999);
 });
 
-test('rule counts: one Safari rule per Chrome domain or filter', () => {
-  const count = (f) => extRules(f).reduce((n, r) => n + (r.condition.requestDomains && !r.condition.urlFilter ? r.condition.requestDomains.length : 1), 0);
+test('rule counts: one Safari rule per Chrome domain or filter (after the exclusions)', () => {
+  const count = (f) => expected(f).reduce((n, r) => n + (r.condition.requestDomains && !r.condition.urlFilter ? r.condition.requestDomains.length : 1), 0);
   assert.equal(SAFARI.find((r) => r.id === 'ads').rules.length, count('ads.json'));
   assert.equal(SAFARI.find((r) => r.id === 'analytics').rules.length, count('analytics.json'));
   assert.equal(SAFARI.find((r) => r.id === 'social').rules.length, count('social.json'));
   const fp = SAFARI.find((r) => r.id === 'fingerprinting').rules.length + SAFARI.find((r) => r.id === 'fingerprinting-strict').rules.length;
   assert.equal(fp, count('fingerprinting.json'));
+});
+
+// ── Safari-only exclusions: absent from the output, and proved on a non-empty list ──
+
+const BLOCK_SOURCES = ['ads.json', 'analytics.json', 'social.json', 'fingerprinting.json'];
+const blockRulesets = () => SAFARI.filter((r) => r.id !== 'gpc').flatMap((r) => r.rules.map((rule) => ({ ...rule, ruleset: r.id })));
+
+test('the repo exclusion list is well-formed and every entry matches a Chrome block rule (no stale entries)', () => {
+  assert.ok(fs.existsSync(EXCLUDE_FILE), `${EXCLUDE_FILE} missing`);
+  const fresh = loadExclusions();
+  assert.doesNotThrow(() => buildSafariRulesets(path.join(EXT, 'rules'), { exclude: fresh }));
+  assert.deepEqual(staleExclusions(fresh), []);
+});
+
+test('no excluded domain, urlFilter or rule id ships in any Safari ruleset', () => {
+  const shipped = blockRulesets();
+  for (const d of EXCL.domains) {
+    const hit = shipped.filter((r) => domainOf(r.condition.urlFilter) === d);
+    assert.deepEqual(hit, [], `excluded host ${d} ships (${hit.map((r) => `${r.ruleset}#${r.id}`).join(', ')})`);
+  }
+  for (const f of EXCL.urlFilters) {
+    const hit = shipped.filter((r) => r.condition.urlFilter === f);
+    assert.deepEqual(hit, [], `excluded filter ${f} ships`);
+  }
+  for (const id of EXCL.ids) {
+    assert.ok(!shipped.some((r) => r.id === id), `excluded rule id ${id} ships`);
+    // ...and none of that Chrome rule's domains or its filter, under any id.
+    for (const source of BLOCK_SOURCES) {
+      const src = extRules(source).find((r) => r.id === id);
+      if (!src) continue;
+      for (const d of src.condition.requestDomains ?? []) assert.ok(!shipped.some((r) => domainOf(r.condition.urlFilter) === d), `domain ${d} of excluded rule ${id} ships`);
+      if (src.condition.urlFilter) assert.ok(!shipped.some((r) => r.condition.urlFilter === src.condition.urlFilter), `filter of excluded rule ${id} ships`);
+    }
+  }
+});
+
+test('convertRules with exclusions: drops exactly the named entries, keeps their siblings, keeps every other id byte-stable', () => {
+  const minus = (rules, pred) => rules.filter((r) => !pred(r));
+
+  // a non-first domain of a multi-domain rule (2002: segment.com, segment.io)
+  const analytics = extRules('analytics.json');
+  const two = analytics.find((r) => r.id === 2002);
+  assert.deepEqual(two.condition.requestDomains, ['segment.com', 'segment.io'], 'fixture drifted: rule 2002 is no longer segment.com + segment.io');
+  const plainA = convertRules('analytics.json', analytics);
+  let ex = normaliseExclusions({ domains: ['segment.io'] }, 't');
+  assert.deepEqual(convertRules('analytics.json', analytics, { exclude: ex }), minus(plainA, (r) => domainOf(r.condition.urlFilter) === 'segment.io'));
+  assert.deepEqual(staleExclusions(ex), []);
+  assert.equal(domainOf(convertRules('analytics.json', analytics, { exclude: normaliseExclusions({ domains: ['segment.io'] }, 't') }).find((r) => r.id === 2002).condition.urlFilter), 'segment.com');
+
+  // the FIRST domain: the Chrome id goes with it, the sibling keeps the id it already had
+  ex = normaliseExclusions({ domains: ['segment.com'] }, 't');
+  const got = convertRules('analytics.json', analytics, { exclude: ex });
+  assert.deepEqual(got, minus(plainA, (r) => domainOf(r.condition.urlFilter) === 'segment.com'));
+  assert.equal(got.find((r) => r.id === 2002), undefined);
+  const io = plainA.find((r) => domainOf(r.condition.urlFilter) === 'segment.io');
+  assert.deepEqual(got.find((r) => domainOf(r.condition.urlFilter) === 'segment.io'), io);
+  assert.notEqual(io.id, 2002);
+
+  // a path rule by exact urlFilter
+  const social = extRules('social.json');
+  const plainS = convertRules('social.json', social);
+  assert.ok(social.some((r) => r.condition.urlFilter === '||facebook.com/tr^'), 'fixture drifted: no ||facebook.com/tr^ rule');
+  ex = normaliseExclusions({ urlFilters: ['||facebook.com/tr^'] }, 't');
+  assert.deepEqual(convertRules('social.json', social, { exclude: ex }), minus(plainS, (r) => r.condition.urlFilter === '||facebook.com/tr^'));
+  assert.deepEqual(staleExclusions(ex), []);
+
+  // a whole rule by id, including every domain of a multi-domain rule
+  const ads = extRules('ads.json');
+  const plainAds = convertRules('ads.json', ads);
+  const multi = ads.find((r) => (r.condition.requestDomains?.length ?? 0) >= 2);
+  assert.ok(multi, 'fixture drifted: ads.json has no multi-domain rule');
+  ex = normaliseExclusions({ ids: [1000, multi.id] }, 't');
+  const gone = new Set(['doubleclick.net', ...multi.condition.requestDomains]);
+  const gotAds = convertRules('ads.json', ads, { exclude: ex });
+  assert.deepEqual(gotAds, minus(plainAds, (r) => gone.has(domainOf(r.condition.urlFilter))));
+  assert.equal(gotAds.length, plainAds.length - gone.size);
+  assert.deepEqual(staleExclusions(ex), []);
+
+  // the fingerprinting split: a tier B id is honoured in the strict half and nowhere else
+  const fp = extRules('fingerprinting.json');
+  const tierB = fp.find((r) => inTierB(r.id));
+  ex = normaliseExclusions({ ids: [tierB.id] }, 't');
+  const a = convertRules('fingerprinting.json', fp, { select: (r) => !inTierB(r.id), exclude: ex });
+  assert.deepEqual(a, convertRules('fingerprinting.json', fp, { select: (r) => !inTierB(r.id) }));
+  assert.deepEqual(staleExclusions(ex), [`id ${tierB.id}`], 'tier A pass must not consume a tier B exclusion');
+  const b = convertRules('fingerprinting.json', fp, { select: (r) => inTierB(r.id), exclude: ex });
+  assert.ok(!b.some((r) => r.id === tierB.id));
+  assert.deepEqual(staleExclusions(ex), []);
+});
+
+test('the generator refuses a stale exclusion, a non-block target, a gpc id and a malformed list', () => {
+  const rules = path.join(EXT, 'rules');
+  assert.throws(() => buildSafariRulesets(rules, { exclude: normaliseExclusions({ domains: ['never.example'] }, 't') }), /matched no block rule.*domain never\.example/);
+  assert.throws(() => buildSafariRulesets(rules, { exclude: normaliseExclusions({ urlFilters: ['||never.example/x'] }, 't') }), /matched no block rule/);
+  assert.throws(() => buildSafariRulesets(rules, { exclude: normaliseExclusions({ ids: [1] }, 't') }), /matched no block rule.*id 1\b/);
+  // 4700 is the tier C allow rule: it must not go missing through this list
+  assert.throws(() => convertRules('fingerprinting.json', extRules('fingerprinting.json'), { exclude: normaliseExclusions({ ids: [4700] }, 't') }), /only block rules may be excluded/);
+  assert.throws(() => normaliseExclusions({ ids: [GPC_HEADER_RULE_ID] }, 't'), /gpc\.json.*verbatim/);
+  assert.throws(() => normaliseExclusions({ domain: ['x.example'] }, 't'), /unknown key "domain"/);
+  assert.throws(() => normaliseExclusions({ domains: ['Upper.example'] }, 't'), /not a lowercase hostname/);
+  assert.throws(() => normaliseExclusions({ domains: ['a.example', 'a.example'] }, 't'), /twice/);
+  assert.throws(() => normaliseExclusions({ ids: ['1000'] }, 't'), /not a positive integer/);
+  assert.throws(() => normaliseExclusions({ notes: { 'a.example': 'why' } }, 't'), /not an entry/);
+  assert.throws(() => normaliseExclusions({ domains: ['a.example'], notes: { 'a.example': '' } }, 't'), /non-empty string/);
+  assert.throws(() => normaliseExclusions([], 't'), /must be an object/);
+  assert.throws(() => loadExclusions(path.join(os.tmpdir(), 'nullecho-no-such-exclusions.json')), /missing/);
+  // notes keyed by entry are accepted, ids as strings in notes
+  assert.equal(normaliseExclusions({ domains: ['a.example'], ids: [1000], notes: { 'a.example': 'why', '1000': 'why' } }, 't').size, 2);
+});
+
+test('end to end: a non-empty exclusion list removes exactly those entries from the built tree, and the list never ships', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nullecho-safari-excl-'));
+  const excludeFile = path.join(tmp, 'rules-exclude.json');
+  fs.writeFileSync(excludeFile, JSON.stringify({ domains: ['doubleclick.net'], urlFilters: ['||facebook.com/tr^'], ids: [2002], notes: { '2002': 'test' } }));
+  const out = path.join(tmp, 'out');
+  const result = await build({ outDir: out, excludeFile, quiet: true });
+  assert.deepEqual(result.exclusions, ['domain doubleclick.net', 'id 2002', 'urlFilter ||facebook.com/tr^']);
+  assert.ok(!fs.existsSync(path.join(out, 'rules-exclude.json')));
+  assert.ok(!result.files.includes('rules-exclude.json'));
+  const built = (p) => readJson(path.join(out, p));
+  const adsB = built('rules/ads.json'), anaB = built('rules/analytics.json'), socB = built('rules/social.json');
+  assert.ok(!adsB.some((r) => domainOf(r.condition.urlFilter) === 'doubleclick.net'));
+  assert.ok(!anaB.some((r) => r.id === 2002 || ['segment.com', 'segment.io'].includes(domainOf(r.condition.urlFilter))));
+  assert.ok(!socB.some((r) => r.condition.urlFilter === '||facebook.com/tr^'));
+  // everything else is byte-for-byte what the unexcluded build produced
+  const ref = (id) => SAFARI.find((r) => r.id === id).rules;
+  assert.deepEqual(adsB, ref('ads').filter((r) => domainOf(r.condition.urlFilter) !== 'doubleclick.net'));
+  assert.deepEqual(anaB, ref('analytics').filter((r) => !['segment.com', 'segment.io'].includes(domainOf(r.condition.urlFilter))));
+  assert.deepEqual(socB, ref('social').filter((r) => r.condition.urlFilter !== '||facebook.com/tr^'));
+  assert.deepEqual(built('rules/fingerprinting.json'), ref('fingerprinting'));
+  assert.deepEqual(built('rules/gpc.json'), ref('gpc'));
+  // a stale entry fails the whole build, so a typo cannot keep shipping a rule
+  fs.writeFileSync(excludeFile, JSON.stringify({ domains: ['doubleclic.net'] }));
+  await assert.rejects(build({ outDir: path.join(tmp, 'out2'), excludeFile, quiet: true }), /matched no block rule.*doubleclic\.net/);
+  // and a missing list fails too: the hook cannot be bypassed by deleting the file
+  await assert.rejects(build({ outDir: path.join(tmp, 'out3'), excludeFile: path.join(tmp, 'nope.json'), quiet: true }), /missing/);
 });
