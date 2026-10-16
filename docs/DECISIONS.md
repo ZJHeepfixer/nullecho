@@ -3633,6 +3633,11 @@ of the 49 block rules is counted exactly once (per-tab tally 49, `getMatchedRule
 the count by exactly one; 32 price/cart/search/form URLs match no block rule in any ruleset; 13 tracking URLs match the
 rule meant for them. (4) Planting bad rules in the source makes `validate.mjs` (check 11) and the unit tests fail.
 
+**Which code the lab ran.** The lab ran on `f841733` and the controls on `f841733` / `96adfbe` — this branch's commits
+before it was rebased onto main `d729d7f` (their hashes in the report names no longer exist on the branch). The rebase
+brought in PR #11/#12, whose changes to shipped files (`src/shim.js`, `src/personas.js`) are comments only (checked by
+diff), so the extension the lab tested is this branch's, byte for byte except comments.
+
 **Limits.** Headless Chrome for Testing on one residential IP, which the retailers walled more as the day went on;
 add-to-cart could not be confirmed with the extension OFF on 12 of the 34 pages, so parity there is unknown; no
 checkout, no account, no form submitted; whether any Intelligems store ran a live price test during the lab is not
