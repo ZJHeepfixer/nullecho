@@ -1,0 +1,122 @@
+{
+  "_about": "Machine-readable copy of safari/STORE-LISTING.md for safari/tools/asc-listing.mjs. Every text here must appear verbatim in STORE-LISTING.md (safari/test/listing.test.mjs fails otherwise); edit the markdown first, then this file. No owner contact details live here (public repo): the tool reads them from ASC_REVIEW_CONTACT_JSON outside the repo.",
+  "bundleId": "org.nullecho.app",
+  "sku": "nullecho-safari",
+  "primaryLocale": "en-US",
+  "app": {
+    "name": "Nullecho",
+    "subtitle": "Block known trackers in Safari",
+    "privacyPolicyUrl": "https://nullecho.org/privacy/",
+    "primaryCategory": "UTILITIES",
+    "secondaryCategory": "PRODUCTIVITY",
+    "contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT",
+    "price": "Free",
+    "privacyLabel": "Data Not Collected (no API: answered in App Store Connect, App Privacy, 'No, we do not collect data from this app')",
+    "availability": "owner's decision (EU trader status, STORE-LISTING §3); not set by the tool"
+  },
+  "version": {
+    "versionString": "0.9.2",
+    "platforms": [
+      "IOS",
+      "MAC_OS"
+    ],
+    "releaseType": "MANUAL",
+    "copyright": "2026 Jason Luker",
+    "promotionalText": "Trackers: “Can we follow you around the internet?” Nullecho: Nah. Blocks known trackers in Safari, sends Global Privacy Control where you allow it, collects nothing.",
+    "description": "Nullecho is a Safari extension that blocks requests to known trackers on every site you visit and sends Global Privacy Control on the sites you allow. It is free, open source, and collects nothing.\n\nTrackers: “Can we follow you around the internet?”\nNullecho: Nah.\n\nWHAT IT DOES\n\n• Blocks requests to known trackers. Ad, analytics, social-pixel and fingerprinting-vendor domains, chosen and cross-checked against public tracker research (sources credited in the open-source code). Blocking applies on every site as soon as the extension is on, before any website permission is granted. The app shows the number of block rules, counted from the rule files inside it.\n\n• Sends Global Privacy Control on the sites you allow. GPC asks a site not to sell or share your data. It is legally meaningful in some US states and honored inconsistently. It is a request, not a block, and nobody can see from a browser whether a site complied.\n\n• Leaves anti-fraud device checks alone. The checks banks and shops run at sign-in and checkout are not blocked, because blocking them can break sign-in and checkout.\n\nWHAT IT DOES NOT DO IN SAFARI\n\n• Safari attaches the GPC header to image and script requests only, never to the page itself, and only on sites where you have allowed Nullecho. A site’s own scripts still see the signal (navigator.globalPrivacyControl is true). This is a Safari limit, not a setting.\n\n• No fingerprint disguise. The Safari version does not change what a site can read about your device. The per-site device profile Nullecho offers in other browsers is not part of this extension.\n\n• Does not hide your IP address. Nullecho does not route your traffic anywhere. On Apple devices, hiding your IP address is the job of iCloud Private Relay, part of iCloud+.\n\n• Safari’s own protections stay as they are. Nullecho adds to them and cannot switch them off.\n\nCOLLECTS NOTHING\n\nNo account, no sign-in, no analytics, no crash reports, no server. The app opens no network connections of its own: its two links are handed to your browser, and a tip is handled by the App Store’s own purchase service, not by this app. The rule lists are bundled with the extension; nothing is downloaded.\n\nWHY IT ASKS FOR ACCESS TO ALL WEBSITES\n\nBlocking needs no website permission. The privacy signal does: Safari lets an extension add the GPC header and set the signal only on sites you have allowed. To send it everywhere, allow Nullecho on all websites. To turn it off for one site, set that site to Deny; blocking stays on everywhere until you turn the extension off. Nothing you allow leaves your device, because there is nowhere for it to go.\n\nTURN IT ON\n\niPhone and iPad: Settings, Apps, Safari, Extensions, Nullecho. Turn on Allow Extension; tracker blocking starts right away. To send Global Privacy Control as well, set All Websites to Allow.\n\nMac: in Safari’s Settings, open the Extensions tab and tick Nullecho. To send Global Privacy Control as well, also allow Nullecho on every website.\n\nOPEN SOURCE\n\nNullecho is open source under the MIT license. Source code, issues and the rule lists: https://github.com/ZJHeepfixer/nullecho\n\nSUPPORT THE PROJECT\n\nNullecho is free. The app has an optional tip jar: nothing unlocks, and every feature works identically before and after a tip.",
+    "keywords": "tracker,blocker,privacy,gpc,global,control,do not sell,opt out,trackers,analytics,safari,extension",
+    "supportUrl": "https://nullecho.org/",
+    "marketingUrl": "https://nullecho.org/",
+    "whatsNew": {
+      "text": "First release of Nullecho for Safari on iPhone, iPad and Mac. Blocks requests to known trackers on every site, sends Global Privacy Control on the sites you allow, and collects nothing: no account, no analytics, no server. Includes an optional tip jar; nothing unlocks.",
+      "note": "Apple: not available for the first version; the tool omits it unless the field is accepted"
+    }
+  },
+  "review": {
+    "demoAccountRequired": false,
+    "notes": "Nullecho is a free Safari web extension with no accounts, no sign-in and no server. This version adds an optional tip jar, \"Support the project\", at the bottom of the app's single screen (scroll down past \"What it does not do in Safari\" and \"If a site misbehaves\"). It offers four consumable in-app purchases — Small tip, Medium tip, Large tip, Extra-large tip — through StoreKit. A tip unlocks nothing and changes no feature: the only thing that happens after a purchase is a one-line thank-you, which disappears when the app quits. Every feature of the app and the extension works identically before and after a tip, so there is nothing to restore and no restore button. The app stores no record of a purchase (no UserDefaults, no file, no keychain item, no appAccountToken) and sends nothing to any server of ours; the privacy label remains \"Data Not Collected\" (the purchase itself is handled by the App Store's purchase service). To test: scroll to \"Support the project\", tap any price, complete the purchase with a Sandbox account, and observe the thank-you line and that nothing else changes. If Screen Time or a management profile disallows purchases on the review device, the section is hidden entirely, by design.\n\nTo enable the extension on the review device: on iPhone or iPad open Settings, Apps, Safari, Extensions, Nullecho and turn on Allow Extension (tracker blocking starts at once; set All Websites to Allow to also see the Global Privacy Control signal); on Mac open Safari's Settings, Extensions, tick Nullecho, and allow it on every website. There is no account and no sign-in anywhere in the app or the extension, so no demo credentials exist.\n\nNullecho bundles its own list of tracker domain names and URL patterns. Entries were checked against EasyPrivacy/EasyList (GPL-3.0-or-later or CC BY-SA 3.0-or-later) and AdGuard filters (GPL-3.0). Both licences permit redistribution, including commercial, with attribution. Credits and licence texts are in the app under What it does, Acknowledgements, Full credits and licence texts (NOTICE, the MIT licence and the GPL-3.0 text ship inside the app). The app does not access any third-party service at runtime.",
+    "contact": "the owner types it in App Store Connect (director 2026-10-15); never stored in the repo or the environment unless he says otherwise"
+  },
+  "ageRating": {
+    "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+    "contests": "NONE",
+    "gambling": false,
+    "gamblingSimulated": "NONE",
+    "horrorOrFearThemes": "NONE",
+    "matureOrSuggestiveThemes": "NONE",
+    "medicalOrTreatmentInformation": "NONE",
+    "profanityOrCrudeHumor": "NONE",
+    "sexualContentGraphicAndNudity": "NONE",
+    "sexualContentOrNudity": "NONE",
+    "violenceCartoonOrFantasy": "NONE",
+    "violenceRealistic": "NONE",
+    "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+    "gunsOrOtherWeapons": "NONE",
+    "healthOrWellnessTopics": "NONE",
+    "lootBox": false,
+    "unrestrictedWebAccess": false,
+    "userGeneratedContent": false,
+    "socialMedia": false,
+    "messagingAndChat": false,
+    "advertising": false,
+    "parentalControls": false,
+    "ageAssurance": false,
+    "kidsAgeBand": null,
+    "ageRatingOverride": "NONE"
+  },
+  "screenshots": [
+    {
+      "platform": "IOS",
+      "displayType": "APP_IPHONE_61",
+      "class": "iPhone with Dynamic Island (medium display), 1206×2622",
+      "size": [
+        1206,
+        2622
+      ],
+      "files": [
+        "iphone-63-1-top.png",
+        "iphone-63-2-what-it-does.png",
+        "iphone-63-3-limits.png",
+        "iphone-63-4-support.png"
+      ],
+      "displayTypeNote": "unverified against the live enum for this size class; the API rejects a wrong set or a wrong size at reservation, which the tool reports"
+    },
+    {
+      "platform": "IOS",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "class": "iPad 13-inch, 2064×2752",
+      "size": [
+        2064,
+        2752
+      ],
+      "files": [
+        "ipad-13-1-top.png",
+        "ipad-13-2-what-it-does.png",
+        "ipad-13-3-limits.png"
+      ],
+      "displayTypeNote": "unverified against the live enum for this size class"
+    },
+    {
+      "platform": "MAC_OS",
+      "displayType": "APP_DESKTOP",
+      "class": "Mac, 2880×1800",
+      "size": [
+        2880,
+        1800
+      ],
+      "files": [
+        "mac-1-top-2880x1800.jpg"
+      ],
+      "status": "stale: captured before PR #14 (old blocking sentence, 200 block rules); re-capture before upload, the tool skips this set while this field starts with 'stale'"
+    }
+  ],
+  "inAppPurchases": {
+    "createdBy": "the owner's script A (App Store Connect UI); the tool only reads them back",
+    "productIds": [
+      "org.nullecho.tip.small",
+      "org.nullecho.tip.medium",
+      "org.nullecho.tip.large",
+      "org.nullecho.tip.xlarge"
+    ]
+  }
+}

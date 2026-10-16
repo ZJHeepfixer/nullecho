@@ -73,7 +73,7 @@ Alternative without the slogan (160 characters):
 Blocks requests to known trackers in Safari and sends Global Privacy Control on the sites you allow. Free, open source, no account, no server, collects nothing.
 ```
 
-### 2.2 Description (3242 characters; limit 4000; plain text, line breaks only)
+### 2.2 Description (3280 characters; limit 4000; plain text, line breaks only)
 
 ```
 Nullecho is a Safari extension that blocks requests to known trackers on every site you visit and sends Global Privacy Control on the sites you allow. It is free, open source, and collects nothing.
@@ -412,58 +412,41 @@ Phrases checked as absent from every field (script run on the final strings): "p
 
 ---
 
-## 11. Field map for the App Store Connect API (attribute names as used by the API; verify against the current API reference before pushing — unverified on 2026-10-15)
+## 11. Pushing this listing through the App Store Connect API
 
-```json
-{
-  "appInfoLocalizations[en-US]": {
-    "name": "Nullecho",
-    "subtitle": "Block known trackers in Safari",
-    "privacyPolicyUrl": "https://nullecho.org/privacy/"
-  },
-  "appInfos": {
-    "primaryCategory": "UTILITIES",
-    "secondaryCategory": "PRODUCTIVITY"
-  },
-  "appStoreVersions": {
-    "platform": "IOS",
-    "versionString": "0.9.2",
-    "copyright": "2026 Nullecho contributors",
-    "releaseType": "MANUAL"
-  },
-  "appStoreVersionLocalizations[en-US]": {
-    "promotionalText": "Trackers: “Can we follow you around the internet?” Nullecho: Nah. Blocks known trackers in Safari, sends Global Privacy Control where you allow it, collects nothing.",
-    "description": "<§2.2 verbatim>",
-    "keywords": "tracker,blocker,privacy,gpc,global,control,do not sell,opt out,trackers,analytics,safari,extension",
-    "supportUrl": "https://nullecho.org/",
-    "marketingUrl": "https://nullecho.org/",
-    "whatsNew": "<§2.6; omitted on a first version>"
-  },
-  "appStoreReviewDetails": {
-    "demoAccountRequired": false,
-    "notes": "<§8 verbatim>",
-    "contactFirstName": "<owner>", "contactLastName": "<owner>", "contactPhone": "<owner, +country>", "contactEmail": "<owner>"
-  },
-  "ageRatingDeclarations": {
-    "alcoholTobaccoOrDrugUseOrReferences": "NONE", "contests": "NONE", "gambling": false, "gamblingSimulated": "NONE",
-    "horrorOrFearThemes": "NONE", "matureOrSuggestiveThemes": "NONE", "medicalOrTreatmentInformation": "NONE",
-    "profanityOrCrudeHumor": "NONE", "sexualContentGraphicAndNudity": "NONE", "sexualContentOrNudity": "NONE",
-    "violenceCartoonOrFantasy": "NONE", "violenceRealistic": "NONE", "violenceRealisticProlongedGraphicOrSadistic": "NONE",
-    "gunsOrOtherWeapons": "NONE", "healthOrWellnessTopics": "NONE", "lootBox": false,
-    "unrestrictedWebAccess": false, "userGeneratedContent": false, "socialMedia": false, "messagingAndChat": false,
-    "advertising": false, "parentalControls": false, "ageAssurance": false,
-    "kidsAgeBand": null, "ageRatingOverride": "NONE"
-  },
-  "appDataUsages": "none (Data Not Collected)",
-  "inAppPurchasesV2": [
-    {"productId": "org.nullecho.tip.small",  "inAppPurchaseType": "CONSUMABLE", "name": "Small tip",       "familySharable": false,
-     "localizations[en-US]": {"name": "Small tip",       "description": "Thanks to the people who build Nullecho."}},
-    {"productId": "org.nullecho.tip.medium", "inAppPurchaseType": "CONSUMABLE", "name": "Medium tip",      "familySharable": false,
-     "localizations[en-US]": {"name": "Medium tip",      "description": "More thanks to the people who build Nullecho."}},
-    {"productId": "org.nullecho.tip.large",  "inAppPurchaseType": "CONSUMABLE", "name": "Large tip",       "familySharable": false,
-     "localizations[en-US]": {"name": "Large tip",       "description": "Big thanks to the people who build Nullecho."}},
-    {"productId": "org.nullecho.tip.xlarge", "inAppPurchaseType": "CONSUMABLE", "name": "Extra-large tip", "familySharable": false,
-     "localizations[en-US]": {"name": "Extra-large tip", "description": "Huge thanks to the people who build Nullecho."}}
-  ]
-}
+The machine-readable copy of this document is `safari/store/listing.json`; `safari/tools/asc-listing.mjs` pushes it.
+`safari/test/listing.test.mjs` keeps the two in step (every text in the JSON must appear verbatim here; limits;
+screenshot sizes and no alpha; the offline plan runs). Edit this markdown first, then the JSON.
+
 ```
+node safari/tools/asc-listing.mjs --plan              # what would be sent, plus read-only lookups (record, categories)
+node safari/tools/asc-listing.mjs --plan --offline    # the same with no network
+node safari/tools/asc-listing.mjs --apply             # idempotent PATCHes; never deletes; stops at the first error
+```
+
+Credentials come from the environment only (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH`). The App Review contact
+is the owner's to type in App Store Connect (director, 2026-10-15); it is kept out of the repo and the environment. The tool refuses to
+run `--apply` until `GET /v1/apps` finds `org.nullecho.app`, i.e. after the owner's script A has created the record;
+it never creates the record, the in-app purchases or the agreements.
+
+What `--apply` does, in order: content rights (`USES_THIRD_PARTY_CONTENT`); categories on the in-flight app info;
+subtitle + privacy-policy URL; per platform (IOS, MAC_OS) the version (0.9.2, MANUAL, copyright), its en-US text
+(description, keywords, promotional text, support and marketing URLs; What's New omitted on a first version), the
+age-rating declaration (§6; attributes the API does not know are dropped on its word and reported), the review
+details (§8 notes, `demoAccountRequired: false`, contact from the environment if present), and the screenshot sets
+(reserve, upload parts, commit with MD5, assert order, poll to COMPLETE; a file already uploaded under the same name
+is re-used; nothing is deleted); then price Free; then it reads the four in-app purchases back and reports their
+state.
+
+Proven shapes (the owner's other apps shipped with them, `~/ios-signing/oh-auto-setup-listing.js`,
+`oh-auto-upload-screens.mjs`, `oh-set-app-price.js`): JWT, appInfos/categories, appInfoLocalizations,
+appStoreVersions, appStoreVersionLocalizations, ageRatingDeclarations with the retry, appStoreReviewDetails,
+appScreenshotSets/appScreenshots, appPriceSchedules. Verified read-only on 2026-10-15: `UTILITIES` and
+`PRODUCTIVITY` exist for IOS and MAC_OS; no record for `org.nullecho.app` yet. **Unverified until the first
+`--apply`:** the screenshot display-type names for the 2026 size classes (`APP_IPHONE_61` for 1206×2622,
+`APP_IPAD_PRO_3GEN_129` for 2064×2752, `APP_DESKTOP` for 2880×1800; the API rejects a wrong set or size at
+reservation and the tool reports it) and adding a `MAC_OS` version to a record created for iOS (the tool POSTs one
+if none exists). The Mac screenshot set is marked `stale` in the JSON and skipped until the Mac shot is re-captured.
+
+Left in App Store Connect for the owner: availability (§3, EU trader status), App Privacy (§4, no API used here),
+Paid Apps agreement, tax and banking, the review contact if not supplied by environment, and the submit click.
