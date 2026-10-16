@@ -186,7 +186,7 @@ private struct WhatItDoesSection: View {
         Section {
             Fact(symbol: "hand.raised.fill", tint: .green,
                  title: "Blocks requests to known trackers",
-                 detail: "Ad, analytics, social-pixel and fingerprinting-vendor domains from published lists (DuckDuckGo Tracker Radar, EasyPrivacy, AdGuard). Applies on every site as soon as the extension is on, before any website permission is granted.")
+                 detail: "Ad, analytics, social-pixel and fingerprinting-vendor domains from Nullecho’s own list; every entry was checked against the published tracker lists credited under Acknowledgements below. Applies on every site as soon as the extension is on, before any website permission is granted.")
 
             Fact(symbol: "envelope.badge.shield.half.filled", tint: .blue,
                  title: "Sends Global Privacy Control on the sites you allow",
@@ -209,6 +209,9 @@ private struct WhatItDoesSection: View {
                     LabeledContent("Rule lists in this build", value: "\(embedded.activeBlockRules) block rules on")
                 }
             }
+
+            // Where the entries were checked, and the bundled licence texts (Acknowledgements.swift).
+            AcknowledgementsRow()
         } header: {
             Text("What it does")
         } footer: {

@@ -17,7 +17,11 @@
  *                                   icons. Only the paths in EXT_SHARED may be pulled from ext/, so a
  *                                   manifest edit that reaches for src/shim.js fails here instead of
  *                                   shipping a Chrome persona to Safari (safari/CAPABILITY-AUDIT.md)
- *   safari/tools/safari-rules.mjs   the rulesets, generated from ext/rules (see its header for why)
+ *   safari/tools/safari-rules.mjs   the rulesets, generated from ext/rules (see its header for why), minus the
+ *                                   Safari-only exclusions in safari/extension/rules-exclude.json (its point 4):
+ *                                   source rules left out of this build for licence reasons. The list must
+ *                                   exist (empty is fine), every entry must match a block rule, and the file
+ *                                   itself never ships
  *
  * The manifest in safari/extension/ is a template with exactly two placeholders, filled here so
  * that ext/manifest.json stays the single source of truth for both:
@@ -41,13 +45,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { buildSafariRulesets, SAFARI_RULESETS } from './safari-rules.mjs';
+import { buildSafariRulesets, loadExclusions, SAFARI_RULESETS } from './safari-rules.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, '../..');
 export const SAFARI_SRC = path.resolve(HERE, '../extension');
 export const EXT = path.join(REPO, 'ext');
 export const DEFAULT_OUT = path.join(REPO, 'dist', 'safari', 'extension');
+export const EXCLUDE_LIST = path.join(SAFARI_SRC, 'rules-exclude.json');
 
 /** The only ext/ files the Safari build may ship, verbatim. Anything else must live under safari/extension. */
 export const EXT_SHARED = [/^src\/gpc\.js$/, /^icons\/icon-\d+\.png$/];
@@ -62,7 +67,7 @@ export const FORBIDDEN = [
   /(^|\/)heuristics\.js$/, /(^|\/)pricing[^/]*\.js$/, /(^|\/)background\.js$/, /(^|\/)linkage\.js$/,
   /(^|\/)ua-[a-z]+\.json$/, /(^|\/)linux-ground-truth\.js$/,
   /\.test\.m?js$/, /^tools\//, /(^|\/)(README|PERMISSIONS)\.md$/, /^package\.json$/, /test-realm-rig\.js$/,
-  /(^|\/)_metadata(\/|$)/, /\.DS_Store$/,
+  /(^|\/)_metadata(\/|$)/, /\.DS_Store$/, /(^|\/)rules-exclude\.json$/,
 ];
 
 /** Permissions the Safari build must and must not declare (audit 01 §0, §3). */
@@ -232,8 +237,9 @@ export async function build(opts = {}) {
   const manifest = fillManifest(template, extManifest);
   checkManifest(manifest);
 
+  const exclude = loadExclusions(opts.excludeFile ?? EXCLUDE_LIST);
   const generated = new Map();
-  for (const rs of buildSafariRulesets(path.join(extDir, 'rules'))) generated.set(rs.path, rs.text);
+  for (const rs of buildSafariRulesets(path.join(extDir, 'rules'), { exclude })) generated.set(rs.path, rs.text);
   const manifestText = JSON.stringify(manifest, null, 2) + '\n';
   generated.set('manifest.json', manifestText);
 
@@ -241,10 +247,11 @@ export async function build(opts = {}) {
   files.set('manifest.json', { from: 'generated', text: manifestText });
   const sorted = [...files.keys()].sort();
 
+  const exclusionNote = `${exclude.size} Safari-only exclusion(s) from ${path.relative(REPO, opts.excludeFile ?? EXCLUDE_LIST)}${exclude.size ? ': ' + [...exclude.used].sort().join(', ') : ''}`;
   if (opts.list) {
     for (const f of sorted) log(`${f}  (${files.get(f).from})`);
-    log(`\n${sorted.length} files, version ${manifest.version}`);
-    return { manifest, files: sorted, outDir: null, version: manifest.version };
+    log(`\n${sorted.length} files, version ${manifest.version}; ${exclusionNote}`);
+    return { manifest, files: sorted, outDir: null, version: manifest.version, exclusions: [...exclude.used].sort() };
   }
 
   // Recreate the folder: a stale file from an earlier build must not survive, because the
@@ -259,7 +266,7 @@ export async function build(opts = {}) {
     if (f.from === 'generated') fs.writeFileSync(dst, f.text);
     else fs.copyFileSync(f.source, dst);
   }
-  log(`${path.relative(REPO, outDir) || outDir}/  (${sorted.length} files, Nullecho ${manifest.version} for Safari)`);
+  log(`${path.relative(REPO, outDir) || outDir}/  (${sorted.length} files, Nullecho ${manifest.version} for Safari; ${exclusionNote})`);
   for (const f of sorted) log(`  ${f}  (${files.get(f).from})`);
 
   let zipPath = null;
@@ -274,7 +281,7 @@ export async function build(opts = {}) {
     if (!listing.includes('manifest.json')) throw new Error('zip has no manifest.json at its root');
     log(`${path.relative(REPO, zipPath)}  (${(fs.statSync(zipPath).size / 1024).toFixed(1)} KB, ${listing.length} files)`);
   }
-  return { manifest, files: sorted, outDir, zipPath, version: manifest.version };
+  return { manifest, files: sorted, outDir, zipPath, version: manifest.version, exclusions: [...exclude.used].sort() };
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────

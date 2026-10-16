@@ -1,0 +1,7 @@
+{
+  "about": "Chrome source rules (ext/rules) that the Safari build leaves out, for licence reasons (H-LICENSE-REVIEW §7.2). Applied by safari/tools/safari-rules.mjs, point 4 of its header. domains: exact hosts, dropped wherever they appear (a requestDomains entry, its siblings survive; or a ||host^ urlFilter). urlFilters: the source rule with exactly that urlFilter. ids: a whole source rule. Only block rules; every entry must match something or the build fails; ext/rules is never edited from here. Reasons go in notes, keyed by the entry text. This file never ships.",
+  "domains": [],
+  "urlFilters": [],
+  "ids": [],
+  "notes": {}
+}

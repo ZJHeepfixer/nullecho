@@ -1,0 +1,41 @@
+Nullecho for Safari — NOTICE
+
+Copyright (c) 2026 Jason Luker
+
+CODE. Nullecho's code, including this app and its Safari extension, is
+licensed under the MIT License (LICENSE.txt, included with this app).
+
+BLOCKING DATA. The rule files inside this app (rules/ads.json,
+analytics.json, social.json, fingerprinting.json, fingerprinting-strict.json
+and gpc.json) are Nullecho's own selection of tracker domain names, URL
+patterns and site lists, generated for Safari from the lists in the Nullecho
+repository (ext/rules/).
+
+Each entry was checked against one or more of the published lists below.
+Nullecho converted them to Safari's rule format, regrouped them into its own
+categories, and deliberately left out many entries. None of these projects
+endorses Nullecho.
+
+- EasyPrivacy and EasyList
+  (c) The EasyList authors, https://easylist.to/
+  Dual-licensed: GPL-3.0-or-later, or CC BY-SA 3.0 Unported or later. Licence page: https://easylist.to/pages/licence.html
+  Used for: confirming tracker hosts; several URL patterns in the social rules; the 50 hosts that the GPC header rule leaves alone (EasyPrivacy's "! GPC" section); the first-party exceptions in the fingerprinting rules.
+  Fetched 2026-08-20.
+
+- AdGuard Tracking Protection filter (filter 3) and AdGuard Base filter (filter 2)
+  (c) AdGuard Software Ltd, https://github.com/AdguardTeam/AdguardFilters
+  Licensed GPL-3.0: https://github.com/AdguardTeam/AdguardFilters/blob/master/LICENSE
+  Used for: confirming tracker hosts; URL patterns including ||facebook.com/privacy_sandbox/pixel/, ||licdn.com/*li.lms-analytics/ and ||linkedin.com/li/tscp/sct.
+  Fetched 2026-08-20.
+
+- DuckDuckGo Tracker Radar and Tracker Blocklists (extension-tds.json, v6)
+  (c) 2020, 2022 Duck Duck Go, Inc., https://github.com/duckduckgo/tracker-radar
+  Licensed CC BY-NC-SA 4.0: https://creativecommons.org/licenses/by-nc-sa/4.0/
+  Used as a research reference for company ownership, prevalence and category. No DuckDuckGo data file is redistributed.
+  DuckDuckGo's names and logos are their marks and are not licensed here.
+
+The GNU General Public License version 3 is included with this app as
+GPL-3.0.txt.
+
+These lists are provided "as is", without warranty of any kind; see each
+licence for its disclaimer of warranties.

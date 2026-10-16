@@ -10,7 +10,9 @@
 // safari/STORE-LISTING.md §7 for the exact commands. Run it on its own with
 //   xcodebuild test … -only-testing:"Nullecho UI Tests (iOS)/StoreScreenshotTests" -resultBundlePath <bundle>
 // (environment variables do not reach the UI-test runner through xcodebuild here, so there is no opt-in flag;
-// in a full suite run this test just adds four attachments).
+// in a full suite run this test just adds up to four attachments). A shot is skipped when the page has not
+// moved since the previous one: on the 13-inch iPad the page ends inside shot 3, so a fourth shot would
+// repeat it (the two frames differ only by the fading scroll indicator, measured 2026-10-15).
 
 import XCTest
 
@@ -35,6 +37,8 @@ final class StoreScreenshotTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Nullecho for Safari"].waitForExistence(timeout: 20))
         RunLoop.current.run(until: Date().addingTimeInterval(1.5))
 
+        // The previous shot's header and where it sat: if it has not moved, the page has not scrolled.
+        var anchor: (element: XCUIElement, y: CGFloat)? = nil
         for (suffix, header) in shots {
             if let header {
                 bringToTop(app, headerTitled: header)
@@ -45,7 +49,13 @@ final class StoreScreenshotTests: XCTestCase {
                     XCTAssertTrue(tier.waitForExistence(timeout: 20), "the tip tiers did not load (is the StoreKit test configuration planted on this simulator?)")
                 }
             }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.8))   // settle scroll + animations
+            RunLoop.current.run(until: Date().addingTimeInterval(1.5))   // settle scroll, animations, the scroll indicator
+            if let anchor, anchor.element.exists, anchor.element.frame.minY == anchor.y {
+                print("STORESHOT \(prefix)-\(suffix) skipped: the page did not move since the previous shot (it ended)")
+                continue
+            }
+            let marker = app.staticTexts[header ?? "Nullecho for Safari"].firstMatch
+            anchor = marker.exists ? (marker, marker.frame.minY) : nil
             // The app element, not XCUIScreen: on the iOS 27 Simulator a screen capture through the test daemon
             // was followed by "Application … is not running" on the next query (measured 2026-10-15); the app
             // fills the screen, so its own screenshot is the same image at full device resolution.
