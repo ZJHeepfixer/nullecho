@@ -358,6 +358,11 @@ test('end to end: a non-empty exclusion list removes exactly those entries from 
   const excludeFile = path.join(tmp, 'rules-exclude.json');
   fs.writeFileSync(excludeFile, JSON.stringify({ domains: ['doubleclick.net'], urlFilters: ['||facebook.com/tr^'], ids: [2002], notes: { '2002': 'test' } }));
   const out = path.join(tmp, 'out');
+  // The reference is an UNEXCLUDED build, made here: the repo's own rules-exclude.json is not empty any more,
+  // so the shipped tree (SAFARI) is not the right baseline for "everything else is unchanged".
+  const emptyFile = path.join(tmp, 'rules-exclude-empty.json');
+  fs.writeFileSync(emptyFile, JSON.stringify({ domains: [], urlFilters: [], ids: [], notes: {} }));
+  await build({ outDir: path.join(tmp, 'ref'), excludeFile: emptyFile, quiet: true });
   const result = await build({ outDir: out, excludeFile, quiet: true });
   assert.deepEqual(result.exclusions, ['domain doubleclick.net', 'id 2002', 'urlFilter ||facebook.com/tr^']);
   assert.ok(!fs.existsSync(path.join(out, 'rules-exclude.json')));
@@ -368,7 +373,7 @@ test('end to end: a non-empty exclusion list removes exactly those entries from 
   assert.ok(!anaB.some((r) => r.id === 2002 || ['segment.com', 'segment.io'].includes(domainOf(r.condition.urlFilter))));
   assert.ok(!socB.some((r) => r.condition.urlFilter === '||facebook.com/tr^'));
   // everything else is byte-for-byte what the unexcluded build produced
-  const ref = (id) => SAFARI.find((r) => r.id === id).rules;
+  const ref = (id) => readJson(path.join(tmp, 'ref', SAFARI.find((r) => r.id === id).path));
   assert.deepEqual(adsB, ref('ads').filter((r) => domainOf(r.condition.urlFilter) !== 'doubleclick.net'));
   assert.deepEqual(anaB, ref('analytics').filter((r) => !['segment.com', 'segment.io'].includes(domainOf(r.condition.urlFilter))));
   assert.deepEqual(socB, ref('social').filter((r) => r.condition.urlFilter !== '||facebook.com/tr^'));

@@ -25,13 +25,15 @@ endorses Nullecho.
 - AdGuard Tracking Protection filter (filter 3) and AdGuard Base filter (filter 2)
   (c) AdGuard Software Ltd, https://github.com/AdguardTeam/AdguardFilters
   Licensed GPL-3.0: https://github.com/AdguardTeam/AdguardFilters/blob/master/LICENSE
-  Used for: confirming tracker hosts; URL patterns including ||facebook.com/privacy_sandbox/pixel/, ||licdn.com/*li.lms-analytics/ and ||linkedin.com/li/tscp/sct.
+  Used for: confirming tracker hosts. (The three URL patterns Nullecho's other builds copy from AdGuard are not included in this app.)
   Fetched 2026-08-20.
 
 - DuckDuckGo Tracker Radar and Tracker Blocklists (extension-tds.json, v6)
   (c) 2020, 2022 Duck Duck Go, Inc., https://github.com/duckduckgo/tracker-radar
   Licensed CC BY-NC-SA 4.0: https://creativecommons.org/licenses/by-nc-sa/4.0/
-  Used as a research reference for company ownership, prevalence and category. No DuckDuckGo data file is redistributed.
+  Used as a research reference for company ownership, prevalence and category. No DuckDuckGo data file is redistributed,
+  and no entry in this app's rule lists depends on DuckDuckGo alone: entries that qualified only through DuckDuckGo are
+  left out of this app.
   DuckDuckGo's names and logos are their marks and are not licensed here.
 
 The GNU General Public License version 3 is included with this app as

@@ -1,7 +1,38 @@
 {
   "about": "Chrome source rules (ext/rules) that the Safari build leaves out, for licence reasons (H-LICENSE-REVIEW §7.2). Applied by safari/tools/safari-rules.mjs, point 4 of its header. domains: exact hosts, dropped wherever they appear (a requestDomains entry, its siblings survive; or a ||host^ urlFilter). urlFilters: the source rule with exactly that urlFilter. ids: a whole source rule. Only block rules; every entry must match something or the build fails; ext/rules is never edited from here. Reasons go in notes, keyed by the entry text. This file never ships.",
-  "domains": [],
+  "domains": [
+    "sascdn.com",
+    "inmobi.com",
+    "applovin.com",
+    "grow.me",
+    "sharethis.com",
+    "posthog.com",
+    "parsely.com",
+    "tiqcdn.com"
+  ],
   "urlFilters": [],
-  "ids": [],
-  "notes": {}
+  "ids": [
+    3003,
+    3021,
+    3025,
+    3028,
+    3029,
+    3030
+  ],
+  "notes": {
+    "sascdn.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "inmobi.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "applovin.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "grow.me": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "sharethis.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "posthog.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "parsely.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "tiqcdn.com": "Qualified for Nullecho only through DuckDuckGo Tracker Radar (CC BY-NC-SA 4.0); no EasyList/EasyPrivacy/AdGuard whole-host rule (H-LICENSE-REVIEW §2.2). Excluded from the App Store build, which takes optional tips, until DuckDuckGo answers or first-hand evidence is recorded.",
+    "3021": "||ads-twitter.com/oct.js: DuckDuckGo-only path rule (translated from a DDG regex; H §2.3). Same reason as the DuckDuckGo-only hosts.",
+    "3029": "||linkedin.com/px/li_sync: DuckDuckGo-only path rule (translated from a DDG regex; H §2.3). Same reason as the DuckDuckGo-only hosts.",
+    "3030": "||linkedin.com/insight_tag_errors.gif: DuckDuckGo-only path rule (translated from a DDG regex; H §2.3). Same reason as the DuckDuckGo-only hosts.",
+    "3003": "||facebook.com/privacy_sandbox/pixel/: rule text copied verbatim from AdGuard (GPL-3.0 only; H §2.3). Kept out of the App Store build because whether GPL text may ship inside an App Store app is an open question (H §11).",
+    "3025": "||licdn.com/*li.lms-analytics/: rule text copied verbatim from AdGuard (GPL-3.0 only; H §2.3). Kept out of the App Store build because whether GPL text may ship inside an App Store app is an open question (H §11).",
+    "3028": "||linkedin.com/li/tscp/sct: rule text copied verbatim from AdGuard (GPL-3.0 only; H §2.3). Kept out of the App Store build because whether GPL text may ship inside an App Store app is an open question (H §11)."
+  }
 }
