@@ -95,28 +95,36 @@ struct AcknowledgementsRow: View {
     }
 }
 
-/// NOTICE, then the MIT and GPL-3.0 texts, read from the app bundle. Selectable, so a line can be copied.
+/// The three texts, one under the other. A plain stack, not a lazy one: all of them exist from the start, for
+/// VoiceOver and for Find. Selectable, so a line can be copied. The sheet wraps this in a scroll view.
+struct LicencesContent: View {
+    private let documents = Acknowledgements.documents()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            ForEach(documents) { doc in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(doc.title)
+                        .font(.headline)
+                    Text(Acknowledgements.reflow(doc.text))
+                        .font(.footnote)
+                        .textSelection(.enabled)
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// NOTICE, then the MIT and GPL-3.0 texts, read from the app bundle.
 struct LicencesSheet: View {
     @Environment(\.dismiss) private var dismiss
-    private let documents = Acknowledgements.documents()
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                // A plain stack, not a lazy one: all three texts exist from the start, for VoiceOver and for Find.
-                VStack(alignment: .leading, spacing: 24) {
-                    ForEach(documents) { doc in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(doc.title)
-                                .font(.headline)
-                            Text(Acknowledgements.reflow(doc.text))
-                                .font(.footnote)
-                                .textSelection(.enabled)
-                        }
-                    }
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                LicencesContent()
             }
             .navigationTitle("Credits and licences")
 #if os(iOS)
