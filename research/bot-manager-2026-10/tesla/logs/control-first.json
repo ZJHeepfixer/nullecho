@@ -1,0 +1,109 @@
+{
+  "label": "control-first",
+  "extension": null,
+  "verdict": "OK",
+  "navError": null,
+  "documents": [
+    {
+      "url": "https://www.tesla.com/",
+      "status": 200,
+      "server": "",
+      "setCookieNames": [
+        "_abck",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sz"
+      ],
+      "responseHeaders": {
+        "cache-control": "no-store",
+        "content-type": "text/html",
+        "x-akamai-transformed": "0 - 0 -"
+      }
+    },
+    {
+      "url": "https://www.tesla.com/",
+      "status": 200,
+      "server": "",
+      "setCookieNames": []
+    }
+  ],
+  "navigationRequestHeaders": [
+    {
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "en-US,en;q=0.9",
+      "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+    },
+    {
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "en-US,en;q=0.9",
+      "cookie": "bm_so=AB4BA182E1FF91F8BA511580AD333F8D6DDD2EA9E99A0822786A3792C6D84C50~YAAQcPfVF1JkKjahAQAAltdcSwlES3yNX01H+e7g8CqGHt0vumhFcumAm8OwgqTv3+AIKCBUA/LbNvI8IMHmoPpuR",
+      "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+    }
+  ],
+  "cookiesAfterLoad": [
+    "bm_sz",
+    "bm_lso",
+    "bm_so",
+    "bm_sc",
+    "bm_s",
+    "_abck"
+  ],
+  "blockedByClient": [],
+  "otherFailures": [
+    {
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://digitalassets.tesla.com/tesla-contents/raw/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.en-US.vtt",
+      "type": "Fetch",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://digitalassets.tesla.com/tesla-contents/raw/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.en-US.vtt",
+      "type": "Fetch",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://www.tesla.com/",
+      "type": "Fetch",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://digitalassets.tesla.com/tesla-contents/video/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.mp4",
+      "type": "Media",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://errlog.tesla.com/api/19/envelope/?sentry_key=00e0cd98d3964829a1f8f98ea301a329&sentry_version=7&sentry_client=sentry.javascript.browser%2F7.119.2",
+      "type": "Fetch",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "page": {
+    "title": "Electric Cars, Solar & Clean Energy | Tesla",
+    "href": "https://www.tesla.com/",
+    "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,644,097,903 Miles Driven Schedule Demo Learn More Long Wheelbase Midsize SUV Model Y L Premium Starting at $61,9902 Order",
+    "webdriver": false,
+    "gpc": null,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  },
+  "capturedAt": "2026-10-17T19:35:45.422Z"
+}
