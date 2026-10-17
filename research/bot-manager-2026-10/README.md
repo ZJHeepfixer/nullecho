@@ -72,18 +72,20 @@ site whose home page passes may still refuse at sign-in or checkout, which this 
 
 ## 5. The D59 build, measured (`gate/`, `attacks/`, `ui/`)
 
-All from the packaged store zip (`node ext/tools/package.mjs`, unzipped), non-automation rig, `visibilityState: visible`.
+All from the packaged store zip of the final commit (`node ext/tools/package.mjs`, unzipped), non-automation rig,
+`visibilityState: visible`. (The UI renders in `ui/` came from the zip one commit earlier; no popup or settings file
+changed after it.)
 
 | check | result |
 |---|---|
-| tesla.com, 3 fresh profiles (`gate/zip-run{1,2,3}`; again on the final commit's zip, whose only difference is two comments: `gate/final-run{1,2,3}`) | **3 / 3 OK, twice**, 200 → 200; shim status `bot-manager` from the first document on; `navigator.globalPrivacyControl` true; real cores 12 and the real GPU (M2 Max); flag `akamai/_abck` |
-| control site, en.wikipedia.org (`gate/control-site-wikipedia`) | shim `upgraded`, persona `macos-chrome-m2-air`: page reads **8 cores, 16 GB, "Apple M2"** = the persona table's values, where this Mac has 12 cores and an M2 Max |
-| own.test — the site's own first document sets `_abck` (`attacks/own-test`) | flagged 14 ms before the shim's status arrived; real device; GPC true; its two listed tracker requests (google-analytics, connect.facebook.net) **blocked** — blocking stays on |
+| tesla.com, 3 fresh profiles (`gate/final-run{1,2,3}`, after `gate/control-first` with no extension) | **3 / 3 OK** (and 3 / 3 on each of the two earlier builds of this branch), 200 → 200; shim status `bot-manager` from the first document on; `navigator.globalPrivacyControl` true; real cores 12 and the real GPU (M2 Max); flag `akamai/_abck` |
+| control site, en.wikipedia.org (`gate/control-site-wikipedia`) | shim `upgraded`, persona `macos-chrome-m3-4k`: page reads **8 cores, 16 GB, "Apple M3"** = the persona table's values, where this Mac has 12 cores and an M2 Max |
+| own.test — the site's own first document sets `_abck` (`attacks/own-test`) | flagged 16 ms before the shim’s status arrived; real device; GPC true; its two listed tracker requests (google-analytics, connect.facebook.net) **blocked** — blocking stays on |
 | ATTACK: top.test embeds a cross-site frame, a third-party script and fetches, every one answering `Set-Cookie: _abck, bm_sz`; the frame also calls back to top.test's host (`attacks/top-test`, `rig/attack-server.mjs`) | **nothing flagged** (`botManagerSites` never written); top.test keeps its persona (`macos-chrome-m1`: 8 cores, "Apple M1") |
 | ATTACK: detection removed (`no-detect`: empty trigger list) | tesla.com **DENIED** again, shim `upgraded` |
 | ATTACK: the lost race (`late-main`: every hit recorded 400 ms late) | visit 1: one reload (`reloadedAt` set), then OK; visit 2: one document, no reload |
 | ATTACK: a CNAME-cloaked tracker — cname.test's top document loads a script and fetches from `metrics.cname.test`, first-party by registrable domain, both answering `Set-Cookie: _abck, bm_sz` (`attacks/cname-test`) | **nothing flagged**; cname.test keeps its persona. (A first draft also read the top document's own sub-requests; this attack is why it no longer does — every Akamai site measured sets the cookies on a top-level document anyway.) |
-| ATTACK: "Use my device profile here anyway" (`attack-override`) | v1 stood down, OK · override on → v2 shim `upgraded`, persona `macos-chrome-m1-pro` (10 cores, "Apple M1 Pro"), page loaded · override off → **v3 DENIED on the first document** — the refusal landed on the visit AFTER the profile was used and outlasted switching back, which is what the warning now says |
+| ATTACK: "Use my device profile here anyway" (`attack-override`) | v1 stood down, OK · override on → v2 shim `upgraded`, persona `macos-chrome-m3-4k` (8 cores, "Apple M3"), page loaded · override off → **v3 DENIED on the first document** — the refusal landed on the visit AFTER the profile was used and outlasted switching back, which is what the warning now says |
 | UI (`ui/`, `rig/ui-render.mjs`) | popup on tesla.com: the D59 sentence as an alert, "your own device (not disguised here)", every row "as your browser reports it — not changed"; on wikipedia: no alert, the persona; settings card in light and dark; the override button shows the warning, a dismissal changes nothing, acceptance sets `override: true` |
 
 ## Reproduce

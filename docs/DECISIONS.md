@@ -3760,14 +3760,14 @@ which would let the profile come back on the eight.
 
 **Measured on the build (packaged store zip, same rig; `gate/`, `attacks/`, `ui/`).** tesla.com **3 / 3 OK** from a
 fresh profile, stood down from the first document, GPC true, real cores and GPU. Control (en.wikipedia.org): persona
-`macos-chrome-m2-air` applied — the page read 8 cores, 16 GB and "Apple M2" against this Mac's 12 cores and M2 Max.
-A local site whose own first document sets `_abck`: flagged 14 ms before the shim's status, real device, GPC true, and
+`macos-chrome-m3-4k` applied — the page read 8 cores, 16 GB and "Apple M3" against this Mac's 12 cores and M2 Max.
+A local site whose own first document sets `_abck`: flagged 16 ms before the shim's status, real device, GPC true, and
 its two listed tracker requests still blocked. **Attacked:** a cross-site frame, a third-party script and fetches all
 answering `Set-Cookie: _abck, bm_sz` (and the frame calling back to the top site's host) flagged nothing and the top
 site kept its persona; a script and a fetch from the site's own `metrics.` subdomain answering the same (CNAME
 cloaking) flagged nothing either; with the trigger list emptied tesla.com is DENIED again; with every hit delayed 400 ms
 (the lost race) visit 1 reloaded once and loaded, visit 2 did not reload;
-the override re-enabled the persona (v2 `upgraded`, 10 cores, "Apple M1 Pro") and the next visit, with the override
+the override re-enabled the persona (v2 `upgraded`, 8 cores, "Apple M3") and the next visit, with the override
 switched back off, was DENIED on its first document.
 
 **Tests.** `ext/src/bot-manager-2026-10-17.test.js` (26): which responses count (sub-frames, third parties, the page's

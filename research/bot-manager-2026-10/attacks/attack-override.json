@@ -2,7 +2,7 @@
   "label": "attack-override",
   "url": "https://www.tesla.com/",
   "extensions": [
-    "zip-chrome"
+    "final-chrome"
   ],
   "cold": false,
   "visits": [
@@ -12,12 +12,12 @@
       "wall": null,
       "coldConfirmed": null,
       "navError": null,
-      "ms": 20637,
+      "ms": 7678,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "23D32CFC6EF7F6960ED85330640B9771",
+          "frameId": "1D0E2F857F697EAB09A2F072A675AD8A",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -30,7 +30,7 @@
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "23D32CFC6EF7F6960ED85330640B9771",
+          "frameId": "1D0E2F857F697EAB09A2F072A675AD8A",
           "server": "",
           "setCookieNames": [
             "bm_s",
@@ -58,9 +58,6 @@
           "error": "net::ERR_ABORTED"
         },
         {
-          "error": "net::ERR_ABORTED"
-        },
-        {
           "url": "https://digitalassets.tesla.com/tesla-contents/video/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.mp4",
           "type": "Media",
           "error": "net::ERR_ABORTED"
@@ -69,7 +66,10 @@
           "error": "net::ERR_ABORTED"
         },
         {
-          "url": "https://location-services-prd.tesla.com/geoip/city",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.tesla.com/",
           "type": "Fetch",
           "error": "net::ERR_ABORTED"
         }
@@ -87,7 +87,7 @@
         "title": "Electric Cars, Solar & Clean Energy | Tesla",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": " Skip to main content Menu Model 3 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,208,208 Miles Dri",
+        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,639,382 Miles Dri",
         "webdriver": false,
         "gpc": true,
         "cores": 12,
@@ -98,14 +98,14 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268482159,
+            "at": 1792269548669,
             "lockedToFallback": false,
             "reason": "bot-manager",
             "upgraded": false
           },
-          "personaId": "macos-chrome-m1-pro",
+          "personaId": "macos-chrome-m3-4k",
           "botManager": {
-            "at": 1792268468191,
+            "at": 1792269546355,
             "cookie": "_abck",
             "override": false,
             "vendor": "akamai"
@@ -122,16 +122,15 @@
       "wall": null,
       "coldConfirmed": null,
       "navError": null,
-      "ms": 10148,
+      "ms": 9440,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "23D32CFC6EF7F6960ED85330640B9771",
+          "frameId": "1D0E2F857F697EAB09A2F072A675AD8A",
           "server": "",
           "setCookieNames": [
             "bm_s",
-            "bm_so",
             "bm_sz"
           ]
         }
@@ -163,14 +162,14 @@
           "error": "net::ERR_ABORTED"
         },
         {
-          "url": "https://location-services-prd.tesla.com/geoip/city",
+          "url": "https://www.tesla.com/",
           "type": "Fetch",
           "error": "net::ERR_ABORTED"
         },
         {
-          "url": "https://www.tesla.com/",
+          "url": "https://errlog.tesla.com/api/19/envelope/?sentry_key=00e0cd98d3964829a1f8f98ea301a329&sentry_version=7&sentry_client=sentry.javascript.browser%2F7.119.2",
           "type": "Fetch",
-          "error": "net::ERR_ABORTED"
+          "error": "net::ERR_FAILED"
         }
       ],
       "cookiesAfterLoad": [
@@ -186,25 +185,25 @@
         "title": "Electric Cars, Solar & Clean Energy | Tesla",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,213,392 Miles Dri",
+        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,644,281 Miles Dri",
         "webdriver": false,
         "gpc": true,
-        "cores": 10,
-        "memory": 32,
-        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
         "ddFrame": false
       },
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268495228,
+            "at": 1792269559795,
             "lockedToFallback": false,
             "reason": null,
             "upgraded": true
           },
-          "personaId": "macos-chrome-m1-pro",
+          "personaId": "macos-chrome-m3-4k",
           "botManager": {
-            "at": 1792268468191,
+            "at": 1792269546355,
             "cookie": "_abck",
             "override": true,
             "vendor": "akamai"
@@ -221,24 +220,22 @@
       "wall": "akamai-access-denied",
       "coldConfirmed": null,
       "navError": null,
-      "ms": 9801,
+      "ms": 6288,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 403,
-          "frameId": "23D32CFC6EF7F6960ED85330640B9771",
+          "frameId": "1D0E2F857F697EAB09A2F072A675AD8A",
           "server": "AkamaiGHost",
           "setCookieNames": [
             "bm_s",
+            "bm_so",
             "bm_sz"
           ]
         }
       ],
       "blockedByClient": 0,
       "otherFailures": [
-        {
-          "error": "net::ERR_FAILED"
-        },
         {
           "error": "net::ERR_ABORTED"
         }
@@ -256,7 +253,7 @@
         "title": "Access Denied",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.70f7d517.1792268507.64d4dfd9 https://errors.edgesuite.net/18.70f7d517.1792268507.64d4dfd9",
+        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.70f7d517.1792269568.6517c0e2 https://errors.edgesuite.net/18.70f7d517.1792269568.6517c0e2",
         "webdriver": false,
         "gpc": true,
         "cores": 12,
@@ -267,14 +264,14 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268507661,
+            "at": 1792269568864,
             "lockedToFallback": false,
             "reason": "bot-manager",
             "upgraded": false
           },
-          "personaId": "macos-chrome-m1-pro",
+          "personaId": "macos-chrome-m3-4k",
           "botManager": {
-            "at": 1792268468191,
+            "at": 1792269546355,
             "cookie": "_abck",
             "override": false,
             "vendor": "akamai"
@@ -286,5 +283,5 @@
       ]
     }
   ],
-  "capturedAt": "2026-10-17T20:21:53.780Z"
+  "capturedAt": "2026-10-17T20:39:34.830Z"
 }

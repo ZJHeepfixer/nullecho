@@ -12,12 +12,12 @@
       "wall": "akamai-access-denied",
       "coldConfirmed": null,
       "navError": null,
-      "ms": 7474,
+      "ms": 13082,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "E64503DCF70F0BDD346BB06C1C650F36",
+          "frameId": "6FF466BFB982EC2509E8D4A87C0E84AA",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -30,7 +30,7 @@
         {
           "url": "https://www.tesla.com/",
           "status": 403,
-          "frameId": "E64503DCF70F0BDD346BB06C1C650F36",
+          "frameId": "6FF466BFB982EC2509E8D4A87C0E84AA",
           "server": "AkamaiGHost",
           "setCookieNames": [
             "bm_s",
@@ -60,28 +60,28 @@
         "title": "Access Denied",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.6cf7d517.1792268378.575bcaa8 https://errors.edgesuite.net/18.6cf7d517.1792268378.575bcaa8",
+        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.70f7d517.1792269501.6514d7eb https://errors.edgesuite.net/18.70f7d517.1792269501.6514d7eb",
         "webdriver": false,
         "gpc": true,
         "cores": 8,
-        "memory": 8,
-        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
         "ddFrame": false
       },
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268378913,
+            "at": 1792269501573,
             "lockedToFallback": false,
             "reason": null,
             "upgraded": true
           },
-          "personaId": "macos-chrome-m1",
+          "personaId": "macos-chrome-m2-air",
           "botManager": null,
           "botManagerSites": null
         }
       ]
     }
   ],
-  "capturedAt": "2026-10-17T20:19:43.836Z"
+  "capturedAt": "2026-10-17T20:38:27.618Z"
 }

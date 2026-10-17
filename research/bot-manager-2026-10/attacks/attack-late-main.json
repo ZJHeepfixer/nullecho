@@ -12,12 +12,12 @@
       "wall": null,
       "coldConfirmed": null,
       "navError": null,
-      "ms": 7716,
+      "ms": 7567,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "8EEBA0974ACAEE0E7AB3D2DE743A45ED",
+          "frameId": "071D3E0B16801824513A6772DD068050",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -30,7 +30,7 @@
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "8EEBA0974ACAEE0E7AB3D2DE743A45ED",
+          "frameId": "071D3E0B16801824513A6772DD068050",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -41,7 +41,7 @@
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "8EEBA0974ACAEE0E7AB3D2DE743A45ED",
+          "frameId": "071D3E0B16801824513A6772DD068050",
           "server": "",
           "setCookieNames": [
             "bm_s",
@@ -56,8 +56,6 @@
           "error": "net::ERR_ABORTED"
         },
         {
-          "url": "https://digitalassets.tesla.com/tesla-contents/raw/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.en-US.vtt",
-          "type": "Fetch",
           "error": "net::ERR_ABORTED"
         },
         {
@@ -66,6 +64,8 @@
           "error": "net::ERR_ABORTED"
         },
         {
+          "url": "https://digitalassets.tesla.com/tesla-contents/raw/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.en-US.vtt",
+          "type": "Fetch",
           "error": "net::ERR_ABORTED"
         },
         {
@@ -77,7 +77,10 @@
           "error": "net::ERR_ABORTED"
         },
         {
-          "url": "https://location-services-prd.tesla.com/geoip/city",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.tesla.com/",
           "type": "Fetch",
           "error": "net::ERR_ABORTED"
         }
@@ -95,7 +98,7 @@
         "title": "Electric Cars, Solar & Clean Energy | Tesla",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,174,851 Miles Dri",
+        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,630,375 Miles Dri",
         "webdriver": false,
         "gpc": true,
         "cores": 12,
@@ -106,17 +109,17 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268401011,
+            "at": 1792269526884,
             "lockedToFallback": false,
             "reason": "bot-manager",
             "upgraded": false
           },
-          "personaId": "macos-chrome-mini-m2",
+          "personaId": "macos-chrome-m1-pro",
           "botManager": {
-            "at": 1792268399048,
+            "at": 1792269524648,
             "cookie": "_abck",
             "override": false,
-            "reloadedAt": 1792268399048,
+            "reloadedAt": 1792269524648,
             "vendor": "akamai"
           },
           "botManagerSites": [
@@ -131,12 +134,12 @@
       "wall": null,
       "coldConfirmed": null,
       "navError": null,
-      "ms": 9988,
+      "ms": 9427,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "8EEBA0974ACAEE0E7AB3D2DE743A45ED",
+          "frameId": "071D3E0B16801824513A6772DD068050",
           "server": "",
           "setCookieNames": [
             "bm_s",
@@ -165,11 +168,6 @@
           "error": "net::ERR_ABORTED"
         },
         {
-          "error": "net::ERR_ABORTED"
-        },
-        {
-          "url": "https://location-services-prd.tesla.com/geoip/city",
-          "type": "Fetch",
           "error": "net::ERR_ABORTED"
         },
         {
@@ -196,7 +194,7 @@
         "title": "Electric Cars, Solar & Clean Energy | Tesla",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,179,900 Miles Dri",
+        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,635,213 Miles Dri",
         "webdriver": false,
         "gpc": true,
         "cores": 12,
@@ -207,17 +205,17 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268412242,
+            "at": 1792269537348,
             "lockedToFallback": false,
             "reason": "bot-manager",
             "upgraded": false
           },
-          "personaId": "macos-chrome-mini-m2",
+          "personaId": "macos-chrome-m1-pro",
           "botManager": {
-            "at": 1792268399048,
+            "at": 1792269524648,
             "cookie": "_abck",
             "override": false,
-            "reloadedAt": 1792268399048,
+            "reloadedAt": 1792269524648,
             "vendor": "akamai"
           },
           "botManagerSites": [
@@ -227,5 +225,5 @@
       ]
     }
   ],
-  "capturedAt": "2026-10-17T20:20:18.567Z"
+  "capturedAt": "2026-10-17T20:39:03.468Z"
 }

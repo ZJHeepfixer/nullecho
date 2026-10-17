@@ -12,12 +12,12 @@
       "wall": null,
       "coldConfirmed": null,
       "navError": null,
-      "ms": 18668,
+      "ms": 7629,
       "documents": [
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "02828AEBAEEBA434DF5E31EB5731D8B1",
+          "frameId": "A37182C93A00E3BE5B22B2DDD3013F37",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -30,7 +30,7 @@
         {
           "url": "https://www.tesla.com/",
           "status": 200,
-          "frameId": "02828AEBAEEBA434DF5E31EB5731D8B1",
+          "frameId": "A37182C93A00E3BE5B22B2DDD3013F37",
           "server": "",
           "setCookieNames": [
             "bm_s",
@@ -58,11 +58,11 @@
           "error": "net::ERR_ABORTED"
         },
         {
+          "url": "https://digitalassets.tesla.com/tesla-contents/video/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.mp4",
+          "type": "Media",
           "error": "net::ERR_ABORTED"
         },
         {
-          "url": "https://digitalassets.tesla.com/tesla-contents/video/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.mp4",
-          "type": "Media",
           "error": "net::ERR_ABORTED"
         },
         {
@@ -87,7 +87,7 @@
         "title": "Electric Cars, Solar & Clean Energy | Tesla",
         "href": "https://www.tesla.com/",
         "visibility": "visible",
-        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Model 3 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/",
+        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,611,198 Miles Dri",
         "webdriver": false,
         "gpc": true,
         "cores": 12,
@@ -98,14 +98,14 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792269058332,
+            "at": 1792269479301,
             "lockedToFallback": false,
             "reason": "bot-manager",
             "upgraded": false
           },
-          "personaId": "macos-chrome-mini-m2",
+          "personaId": "macos-chrome-m1-pro",
           "botManager": {
-            "at": 1792269046636,
+            "at": 1792269476836,
             "cookie": "_abck",
             "override": false,
             "vendor": "akamai"
@@ -117,5 +117,5 @@
       ]
     }
   ],
-  "capturedAt": "2026-10-17T20:31:04.789Z"
+  "capturedAt": "2026-10-17T20:38:04.195Z"
 }

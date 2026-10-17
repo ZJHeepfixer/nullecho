@@ -2,7 +2,7 @@
   "label": "top-test",
   "url": "http://top.test:4959/",
   "extensions": [
-    "zip-chrome"
+    "final-chrome"
   ],
   "cold": false,
   "visits": [
@@ -12,19 +12,19 @@
       "wall": null,
       "coldConfirmed": null,
       "navError": null,
-      "ms": 7187,
+      "ms": 7185,
       "documents": [
         {
           "url": "http://top.test:4959/",
           "status": 200,
-          "frameId": "0BCFB876D5DC3937B36BD38E49DE482E",
+          "frameId": "8FF3D6149D86EBB7082B2521F545B370",
           "server": "",
           "setCookieNames": []
         },
         {
           "url": "http://third.test:4959/frame",
           "status": 200,
-          "frameId": "A2CAF7E1762EC03DDE79386FA72E379E",
+          "frameId": "0F1DD063427A898FDBFE46EFE6FAE79F",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -51,7 +51,7 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268325664,
+            "at": 1792269375473,
             "lockedToFallback": false,
             "reason": null,
             "upgraded": true
@@ -63,5 +63,5 @@
       ]
     }
   ],
-  "capturedAt": "2026-10-17T20:18:52.746Z"
+  "capturedAt": "2026-10-17T20:36:22.533Z"
 }

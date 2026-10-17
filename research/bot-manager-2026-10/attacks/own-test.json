@@ -2,7 +2,7 @@
   "label": "own-test",
   "url": "http://own.test:4959/",
   "extensions": [
-    "zip-chrome"
+    "final-chrome"
   ],
   "cold": false,
   "visits": [
@@ -17,7 +17,7 @@
         {
           "url": "http://own.test:4959/",
           "status": 200,
-          "frameId": "F7DAAC42C633AAF5EFDCDC33BF553928",
+          "frameId": "E718F965208C1EB30AAF74E67DF73EE0",
           "server": "",
           "setCookieNames": [
             "_abck",
@@ -47,14 +47,14 @@
       "extensions": [
         {
           "shimStatus": {
-            "at": 1792268335166,
+            "at": 1792269394319,
             "lockedToFallback": false,
             "reason": "bot-manager",
             "upgraded": false
           },
-          "personaId": "macos-chrome-m1",
+          "personaId": "macos-chrome-m3-4k",
           "botManager": {
-            "at": 1792268335152,
+            "at": 1792269394303,
             "cookie": "_abck",
             "override": false,
             "vendor": "akamai"
@@ -66,5 +66,5 @@
       ]
     }
   ],
-  "capturedAt": "2026-10-17T20:19:02.205Z"
+  "capturedAt": "2026-10-17T20:36:41.343Z"
 }
