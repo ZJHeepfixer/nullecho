@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // D59 attack pages, served locally. Chrome reaches them through
-//   --host-resolver-rules="MAP top.test 127.0.0.1, MAP third.test 127.0.0.1, MAP own.test 127.0.0.1"
+//   --host-resolver-rules="MAP top.test 127.0.0.1, MAP third.test 127.0.0.1, MAP own.test 127.0.0.1,
+//                          MAP cname.test 127.0.0.1, MAP metrics.cname.test 127.0.0.1"
 //
 //   node attack-server.mjs [port=4959]
 //
@@ -8,6 +9,9 @@
 //                               (third.test) and a third-party script, every one of which answers with
 //                               Set-Cookie: _abck / bm_sz. The frame also calls back to top.test's host.
 //                               Expected: neither top.test nor third.test is flagged; both keep a persona.
+// http://cname.test:<port>/     a CNAME-cloaked tracker: the top document loads a script and fetches from
+//                               metrics.cname.test — first-party by registrable domain — and those answer
+//                               Set-Cookie: _abck / bm_sz. Expected: cname.test NOT flagged, keeps a persona.
 // http://own.test:<port>/       the positive control: the site's OWN first document sets _abck.
 //                               Expected: own.test flagged before its handshake, device layer stood down,
 //                               and its two listed tracker requests still blocked.
@@ -28,6 +32,12 @@ const pages = {
   'third.test /s.js': () => ({ cookies: BM, type: 'text/javascript', body: 'void 0;' }),
   'third.test /api': () => ({ cookies: BM, type: 'application/json', body: '{}' }),
   'top.test /api-from-frame': () => ({ cookies: BM, type: 'application/json', body: '{}' }),
+  'cname.test /': () => ({ cookies: [], type: 'text/html', body: `<!doctype html><title>cname.test</title>
+<h1>cname.test — a tracker on its own subdomain sets _abck</h1>
+<script src="http://metrics.cname.test:${PORT}/t.js"></script>
+<script>fetch('http://metrics.cname.test:${PORT}/b/ss', { mode: 'no-cors', credentials: 'include' }).catch(() => {});</script>` }),
+  'metrics.cname.test /t.js': () => ({ cookies: BM.map((c) => c + '; Domain=cname.test'), type: 'text/javascript', body: 'void 0;' }),
+  'metrics.cname.test /b/ss': () => ({ cookies: BM.map((c) => c + '; Domain=cname.test'), type: 'application/json', body: '{}' }),
   // Two requests Nullecho's static lists block: on a stood-down site they must still fail BLOCKED_BY_CLIENT
   // (blocking stays on). DNR cancels them before they leave the browser.
   'own.test /': () => ({ cookies: BM, type: 'text/html', body: `<!doctype html><title>own.test</title><h1>own.test sets its own _abck</h1>

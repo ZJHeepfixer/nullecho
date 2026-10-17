@@ -79,9 +79,9 @@ D20), and dropping it also means the one thing the observer reads is what a
 third party *sent*, not what a page *asked for*.
 
 **A second reader of the same listener, since 0.9.3 (DECISIONS.md D59).** The
-bot-manager stand-down reads the `Set-Cookie` **names** on responses from the
-top-level site itself — the main document and the requests that document makes to
-its own site, never a sub-frame and never a third party — to see whether the site
+bot-manager stand-down reads the `Set-Cookie` **names** on top-level documents —
+never a sub-frame, never a third party, and not even the page's own sub-requests,
+which a tracker on the site's own subdomain could answer — to see whether the site
 runs a bot check measured to refuse disguised devices (Akamai Bot Manager's
 `_abck` / `bm_sz`). It shares the heuristics layer's `onHeadersReceived` listener
 rather than adding one, stores the site name and the cookie name (never a value),

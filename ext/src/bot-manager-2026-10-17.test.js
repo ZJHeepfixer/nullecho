@@ -52,17 +52,23 @@ const doc = (over = {}) => ({ tabId: 7, frameId: 0, type: 'main_frame', url: 'ht
 
 test('D59: tesla.com\'s first document is a hit — Akamai, on the sensor\'s own cookie', () => {
   const hit = topLevelHit(doc());
-  assert.deepEqual(hit, { site: 'tesla.com', vendor: 'akamai', label: 'Akamai Bot Manager', cookie: '_abck', mainFrame: true });
+  assert.deepEqual(hit, { site: 'tesla.com', vendor: 'akamai', label: 'Akamai Bot Manager', cookie: '_abck' });
   assert.deepEqual(setCookieNames(TESLA_FIRST_DOC), ['_abck', 'bm_s', 'bm_sc', 'bm_so', 'bm_sz']);
 });
 
-test('D59: a first-party request made by the top document counts (a sensor POST answered with _abck)', () => {
-  const hit = topLevelHit(doc({ type: 'xmlhttprequest', url: 'https://www.tesla.com/0COgbP/eoH__/x', initiator: 'https://www.tesla.com',
-    responseHeaders: [{ name: 'Set-Cookie', value: '_abck=1~0~2; Path=/' }] }));
-  assert.equal(hit?.site, 'tesla.com');
-  assert.equal(hit?.mainFrame, false);
-  // Firefox names the document in documentUrl and may fold Set-Cookie lines into one header.
-  const ff = topLevelHit({ tabId: 3, frameId: 0, type: 'xmlhttprequest', url: 'https://www.tesla.com/a', documentUrl: 'https://www.tesla.com/',
+test('D59 ATTACK: a CNAME-cloaked tracker on the site\'s own domain cannot flag it — only a top-level document counts', () => {
+  // metrics.news.example → a tracking vendor: first-party by registrable domain, requested by the top
+  // document. If its Set-Cookie counted, one header from the vendor would take the device profile off
+  // every site it serves. The site's own sensor POST is the same shape and is not needed (every Akamai
+  // site measured set the cookies on a top-level document).
+  for (const type of ['xmlhttprequest', 'script', 'image', 'ping', 'other']) {
+    assert.equal(topLevelHit({ tabId: 7, frameId: 0, type, url: 'https://metrics.news.example/b/ss', initiator: 'https://www.news.example',
+      responseHeaders: [{ name: 'Set-Cookie', value: '_abck=x~0~y; Path=/; Domain=.news.example' }] }), null, type);
+  }
+  assert.equal(topLevelHit(doc({ type: 'xmlhttprequest', url: 'https://www.tesla.com/0COgbP/eoH__/x', initiator: 'https://www.tesla.com',
+    responseHeaders: [{ name: 'Set-Cookie', value: '_abck=1~0~2; Path=/' }] })), null);
+  // Firefox may fold Set-Cookie lines into one header; a top-level document is read either way.
+  const ff = topLevelHit({ tabId: 3, frameId: 0, type: 'main_frame', url: 'https://www.tesla.com/',
     responseHeaders: [{ name: 'set-cookie', value: 'other=1; Path=/\nbm_sz=2; Path=/' }] });
   assert.equal(ff?.cookie, 'bm_sz');
 });
@@ -76,8 +82,6 @@ test('D59 ATTACK: nothing from a sub-frame or a third-party host can flag a site
   assert.equal(topLevelHit({ tabId: 7, frameId: 5, type: 'xmlhttprequest', url: 'https://news.example/x', initiator: 'https://evil.example', responseHeaders: abck }), null);
   // A third-party script the top document loads, answering with the cookie.
   assert.equal(topLevelHit({ tabId: 7, frameId: 0, type: 'script', url: 'https://cdn.evil.example/s.js', initiator: 'https://news.example', responseHeaders: abck }), null);
-  // A first-party request the top document did NOT make (no initiator at all).
-  assert.equal(topLevelHit({ tabId: 7, frameId: 0, type: 'xmlhttprequest', url: 'https://news.example/x', responseHeaders: abck }), null);
   // Not a tab: the extension, a service worker.
   assert.equal(topLevelHit({ ...doc(), tabId: -1 }), null);
   // Non-http schemes have no site.
@@ -96,17 +100,15 @@ test('D59: only cookies of a vendor MEASURED to break are triggers — Cloudflar
 test('D59: the late-flag reload fires only for a document that already took a profile, once', () => {
   const now = 1_000_000;
   const entry = { vendor: 'akamai', cookie: '_abck', at: now, override: false };
-  const base = { entry, isNew: true, site: 'tesla.com', mainFrame: true, responseAt: now - 20, now };
+  const base = { entry, isNew: true, site: 'tesla.com', responseAt: now - 20, now };
   // The race lost: this document's handshake came AFTER its response and got the persona.
   assert.equal(lateFlagReload({ ...base, topDoc: { site: 'tesla.com', at: now - 5, active: true } }), true);
   // The handshake on record is the PREVIOUS page's: the new document's own handshake will see the flag.
   assert.equal(lateFlagReload({ ...base, topDoc: { site: 'tesla.com', at: now - 900, active: true } }), false);
-  // A sub-resource hit is about the document showing now.
-  assert.equal(lateFlagReload({ ...base, mainFrame: false, topDoc: { site: 'tesla.com', at: now - 900, active: true } }), true);
   // Never: already stood down, another site, too old, overridden, already reloaded, not a new record.
   assert.equal(lateFlagReload({ ...base, topDoc: { site: 'tesla.com', at: now - 5, active: false } }), false);
   assert.equal(lateFlagReload({ ...base, topDoc: { site: 'other.example', at: now - 5, active: true } }), false);
-  assert.equal(lateFlagReload({ ...base, mainFrame: false, topDoc: { site: 'tesla.com', at: now - LATE_RELOAD_WINDOW_MS - 1, active: true } }), false);
+  assert.equal(lateFlagReload({ ...base, responseAt: now - LATE_RELOAD_WINDOW_MS - 50, now, topDoc: { site: 'tesla.com', at: now - LATE_RELOAD_WINDOW_MS - 1, active: true } }), false);
   assert.equal(lateFlagReload({ ...base, entry: { ...entry, override: true }, topDoc: { site: 'tesla.com', at: now - 5, active: true } }), false);
   assert.equal(lateFlagReload({ ...base, entry: { ...entry, reloadedAt: now - 1 }, topDoc: { site: 'tesla.com', at: now - 5, active: true } }), false);
   assert.equal(lateFlagReload({ ...base, isNew: false, topDoc: { site: 'tesla.com', at: now - 5, active: true } }), false);
@@ -121,6 +123,12 @@ test('D59: the table is bounded, and the user\'s overrides are the last thing to
   assert.ok(t['s0.example'], 'the oldest entry is an override and survives');
   assert.equal(t['s1.example'], undefined);
   assert.ok(t['s509.example']);
+  // A table full of overrides still keeps the entry being added.
+  const full = {};
+  for (let i = 0; i < 500; i++) full[`o${i}.example`] = { vendor: 'akamai', cookie: '_abck', at: i, override: true };
+  full['new.example'] = { vendor: 'akamai', cookie: '_abck', at: 0, override: false };
+  prune(full, 500, 'new.example');
+  assert.ok(full['new.example'], 'the new flag was pruned the moment it was set');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -301,12 +309,15 @@ test('D59 ATTACK: the race fallback reloads ONCE and can never loop', async () =
   reloads.length = 0;
 });
 
-test('D59: a late SUB-RESOURCE flag reloads a young document once; an old one is left alone', async () => {
+test('D59 ATTACK: a first-party SUB-RESOURCE cookie (a CNAME-cloaked tracker, or a sensor POST) flags nothing and reloads nothing', async () => {
   await send({ type: MSG.GET_PERSONA }, top('https://late.example/', 12));
-  await headers({ tabId: 12, frameId: 0, type: 'xmlhttprequest', url: 'https://late.example/sensor', initiator: 'https://late.example',
-    timeStamp: Date.now(), responseHeaders: [{ name: 'Set-Cookie', value: '_abck=1~-1~2' }] });
-  assert.deepEqual(reloads, [12]);
-  reloads.length = 0;
+  await headers({ tabId: 12, frameId: 0, type: 'xmlhttprequest', url: 'https://metrics.late.example/b/ss', initiator: 'https://late.example',
+    timeStamp: Date.now(), responseHeaders: [{ name: 'Set-Cookie', value: '_abck=1~-1~2; Domain=.late.example' }] });
+  await settle();
+  assert.equal(store[BOT_MANAGER_STORAGE_KEY]['late.example'], undefined);
+  assert.deepEqual(reloads, []);
+  const r = await send({ type: MSG.GET_PERSONA }, top('https://late.example/', 12));
+  assert.ok(r.persona?.id, 'the site keeps its device profile');
 });
 
 test('D59: the flag survives the worker — a fresh boot reads it back from storage', () => {

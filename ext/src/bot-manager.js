@@ -30,18 +30,26 @@
  * delta, zara, sephora) loaded with the shim exactly as without it and only
  * tesla.com refused (adidas and kohls walled the rig either way). One load per
  * variant per site: a sample, not a census. Nothing in a first response tells the
- * two kinds apart — tesla's
- * cookie set is not unique to it (macys sets `bm_sc` too) — and a refusal cannot be
- * waited for, because it outlives the stand-down. So the device layer stands down
- * on all of them; the settings page's per-site override is the way back.
+ * two kinds apart — tesla's cookie set is not unique to it (macys sets `bm_sc`
+ * too) — and a refusal cannot be waited for, because it outlives the stand-down.
+ * So the device layer stands down on all of them; the settings page's per-site
+ * override is the way back.
  *
- * WHAT COUNTS AS THE SITE'S OWN RESPONSE (`topLevelHit`):
- *   · a top-level document (`main_frame`, frame 0): its site IS the top-level site;
- *   · a request the top-level document itself made (frame 0) to its own site —
- *     same registrable domain as the request's initiator.
- * Nothing from a sub-frame, ever, and nothing from a third-party host: a frame or
- * script from another site cannot flip the flag for the page it is embedded in,
- * and is not trusted to flag its own host either (it is not being visited).
+ * WHAT COUNTS AS THE SITE'S OWN RESPONSE (`topLevelHit`): a TOP-LEVEL DOCUMENT —
+ * `main_frame`, frame 0, in a tab — and nothing else. Its site is the top-level
+ * site by definition. Every Akamai site measured set the trigger cookies on a
+ * top-level document (the first one, or zara's second), so nothing is lost by
+ * stopping there, and two attacks are closed by it:
+ *   · a third party — a frame, a script, a fetch to another host — can never flip
+ *     the flag, for the page it is embedded in or for its own host;
+ *   · nor can a tracker the site serves from its OWN domain (CNAME cloaking:
+ *     `metrics.site.example` → a tracking vendor). Its responses are first-party
+ *     by registrable domain, and if they counted, one `Set-Cookie: _abck` from such
+ *     an endpoint would take the device profile off every site the vendor serves —
+ *     the cross-site join restored, by the party it exists to stop. A top-level
+ *     document is served by the site itself.
+ * What remains, stated: a site can switch the profile off for ITSELF by sending
+ * the cookie name on its own pages. It cannot do so for any other site.
  * No URL-only signal is read — the request URL is used for its registrable
  * domain only, the host the browser actually contacted (review A5).
  *
@@ -128,8 +136,8 @@ export function vendorLabel(vendor) {
 }
 
 /**
- * Does this response come from the top-level site itself, and does it carry a
- * bot-manager cookie? Returns `{ site, vendor, label, cookie, mainFrame }` or null.
+ * Is this response a top-level document, and does it carry a bot-manager cookie?
+ * Returns `{ site, vendor, label, cookie }` or null.
  *
  * `details` is a webRequest `onHeadersReceived` event. Every field read here is
  * the browser's own account of the request — none is page-controlled except the
@@ -139,18 +147,13 @@ export function topLevelHit(details) {
   if (!details || typeof details !== 'object') return null;
   if (!Number.isInteger(details.tabId) || details.tabId < 0) return null;   // not a tab: extension, worker
   if (details.frameId !== 0) return null;                                    // a sub-frame, or its document
-  if (details.type === 'sub_frame') return null;
+  // A top-level document only — not even the top document's own first-party
+  // requests: see "WHAT COUNTS" above (CNAME-cloaked trackers).
+  if (details.type !== 'main_frame') return null;
   const site = siteOf(details.url);
   if (!site) return null;
-  const mainFrame = details.type === 'main_frame';
-  if (!mainFrame) {
-    // A request the top document made: first-party only. Chrome names the
-    // document's origin in `initiator`; Firefox in `documentUrl` / `originUrl`.
-    const top = siteOf(details.initiator || details.documentUrl || details.originUrl || '');
-    if (!top || top !== site) return null;
-  }
   const hit = vendorFor(setCookieNames(details.responseHeaders));
-  return hit ? { site, ...hit, mainFrame } : null;
+  return hit ? { site, ...hit } : null;
 }
 
 /**
@@ -158,16 +161,14 @@ export function topLevelHit(details) {
  * that flags a site (measured 2026-10-17: the response event reaches the worker
  * 12-14 ms before the loader's GET_PERSONA when it is running, and first, in the
  * same millisecond, when the event has to wake it) — but nothing in the
- * platform promises that order, and a site may set its cookie only on a later
- * first-party request. When the flag lands after this tab's top document already
- * took a device profile, reload that tab ONCE.
+ * platform promises that order. When the flag lands after the document that
+ * response created already took a device profile, reload that tab ONCE.
  *
  * @param {object} p
  * @param {object|null} p.entry   the site's stored record, AFTER this flag was set
  * @param {boolean} p.isNew       this event created the record (the only transition that may reload)
  * @param {{site:string, at:number, active:boolean}|undefined} p.topDoc  the tab's last top-frame handshake
  * @param {string} p.site
- * @param {boolean} p.mainFrame   the hit came from a main_frame response
  * @param {number} p.responseAt   when the response arrived (webRequest `timeStamp`)
  * @param {number} p.now
  * @returns {boolean} reload the tab now
@@ -176,27 +177,26 @@ export function topLevelHit(details) {
  * it before the reload is issued; and the reloaded document's handshake is a
  * stood-down one, which can never satisfy `active`.
  */
-export function lateFlagReload({ entry, isNew, topDoc, site, mainFrame, responseAt, now }) {
+export function lateFlagReload({ entry, isNew, topDoc, site, responseAt, now }) {
   if (!isNew || !entry || entry.override || entry.reloadedAt) return false;
   if (!topDoc || topDoc.site !== site || !topDoc.active) return false;
   if (now - topDoc.at > LATE_RELOAD_WINDOW_MS) return false;
-  // A main_frame hit is about the document that response creates. Only a
-  // handshake that came AFTER the response can belong to that document; an older
-  // one is the previous page, and the new document's own handshake will see the
-  // flag. A sub-resource hit is about the document already showing.
-  if (mainFrame && !(topDoc.at >= responseAt)) return false;
-  return true;
+  // The hit is about the document its response creates. Only a handshake that
+  // came AFTER the response can belong to that document; an older one is the
+  // previous page, and the new document's own handshake will see the flag.
+  return topDoc.at >= responseAt;
 }
 
 /**
  * Keep the table bounded: drop the oldest non-overridden entries. Overrides are
- * the user's own decisions and are kept while anything else can go.
+ * the user's own decisions and are kept while anything else can go; `keep` is the
+ * entry being added, which must not be the one that goes.
  */
-export function prune(table, max = MAX_BOT_MANAGER_SITES) {
+export function prune(table, max = MAX_BOT_MANAGER_SITES, keep = null) {
   const keys = Object.keys(table);
   if (keys.length <= max) return table;
   const drop = keys
-    .filter((k) => !table[k]?.override)
+    .filter((k) => !table[k]?.override && k !== keep)
     .sort((a, b) => (table[a]?.at || 0) - (table[b]?.at || 0))
     .slice(0, keys.length - max);
   for (const k of drop) delete table[k];

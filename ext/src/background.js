@@ -710,8 +710,8 @@ async function blockedOnPage(tabId) {
 // D59 — bot-manager stand-down: the observer (the rules are in bot-manager.js)
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// A site whose OWN response sets a measured bot manager's cookie gets the device
-// layer stood down; blocking and GPC stay on. The decision has to be in place
+// A site whose own top-level document sets a measured bot manager's cookie gets
+// the device layer stood down; blocking and GPC stay on. The decision has to be in place
 // before the site's sensor runs — after one denial the next load is denied too —
 // so it is taken from the response headers of the first document itself, which
 // reach this worker before the loader's GET_PERSONA does (measured 2026-10-17 on
@@ -752,7 +752,8 @@ function noteTopDocument(tabId, rec) {
 
 /**
  * One response header event. Exported for the tests. Returns the work promise,
- * or undefined when the response is not a first-party bot-manager cookie.
+ * or undefined when the response is not a top-level document carrying a
+ * bot-manager cookie.
  */
 export function onBotManagerHeaders(details) {
   const hit = topLevelHit(details);
@@ -767,11 +768,11 @@ async function recordBotManager(hit, details) {
   // event on `ready()` already sees the record.
   const entry = { vendor: hit.vendor, cookie: hit.cookie, at: now, override: false };
   botSites[hit.site] = entry;
-  pruneBotManagerSites(botSites);
+  pruneBotManagerSites(botSites, undefined, hit.site);
 
   const reload = lateFlagReload({
     entry, isNew: true, topDoc: topDocuments.get(details.tabId), site: hit.site,
-    mainFrame: hit.mainFrame, responseAt: Number(details.timeStamp) || now, now,
+    responseAt: Number(details.timeStamp) || now, now,
   });
   // Recorded BEFORE the reload is issued, and persisted with the flag: the guard
   // that makes a second reload for this site impossible survives the worker.

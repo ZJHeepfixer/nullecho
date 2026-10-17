@@ -7,8 +7,6 @@
 //                  nothing, i.e. the detection is gone. Expect tesla.com to be denied again.
 //   late-main      every hit is recorded 400 ms late — the persona handshake wins the race on the first
 //                  document, so only the race fallback (one guarded reload) can save the visit.
-//   subresource-only  main_frame responses are ignored; only the top document's own later requests
-//                  (the sensor's script / POST answers) can flag the site — the late-cookie case.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -25,7 +23,4 @@ patch(copy('no-detect'), 'src/bot-manager.js', "cookies: Object.freeze(['_abck',
 patch(copy('late-main'), 'src/background.js',
   'return ready().then(() => recordBotManager(hit, details)).catch(warn(\'bot-manager\'));',
   'return new Promise((r) => setTimeout(r, 400)).then(() => ready()).then(() => recordBotManager(hit, details)).catch(warn(\'bot-manager\'));');
-patch(copy('subresource-only'), 'src/bot-manager.js',
-  "const mainFrame = details.type === 'main_frame';",
-  "const mainFrame = details.type === 'main_frame'; if (mainFrame) return null;");
 console.log('attack variants:', fs.readdirSync(out).join(' '));

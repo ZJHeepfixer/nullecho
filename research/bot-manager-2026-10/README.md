@@ -82,7 +82,7 @@ All from the packaged store zip (`node ext/tools/package.mjs`, unzipped), non-au
 | ATTACK: top.test embeds a cross-site frame, a third-party script and fetches, every one answering `Set-Cookie: _abck, bm_sz`; the frame also calls back to top.test's host (`attacks/top-test`, `rig/attack-server.mjs`) | **nothing flagged** (`botManagerSites` never written); top.test keeps its persona (`macos-chrome-m1`: 8 cores, "Apple M1") |
 | ATTACK: detection removed (`no-detect`: empty trigger list) | tesla.com **DENIED** again, shim `upgraded` |
 | ATTACK: the lost race (`late-main`: every hit recorded 400 ms late) | visit 1: one reload (`reloadedAt` set), then OK; visit 2: one document, no reload |
-| ATTACK: the late cookie (`subresource-only`: main_frame responses ignored) | visit 1: one reload, then OK; visit 2: no reload |
+| ATTACK: a CNAME-cloaked tracker — cname.test's top document loads a script and fetches from `metrics.cname.test`, first-party by registrable domain, both answering `Set-Cookie: _abck, bm_sz` (`attacks/cname-test`) | **nothing flagged**; cname.test keeps its persona. (A first draft also read the top document's own sub-requests; this attack is why it no longer does — every Akamai site measured sets the cookies on a top-level document anyway.) |
 | ATTACK: "Use my device profile here anyway" (`attack-override`) | v1 stood down, OK · override on → v2 shim `upgraded`, persona `macos-chrome-m1-pro` (10 cores, "Apple M1 Pro"), page loaded · override off → **v3 DENIED on the first document** — the refusal landed on the visit AFTER the profile was used and outlasted switching back, which is what the warning now says |
 | UI (`ui/`, `rig/ui-render.mjs`) | popup on tesla.com: the D59 sentence as an alert, "your own device (not disguised here)", every row "as your browser reports it — not changed"; on wikipedia: no alert, the persona; settings card in light and dark; the override button shows the warning, a dismissal changes nothing, acceptance sets `override: true` |
 
@@ -94,7 +94,7 @@ NULLECHO_PUPPETEER_DIR=<dir> node research/bot-manager-2026-10/rig/probe-site.mj
 node research/bot-manager-2026-10/rig/make-attack-variants.mjs /tmp/zip /tmp/attack
 node research/bot-manager-2026-10/rig/attack-server.mjs 4959 &
 NULLECHO_PUPPETEER_DIR=<dir> node research/bot-manager-2026-10/rig/probe-site.mjs --settle 6000 \
-  --chrome-arg "--host-resolver-rules=MAP top.test 127.0.0.1, MAP third.test 127.0.0.1, MAP own.test 127.0.0.1" \
+  --chrome-arg "--host-resolver-rules=MAP top.test 127.0.0.1, MAP third.test 127.0.0.1, MAP own.test 127.0.0.1, MAP cname.test 127.0.0.1, MAP metrics.cname.test 127.0.0.1" \
   /tmp/out http://top.test:4959/ top-test=/tmp/zip
 NULLECHO_PUPPETEER_DIR=<dir> node research/bot-manager-2026-10/rig/survey.mjs /tmp/survey <shim-on ext> <shim-off ext> [vendor …]
 ```

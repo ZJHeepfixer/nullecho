@@ -3710,9 +3710,12 @@ fingerprint layer stands down for that site; tracker blocking and GPC stay on.
    `ak_bmsc`.
 
 **Decision.**
-1. **Detection (`ext/src/bot-manager.js`), from the site's own responses only.** A response counts if it is the
-   top-level document (`main_frame`, frame 0) or a request that document made to its own registrable domain (frame 0,
-   initiator same site). Never a sub-frame, never a third-party host, never a non-tab request. The trigger is the
+1. **Detection (`ext/src/bot-manager.js`), from the site's own top-level documents only** (`main_frame`, frame 0,
+   in a tab). Never a sub-frame, never a third-party host — and not the page's own sub-requests either: those include
+   trackers served from the site's own subdomain (CNAME cloaking), and if their `Set-Cookie` counted, one header from
+   such a vendor would take the device profile off every site it serves. Every Akamai site measured set the trigger
+   cookies on a top-level document, so nothing measured is lost. What remains: a site can switch the profile off for
+   itself by sending the cookie name on its own pages — never for another site. The trigger is the
    cookie NAME, `_abck` or `bm_sz` (Akamai Bot Manager: the sensor's cookie and the one set with it on every Akamai
    site measured). `ak_bmsc` is not a trigger: it is the edge-only cookie, tesla.com does not set it, and the two
    sites measured with it alone (walmart, nike) load fine with the shim. No other vendor is in the table — none was
@@ -3761,16 +3764,19 @@ fresh profile, stood down from the first document, GPC true, real cores and GPU.
 A local site whose own first document sets `_abck`: flagged 14 ms before the shim's status, real device, GPC true, and
 its two listed tracker requests still blocked. **Attacked:** a cross-site frame, a third-party script and fetches all
 answering `Set-Cookie: _abck, bm_sz` (and the frame calling back to the top site's host) flagged nothing and the top
-site kept its persona; with the trigger list emptied tesla.com is DENIED again; with every hit delayed 400 ms (the lost
-race) and with main_frame responses ignored (the late cookie) visit 1 reloaded once and loaded, visit 2 did not reload;
+site kept its persona; a script and a fetch from the site's own `metrics.` subdomain answering the same (CNAME
+cloaking) flagged nothing either; with the trigger list emptied tesla.com is DENIED again; with every hit delayed 400 ms
+(the lost race) visit 1 reloaded once and loaded, visit 2 did not reload;
 the override re-enabled the persona (v2 `upgraded`, 10 cores, "Apple M1 Pro") and the next visit, with the override
 switched back off, was DENIED on its first document.
 
-**Tests.** `ext/src/bot-manager-2026-10-17.test.js` (26): which responses count (sub-frames, third parties, non-tabs and
-cookieless views never do); only Akamai's two names trigger; the reload rule; the bound; the real worker — the flag
+**Tests.** `ext/src/bot-manager-2026-10-17.test.js` (26): which responses count (sub-frames, third parties, the page's
+own sub-requests, non-tabs and cookieless views never do); only Akamai's two names trigger; the reload rule; the bound;
+the real worker — the flag
 lands before a same-tick handshake, persisted, no allow rule, report and overview, cross-site frames flip nothing,
 override on/off, allowlist wins, one reload ever, clear history; the shim — a snapshot of every interface descriptor is
 the engine's after the stand-down (as after the allowlist's), a forged or prototype-supplied `fpStandDown` does nothing;
 loader + shim + gpc.js — real device and GPC still `true` with a native-looking getter, `false` when the user's GPC is
 off. Mutants killed: main's shim (the snapshot), gpc.js without `rebaseline()` (GPC dropped — 2 fail), a flag recorded
-2 ms late (4 fail). `privacy-page-2026-10-14.test.js` pins the new key in both privacy documents.
+2 ms late (4 fail), the first draft's detection that also read the page's own sub-requests (5 fail).
+`privacy-page-2026-10-14.test.js` pins the new key in both privacy documents.
