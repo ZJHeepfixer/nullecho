@@ -1,0 +1,1148 @@
+{
+ "ranAt": "2026-10-17T20:47:58.815Z",
+ "minutes": 10.9,
+ "headless": true,
+ "cases": 32,
+ "passed": 32,
+ "failed": [],
+ "results": [
+  {
+   "id": "A1",
+   "what": "J1.1: a fair 50/50 cookie bucket, no device effect; J1.4 follow items (one follows the bucket, one has a single offer, one splits on its own)",
+   "kind": "positive+negative",
+   "pass": true,
+   "seconds": 66,
+   "checks": [
+    {
+     "label": "two offers found",
+     "pass": true,
+     "observed": [
+      "[email]×26",
+      "[email]×14"
+     ]
+    },
+    {
+     "label": "verdict SPLIT-CONSISTENT-WITH-HALF",
+     "pass": true,
+     "observed": "SPLIT-CONSISTENT-WITH-HALF {\"share\":0.65,\"lo\":0.4951,\"hi\":0.7787,\"x\":26,\"n\":40,\"binomVsHalf\":0.0807}"
+    },
+    {
+     "label": "10 observed per device",
+     "pass": true,
+     "observed": {
+      "android-chrome": 10,
+      "iphone-safari": 10,
+      "mac-chrome": 10,
+      "win-chrome": 10
+     }
+    },
+    {
+     "label": "no device effect (negative control)",
+     "pass": true,
+     "observed": {
+      "chi2": 2.1978,
+      "p": 0.6884,
+      "permutations": 20000,
+      "verdict": "NO-DEVICE-EFFECT-DETECTED"
+     }
+    },
+    {
+     "label": "no order effect",
+     "pass": true,
+     "observed": {
+      "meanLoadNoLowMinusHigh": -3.5055,
+      "p": 0.6652,
+      "verdict": "NO-ORDER-EFFECT-DETECTED"
+     }
+    },
+    {
+     "label": "reloads sticky",
+     "pass": true,
+     "observed": {
+      "reloads": 10,
+      "same": 10,
+      "verdict": "STICKY"
+     }
+    },
+    {
+     "label": "F1 follows the main bucket (positive)",
+     "pass": true,
+     "observed": {
+      "table": [
+       [
+        9,
+        0
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "agreement": 1,
+      "fisherP": 0.0045
+     }
+    },
+    {
+     "label": "F2 single offer (negative)",
+     "pass": true,
+     "observed": "NO-SPLIT-IN-12"
+    },
+    {
+     "label": "F3 splits independently",
+     "pass": true,
+     "observed": {
+      "table": [
+       [
+        4,
+        5
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "agreement": 0.5,
+      "fisherP": 1
+     }
+    },
+    {
+     "label": "iPhone profile sends no client hints",
+     "pass": true,
+     "observed": 22
+    },
+    {
+     "label": "Android profile sends Sec-CH-UA-Mobile ?1, platform Android",
+     "pass": true,
+     "observed": {
+      "path": "/ip/5689919121",
+      "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+      "ch": "\"Chromium\";v=\"149\", \"Google Chrome\";v=\"149\", \"Not;A=Brand\";v=\"99\"",
+      "chMobile": "?1",
+      "chPlatform": "\"Android\"",
+      "lang": "en-US,en;q=0.9"
+     }
+    },
+    {
+     "label": "Windows profile sends platform Windows",
+     "pass": true,
+     "observed": "\"Windows\""
+    },
+    {
+     "label": "Mac profile sends platform macOS",
+     "pass": true,
+     "observed": "\"macOS\""
+    },
+    {
+     "label": "no \"Headless\" in any user agent",
+     "pass": true,
+     "observed": null
+    },
+    {
+     "label": "navigator.webdriver false on every page",
+     "pass": true,
+     "observed": 86
+    },
+    {
+     "label": "navigator.platform matches each profile",
+     "pass": true,
+     "observed": [
+      "iPhone",
+      "Linux armv81",
+      "Win32",
+      "MacIntel"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "what": "J1.1b: phones drawn into the cheap offer 90% of the time, desktops 10%",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 46,
+   "checks": [
+    {
+     "label": "device effect detected",
+     "pass": true,
+     "observed": {
+      "chi2": 32.7273,
+      "p": 0,
+      "permutations": 20000,
+      "verdict": "DEVICE-ASSOCIATED"
+     }
+    },
+    {
+     "label": "phone CIs above desktop CIs",
+     "pass": true,
+     "observed": {
+      "android-chrome": {
+       "share": 0.9,
+       "lo": 0.5958,
+       "hi": 0.9821,
+       "x": 9,
+       "n": 10
+      },
+      "iphone-safari": {
+       "share": 0.9,
+       "lo": 0.5958,
+       "hi": 0.9821,
+       "x": 9,
+       "n": 10
+      },
+      "mac-chrome": {
+       "share": 0,
+       "lo": 0,
+       "hi": 0.2775,
+       "x": 0,
+       "n": 10
+      },
+      "win-chrome": {
+       "share": 0,
+       "lo": 0,
+       "hi": 0.2775,
+       "x": 0,
+       "n": 10
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "what": "J1.1: one offer for everyone",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 25,
+   "checks": [
+    {
+     "label": "verdict NO-SPLIT",
+     "pass": true,
+     "observed": "NO-SPLIT, unseen-offer upper bound 0.1611"
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "what": "J1.1: an uneven 90/10 bucket",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 45,
+   "checks": [
+    {
+     "label": "verdict SPLIT-UNEVEN",
+     "pass": true,
+     "observed": "SPLIT-UNEVEN {\"share\":0.825,\"lo\":0.6805,\"hi\":0.9125,\"x\":33,\"n\":40,\"binomVsHalf\":0}"
+    },
+    {
+     "label": "no device effect",
+     "pass": true,
+     "observed": {
+      "chi2": 1.9048,
+      "p": 0.8067,
+      "permutations": 20000,
+      "verdict": "NO-DEVICE-EFFECT-DETECTED"
+     }
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "what": "walls: every 3rd page walled; walled profiles replaced; wall text kept without the IP",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 34,
+   "checks": [
+    {
+     "label": "walls recorded as BLOCKED",
+     "pass": true,
+     "observed": 5
+    },
+    {
+     "label": "3 observed per device after replacement",
+     "pass": true,
+     "observed": {
+      "android-chrome": {
+       "share": 0.6667,
+       "lo": 0.2077,
+       "hi": 0.9385,
+       "x": 2,
+       "n": 3
+      },
+      "iphone-safari": {
+       "share": 1,
+       "lo": 0.4385,
+       "hi": 1,
+       "x": 3,
+       "n": 3
+      },
+      "mac-chrome": {
+       "share": 0,
+       "lo": 0,
+       "hi": 0.5615,
+       "x": 0,
+       "n": 3
+      },
+      "win-chrome": {
+       "share": 0,
+       "lo": 0,
+       "hi": 0.5615,
+       "x": 0,
+       "n": 3
+      }
+     }
+    },
+    {
+     "label": "wall text kept",
+     "pass": true,
+     "observed": "Access Denied You don't have permission to access this page. Reference #[ref] Your IP address: [ip]"
+    },
+    {
+     "label": "fake IP scrubbed",
+     "pass": true,
+     "observed": false
+    },
+    {
+     "label": "wall reference id [ref]",
+     "pass": true,
+     "observed": "Reference #[ref] Your IP address: [ip]"
+    }
+   ]
+  },
+  {
+   "id": "A6",
+   "what": "stop rule: every page walled → cool off after 3, stop after the second run of 3",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 25,
+   "checks": [
+    {
+     "label": "stopped by the wall rule",
+     "pass": true,
+     "observed": "2 runs of 3 consecutive walls: stop"
+    },
+    {
+     "label": "exactly 6 loads",
+     "pass": true,
+     "observed": 6
+    }
+   ]
+  },
+  {
+   "id": "A7",
+   "what": "battery gate: on battery at 35% then 38% → pauses twice, resumes on AC",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 5,
+   "checks": [
+    {
+     "label": "two power pauses",
+     "pass": true,
+     "observed": [
+      "Battery Power 35%",
+      "Battery Power 38%"
+     ]
+    },
+    {
+     "label": "run completed afterwards",
+     "pass": true,
+     "observed": 4
+    }
+   ]
+  },
+  {
+   "id": "A8",
+   "what": "stop rule: 7 of the first 10 pages walled, never 3 in a row → site BLOCKED at load 10",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 32,
+   "checks": [
+    {
+     "label": "stopped as BLOCKED by the first-10 rule",
+     "pass": true,
+     "observed": "7 of the first 10 loads walled: site BLOCKED"
+    },
+    {
+     "label": "exactly 10 loads",
+     "pass": true,
+     "observed": 10
+    }
+   ]
+  },
+  {
+   "id": "C1",
+   "what": "J1.2: one deciding cookie (xpa); nothing else carries the offer",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 45,
+   "checks": [
+    {
+     "label": "deciders = [xpa]",
+     "pass": true,
+     "observed": [
+      "xpa"
+     ]
+    },
+    {
+     "label": "xpa carries alone",
+     "pass": true,
+     "observed": {
+      "name": "xpa",
+      "role": "experiment",
+      "carriesAlone": "yes",
+      "aloneCopies": 6,
+      "chanceAloneByLuck": 0.0156
+     }
+    },
+    {
+     "label": "then NO-FURTHER-CARRIER",
+     "pass": true,
+     "observed": "NO-FURTHER-CARRIER: without xpa the remaining cookies do not carry the offer"
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "what": "J1.2: a deciding cookie (xpa) and a fallback carrier (vtc), like walmart.com's two subsets",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 75,
+   "checks": [
+    {
+     "label": "deciders = [xpa, vtc]",
+     "pass": true,
+     "observed": [
+      "xpa",
+      "vtc"
+     ]
+    },
+    {
+     "label": "both carry alone",
+     "pass": true,
+     "observed": [
+      "yes",
+      "yes"
+     ]
+    },
+    {
+     "label": "then NO-FURTHER-CARRIER",
+     "pass": true,
+     "observed": "NO-FURTHER-CARRIER: without xpa + vtc the remaining cookies do not carry the offer"
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "what": "J1.2: only the PAIR (xpa, vtc) carries the offer",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 92,
+   "checks": [
+    {
+     "label": "INTERACTION detected",
+     "pass": true,
+     "observed": "INTERACTION: no single deciding cookie; minimal carrying set {xpa, vtc}"
+    },
+    {
+     "label": "minimal set = {vtc, xpa}",
+     "pass": true,
+     "observed": "INTERACTION: no single deciding cookie; minimal carrying set {xpa, vtc}"
+    }
+   ]
+  },
+  {
+   "id": "C4",
+   "what": "J1.2: the carrier is a bot-manager-class cookie, which is never transferred",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 5,
+   "checks": [
+    {
+     "label": "JAR-DOES-NOT-CARRY",
+     "pass": true,
+     "observed": "JAR-DOES-NOT-CARRY: the transferable (non-bot-manager) cookies do not carry the offer; stop"
+    },
+    {
+     "label": "_px3 listed as excluded",
+     "pass": true,
+     "observed": [
+      "TS01a1b2c3",
+      "_px3",
+      "_pxvid"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C5",
+   "what": "J1.2: one offer for everyone",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 5,
+   "checks": [
+    {
+     "label": "ONE-OFFER-ONLY",
+     "pass": true,
+     "observed": "ONE-OFFER-ONLY: every donor search drew the same offer; nothing to transfer"
+    }
+   ]
+  },
+  {
+   "id": "G1",
+   "what": "guard: J1.1 probe refuses walmart.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "G2",
+   "what": "guard: J1.2 probe refuses walmart.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "G3",
+   "what": "guard: J1.3 init refuses walmart.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "G4",
+   "what": "guard: J2 probe refuses priceline.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "H1",
+   "what": "J1.3: shopping changes nothing (negative control), run by the daemon on a compressed clock",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 154,
+   "checks": [
+    {
+     "label": "verdict NO-CHANGE",
+     "pass": true,
+     "observed": "NO-CHANGE"
+    },
+    {
+     "label": "6 profiles, 2 shoppers + 1 control per bucket",
+     "pass": true,
+     "observed": [
+      "h1:low/shopper",
+      "h2:low/shopper",
+      "h3:low/control",
+      "h4:high/shopper",
+      "h5:high/shopper",
+      "h6:high/control"
+     ]
+    },
+    {
+     "label": "every reading taken",
+     "pass": true,
+     "observed": [
+      6,
+      6,
+      6,
+      6,
+      6,
+      6
+     ]
+    },
+    {
+     "label": "12 shopping sessions, every cart SEEN empty",
+     "pass": true,
+     "observed": {
+      "adds": 12,
+      "addFailures": 0,
+      "sessions": 12,
+      "sessionsSeenEmpty": 12,
+      "withdrawn": 0,
+      "cleanups": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "H2",
+   "what": "J1.3: two cart sessions raise a visitor's price by $10 (planted history effect)",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 167,
+   "checks": [
+    {
+     "label": "verdict HISTORY-EFFECT",
+     "pass": true,
+     "observed": "HISTORY-EFFECT"
+    },
+    {
+     "label": "4 shoppers changed, 0 controls",
+     "pass": true,
+     "observed": [
+      4,
+      0
+     ]
+    },
+    {
+     "label": "swaps carried",
+     "pass": true,
+     "observed": [
+      {
+       "copies": 2,
+       "carried": 2
+      },
+      {
+       "copies": 2,
+       "carried": 2
+      },
+      null,
+      {
+       "copies": 2,
+       "carried": 2
+      },
+      {
+       "copies": 2,
+       "carried": 2
+      },
+      null
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H3",
+   "what": "J1.3: the item is repriced for everyone mid-study (controls move too)",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 176,
+   "checks": [
+    {
+     "label": "verdict GLOBAL-CHANGE (not HISTORY-EFFECT)",
+     "pass": true,
+     "observed": "GLOBAL-CHANGE"
+    },
+    {
+     "label": "controls changed too",
+     "pass": true,
+     "observed": 2
+    }
+   ]
+  },
+  {
+   "id": "K1",
+   "what": "calibration: the cart reader adds the item and SEES the cart empty",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 5,
+   "checks": [
+    {
+     "label": "verdict CART-OK",
+     "pass": true,
+     "observed": "CART-OK"
+    },
+    {
+     "label": "fixture cart left empty",
+     "pass": true,
+     "observed": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "K2",
+   "what": "calibration: the hotel reader finds the registered room on an unmarked template",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 4,
+   "checks": [
+    {
+     "label": "verdict HOTEL-OK via heuristic",
+     "pass": true,
+     "observed": "HOTEL-OK (Standard King Room 189, via heuristic)"
+    }
+   ]
+  },
+  {
+   "id": "P1",
+   "what": "privacy: no fixture cookie value, IP address or local path in any output; no request left [ip]",
+   "kind": "guard",
+   "checks": [
+    {
+     "label": "no cookie value in 27 output files (4387 values issued)",
+     "pass": true,
+     "observed": 0
+    },
+    {
+     "label": "no fake IP",
+     "pass": true,
+     "observed": 0
+    },
+    {
+     "label": "no local path",
+     "pass": true,
+     "observed": 0
+    },
+    {
+     "label": "no non-loopback request",
+     "pass": true,
+     "observed": 0
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "R1",
+   "what": "J2: nothing planted",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 98,
+   "checks": [
+    {
+     "label": "personal NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": 0,
+      "sum": 0,
+      "signFlipP": 1,
+      "exact": true,
+      "sameSignSlots": 0,
+      "needed": 6,
+      "gapAtFirstView": 0,
+      "repeatOwnChangeSlots": 0,
+      "doseRho": 0,
+      "doseP": 1,
+      "verdict": "NONE-DETECTED"
+     }
+    },
+    {
+     "label": "demand NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "freshRho": 0,
+      "p": 1,
+      "theilSenPerSlot": 0,
+      "first": 189,
+      "last": 189,
+      "min": 189,
+      "max": 189,
+      "repeatRho": 0,
+      "repeatP": 1,
+      "verdict": "NONE-DETECTED"
+     }
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "what": "J2: random ±$3 on every response, for everyone",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 96,
+   "checks": [
+    {
+     "label": "personal NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": -0.1111,
+      "sum": -1,
+      "signFlipP": 1,
+      "exact": true,
+      "sameSignSlots": 3,
+      "needed": 6,
+      "gapAtFirstView": 3,
+      "repeatOwnChangeSlots": 5,
+      "doseRho": 0.0803,
+      "doseP": 0.8269,
+      "verdict": "NONE-DETECTED"
+     }
+    },
+    {
+     "label": "demand NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "freshRho": -0.3396,
+      "p": 0.3304,
+      "theilSenPerSlot": -0.25,
+      "first": 188,
+      "last": 187,
+      "min": 187,
+      "max": 192,
+      "repeatRho": -0.2471,
+      "repeatP": 0.4891,
+      "verdict": "NONE-DETECTED"
+     }
+    },
+    {
+     "label": "fresh dispersion flagged",
+     "pass": true,
+     "observed": {
+      "distinct": 6,
+      "reversals": 5,
+      "flag": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "what": "J2: +$12 from a visitor's second view, counted on a cookie",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 96,
+   "checks": [
+    {
+     "label": "REPEAT-VIEW-EFFECT (carried by cookies)",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": 12,
+      "sum": 108,
+      "signFlipP": 0.0039,
+      "exact": true,
+      "sameSignSlots": 9,
+      "needed": 6,
+      "gapAtFirstView": 0,
+      "repeatOwnChangeSlots": 9,
+      "doseRho": 0.5222,
+      "doseP": 0.2021,
+      "verdict": "REPEAT-VIEW-EFFECT (carried by cookies)"
+     }
+    },
+    {
+     "label": "demand NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "freshRho": 0,
+      "p": 1,
+      "theilSenPerSlot": 0,
+      "first": 189,
+      "last": 189,
+      "min": 189,
+      "max": 189,
+      "repeatRho": 0.5222,
+      "repeatP": 0.1969,
+      "verdict": "NONE-DETECTED"
+     }
+    },
+    {
+     "label": "swap-C carries",
+     "pass": true,
+     "observed": {
+      "copies": [
+       {
+        "k": 1,
+        "swap": 201,
+        "fresh": 189,
+        "swapGap": 12,
+        "measuredGap": 12,
+        "outcome": "carried"
+       },
+       {
+        "k": 2,
+        "swap": 201,
+        "fresh": 189,
+        "swapGap": 12,
+        "measuredGap": 12,
+        "outcome": "carried"
+       }
+      ],
+      "verdict": "CARRIES"
+     }
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "what": "J2: +$12 from the second view, counted in localStorage",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 96,
+   "checks": [
+    {
+     "label": "REPEAT-VIEW-EFFECT (carried by cookies + localStorage)",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": 12,
+      "sum": 108,
+      "signFlipP": 0.0039,
+      "exact": true,
+      "sameSignSlots": 9,
+      "needed": 6,
+      "gapAtFirstView": 0,
+      "repeatOwnChangeSlots": 9,
+      "doseRho": 0.5222,
+      "doseP": 0.2021,
+      "verdict": "REPEAT-VIEW-EFFECT (carried by cookies + localStorage)"
+     }
+    },
+    {
+     "label": "swap-C NOT carried",
+     "pass": true,
+     "observed": {
+      "copies": [
+       {
+        "k": 1,
+        "swap": 189,
+        "fresh": 189,
+        "swapGap": 0,
+        "measuredGap": 12,
+        "outcome": "not-carried"
+       },
+       {
+        "k": 2,
+        "swap": 189,
+        "fresh": 189,
+        "swapGap": 0,
+        "measuredGap": 12,
+        "outcome": "not-carried"
+       }
+      ],
+      "verdict": "NOT-CARRIED"
+     }
+    },
+    {
+     "label": "swap-CS carries",
+     "pass": true,
+     "observed": {
+      "copies": [
+       {
+        "k": 3,
+        "swap": 201,
+        "fresh": 189,
+        "swapGap": 12,
+        "measuredGap": 12,
+        "outcome": "carried"
+       }
+      ],
+      "verdict": "CARRIES"
+     }
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "what": "J2: +$4 every slot for everyone (demand drift)",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 106,
+   "checks": [
+    {
+     "label": "demand RISING",
+     "pass": true,
+     "observed": {
+      "freshRho": 1,
+      "p": 0,
+      "theilSenPerSlot": 4,
+      "first": 189,
+      "last": 225,
+      "min": 189,
+      "max": 225,
+      "repeatRho": 1,
+      "repeatP": 0,
+      "verdict": "RISING"
+     }
+    },
+    {
+     "label": "personal NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": 0,
+      "sum": 0,
+      "signFlipP": 1,
+      "exact": true,
+      "sameSignSlots": 0,
+      "needed": 6,
+      "gapAtFirstView": 0,
+      "repeatOwnChangeSlots": 0,
+      "doseRho": 0,
+      "doseP": 1,
+      "verdict": "NONE-DETECTED"
+     }
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "what": "J2: demand drift AND a repeat-view bump",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 105,
+   "checks": [
+    {
+     "label": "demand RISING",
+     "pass": true,
+     "observed": {
+      "freshRho": 1,
+      "p": 0,
+      "theilSenPerSlot": 4,
+      "first": 189,
+      "last": 225,
+      "min": 189,
+      "max": 225,
+      "repeatRho": 1,
+      "repeatP": 0,
+      "verdict": "RISING"
+     }
+    },
+    {
+     "label": "REPEAT-VIEW-EFFECT (carried by cookies)",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": 12,
+      "sum": 108,
+      "signFlipP": 0.0039,
+      "exact": true,
+      "sameSignSlots": 9,
+      "needed": 6,
+      "gapAtFirstView": 0,
+      "repeatOwnChangeSlots": 9,
+      "doseRho": 0.5222,
+      "doseP": 0.2021,
+      "verdict": "REPEAT-VIEW-EFFECT (carried by cookies)"
+     }
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "what": "J2: a 50/50 visitor bucket (+$10), no repeat effect",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 96,
+   "checks": [
+    {
+     "label": "not called a repeat-view effect",
+     "pass": true,
+     "observed": "NONE-DETECTED"
+    },
+    {
+     "label": "fresh dispersion flagged or VISITOR-BUCKET",
+     "pass": true,
+     "observed": {
+      "dispersion": {
+       "distinct": 2,
+       "reversals": 4,
+       "flag": true
+      },
+      "verdict": "NONE-DETECTED"
+     }
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "what": "J2: every 4th page walled",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 114,
+   "checks": [
+    {
+     "label": "walls recorded as BLOCKED",
+     "pass": true,
+     "observed": 6
+    },
+    {
+     "label": "not called a repeat-view effect",
+     "pass": true,
+     "observed": "INCONCLUSIVE"
+    },
+    {
+     "label": "fake IP scrubbed",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "S1",
+   "what": "J1.4 selection rule: skip the walmart.com-sold item every search lists first; admit three marketplace items",
+   "kind": "guard",
+   "pass": true,
+   "seconds": 5,
+   "checks": [
+    {
+     "label": "three items admitted",
+     "pass": true,
+     "observed": [
+      "7000002",
+      "7000003",
+      "7000004"
+     ]
+    },
+    {
+     "label": "walmart.com-sold item never admitted",
+     "pass": true,
+     "observed": [
+      "7000002",
+      "7000003",
+      "7000004"
+     ]
+    },
+    {
+     "label": "one item per query, in order",
+     "pass": true,
+     "observed": [
+      "Bose QuietComfort headphones",
+      "Samsung Galaxy Buds",
+      "Apple iPad 9th generation"
+     ]
+    }
+   ]
+  }
+ ]
+}
