@@ -1,0 +1,95 @@
+{
+  "label": "final-run2",
+  "url": "https://www.tesla.com/",
+  "extensions": [
+    "final-chrome"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7936,
+      "documents": [
+        {
+          "url": "https://www.tesla.com/",
+          "status": 200,
+          "frameId": "5566677F8CDF35206A62C5A51FE1F2BC",
+          "server": "",
+          "setCookieNames": [
+            "_abck",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.tesla.com/",
+          "status": 200,
+          "frameId": "5566677F8CDF35206A62C5A51FE1F2BC",
+          "server": "",
+          "setCookieNames": [
+            "bm_s",
+            "bm_sc",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_lso",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sz"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "Electric Cars, Solar & Clean Energy | Tesla",
+        "href": "https://www.tesla.com/",
+        "visibility": "visible",
+        "text": " 1 Price reflects monthly subscription, subject to terms and conditions. Price and feature availability subject to change. 2 Price listed does not include Destination and Order Fees, taxes and other f",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792269027975,
+            "lockedToFallback": false,
+            "reason": "bot-manager",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-mini-m2",
+          "botManager": {
+            "at": 1792269027957,
+            "cookie": "_abck",
+            "override": false,
+            "vendor": "akamai"
+          },
+          "botManagerSites": [
+            "tesla.com"
+          ]
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:30:35.491Z"
+}

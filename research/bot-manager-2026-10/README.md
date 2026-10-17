@@ -76,7 +76,7 @@ All from the packaged store zip (`node ext/tools/package.mjs`, unzipped), non-au
 
 | check | result |
 |---|---|
-| tesla.com, 3 fresh profiles (`gate/zip-run{1,2,3}`) | **3 / 3 OK**, 200 → 200; shim status `bot-manager` from the first document on; `navigator.globalPrivacyControl` true; real cores 12 and the real GPU (M2 Max); flag `akamai/_abck` |
+| tesla.com, 3 fresh profiles (`gate/zip-run{1,2,3}`; again on the final commit's zip, whose only difference is two comments: `gate/final-run{1,2,3}`) | **3 / 3 OK, twice**, 200 → 200; shim status `bot-manager` from the first document on; `navigator.globalPrivacyControl` true; real cores 12 and the real GPU (M2 Max); flag `akamai/_abck` |
 | control site, en.wikipedia.org (`gate/control-site-wikipedia`) | shim `upgraded`, persona `macos-chrome-m2-air`: page reads **8 cores, 16 GB, "Apple M2"** = the persona table's values, where this Mac has 12 cores and an M2 Max |
 | own.test — the site's own first document sets `_abck` (`attacks/own-test`) | flagged 14 ms before the shim's status arrived; real device; GPC true; its two listed tracker requests (google-analytics, connect.facebook.net) **blocked** — blocking stays on |
 | ATTACK: top.test embeds a cross-site frame, a third-party script and fetches, every one answering `Set-Cookie: _abck, bm_sz`; the frame also calls back to top.test's host (`attacks/top-test`, `rig/attack-server.mjs`) | **nothing flagged** (`botManagerSites` never written); top.test keeps its persona (`macos-chrome-m1`: 8 cores, "Apple M1") |
