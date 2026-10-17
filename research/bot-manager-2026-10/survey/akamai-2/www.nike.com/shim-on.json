@@ -1,0 +1,136 @@
+{
+  "label": "shim-on",
+  "url": "https://www.nike.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 14053,
+      "documents": [
+        {
+          "url": "https://www.nike.com/",
+          "status": 200,
+          "frameId": "40626C39E9E369E3C3AECE22C7925FA5",
+          "server": "unified-edge-router",
+          "setCookieNames": [
+            "geoloc",
+            "at_lp_exp",
+            "AKA_A2",
+            "ni_d",
+            "AKA_A2",
+            "AKA_A2",
+            "AKA_A2",
+            "AKA_A2",
+            "AKA_A2",
+            "AKA_A2",
+            "ak_bmsc"
+          ]
+        },
+        {
+          "url": "https://www.nike.com/static/uxf/guest-session-html/index.html",
+          "status": 200,
+          "frameId": "745E34EF060295D0ED0092AFE3E02ADD",
+          "server": "AmazonS3",
+          "setCookieNames": [
+            "bm_sv"
+          ]
+        },
+        {
+          "url": "https://api.nike.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "7FBE6FD2484C94E8CFFD4DEC7171957B",
+          "server": "",
+          "setCookieNames": [
+            "KP_UIDz-ssn",
+            "KP_UIDz"
+          ]
+        },
+        {
+          "url": "https://nikeconsumerservices.my.site.com/ESWWebEnglishUSGuest1712823616920/assets/htdocs/sitecontext.min.html?parent_domain=https%3A%2F%2Fwww.nike.com",
+          "status": 200,
+          "frameId": "C7D7BEA23ECE21D6C6B0E960C531C4C3",
+          "server": "cloudflare",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 3,
+      "otherFailures": [
+        {
+          "url": "https://api.nike.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.nike.com/mtrx9k/gs/ccm/collect?rcb=18&frm=0&apvc=1&ae=g&en=page_view&dl=https%3A%2F%2Fwww.nike.com%2F&scrsrc=www.nike.com&rnd=579380464.1792267980&navt=n&npa=1&ep.ads_data_redaction=0&gdid=dNWVlNT&gtb=1&gtm=45E92e6ae1v831367757za204zd831367757xeaxf4&gcs=G100&gcd=13q3q3q3q5l1&dma_cps=-&dma=0&tag_exp=115938466~115938468~118897920~118897930~120385422~120469145~120469153~121049589~121246026~121246034&tft=1792267979763&tfd=6853&gap.gtb=1&fmt=8",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.nike.com/mtrx9k/gs/ccm/collect?rcb=13&frm=0&apvc=0&tid=DC-4171764&en=page_view&dl=https%3A%2F%2Fwww.nike.com%2F&scrsrc=www.nike.com&rnd=579380464.1792267980&navt=n&npa=1&_tu=BA&gtb=3&gtm=45c92e6ae1v9190996969za20szb831367757zd831367757xecxf4&gcs=G100&gcd=13q3q3q3q5l1&dma_cps=-&dma=0&tag_exp=115938466~115938468~118897920~118897930~120213116~120385423~120469145~120469153~121246026~121246034&tft=1792267980074&tfd=7164&gap.gtb=3&tids=DC-4171764&fmt=8",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.nike.com/mtrx9k/gs/ccm/collect?rcb=10&frm=0&apvc=0&ae=g&tid=AW-1019013699&dl=https%3A%2F%2Fwww.nike.com%2F&scrsrc=www.nike.com&rnd=579380464.1792267980&navt=n&npa=1&epn.ecomm_totalvalue=0&_tu=CAI&gtb=3&gtm=45892e6ae1v892574791z8831367757za20kzb831367757zd831367757xeaxf4&gcs=G100&gcd=13q3q3q3q5l1&dma_cps=-&dma=0&tag_exp=115938466~115938468~118897920~118897930~120213116~120385422~120469145~120469153~121246026~121246034&tft=1792267980238&tfd=7328&gap.gtb=3&tids=AW-1019013699&fmt=8",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.nike.com/mtrx9k/gs/ccm/collect?rcb=11&frm=0&apvc=0&ae=g&tid=AW-947143981&dl=https%3A%2F%2Fwww.nike.com%2F&scrsrc=www.nike.com&rnd=579380464.1792267980&navt=n&npa=1&_tu=CAI&gtb=3&gtm=45892e6ae1z8831367757za20kzb831367757zd831367757xeaxf4&gcs=G100&gcd=13q3q3q3q5l1&dma_cps=-&dma=0&tag_exp=115616986~115938466~115938468~118897920~118897930~120385422~120469145~120469153~121246026~121246034&tft=1792267980325&tfd=7415&gap.gtb=3&tids=AW-947143981&fmt=8",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AKA_A2",
+        "RT",
+        "ak_bmsc",
+        "anonymousId",
+        "at_lp_exp",
+        "bm_sv",
+        "geoloc",
+        "kndctr_F0935E09512D2C270A490D4D_AdobeOrg_cluster",
+        "kndctr_F0935E09512D2C270A490D4D_AdobeOrg_identity",
+        "ni_c",
+        "ni_cs",
+        "ni_d",
+        "ni_pp",
+        "sq"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Nike. Just Do It. Nike.com",
+        "href": "https://www.nike.com/",
+        "visibility": "visible",
+        "text": "Skip to main content Accessibility at Nike TAMPA BAY TAKEOVER Doubters silenced. The Rays prove they’re built for October. Shop MLB LOCK IN TO LIFT OFF Designed for the ultimate lockdown, Jayson Tatum",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267979773,
+            "lockedToFallback": true,
+            "reason": "api-read-before-handshake",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:13:06.961Z"
+}

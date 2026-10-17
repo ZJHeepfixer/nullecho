@@ -1,0 +1,72 @@
+{
+  "label": "shim-off",
+  "url": "https://www.fiverr.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 16332,
+      "documents": [
+        {
+          "url": "https://www.fiverr.com/",
+          "status": 200,
+          "frameId": "4A5811DF229C9494C80CAB611B1DBBC0",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "u_guid",
+            "go_back_to_fiverr_url",
+            "logged_out_currency",
+            "flashes",
+            "_pxhd",
+            "_cfuvid"
+          ]
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "__pxvid",
+        "_cfuvid",
+        "_px3",
+        "_pxde",
+        "_pxhd",
+        "_pxvid",
+        "forterToken",
+        "g_state",
+        "go_back_to_fiverr_url",
+        "logged_out_currency",
+        "mp_4c69f9cd696190698561043a6d6d0e6b_mixpanel",
+        "page_views",
+        "pxcts",
+        "u_guid"
+      ],
+      "page": {
+        "title": "Fiverr | Freelance services marketplace | Find top global talent",
+        "href": "https://www.fiverr.com/",
+        "text": "Skip to main content Enable accessibility for low vision Open the accessibility menu Become a Seller Sign in Join Trending 🔥 Graphics & Design Programming & Tech Digital Marketing Video & Animation W",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:57:32.459Z"
+}

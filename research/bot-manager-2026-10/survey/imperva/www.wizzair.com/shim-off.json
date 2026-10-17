@@ -1,0 +1,74 @@
+{
+  "label": "shim-off",
+  "url": "https://www.wizzair.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "http-429",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 13372,
+      "documents": [
+        {
+          "url": "https://www.wizzair.com/en-gb",
+          "status": 200,
+          "frameId": "71FEB6BED32774F200A75EEADDD35E3E",
+          "server": "CloudFront",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://web.cmp.usercentrics.eu/cdcs/v/1.0.0/index.html",
+          "status": 200,
+          "frameId": "4B90B012D7A66436FFDD2DC50D4B8E3D",
+          "server": "UploadServer",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.wizzair.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "C126BC8FE8227569A1DFB7F7E581CC66",
+          "server": "",
+          "setCookieNames": [
+            "KP_UIDz-ssn",
+            "KP_UIDz"
+          ]
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "KP_UIDz",
+        "KP_UIDz-ssn",
+        "RequestVerificationToken",
+        "config-cat-id",
+        "stored-culture"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Wizz Air | Cheap Flights | Find the Best Flight Deals",
+        "href": "https://www.wizzair.com/en-gb",
+        "text": "Skip to flight search Search Plan Select flight Destinations Fare finder WIZZ Route Map Services Hotels Cars Booking Find booking Check in Add service WIZZ & services WIZZ Services Security Fast Track",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:07:10.939Z"
+}

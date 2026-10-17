@@ -1,0 +1,115 @@
+{
+  "label": "shim-on",
+  "url": "https://www.lowes.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11938,
+      "documents": [
+        {
+          "url": "https://www.lowes.com/",
+          "status": 200,
+          "frameId": "17A5A2B79904539538042B0C28978558",
+          "server": "",
+          "setCookieNames": [
+            "dbidv2",
+            "akaalb_prod_dual",
+            "akavpau_default",
+            "al_sess",
+            "seo-partner",
+            "region",
+            "AKA_A2",
+            "BTProtect",
+            "L_SID",
+            "nearbyid",
+            "zipstate",
+            "zipcode",
+            "sn",
+            "EPID",
+            "_abck",
+            "bm_mi",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 3,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AKA_A2",
+        "BTProtect",
+        "EPID",
+        "PIM-SESSION-ID",
+        "RT",
+        "TAsessionID",
+        "_abck",
+        "_lgsid",
+        "ak_bmsc",
+        "akaalb_prod_dual",
+        "akavpau_cart",
+        "akavpau_default",
+        "al_sess",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sv",
+        "bm_sz",
+        "cmapi_cookie_privacy",
+        "cmapi_gtm_bl",
+        "dbidv2",
+        "gpcishonored",
+        "luca-variant",
+        "notice_behavior",
+        "notice_gdpr_prefs",
+        "notice_preferences",
+        "optout_domains_pc",
+        "p13n",
+        "ph_aid",
+        "purchase-test-gig-loyalty-banner",
+        "region",
+        "seo-partner"
+      ],
+      "page": {
+        "title": "Lowe’s Home Improvement",
+        "href": "https://www.lowes.com/",
+        "text": "Find great gifts for everyone on your list in the Gift Zone. Shop Now > Menu Link to Lowe's Home Improvement Home Page MyLowes Cart with 0 items Shop All $99 Maintenance Appliances Bathroom Lighting F",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266670558,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-mini-m2",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:51:19.422Z"
+}

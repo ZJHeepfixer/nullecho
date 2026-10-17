@@ -28,6 +28,10 @@
  *    happened we stay locked on the fallback and say so, loudly.
  *  · `{ enabled: false }` / `persona: null` (allowlisted site) → restore every
  *    original descriptor and stand down.
+ *  · `{ fpStandDown: 'bot-manager' }` (D59: the site's bot manager rejects
+ *    disguised devices) → the SAME restore, but blocking and GPC stay on: the
+ *    relay tells gpc.js the realm was handed back, and gpc.js puts the signal
+ *    up itself — the configuration measured to pass (shim absent, gpc.js live).
  *  · Report suspicious read volume over `nullecho:detect` { api, count }.
  *
  * The upgrade is a *data* swap, not a re-patch: every shim reads its values out of
@@ -129,6 +133,8 @@
   const CHANNEL = 'shim';
   const BOOT_PHASE = 'boot';
   const NONCE_BYTES = 16;
+  /** D59: `fpStandDown` value — this site's bot manager rejects disguised devices. */
+  const FP_STAND_DOWN_BOT_MANAGER = 'bot-manager';
 
   // ══════════════════════════════════════════════════════════════════════════
   // 0a. PRISTINE PRIMITIVES — captured before anything else in this file runs.
@@ -3974,10 +3980,15 @@
     // `Object.prototype.gpc = false` silently suppressed the user's GPC signal on
     // every page where the service worker was unreachable. Explicit `null` keeps
     // that default ON and cannot be overridden.
+    //
+    // `fpStandDown` rides along since D59: when this file has just handed the realm
+    // back for a bot manager, the GPC getter went with it, and gpc.js — which stood
+    // aside at boot because it found the signal already up — has to know to take
+    // the property over. Explicit `null` otherwise, for the same D29 reason.
     const gpcNonce = ownField(accepted, 'gpcNonce');
     if (typeof gpcNonce === 'string') {
       const orNull = (key) => { const v = ownField(accepted, key); return v === undefined ? null : v; };
-      emit(EV_PERSONA, { ok: orNull('ok'), enabled: orNull('enabled'), gpc: orNull('gpc'), gpcNonce });
+      emit(EV_PERSONA, { ok: orNull('ok'), enabled: orNull('enabled'), gpc: orNull('gpc'), fpStandDown: orNull('fpStandDown'), gpcNonce });
     }
   }
 
@@ -4175,6 +4186,28 @@
       state.standingDown = true;
       restoreAll();
       status({ upgraded: false, lockedToFallback: false, reason: 'allowlisted' });
+      return;
+    }
+
+    // D59 — this site's bot manager rejects disguised devices (tesla.com under
+    // Akamai Bot Manager: 403 with the shim, 200 without it, nothing else in the
+    // extension mattered). The allowlist's restore, verbatim: every descriptor
+    // goes back to what the engine had, so the realm is the one measured to pass.
+    // That includes the GPC getter this file installed — and the signal must not
+    // go with it. `onPersonaEvent` relays `fpStandDown` to gpc.js, which then
+    // finds the property gone and puts it up itself, exactly as it does in a
+    // realm this file never patched. Blocking is the service worker's and is not
+    // touched. Same own-property read and same nonce gate as `enabled`: a page
+    // cannot reach this line.
+    //
+    // Under Firefox's resistFingerprinting nothing persona-shaped was installed
+    // (D54), but the GPC getter and the toString mask were, so the restore still
+    // runs; the status names RFP, the more fundamental fact, so the popup and the
+    // options banner keep saying the right thing about the browser.
+    if (ownField(payload, 'fpStandDown') === FP_STAND_DOWN_BOT_MANAGER) {
+      state.standingDown = true;
+      restoreAll();
+      status({ upgraded: false, lockedToFallback: false, reason: GECKO_RFP ? 'resist-fingerprinting' : 'bot-manager' });
       return;
     }
 

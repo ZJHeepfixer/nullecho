@@ -93,6 +93,7 @@ function render(s) {
   renderCategories(s);
   renderSites(s);
   renderAllowlist(s);
+  renderBotManagerSites(s);
   renderPool(s);
 
   $('gpc').checked = !!s.settings.gpc;
@@ -402,6 +403,52 @@ function renderAllowlist(s) {
   }
 }
 
+/**
+ * D59 — sites whose bot manager made the device layer stand down, each with the
+ * user's way back: "Use my device profile here anyway". Blocking and GPC are on
+ * at every one of them either way, so the copy never says Nullecho is off there.
+ */
+const BOT_OVERRIDE_WARNING = (site) =>
+  `Use your device profile on ${site} anyway?\n\n` +
+  'This site’s security checks reject disguised devices. With your device profile on, it may block you ' +
+  '(“Access Denied”), on this visit or a later one — and once it has, it can keep refusing for a while, ' +
+  'even after you switch back.';
+
+function renderBotManagerSites(s) {
+  const list = s.botManagerSites ?? [];
+  const body = $('bot-body');
+  body.replaceChildren();
+  $('bot-empty').hidden = list.length > 0;
+  $('bot-table').hidden = list.length === 0;
+
+  for (const r of list) {
+    const tr = document.createElement('tr');
+    const when = r.at ? new Date(r.at).toLocaleDateString() : '—';
+    tr.append(
+      td(r.site, 'm'),
+      td(r.label || r.vendor || '', ''),
+      td(when, ''),
+      td(r.override ? 'Your device profile (you chose this)' : 'Your real device — not disguised', ''),
+    );
+    const cell = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn tiny';
+    btn.textContent = r.override ? 'Leave my device alone here again' : 'Use my device profile here anyway';
+    btn.addEventListener('click', async () => {
+      const next = !r.override;
+      // The warning is the point of the button: the site may block the user.
+      if (next && !globalThis.confirm(BOT_OVERRIDE_WARNING(r.site))) return;
+      await sendMessage({ type: MSG.SET_BOT_MANAGER_OVERRIDE, site: r.site, override: next });
+      render(await loadOverview());
+      toast(next ? `Your device profile is back on ${r.site}. Reload it to apply.` : `Nullecho leaves your device alone on ${r.site} again.`);
+    });
+    cell.append(btn);
+    tr.append(cell);
+    body.append(tr);
+  }
+}
+
 function renderPool(s) {
   const body = $('pool-body');
   body.replaceChildren();
@@ -553,6 +600,10 @@ const DEMO = {
   ok: true,
   settings: DEMO_SETTINGS,
   allowlist: ['my-bank.example', 'intranet.example'],
+  botManagerSites: [
+    { site: 'tesla.com', vendor: 'akamai', label: 'Akamai Bot Manager', cookie: '_abck', at: Date.now() - 30 * min, override: false, standingDown: true },
+    { site: 'shop.example', vendor: 'akamai', label: 'Akamai Bot Manager', cookie: 'bm_sz', at: Date.now() - 3 * 24 * 60 * min, override: true, standingDown: false },
+  ],
   identity: { tag: 'A7F3C1', rotatedAt: Date.now() - 260 * min },
   pool: POOL,
   totals: { blocked: 1284, fp: 63, sites: 7 },
@@ -571,6 +622,7 @@ const DEMO_EMPTY = {
   ok: true,
   settings: DEMO_SETTINGS,
   allowlist: [],
+  botManagerSites: [],
   identity: { tag: '——————', rotatedAt: 0 },
   pool: POOL,
   totals: { blocked: 0, fp: 0, sites: 0 },

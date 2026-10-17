@@ -1,0 +1,65 @@
+{
+  "label": "shim-off",
+  "url": "https://www.wayfair.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "perimeterx-press-hold",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 10950,
+      "documents": [
+        {
+          "url": "https://www.wayfair.com/",
+          "status": 429,
+          "frameId": "B1BACC246D2ED8920381783B23C21B06",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "_pxhd"
+          ]
+        },
+        {
+          "url": "https://crcldu.com/bd/sync.html?v=1792266600000",
+          "status": 200,
+          "frameId": "831CBFF31C796B4DC6C939E003CFF3CC",
+          "server": "UploadServer",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "_px3",
+        "_pxhd",
+        "_pxvid",
+        "pxcts"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Access to this page has been denied",
+        "href": "https://www.wayfair.com/",
+        "text": "Before we continue... Press & Hold to confirm you are a human (and not a bot). Reference ID 2961ec83-ca65-11f1-ab03-ecf3cec20623",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:58:54.288Z"
+}

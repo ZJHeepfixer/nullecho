@@ -1,0 +1,60 @@
+{
+  "label": "cname-test",
+  "url": "http://cname.test:4959/",
+  "extensions": [
+    "final-chrome"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7114,
+      "documents": [
+        {
+          "url": "http://cname.test:4959/",
+          "status": 200,
+          "frameId": "E14807A5CB6C5CCD71CC302C1FBEBD3D",
+          "server": "",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_sz"
+      ],
+      "abckStatus": "0",
+      "page": {
+        "title": "cname.test",
+        "href": "http://cname.test:4959/",
+        "visibility": "visible",
+        "text": "cname.test â€” a tracker on its own subdomain sets _abck",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": null,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792269384891,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:36:31.943Z"
+}

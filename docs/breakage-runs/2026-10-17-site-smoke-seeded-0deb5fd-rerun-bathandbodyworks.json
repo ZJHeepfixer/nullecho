@@ -1,0 +1,1702 @@
+{
+  "meta": {
+    "date": "2026-10-17",
+    "code": {
+      "head": "0deb5fd",
+      "dirty": false,
+      "tag": "0deb5fd"
+    },
+    "package": {
+      "version": "0.9.3",
+      "zipName": "nullecho-0.9.3-chrome.zip",
+      "sha256": "3609bbd2623cf4e1d128fd2224396423ba3a6ac21db55ad62c3695c6242370cc",
+      "size": 295932
+    },
+    "control": null,
+    "ruleControl": null,
+    "shoppingMode": false,
+    "rounds": 1,
+    "shoppingEnv": {
+      "presence": {
+        "off": {
+          "worker": null,
+          "extensionTargets": []
+        },
+        "on": {
+          "worker": "chrome-extension://obafgniaamlfhcldjonoobfnlmjlbkhn/src/background.js",
+          "extensionTargets": [
+            "service_worker chrome-extension://obafgniaamlfhcldjonoobfnlmjlbkhn/src/background.js"
+          ]
+        }
+      },
+      "extStatus": "installed",
+      "seed": {
+        "domains": [
+          "google.com",
+          "youtube.com",
+          "facebook.com",
+          "microsoft.com",
+          "live.com",
+          "microsoftonline.com",
+          "apple.com",
+          "cloudflare.com",
+          "amazon.com",
+          "twitter.com",
+          "x.com",
+          "linkedin.com"
+        ],
+        "storageKey": "nullecho:heuristics:v1",
+        "extensionId": "obafgniaamlfhcldjonoobfnlmjlbkhn",
+        "rulesBeforeReload": [],
+        "rulesAfterReload": [
+          {
+            "action": {
+              "type": "block"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "live.com",
+                "msn.com",
+                "bing.com",
+                "office.com",
+                "sharepoint.com",
+                "windows.net",
+                "microsoftonline.com",
+                "msauth.net",
+                "msftauth.net",
+                "office365.com",
+                "microsoft365.com",
+                "outlook.com",
+                "onedrive.com",
+                "azure.com"
+              ],
+              "requestDomains": [
+                "microsoft.com"
+              ]
+            },
+            "id": 1000003,
+            "priority": 1
+          },
+          {
+            "action": {
+              "type": "block"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "microsoft.com",
+                "msn.com",
+                "bing.com",
+                "office.com",
+                "sharepoint.com",
+                "windows.net",
+                "microsoftonline.com",
+                "msauth.net",
+                "msftauth.net",
+                "office365.com",
+                "microsoft365.com",
+                "outlook.com",
+                "onedrive.com",
+                "azure.com"
+              ],
+              "excludedRequestDomains": [
+                "login.live.com"
+              ],
+              "requestDomains": [
+                "live.com"
+              ]
+            },
+            "id": 1000004,
+            "priority": 1
+          },
+          {
+            "action": {
+              "type": "block"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "microsoft.com",
+                "live.com",
+                "msn.com",
+                "bing.com",
+                "office.com",
+                "sharepoint.com",
+                "windows.net",
+                "msauth.net",
+                "msftauth.net",
+                "office365.com",
+                "microsoft365.com",
+                "outlook.com",
+                "onedrive.com",
+                "azure.com"
+              ],
+              "excludedRequestDomains": [
+                "login.microsoftonline.com"
+              ],
+              "requestDomains": [
+                "microsoftonline.com"
+              ]
+            },
+            "id": 1000005,
+            "priority": 1
+          },
+          {
+            "action": {
+              "type": "block"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "icloud.com",
+                "cdn-apple.com",
+                "mzstatic.com"
+              ],
+              "excludedRequestDomains": [
+                "appleid.apple.com"
+              ],
+              "requestDomains": [
+                "apple.com"
+              ]
+            },
+            "id": 1000006,
+            "priority": 1
+          },
+          {
+            "action": {
+              "type": "block"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "cloudflareinsights.com"
+              ],
+              "excludedRequestDomains": [
+                "cdnjs.cloudflare.com",
+                "challenges.cloudflare.com"
+              ],
+              "requestDomains": [
+                "cloudflare.com"
+              ]
+            },
+            "id": 1000007,
+            "priority": 1
+          },
+          {
+            "action": {
+              "type": "block"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "amazonaws.com",
+                "media-amazon.com",
+                "ssl-images-amazon.com",
+                "amazon-adsystem.com"
+              ],
+              "requestDomains": [
+                "amazon.com"
+              ]
+            },
+            "id": 1000008,
+            "priority": 1
+          },
+          {
+            "action": {
+              "requestHeaders": [
+                {
+                  "header": "Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "responseHeaders": [
+                {
+                  "header": "Set-Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "type": "modifyHeaders"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "facebook.net",
+                "fbcdn.net",
+                "fbsbx.com",
+                "instagram.com",
+                "whatsapp.com",
+                "messenger.com"
+              ],
+              "excludedRequestDomains": [
+                "graph.facebook.com"
+              ],
+              "requestDomains": [
+                "facebook.com"
+              ]
+            },
+            "id": 1050000,
+            "priority": 1
+          },
+          {
+            "action": {
+              "requestHeaders": [
+                {
+                  "header": "Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "responseHeaders": [
+                {
+                  "header": "Set-Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "type": "modifyHeaders"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "googleapis.com",
+                "gstatic.com",
+                "googlevideo.com",
+                "youtube.com",
+                "ytimg.com",
+                "withgoogle.com",
+                "google-analytics.com",
+                "googletagmanager.com"
+              ],
+              "excludedRequestDomains": [
+                "accounts.google.com",
+                "apis.google.com",
+                "www.google.com"
+              ],
+              "requestDomains": [
+                "google.com"
+              ]
+            },
+            "id": 1050001,
+            "priority": 1
+          },
+          {
+            "action": {
+              "requestHeaders": [
+                {
+                  "header": "Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "responseHeaders": [
+                {
+                  "header": "Set-Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "type": "modifyHeaders"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "licdn.com"
+              ],
+              "requestDomains": [
+                "linkedin.com"
+              ]
+            },
+            "id": 1050002,
+            "priority": 1
+          },
+          {
+            "action": {
+              "requestHeaders": [
+                {
+                  "header": "Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "responseHeaders": [
+                {
+                  "header": "Set-Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "type": "modifyHeaders"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "x.com",
+                "twimg.com",
+                "t.co"
+              ],
+              "requestDomains": [
+                "twitter.com"
+              ]
+            },
+            "id": 1050003,
+            "priority": 1
+          },
+          {
+            "action": {
+              "requestHeaders": [
+                {
+                  "header": "Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "responseHeaders": [
+                {
+                  "header": "Set-Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "type": "modifyHeaders"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "twitter.com",
+                "twimg.com",
+                "t.co"
+              ],
+              "requestDomains": [
+                "x.com"
+              ]
+            },
+            "id": 1050004,
+            "priority": 1
+          },
+          {
+            "action": {
+              "requestHeaders": [
+                {
+                  "header": "Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "responseHeaders": [
+                {
+                  "header": "Set-Cookie",
+                  "operation": "remove"
+                }
+              ],
+              "type": "modifyHeaders"
+            },
+            "condition": {
+              "domainType": "thirdParty",
+              "excludedInitiatorDomains": [
+                "google.com",
+                "googleapis.com",
+                "gstatic.com",
+                "googlevideo.com",
+                "ytimg.com",
+                "withgoogle.com",
+                "google-analytics.com",
+                "googletagmanager.com"
+              ],
+              "requestDomains": [
+                "youtube.com"
+              ]
+            },
+            "id": 1050005,
+            "priority": 1
+          }
+        ],
+        "stateAfterReload": {
+          "amazon.com": {
+            "status": "blocked",
+            "ruleId": 1000008,
+            "source": "learned"
+          },
+          "apple.com": {
+            "status": "blocked",
+            "ruleId": 1000006,
+            "source": "learned"
+          },
+          "cloudflare.com": {
+            "status": "blocked",
+            "ruleId": 1000007,
+            "source": "learned"
+          },
+          "facebook.com": {
+            "status": "cookieblocked",
+            "ruleId": 1050000,
+            "source": "learned"
+          },
+          "google.com": {
+            "status": "cookieblocked",
+            "ruleId": 1050001,
+            "source": "learned"
+          },
+          "linkedin.com": {
+            "status": "cookieblocked",
+            "ruleId": 1050002,
+            "source": "learned"
+          },
+          "live.com": {
+            "status": "blocked",
+            "ruleId": 1000004,
+            "source": "learned"
+          },
+          "microsoft.com": {
+            "status": "blocked",
+            "ruleId": 1000003,
+            "source": "learned"
+          },
+          "microsoftonline.com": {
+            "status": "blocked",
+            "ruleId": 1000005,
+            "source": "learned"
+          },
+          "twitter.com": {
+            "status": "cookieblocked",
+            "ruleId": 1050003,
+            "source": "learned"
+          },
+          "x.com": {
+            "status": "cookieblocked",
+            "ruleId": 1050004,
+            "source": "learned"
+          },
+          "youtube.com": {
+            "status": "cookieblocked",
+            "ruleId": 1050005,
+            "source": "learned"
+          }
+        },
+        "reloadWorkerConsole": [],
+        "positiveControl": [
+          {
+            "ok": true,
+            "what": "no learned-range rule existed before the reload (found 0) — so every rule below was written by the extension's reconcile(), not left over"
+          },
+          {
+            "ok": true,
+            "what": "the reloaded extension still has its static blocking rulesets on ([\"gpc\",\"ads\",\"analytics\",\"social\",\"fingerprinting\",\"personalization\",\"ua-mac\"]) — the seeded ON pass is the whole extension plus the learned rules, not a lesser one"
+          },
+          {
+            "ok": true,
+            "what": "google.com: a live learned rule covers it (id 1050001, modifyHeaders)"
+          },
+          {
+            "ok": true,
+            "what": "google.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050001)"
+          },
+          {
+            "ok": true,
+            "what": "youtube.com: a live learned rule covers it (id 1050005, modifyHeaders)"
+          },
+          {
+            "ok": true,
+            "what": "youtube.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050005)"
+          },
+          {
+            "ok": true,
+            "what": "facebook.com: a live learned rule covers it (id 1050000, modifyHeaders)"
+          },
+          {
+            "ok": true,
+            "what": "facebook.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050000)"
+          },
+          {
+            "ok": true,
+            "what": "microsoft.com: a live learned rule covers it (id 1000003, block)"
+          },
+          {
+            "ok": true,
+            "what": "microsoft.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000003)"
+          },
+          {
+            "ok": true,
+            "what": "live.com: a live learned rule covers it (id 1000004, block)"
+          },
+          {
+            "ok": true,
+            "what": "live.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000004)"
+          },
+          {
+            "ok": true,
+            "what": "microsoftonline.com: a live learned rule covers it (id 1000005, block)"
+          },
+          {
+            "ok": true,
+            "what": "microsoftonline.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000005)"
+          },
+          {
+            "ok": true,
+            "what": "apple.com: a live learned rule covers it (id 1000006, block)"
+          },
+          {
+            "ok": true,
+            "what": "apple.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000006)"
+          },
+          {
+            "ok": true,
+            "what": "cloudflare.com: a live learned rule covers it (id 1000007, block)"
+          },
+          {
+            "ok": true,
+            "what": "cloudflare.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000007)"
+          },
+          {
+            "ok": true,
+            "what": "amazon.com: a live learned rule covers it (id 1000008, block)"
+          },
+          {
+            "ok": true,
+            "what": "amazon.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000008)"
+          },
+          {
+            "ok": true,
+            "what": "twitter.com: a live learned rule covers it (id 1050003, modifyHeaders)"
+          },
+          {
+            "ok": true,
+            "what": "twitter.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050003)"
+          },
+          {
+            "ok": true,
+            "what": "x.com: a live learned rule covers it (id 1050004, modifyHeaders)"
+          },
+          {
+            "ok": true,
+            "what": "x.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050004)"
+          },
+          {
+            "ok": true,
+            "what": "linkedin.com: a live learned rule covers it (id 1050002, modifyHeaders)"
+          },
+          {
+            "ok": true,
+            "what": "linkedin.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050002)"
+          },
+          {
+            "ok": true,
+            "what": "enforcement + recorder: a fetch from http://127.0.0.1:64927 to www.linkedin.com matched learned rule 1050002 and the recorder saw it (fetch loaded; 1 hit(s))"
+          }
+        ],
+        "ok": true,
+        "findings": [],
+        "enabledRulesetsAfterReload": [
+          "gpc",
+          "ads",
+          "analytics",
+          "social",
+          "fingerprinting",
+          "personalization",
+          "ua-mac"
+        ],
+        "recorder": "installed",
+        "enforcementProbe": {
+          "fetched": "loaded",
+          "hits": [
+            {
+              "t": 1792271119059,
+              "ruleId": 1050002,
+              "type": "xmlhttprequest",
+              "url": "https://www.linkedin.com/robots.txt",
+              "initiator": "http://127.0.0.1:64927"
+            }
+          ]
+        }
+      },
+      "rulesAtEnd": [
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "live.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "microsoftonline.com",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "requestDomains": [
+              "microsoft.com"
+            ]
+          },
+          "id": 1000003,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "microsoft.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "microsoftonline.com",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "excludedRequestDomains": [
+              "login.live.com"
+            ],
+            "requestDomains": [
+              "live.com"
+            ]
+          },
+          "id": 1000004,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "microsoft.com",
+              "live.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "excludedRequestDomains": [
+              "login.microsoftonline.com"
+            ],
+            "requestDomains": [
+              "microsoftonline.com"
+            ]
+          },
+          "id": 1000005,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "icloud.com",
+              "cdn-apple.com",
+              "mzstatic.com"
+            ],
+            "excludedRequestDomains": [
+              "appleid.apple.com"
+            ],
+            "requestDomains": [
+              "apple.com"
+            ]
+          },
+          "id": 1000006,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "cloudflareinsights.com"
+            ],
+            "excludedRequestDomains": [
+              "cdnjs.cloudflare.com",
+              "challenges.cloudflare.com"
+            ],
+            "requestDomains": [
+              "cloudflare.com"
+            ]
+          },
+          "id": 1000007,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "amazonaws.com",
+              "media-amazon.com",
+              "ssl-images-amazon.com",
+              "amazon-adsystem.com"
+            ],
+            "requestDomains": [
+              "amazon.com"
+            ]
+          },
+          "id": 1000008,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "facebook.net",
+              "fbcdn.net",
+              "fbsbx.com",
+              "instagram.com",
+              "whatsapp.com",
+              "messenger.com"
+            ],
+            "excludedRequestDomains": [
+              "graph.facebook.com"
+            ],
+            "requestDomains": [
+              "facebook.com"
+            ]
+          },
+          "id": 1050000,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "googleapis.com",
+              "gstatic.com",
+              "googlevideo.com",
+              "youtube.com",
+              "ytimg.com",
+              "withgoogle.com",
+              "google-analytics.com",
+              "googletagmanager.com"
+            ],
+            "excludedRequestDomains": [
+              "accounts.google.com",
+              "apis.google.com",
+              "www.google.com"
+            ],
+            "requestDomains": [
+              "google.com"
+            ]
+          },
+          "id": 1050001,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "licdn.com"
+            ],
+            "requestDomains": [
+              "linkedin.com"
+            ]
+          },
+          "id": 1050002,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "x.com",
+              "twimg.com",
+              "t.co"
+            ],
+            "requestDomains": [
+              "twitter.com"
+            ]
+          },
+          "id": 1050003,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "twitter.com",
+              "twimg.com",
+              "t.co"
+            ],
+            "requestDomains": [
+              "x.com"
+            ]
+          },
+          "id": 1050004,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "google.com",
+              "googleapis.com",
+              "gstatic.com",
+              "googlevideo.com",
+              "ytimg.com",
+              "withgoogle.com",
+              "google-analytics.com",
+              "googletagmanager.com"
+            ],
+            "requestDomains": [
+              "youtube.com"
+            ]
+          },
+          "id": 1050005,
+          "priority": 1
+        }
+      ]
+    },
+    "seeded": true,
+    "thirdParty": true,
+    "chromeVersion": "Chrome/149.0.7827.22",
+    "puppeteerVersion": "25.1.0",
+    "node": "v22.22.3",
+    "runtimeMs": 21727,
+    "metadataLeaked": false,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+    "offOnly": false,
+    "selfTest": null,
+    "passEnv": {
+      "off": null,
+      "on": null
+    },
+    "fixtureOrigin": "http://127.0.0.1:64927",
+    "seed": null,
+    "retrySeeds": [],
+    "rulesAtEnd": null,
+    "ruleDrift": null,
+    "seedFindings": []
+  },
+  "results": [
+    {
+      "site": {
+        "n": 41,
+        "key": "shop-bathandbodyworks",
+        "label": "bathandbodyworks.com product",
+        "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+        "settleMs": 3000,
+        "shopping": true,
+        "checkTimeoutMs": 150000,
+        "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+        "atc": {},
+        "search": {
+          "url": "https://www.bathandbodyworks.com/search?q=candle",
+          "link": "/p/"
+        },
+        "gate": true
+      },
+      "on": {
+        "site": "shop-bathandbodyworks",
+        "withExtension": true,
+        "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+          "trace": [
+            "start@0s",
+            "prices@0s",
+            "klaviyo@1.5s",
+            "atc@2.5s",
+            "search@3.5s",
+            "done@5.2s"
+          ],
+          "title": "Champagne Toast 3-Wick Candle | Bath & Body Works",
+          "bodyLen": 4327,
+          "declared": {
+            "price": "24.95",
+            "currency": "USD",
+            "source": "json-ld"
+          },
+          "visible": null,
+          "productTally": {
+            "tabId": 660851220,
+            "matchedBy": "url",
+            "total": 2,
+            "byCategory": {
+              "analytics": 2
+            }
+          },
+          "atc": {
+            "attempted": true,
+            "ok": true,
+            "picked": null,
+            "clicked": "Add to bag",
+            "evidence": [
+              "same-site cart request 200 POST https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+              "\"added to cart/bag\" message appeared",
+              "cart badge 0→1"
+            ],
+            "cartRequests": [
+              {
+                "status": 200,
+                "method": "POST",
+                "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                "by": "path"
+              },
+              {
+                "status": 200,
+                "method": "POST",
+                "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets/be3277abc2b2da586cad3125",
+                "by": "path"
+              }
+            ],
+            "before": {
+              "added": false,
+              "badge": null,
+              "shopify": null
+            },
+            "after": {
+              "added": true,
+              "badge": 1,
+              "shopify": null
+            },
+            "cartTotal": null,
+            "cartState": null
+          },
+          "search": {
+            "url": "https://www.bathandbodyworks.com/search?q=candle",
+            "httpStatus": 307,
+            "count": 0,
+            "ok": false,
+            "blocked": true,
+            "blockedEvidence": "challenge page (HTTP 200): \"Access to this page has been denied\" — Access to this page has been denied — Press & Hold to confirm you are a human (and not a bot). Reference ID 765c2680-ca6e-11f1-8d43-31a80c29091c"
+          }
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://tags.tiqcdn.com/utag/bbw/new/prod/utag.sync.js",
+          "script https://tags.tiqcdn.com/utag/bbw/new/prod/utag.js"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        },
+        "pageErrors": [
+          "uncaught: Yo is not defined",
+          "console: Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092' violates the following Content Security Policy directive: \"script-src 'self' 'un",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Executing inline event handler violates the following Content Security Policy directive 'script-src-attr 'none''. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Failed to load resource: the server responded with a status of 500 ()",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Failed to load resource: the server responded with a status of 500 ()",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')",
+          "uncaught: Cannot read properties of undefined (reading 'view')"
+        ],
+        "personalizationHits": {
+          "hits": []
+        }
+      },
+      "off": {
+        "site": "shop-bathandbodyworks",
+        "withExtension": false,
+        "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+          "trace": [
+            "start@0s",
+            "prices@0s",
+            "klaviyo@1.5s",
+            "atc@1.5s",
+            "search@2.5s",
+            "done@4.2s"
+          ],
+          "title": "Champagne Toast 3-Wick Candle | Bath & Body Works",
+          "bodyLen": 7040,
+          "declared": {
+            "price": "24.95",
+            "currency": "USD",
+            "source": "json-ld"
+          },
+          "visible": null,
+          "atc": {
+            "attempted": true,
+            "ok": true,
+            "picked": null,
+            "clicked": "Add to bag",
+            "evidence": [
+              "same-site cart request 200 POST https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+              "\"added to cart/bag\" message appeared",
+              "cart badge 0→1"
+            ],
+            "cartRequests": [
+              {
+                "status": 200,
+                "method": "POST",
+                "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                "by": "path"
+              },
+              {
+                "status": 200,
+                "method": "POST",
+                "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets/a8af7f7614a2b0dd8d5a35c4",
+                "by": "path"
+              }
+            ],
+            "before": {
+              "added": false,
+              "badge": null,
+              "shopify": null
+            },
+            "after": {
+              "added": true,
+              "badge": 1,
+              "shopify": null
+            },
+            "cartTotal": null,
+            "cartState": null
+          },
+          "search": {
+            "url": "https://www.bathandbodyworks.com/search?q=candle",
+            "httpStatus": 307,
+            "count": 0,
+            "ok": false,
+            "blocked": true,
+            "blockedEvidence": "challenge page (HTTP 200): \"Access to this page has been denied\" — Access to this page has been denied — Press & Hold to confirm you are a human (and not a bot). Reference ID 765b8a40-ca6e-11f1-b0f4-19e06190836b"
+          }
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "pageErrors": [
+          "uncaught: Yo is not defined",
+          "console: Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092' violates the following Content Security Policy directive: \"script-src 'self' 'un",
+          "console: Executing inline event handler violates the following Content Security Policy directive 'script-src-attr 'none''. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Failed to load resource: the server responded with a status of 500 ()",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Failed to load resource: the server responded with a status of 500 ()",
+          "console: Failed to load resource: the server responded with a status of 400 ()",
+          "console: Loading the image 'https://synchroscript.deliveryengine.adswizz.com/syncMe?partnerDomain=dotomi.com&idType=cookie&partnerUserId=AQAIc1wWBUZByAF8OWDGAQHsrgABAQCgSq4JmgEBAKBKrgma&gdpr_consent=' violates",
+          "console: Loading the image 'https://synchroscript.deliveryengine.adswizz.com/syncMe?partnerDomain=dotomi.com&idType=cookie&partnerUserId=AQALi6050Xm1tgFU5QRjAQHsrgEBAQCgSq4GygEBAKBKrgil&gdpr_consent=' violates"
+        ]
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "shop": {
+        "site": {
+          "n": 41,
+          "key": "shop-bathandbodyworks",
+          "label": "bathandbodyworks.com product",
+          "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+          "settleMs": 3000,
+          "shopping": true,
+          "checkTimeoutMs": 150000,
+          "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+          "atc": {},
+          "search": {
+            "url": "https://www.bathandbodyworks.com/search?q=candle",
+            "link": "/p/"
+          },
+          "gate": true
+        },
+        "loads": [
+          {
+            "round": 1,
+            "off": {
+              "site": "shop-bathandbodyworks",
+              "withExtension": false,
+              "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@1.5s",
+                  "search@2.5s",
+                  "done@4.2s"
+                ],
+                "title": "Champagne Toast 3-Wick Candle | Bath & Body Works",
+                "bodyLen": 7040,
+                "declared": {
+                  "price": "24.95",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": null,
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to bag",
+                  "evidence": [
+                    "same-site cart request 200 POST https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                    "\"added to cart/bag\" message appeared",
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [
+                    {
+                      "status": 200,
+                      "method": "POST",
+                      "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                      "by": "path"
+                    },
+                    {
+                      "status": 200,
+                      "method": "POST",
+                      "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets/a8af7f7614a2b0dd8d5a35c4",
+                      "by": "path"
+                    }
+                  ],
+                  "before": {
+                    "added": false,
+                    "badge": null,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": true,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null,
+                  "cartState": null
+                },
+                "search": {
+                  "url": "https://www.bathandbodyworks.com/search?q=candle",
+                  "httpStatus": 307,
+                  "count": 0,
+                  "ok": false,
+                  "blocked": true,
+                  "blockedEvidence": "challenge page (HTTP 200): \"Access to this page has been denied\" — Access to this page has been denied — Press & Hold to confirm you are a human (and not a bot). Reference ID 765b8a40-ca6e-11f1-b0f4-19e06190836b"
+                }
+              },
+              "probes": {
+                "cores": 12,
+                "mem": 32,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [],
+              "learnedHits": null,
+              "pageErrors": [
+                "uncaught: Yo is not defined",
+                "console: Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092' violates the following Content Security Policy directive: \"script-src 'self' 'un",
+                "console: Executing inline event handler violates the following Content Security Policy directive 'script-src-attr 'none''. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Failed to load resource: the server responded with a status of 500 ()",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Failed to load resource: the server responded with a status of 500 ()",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Loading the image 'https://synchroscript.deliveryengine.adswizz.com/syncMe?partnerDomain=dotomi.com&idType=cookie&partnerUserId=AQAIc1wWBUZByAF8OWDGAQHsrgABAQCgSq4JmgEBAKBKrgma&gdpr_consent=' violates",
+                "console: Loading the image 'https://synchroscript.deliveryengine.adswizz.com/syncMe?partnerDomain=dotomi.com&idType=cookie&partnerUserId=AQALi6050Xm1tgFU5QRjAQHsrgEBAQCgSq4GygEBAKBKrgil&gdpr_consent=' violates"
+              ]
+            },
+            "on": {
+              "site": "shop-bathandbodyworks",
+              "withExtension": true,
+              "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@2.5s",
+                  "search@3.5s",
+                  "done@5.2s"
+                ],
+                "title": "Champagne Toast 3-Wick Candle | Bath & Body Works",
+                "bodyLen": 4327,
+                "declared": {
+                  "price": "24.95",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": null,
+                "productTally": {
+                  "tabId": 660851220,
+                  "matchedBy": "url",
+                  "total": 2,
+                  "byCategory": {
+                    "analytics": 2
+                  }
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to bag",
+                  "evidence": [
+                    "same-site cart request 200 POST https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                    "\"added to cart/bag\" message appeared",
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [
+                    {
+                      "status": 200,
+                      "method": "POST",
+                      "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                      "by": "path"
+                    },
+                    {
+                      "status": 200,
+                      "method": "POST",
+                      "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets/be3277abc2b2da586cad3125",
+                      "by": "path"
+                    }
+                  ],
+                  "before": {
+                    "added": false,
+                    "badge": null,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": true,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null,
+                  "cartState": null
+                },
+                "search": {
+                  "url": "https://www.bathandbodyworks.com/search?q=candle",
+                  "httpStatus": 307,
+                  "count": 0,
+                  "ok": false,
+                  "blocked": true,
+                  "blockedEvidence": "challenge page (HTTP 200): \"Access to this page has been denied\" — Access to this page has been denied — Press & Hold to confirm you are a human (and not a bot). Reference ID 765c2680-ca6e-11f1-8d43-31a80c29091c"
+                }
+              },
+              "probes": {
+                "gpc": true,
+                "cores": 8,
+                "mem": 16,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [
+                "script https://tags.tiqcdn.com/utag/bbw/new/prod/utag.sync.js",
+                "script https://tags.tiqcdn.com/utag/bbw/new/prod/utag.js"
+              ],
+              "learnedHits": {
+                "hits": [],
+                "recorderRestarted": false
+              },
+              "pageErrors": [
+                "uncaught: Yo is not defined",
+                "console: Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092' violates the following Content Security Policy directive: \"script-src 'self' 'un",
+                "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+                "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+                "console: Executing inline event handler violates the following Content Security Policy directive 'script-src-attr 'none''. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Failed to load resource: the server responded with a status of 500 ()",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "console: Failed to load resource: the server responded with a status of 500 ()",
+                "console: Failed to load resource: the server responded with a status of 400 ()",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')",
+                "uncaught: Cannot read properties of undefined (reading 'view')"
+              ],
+              "personalizationHits": {
+                "hits": []
+              }
+            }
+          }
+        ],
+        "pairs": 1,
+        "summary": {
+          "declaredOff": [
+            "24.95"
+          ],
+          "declaredOn": [
+            "24.95"
+          ],
+          "visibleOff": [
+            "—"
+          ],
+          "visibleOn": [
+            "—"
+          ],
+          "cartOff": [
+            "—"
+          ],
+          "cartOn": [
+            "—"
+          ],
+          "atcOff": "✓",
+          "atcOn": "✓",
+          "searchOff": "W",
+          "searchOn": "W",
+          "rulesFired": {},
+          "tallyPersonalization": [
+            0
+          ],
+          "tallyTotal": [
+            2
+          ],
+          "newOnErrors": [
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+            "uncaught: Cannot read properties of undefined (reading 'view')"
+          ],
+          "walls": {
+            "off": 0,
+            "on": 0
+          },
+          "newOnPageErrors": [
+            "uncaught: Cannot read properties of undefined (reading 'view')"
+          ]
+        },
+        "priceNotes": [],
+        "functionalNotes": [],
+        "visitorSwapped": [],
+        "verdict": "PASS",
+        "reason": ""
+      },
+      "onLoads": [
+        {
+          "site": "shop-bathandbodyworks",
+          "withExtension": true,
+          "url": "https://www.bathandbodyworks.com/p/champagne-toast-3-wick-candle-028029548",
+          "ok": true,
+          "blocked": false,
+          "blockedEvidence": null,
+          "skipped": false,
+          "skipReason": null,
+          "void": false,
+          "reasons": [],
+          "detail": {
+            "vendors": "Attentive, Monetate (not blocked), Einstein recs (not blocked)",
+            "trace": [
+              "start@0s",
+              "prices@0s",
+              "klaviyo@1.5s",
+              "atc@2.5s",
+              "search@3.5s",
+              "done@5.2s"
+            ],
+            "title": "Champagne Toast 3-Wick Candle | Bath & Body Works",
+            "bodyLen": 4327,
+            "declared": {
+              "price": "24.95",
+              "currency": "USD",
+              "source": "json-ld"
+            },
+            "visible": null,
+            "productTally": {
+              "tabId": 660851220,
+              "matchedBy": "url",
+              "total": 2,
+              "byCategory": {
+                "analytics": 2
+              }
+            },
+            "atc": {
+              "attempted": true,
+              "ok": true,
+              "picked": null,
+              "clicked": "Add to bag",
+              "evidence": [
+                "same-site cart request 200 POST https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                "\"added to cart/bag\" message appeared",
+                "cart badge 0→1"
+              ],
+              "cartRequests": [
+                {
+                  "status": 200,
+                  "method": "POST",
+                  "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets",
+                  "by": "path"
+                },
+                {
+                  "status": 200,
+                  "method": "POST",
+                  "url": "https://www.bathandbodyworks.com/mobify/proxy/api/checkout/shopper-baskets/v1/organizations/f_ecom_bbdl_prd/baskets/be3277abc2b2da586cad3125",
+                  "by": "path"
+                }
+              ],
+              "before": {
+                "added": false,
+                "badge": null,
+                "shopify": null
+              },
+              "after": {
+                "added": true,
+                "badge": 1,
+                "shopify": null
+              },
+              "cartTotal": null,
+              "cartState": null
+            },
+            "search": {
+              "url": "https://www.bathandbodyworks.com/search?q=candle",
+              "httpStatus": 307,
+              "count": 0,
+              "ok": false,
+              "blocked": true,
+              "blockedEvidence": "challenge page (HTTP 200): \"Access to this page has been denied\" — Access to this page has been denied — Press & Hold to confirm you are a human (and not a bot). Reference ID 765c2680-ca6e-11f1-8d43-31a80c29091c"
+            }
+          },
+          "probes": {
+            "gpc": true,
+            "cores": 8,
+            "mem": 16,
+            "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+            "brands": "[]",
+            "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+          },
+          "visibility": "visible",
+          "consoleLines": [],
+          "httpStatus": 200,
+          "error": null,
+          "blockedByClient": [
+            "script https://tags.tiqcdn.com/utag/bbw/new/prod/utag.sync.js",
+            "script https://tags.tiqcdn.com/utag/bbw/new/prod/utag.js"
+          ],
+          "learnedHits": {
+            "hits": [],
+            "recorderRestarted": false
+          },
+          "pageErrors": [
+            "uncaught: Yo is not defined",
+            "console: Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092' violates the following Content Security Policy directive: \"script-src 'self' 'un",
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+            "console: Executing inline event handler violates the following Content Security Policy directive 'script-src-attr 'none''. Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is",
+            "console: Failed to load resource: the server responded with a status of 400 ()",
+            "console: Failed to load resource: the server responded with a status of 500 ()",
+            "console: Failed to load resource: the server responded with a status of 400 ()",
+            "console: Failed to load resource: the server responded with a status of 400 ()",
+            "console: Failed to load resource: the server responded with a status of 500 ()",
+            "console: Failed to load resource: the server responded with a status of 400 ()",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')",
+            "uncaught: Cannot read properties of undefined (reading 'view')"
+          ],
+          "personalizationHits": {
+            "hits": []
+          }
+        }
+      ],
+      "protectedHostBlocks": []
+    }
+  ]
+}

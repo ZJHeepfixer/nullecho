@@ -1,0 +1,82 @@
+{
+  "label": "shim-off",
+  "url": "https://www.smythstoys.com/uk/en-gb",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 6207,
+      "documents": [
+        {
+          "url": "https://www.smythstoys.com/uk/en-gb",
+          "status": 200,
+          "frameId": "80F9A8FE0F0F039ACBF497F2E90D5DED",
+          "server": "",
+          "setCookieNames": [
+            "visid_incap_2483049",
+            "incap_ses_363_2483049"
+          ]
+        },
+        {
+          "url": "https://www.smythstoys.com/uk/en-gb",
+          "status": 200,
+          "frameId": "80F9A8FE0F0F039ACBF497F2E90D5DED",
+          "server": "",
+          "setCookieNames": [
+            "incap_sh_2483049"
+          ]
+        },
+        {
+          "url": "https://www.smythstoys.com/_Incapsula_Resource?SWUDNSAI=31&xinfo=52-261992742-0%20PNNN%20RT%281792267710607%20248%29%20q%280%20-1%20-1%20-1%29%20r%280%20-1%29%20B12%2814%2c0%2c0%29%20U18&incident_id=363000400780811442-1355074250769893940&edet=12&cinfo=0e00000000e8&rpinfo=0&cts=MfzcJvDoZZDrQT%2bDOBfaSJuyhAVLwXdUeUgmdDijupiUkrdCmecXTm4vO1aXj8Rz&cip=66.218.52.176&mth=GET",
+          "status": 200,
+          "frameId": "AD912FC16FB14A8C20FB879E2DE713D1",
+          "server": "",
+          "setCookieNames": [
+            "___utmvc"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "incap_ses_363_2483049",
+        "incap_sh_2483049",
+        "nlbi_2483049_2147483392",
+        "reese84",
+        "visid_incap_2483049"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "",
+        "href": "https://www.smythstoys.com/uk/en-gb",
+        "text": "",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:08:31.786Z"
+}

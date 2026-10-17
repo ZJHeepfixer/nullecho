@@ -1,0 +1,72 @@
+{
+  "label": "control-site-wikipedia",
+  "url": "https://en.wikipedia.org/wiki/Main_Page",
+  "extensions": [
+    "final-chrome"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8072,
+      "documents": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Main_Page",
+          "status": 200,
+          "frameId": "EA96526463D34FF9AF448F0DC763749C",
+          "server": "mw-web.codfw.main-7c756fc7c9-8lknk",
+          "setCookieNames": [
+            "WMF-Last-Access",
+            "WMF-Last-Access-Global",
+            "WMF-DP",
+            "GeoIP",
+            "NetworkProbeLimit",
+            "WMF-Uniq"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "GeoIP",
+        "NetworkProbeLimit",
+        "WMF-DP",
+        "WMF-Last-Access",
+        "WMF-Last-Access-Global",
+        "WMF-Uniq",
+        "enwikimwuser-sessionId"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Wikipedia, the free encyclopedia",
+        "href": "https://en.wikipedia.org/wiki/Main_Page",
+        "visibility": "visible",
+        "text": "Jump to content Main menu Search Appearance Donate Create account Log in Photograph a historic site, help Wikipedia, and win a prize. Participate in the world's largest photography competition this mo",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792269578051,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:39:45.442Z"
+}

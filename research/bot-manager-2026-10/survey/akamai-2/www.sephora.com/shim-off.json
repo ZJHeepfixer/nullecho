@@ -1,0 +1,224 @@
+{
+  "label": "shim-off",
+  "url": "https://www.sephora.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 14744,
+      "documents": [
+        {
+          "url": "https://www.sephora.com/",
+          "status": 200,
+          "frameId": "E914E7FD45F81349140367F966376679",
+          "server": "nginx",
+          "setCookieNames": [
+            "akamweb",
+            "device_type",
+            "site_locale",
+            "site_language",
+            "current_country",
+            "rcps_sls",
+            "rcps_ccap",
+            "rcps_cctk",
+            "rcps_ccappl",
+            "rcps_signInModernization",
+            "rcps_bihub",
+            "rcps_basket",
+            "rcps_beauty_chat_prs",
+            "adbanners",
+            "AKA_A2",
+            "akavpau_akaau",
+            "_abck",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.sephora.com/",
+          "status": 200,
+          "frameId": "E914E7FD45F81349140367F966376679",
+          "server": "nginx",
+          "setCookieNames": [
+            "rcps_sls",
+            "rcps_ccap",
+            "rcps_cctk",
+            "rcps_ccappl",
+            "rcps_beauty_chat",
+            "rcps_signInModernization",
+            "rcps_bihub",
+            "rcps_basket",
+            "rcps_beauty_chat_prs",
+            "_abck",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.sephora.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "139444DFCA3FB0E505D26386AD35D973",
+          "server": "",
+          "setCookieNames": [
+            "ak_bmsc-kp-ssn",
+            "ak_bmsc-kp"
+          ]
+        },
+        {
+          "url": "https://www.sephora.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "0043E95B99EC630258A9AE79528C7E22",
+          "server": "",
+          "setCookieNames": [
+            "ak_bmsc-kp-ssn",
+            "ak_bmsc-kp"
+          ]
+        },
+        {
+          "url": "https://apps.rokt-api.com/wsdk/controller/index.2.21646.0.html",
+          "status": 200,
+          "frameId": "F5CAF12C57613017FE6216CE5C161587",
+          "server": "AmazonS3",
+          "setCookieNames": [
+            "akaalb_Instance-1"
+          ]
+        },
+        {
+          "url": "https://apps.rokt-api.com/wsdk/plugins/dcui/index.html",
+          "status": 200,
+          "frameId": "A7D6C7AED5B29B5E81AB51689F1A17BA",
+          "server": "AmazonS3",
+          "setCookieNames": [
+            "akaalb_Instance-1"
+          ]
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LdPdW0UAAAAAHNh5_q7pTCQS1lxzqmZ8-k3NDvb&co=aHR0cHM6Ly93d3cuc2VwaG9yYS5jb206NDQz&hl=en&type=image&v=4EDjxXf4knsT8wRTp1lOoMFE&theme=light&size=invisible&badge=inline&anchor-ms=20000&execute-ms=30000&ovv=CAB5am5W&cb=jk6t0kh5isvl",
+          "status": 200,
+          "frameId": "AC4B755DD287CE4DF3ED664676E30553",
+          "server": "ESF",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api2/bframe?hl=en&v=4EDjxXf4knsT8wRTp1lOoMFE&k=6LdPdW0UAAAAAHNh5_q7pTCQS1lxzqmZ8-k3NDvb&bft=0dAFcWeA5Q913EQYJEWumkp-pNdzz88Z9O0fDQPgOV2wuMFkTwEct-lZduljP3QMA1gKlYRVsSupPweByimMTkJlY9-BwFIHAqvw",
+          "status": 200,
+          "frameId": "087D0802C1DFC40B764CBC245ACE205A",
+          "server": "ESF",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 9,
+      "otherFailures": [
+        {
+          "url": "https://www.sephora.com/contentimages/2026-10-01_cs-holiday_site_hp_hero-banner_us-can-gr_01.jpg?imwidth=340",
+          "type": "Image",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.sephora.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.sephora.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "type": "Document",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.sephora.com/contentimages/2026-10-01_cs-holiday_site_hp_hero-banner_us-can-gr_01.jpg?imwidth=340",
+          "type": "Image",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AKA_A2",
+        "AMCVS_F6281253512D2BB50A490D45%40AdobeOrg",
+        "AMCV_F6281253512D2BB50A490D45%40AdobeOrg",
+        "ConstructorioID_client_id",
+        "PIM-SESSION-ID",
+        "RT",
+        "RoktRecogniser",
+        "SephSession",
+        "_abck",
+        "adbanners",
+        "ak_bmsc-kp",
+        "ak_bmsc-kp-ssn",
+        "akamweb",
+        "akavpau_akaau",
+        "at_check",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sz",
+        "current_country",
+        "device_type",
+        "dtCookie",
+        "dtPC",
+        "dtSa",
+        "forterToken",
+        "gpc",
+        "isSSI",
+        "mbox",
+        "profileStatus",
+        "rcps_basket",
+        "rcps_beauty_chat",
+        "rcps_beauty_chat_prs",
+        "rcps_bihub",
+        "rcps_ccap",
+        "rcps_ccappl",
+        "rcps_cctk",
+        "rcps_signInModernization",
+        "rcps_sls",
+        "rxVisitor",
+        "rxvt",
+        "site_language",
+        "site_locale"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "Makeup, Skincare, Fragrance, Hair & Beauty Products | Sephora",
+        "href": "https://www.sephora.com/",
+        "visibility": "visible",
+        "text": "Pick a FREE* Sample Bag with $55+ Spend. *Terms apply. Use code ALLFAVES ▸ Search Home Shop Offers My Store NEW AI Beauty Sephora Homepage Shop My Store New Must Haves Under $50 Makeup Skincare Fragra",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:16:17.409Z"
+}

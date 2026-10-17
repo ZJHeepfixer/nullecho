@@ -73,6 +73,13 @@ based on what it implies.
   reach. If that's your threat model, you want a VPN or Tor.
 - **Firefox's `resistFingerprinting` and Brave are genuinely stronger** at anti-fingerprinting —
   they operate below the JavaScript layer. Nullecho's honest niche is **Chrome**, where neither exists.
+- **It does not disguise your device on sites whose bot check refuses a disguise** (0.9.3,
+  [D59](docs/DECISIONS.md)). tesla.com's Akamai Bot Manager answered "Access Denied" with the device profile on, and kept
+  refusing after it was switched off. So where a site's own response shows Akamai Bot Manager, Nullecho leaves your
+  device profile alone there — blocking and Global Privacy Control stay on. That covers more than the sites that
+  break: eight of nine other Akamai sites measured loaded fine with the profile, and lose it anyway, because nothing
+  tells them apart before the check runs. Those sites read your real device. Settings lists them, with a way to use
+  the profile anyway.
 - **It will not get you lower prices.** The best controlled study found clearing your tracks yields
   the *worse* price more often than the better one. See [`research/SURVEILLANCE-PRICING.md`](research/SURVEILLANCE-PRICING.md).
 - **It does nothing against state surveillance.** Different threat model entirely.

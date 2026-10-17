@@ -251,6 +251,7 @@ export const FINDING = {
  * @param {boolean} [ctx.gpcExcepted]            suppressed for this site specifically
  * @param {boolean} [ctx.gpcUserExcepted]        …and the user is who suppressed it
  * @param {boolean} [ctx.strictFingerprinting]   tier-B anti-fraud rules enabled
+ * @param {boolean} [ctx.botManagerStandDown]    D59: the device layer stood down here for the site's bot manager
  * @param {boolean} [ctx.isCalifornian]
  * @param {boolean} [ctx.dropFiled]
  * @param {Record<string, number>} [ctx.crossSiteReach]  owner → how many of the
@@ -903,6 +904,14 @@ function siteRemedy(kind, report, state) {
         return {
           text: 'The device shim is off here, so this page read your real device. Turn Nullecho back on for this site.',
           action: 'enable-site',
+        };
+      }
+      // D59: the device layer stood down for this site's bot manager. Saying "a
+      // stand-in device profile" here would be a claim the code contradicts.
+      if (state.botManagerStandDown) {
+        return {
+          text: 'This site’s security checks reject disguised devices, so this page read your real device. Tracker blocking still applied. Settings lists the sites where this happens, with a way to use your device profile anyway.',
+          action: null,
         };
       }
       if (!state.strictFingerprinting) {

@@ -1,0 +1,135 @@
+{
+  "label": "shim-off",
+  "url": "https://www.bestbuy.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 13675,
+      "documents": [
+        {
+          "url": "https://www.bestbuy.com/",
+          "status": 200,
+          "frameId": "42BF78A79F147BD0D768A4E259B53ED0",
+          "server": "",
+          "setCookieNames": [
+            "SID",
+            "CTT",
+            "bby_rdp",
+            "vt",
+            "bp",
+            "akacd_PR_www_bestbuy_com",
+            "_abck",
+            "bm_mi",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LeP0dgrAAAAAFn_1X2rBkI8vJKKsU0-LOJOsczw&co=aHR0cHM6Ly93d3cuYmVzdGJ1eS5jb206NDQz&hl=en&v=4EDjxXf4knsx6UBM1L2V6cv8&size=invisible&anchor-ms=20000&execute-ms=30000&cb=hsbzfmqug5uw",
+          "status": 200,
+          "frameId": "8D57C4BDB2F3D885352E7D250DBA90E4",
+          "server": "ESF",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 5,
+      "otherFailures": [
+        {
+          "url": "https://www.bestbuy.com/gateway/graphql",
+          "type": "Fetch",
+          "error": "net::ERR_HTTP2_PROTOCOL_ERROR"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.bestbuy.com/gateway/graphql",
+          "type": "Fetch",
+          "error": "net::ERR_HTTP2_PROTOCOL_ERROR"
+        },
+        {
+          "url": "https://www.bestbuy.com/gateway/graphql",
+          "type": "Fetch",
+          "error": "net::ERR_HTTP2_PROTOCOL_ERROR"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.bestbuy.com/gateway/graphql",
+          "type": "Fetch",
+          "error": "net::ERR_HTTP2_PROTOCOL_ERROR"
+        },
+        {
+          "url": "https://www.bestbuy.com/gateway/graphql",
+          "type": "Fetch",
+          "error": "net::ERR_HTTP2_PROTOCOL_ERROR"
+        },
+        {
+          "url": "https://www.bestbuy.com/gateway/graphql",
+          "type": "Fetch",
+          "error": "net::ERR_HTTP2_PROTOCOL_ERROR"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AMCV_F6301253512D2BDB0A490D45%40AdobeOrg",
+        "COM_TEST_FIX",
+        "CTT",
+        "SID",
+        "_abck",
+        "ak_bmsc",
+        "akacd_PR_www_bestbuy_com",
+        "askBlueViewMode",
+        "bby_cbc_lb",
+        "bby_rdp",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sz",
+        "bp",
+        "customerZipCode",
+        "dtCookie",
+        "dtPC",
+        "dtSa",
+        "exp0669",
+        "ltc",
+        "lux_uid",
+        "physical_dma",
+        "pst2",
+        "rxVisitor",
+        "rxvt",
+        "signInToSaveExpVariant",
+        "vt"
+      ],
+      "page": {
+        "title": "Best Buy | Official Online Store | Shop Now & Save",
+        "href": "https://www.bestbuy.com/",
+        "text": "Skip to content Go to Product Search Go to Footer Assistive Survey Your store Find a store Account Sign in Shop Deals Support & Services Discover Top Deals Deal of the Day Trade-In Gift Ideas Fall Foo",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:52:29.482Z"
+}

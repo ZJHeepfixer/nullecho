@@ -158,6 +158,8 @@
     const EVENT_STATUS = 'nullecho:status';
     const CHANNEL = 'gpc';
     const BOOT_PHASE = 'boot';
+    /** D59: `fpStandDown` value — the shim handed the realm back for a bot manager. */
+    const FP_STAND_DOWN_BOT_MANAGER = 'bot-manager';
     const NONCE_BYTES = 16;
 
     // ── pristine primitives + boot nonce ──────────────────────────────────
@@ -282,12 +284,17 @@
      * hypothetical — and by D21 discipline this is read once, at boot, not
      * looked up later on an object the page has had time to touch.
      */
-    const nativeDesc = NAV_PROTO ? rawGetOwnPropDesc(NAV_PROTO, GPC_PROP) : undefined;
-    const nativeValue = (() => {
-      if (!nativeDesc) return undefined;
-      if (!nativeDesc.get) return nativeDesc.value;
-      try { return rawApply(nativeDesc.get, navigator, []); } catch { return undefined; }
-    })();
+    const readDesc = () => (NAV_PROTO ? rawGetOwnPropDesc(NAV_PROTO, GPC_PROP) : undefined);
+    const readValue = (d) => {
+      if (!d) return undefined;
+      if (!d.get) return d.value;
+      try { return rawApply(d.get, navigator, []); } catch { return undefined; }
+    };
+    // `let`, not `const`, for exactly one reason: `rebaseline()` (D59) re-reads
+    // both after `shim.js` hands the realm back, because what this file saw at
+    // boot was then the shim's descriptor, not the browser's.
+    let nativeDesc = readDesc();
+    let nativeValue = readValue(nativeDesc);
 
     // Getter SHORTHAND, twice, once per value. D32: a function defined this way
     // has exactly `length` and `name`, no own `prototype`, and is not a
@@ -424,7 +431,28 @@
      * whole-extension stand-down. The flag is read at boot, before any page
      * script exists to have moved the property.
      */
-    const ALREADY_SIGNALLED = nativeValue === true;
+    let ALREADY_SIGNALLED = nativeValue === true;
+
+    /**
+     * D59 — `shim.js` has just stood down for a bot manager and restored every
+     * descriptor it installed, its GPC getter included. Case 1 above no longer
+     * holds: the signal this file found up at boot was the shim's, and it is
+     * gone. So look again, at the realm as the ENGINE now has it — absent on
+     * Chrome, the native accessor on Firefox — and from here on behave exactly
+     * as in a realm the shim never patched, which is the configuration measured
+     * to pass tesla.com's Akamai sensor (`no-shim`: gpc.js live, page loads).
+     *
+     * Cases 2 and 3 survive the re-read: a GPC-native `true` or another
+     * extension's `true` is still `true` now, and this file still leaves it
+     * alone. Reached only from an authenticated payload (`gpcNonce`), so a page
+     * cannot make this file re-read anything.
+     */
+    function rebaseline() {
+      if (ownedByUs || !NAV_PROTO) return;
+      nativeDesc = readDesc();
+      nativeValue = readValue(nativeDesc);
+      ALREADY_SIGNALLED = nativeValue === true;
+    }
 
     function setSignal(on) {
       if (ALREADY_SIGNALLED) return;                    // not ours — D46
@@ -521,7 +549,12 @@
       // suppressed the user's do-not-sell signal: a privacy regression the page
       // could trigger, on the one path where the extension is already degraded.
       if (ownField(cfg, 'enabled') === false) standDown();
-      else setSignal(ownField(cfg, 'gpc') !== false);
+      else {
+        // D59: the device layer stood down, the signal did not. Own property, and
+        // the exact value: anything else leaves the boot-time ownership alone.
+        if (ownField(cfg, 'fpStandDown') === FP_STAND_DOWN_BOT_MANAGER) rebaseline();
+        setSignal(ownField(cfg, 'gpc') !== false);
+      }
       return true;
     }
 

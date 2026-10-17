@@ -1,0 +1,116 @@
+{
+  "label": "shim-off",
+  "url": "https://www.walmart.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 12119,
+      "documents": [
+        {
+          "url": "https://www.walmart.com/",
+          "status": 200,
+          "frameId": "D8B4BAF15E0686E6BF2A3F7696D8CCA9",
+          "server": "",
+          "setCookieNames": [
+            "isoLoc",
+            "akavpau_p2",
+            "ak_bmsc",
+            "bm_mi"
+          ]
+        },
+        {
+          "url": "https://i5.walmartimages.com/dfw/63fd9f59-4c54/7adb6fe1-4149-4ebe-b4c7-2ea1921d4a19/v344/create-3p-cookie.html",
+          "status": 200,
+          "frameId": "1C07AE707207E7753317236994A52FD1",
+          "server": "",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.walmart.com/~partytown/partytown-sandbox-sw.html?1792266953395",
+          "status": 200,
+          "frameId": "F8FDCA048E7C24F2A323845A665210B2",
+          "server": "",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "url": "https://www.walmart.com/akam/13/3703b387",
+          "type": "Script",
+          "error": ""
+        }
+      ],
+      "cookiesAfterLoad": [
+        "ACID",
+        "TS012768cf",
+        "TS016ef4c8",
+        "TS01a90220",
+        "TS01f89308",
+        "TS2a5e0c5c027",
+        "TS8cb5a80e027",
+        "_astc",
+        "_intlbu",
+        "_m",
+        "_px3",
+        "_pxde",
+        "_pxhd",
+        "_pxvid",
+        "_shcc",
+        "abqme",
+        "adblocked",
+        "ak_bmsc",
+        "akavpau_p2",
+        "akavpau_p5",
+        "assortmentStoreId",
+        "bm_sv",
+        "bstc",
+        "doorwayId",
+        "exp-ck",
+        "hasACID",
+        "hasLocData",
+        "if_id",
+        "io_id",
+        "isoLoc",
+        "pxcts",
+        "sbstc",
+        "sod",
+        "svtc",
+        "vtc",
+        "xpa",
+        "xpm",
+        "xptc",
+        "xpth",
+        "xptwg"
+      ],
+      "page": {
+        "title": "Walmart | Save Money. Live better.",
+        "href": "https://www.walmart.com/",
+        "text": "Skip to Main Content Ask me anything AI Hi, I’m Sparky, your AI shopping assistant! When you’re signed into your account, I can help with all of your shopping needs. Sign in Cancel 0 $0.00 Pickup or d",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:55:59.614Z"
+}

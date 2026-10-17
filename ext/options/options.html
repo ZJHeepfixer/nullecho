@@ -242,7 +242,7 @@
 
     <div class="rowactions">
       <button class="btn" id="clear-stats" type="button">Clear site history</button>
-      <span class="note inline">Counters only. Clearing them does not change any site’s profile.</span>
+      <span class="note inline">Counters, and the list of sites with bot checks further down (each is found again on your next visit). Clearing them does not change any site’s profile.</span>
     </div>
   </section>
 
@@ -263,6 +263,32 @@
       Blocking is disabled immediately. The device shim is declared in the manifest
       so it always loads, then stands down as soon as it hears the site is
       allowlisted — a few milliseconds into the page. Reload after adding a site.
+    </p>
+  </section>
+
+  <!-- ── D59: bot-manager stand-down ──────────────────────────────────── -->
+  <section class="card" id="bot-managers">
+    <h2>Sites whose security checks reject disguised devices</h2>
+    <p class="lede">
+      Some sites run a bot check that refuses a browser whose device profile is
+      disguised — measured on tesla.com, which answers “Access Denied”. When a
+      site’s own response shows one of those checks, Nullecho leaves your device
+      profile alone on that site. Tracker blocking and Global Privacy Control stay on.
+    </p>
+    <div class="tablewrap">
+      <table class="tbl" id="bot-table" hidden>
+        <thead>
+          <tr><th>Site</th><th>Check</th><th>Since</th><th>What the site sees</th><th></th></tr>
+        </thead>
+        <tbody id="bot-body"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="bot-empty">None yet. Your device profile is used on every site Nullecho is on.</p>
+    <p class="note">
+      On these sites the page reads your real device, so a tracker that gets past
+      the blocklists could recognise you there. “Use my device profile here anyway”
+      brings the disguise back; the site may then block you, on that visit or a later
+      one, and once it has it can keep refusing for a while — even after you switch back.
     </p>
   </section>
 

@@ -1,0 +1,66 @@
+{
+  "label": "shim-on",
+  "url": "https://www.hyatt.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "http-429",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 9638,
+      "documents": [
+        {
+          "url": "https://www.hyatt.com/",
+          "status": 429,
+          "frameId": "2B5965FB1A9D9FCE938F870924D96977",
+          "server": "",
+          "setCookieNames": [
+            "tkrm_alpekz_s1.3-ssn",
+            "tkrm_alpekz_s1.3",
+            "source-country",
+            "source-region"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "source-country",
+        "source-region",
+        "tkrm_alpekz_s1.3",
+        "tkrm_alpekz_s1.3-ssn"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "",
+        "href": "https://www.hyatt.com/",
+        "text": "",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267389012,
+            "lockedToFallback": true,
+            "reason": "api-read-before-handshake",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:03:14.843Z"
+}

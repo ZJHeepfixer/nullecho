@@ -625,12 +625,19 @@
     // captured at document_start. This is best-effort by construction — a
     // statically-declared content script cannot be un-declared at runtime, so the
     // page is briefly patched before the restore lands. Documented in README.md.
+    //
+    // `fpStandDown` (D59) is the same stand-down for the DEVICE layer only — the
+    // site's bot manager rejects disguised devices — with blocking and GPC kept
+    // on. The service worker decides it from the site's own responses; this file
+    // only carries it, and `null` is sent explicitly so the shim's own-property
+    // read never meets an absent field (D29).
     deliver({
       ok: true,
       enabled: res.enabled,
       gpc: res.gpc,
       site: res.site,
-      persona: res.persona, // null when the site is allowlisted
+      fpStandDown: typeof res.fpStandDown === 'string' ? res.fpStandDown : null,
+      persona: res.persona, // null when the site is allowlisted or stood down (D59)
     });
   }
 

@@ -1,0 +1,131 @@
+{
+  "label": "shim-on",
+  "url": "https://www.homedepot.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 12692,
+      "documents": [
+        {
+          "url": "https://www.homedepot.com/",
+          "status": 200,
+          "frameId": "41758F1AC67A5680C842E7A3ACB0FAB7",
+          "server": "nginx",
+          "setCookieNames": [
+            "akavpau_prod",
+            "akacd_usbeta",
+            "_bman",
+            "kndctr_F6421253512D2C100A490D45_AdobeOrg_identity",
+            "kndctr_F6421253512D2C100A490D45_AdobeOrg_cluster",
+            "akaew",
+            "_abck",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://customer.homedepot.com/SrhAdj0cpLi5hxDj?afb0a024af8c24c3=9x0wWa2Eu2OtjeHcwGB7DQF5AnvtG0EiCMnvfb-srAZpgHzV6kboPatSofDFH1xjAOregygTjEBjFYS02UTg00eGAqYV_wauUDDWPcOuCk-wLN3zSoA-khLB4jUNBSiGZRlbCXEbUZO7YovbRCG_nWF6qlO05aJGRF72R6foO-vkQq0T_PmHanDH1LxhW1Jisoso_csb7Dojmj4stdg",
+          "status": 200,
+          "frameId": "83914B2A81F26A7CF91BA01637D0D590",
+          "server": "Apache",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://customer.homedepot.com/PvXlZ24M2A-zIjhy?cd3e8fc0534b88f4=oJNW_XCtGAoRkJLyWOxfjoyp4FloKEFzpd1_igA_LNxrhqgbw9qV16Ov4mwcxYeXVWZZ1nsZ16v0_PA9ufIFOybBkch7MYA9TFhIdw3VJL7BguW0dAs_y9rfWNGzWic4jHsWKYRWA7MJbFV2YkKjZS9J0Tplp72d_pH-3M9ERhPhF0IUCoSnEu9M5_r0Ho5hgmLwGtyqm2zDa6ecALfA",
+          "status": 200,
+          "frameId": "0B7A97A9DE1214485B96E3A381D24B00",
+          "server": "Apache",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://h.online-metrix.net/F-3xOdBgwxjDvqU6?7caf0ea3c7a2e20f=l3pr_ulGOH6sZ_JsOAA_J8dL41b-y5hDWiHW23cMIAzH5eDfuZ3-UyR944sYAVhaXjXXnhGmLh2hl6htx4VY5Ra-7OjaUIX33-yD13KA2F6cwEfDsCNj4OMiGhPdSm5zlkEdHjZqwbncEW668R6LLBawfxLQpBp3J11GmUQbJHvavpCLQ-VS0GCiNpa-kzpKHHzu7DnLSnN3WEq59taC",
+          "status": 200,
+          "frameId": "01AB75CFCA5DB2D9E1E1A2E1B70B5240",
+          "server": "Apache",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AMCV_F6421253512D2C100A490D45%40AdobeOrg",
+        "DELIVERY_ZIP",
+        "DELIVERY_ZIP_TYPE",
+        "HD_DC",
+        "IN_STORE_API_SESSION",
+        "OptOutOnRequest",
+        "OptOutOnRequest",
+        "QSI_HistorySession",
+        "RT",
+        "THD_CACHE_NAV_PERSIST",
+        "THD_CACHE_NAV_SESSION",
+        "THD_LOCALIZER",
+        "THD_NR",
+        "THD_PERSIST",
+        "THD_SESSION",
+        "_abck",
+        "_bman",
+        "_px2",
+        "_px_f394gi7Fvmc43dfg_user_id",
+        "_pxde",
+        "_pxvid",
+        "ajs_anonymous_id",
+        "akacd_usbeta",
+        "akaew",
+        "akavpau_prod",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sz",
+        "forterToken",
+        "kndctr_F6421253512D2C100A490D45_AdobeOrg_cluster",
+        "kndctr_F6421253512D2C100A490D45_AdobeOrg_identity",
+        "pxcts",
+        "thda.s",
+        "thda.u",
+        "x-ttsearch"
+      ],
+      "page": {
+        "title": "The Home Depot",
+        "href": "https://www.homedepot.com/",
+        "text": "Find the Perfect Gift for Anyone On Your List Ridgecrest 9PM 93555 Shop All Services DIY Log In Sign in for the best experience Sign In Don't have an account? Create an Account We're having trouble lo",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 10,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266629866,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1-pro",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:50:37.287Z"
+}

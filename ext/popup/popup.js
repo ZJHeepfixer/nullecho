@@ -297,6 +297,7 @@ function renderReport(s, enabled) {
     gpcExcepted: !!s.gpc?.excepted,
     gpcUserExcepted: !!s.gpc?.userExcepted,
     strictFingerprinting: !!s.strictFingerprinting,
+    botManagerStandDown: botManagerStoodDown(s, enabled),
     isCalifornian: !!s.settings?.isCalifornian,
     dropFiled: !!s.settings?.dropFiled,
     // Local evidence. Company names and counts, never origins — and the finding
@@ -470,6 +471,18 @@ function rfpOn(s) {
   return s?.stats?.lastShimStatus?.reason === RFP_REASON;
 }
 
+/**
+ * D59: the device layer stands down on this site because its bot manager rejects
+ * disguised devices. Read from the service worker's per-site flag — the thing
+ * that decides it — not from the shim's last status, which is one page's report.
+ */
+function botManagerStoodDown(s, enabled) {
+  return enabled && s?.botManager?.standingDown === true;
+}
+
+/** The popup's sentence for it, word for word as D59 approved it. */
+const BOT_MANAGER_COPY = 'This site’s security checks reject disguised devices, so Nullecho leaves your device profile alone here. Tracker blocking stays on.';
+
 function renderPersona(s, enabled) {
   const p = s.persona;
   if (p && rfpOn(s)) {
@@ -488,6 +501,19 @@ function renderPersona(s, enabled) {
   if (!p) {
     $('persona-id').textContent = 'none';
     for (const k of ['p-system', 'p-gpu', 'p-cpu', 'p-screen']) $(k).textContent = '—';
+    return;
+  }
+  if (botManagerStoodDown(s, enabled)) {
+    // D59: nothing persona-shaped is in this site's pages — the shim restored every
+    // descriptor — so every row is the real device's, and the id names nothing.
+    $('persona-id').textContent = 'your own device (not disguised here)';
+    $('p-system').textContent = 'as your browser reports it — not changed';
+    $('p-gpu').textContent = 'as your browser reports it — not changed';
+    $('p-cpu').textContent = 'as your browser reports it — not changed';
+    $('p-screen').textContent = realDisplay();
+    $('persona').style.opacity = '';
+    const note = document.querySelector('.persona + .note');
+    if (note) note.textContent = 'This site sees your real device. All settings lists the sites where Nullecho does this, with a way to use your device profile anyway — the site may then block you.';
     return;
   }
   $('persona-id').textContent = p.id;
@@ -652,6 +678,8 @@ function renderAlerts(s, enabled) {
   }
 
   if (enabled && rfpOn(s)) add([b(RFP_ON), txt(' Blocking and Global Privacy Control stay on.')], 'info');
+
+  if (botManagerStoodDown(s, enabled)) add([txt(BOT_MANAGER_COPY)], 'info');
 
   const st = s.stats?.lastShimStatus;
   if (enabled && st?.reason === 'shim-never-booted') {

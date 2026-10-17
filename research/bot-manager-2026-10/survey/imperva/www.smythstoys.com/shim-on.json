@@ -1,0 +1,87 @@
+{
+  "label": "shim-on",
+  "url": "https://www.smythstoys.com/uk/en-gb",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8447,
+      "documents": [
+        {
+          "url": "https://www.smythstoys.com/uk/en-gb",
+          "status": 200,
+          "frameId": "2A9F9AEC738ACCABA75543236B7A383C",
+          "server": "",
+          "setCookieNames": [
+            "visid_incap_2483049",
+            "incap_ses_363_2483049"
+          ]
+        },
+        {
+          "url": "https://www.smythstoys.com/uk/en-gb",
+          "status": 200,
+          "frameId": "2A9F9AEC738ACCABA75543236B7A383C",
+          "server": "",
+          "setCookieNames": [
+            "incap_sh_2483049"
+          ]
+        },
+        {
+          "url": "https://www.smythstoys.com/_Incapsula_Resource?SWUDNSAI=31&xinfo=53-273495205-0%20NNNN%20RT%281792267691284%20222%29%20q%280%20-1%20-1%20-1%29%20r%280%20-1%29%20B12%2814%2c0%2c0%29%20U18&incident_id=363000400780802664-1407403977685535285&edet=12&cinfo=0e00000000e8&rpinfo=0&cts=veVXHDqR%2b3AjyxaoEXWjhxpkRjKYuIDz6W9VCq%2f016XzKW8xigED%2fRciuBl7MxKi&cip=66.218.52.176&mth=GET",
+          "status": 200,
+          "frameId": "4D25A3A8F60C8C9767E4ECE45AA1D007",
+          "server": "",
+          "setCookieNames": [
+            "___utmvc"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "incap_ses_363_2483049",
+        "incap_sh_2483049",
+        "nlbi_2483049_2147483392",
+        "reese84",
+        "visid_incap_2483049"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "",
+        "href": "https://www.smythstoys.com/uk/en-gb",
+        "text": "",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267691704,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:08:17.416Z"
+}
