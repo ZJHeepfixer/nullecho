@@ -78,6 +78,16 @@ Since 2026-09-16 the observer registers **no `onBeforeRequest` listener at all**
 D20), and dropping it also means the one thing the observer reads is what a
 third party *sent*, not what a page *asked for*.
 
+**A second reader of the same listener, since 0.9.3 (DECISIONS.md D59).** The
+bot-manager stand-down reads the `Set-Cookie` **names** on responses from the
+top-level site itself — the main document and the requests that document makes to
+its own site, never a sub-frame and never a third party — to see whether the site
+runs a bot check measured to refuse disguised devices (Akamai Bot Manager's
+`_abck` / `bm_sz`). It shares the heuristics layer's `onHeadersReceived` listener
+rather than adding one, stores the site name and the cookie name (never a value),
+and asks for nothing new: the one-time reload it may issue when the check shows up
+late is `tabs.reload`, which needs no `tabs` permission.
+
 ### Not `scripting`
 Worth recording, because an earlier draft of this file requested it.
 

@@ -381,3 +381,12 @@ options toggle in real Chrome and Firefox; uploading the updated store-listing t
   Walmart's own cookies with no extension present (cookie transfer 10/10 and 4/4 both directions;
   research/walmart-price-gap-2026-10/). Not caused by Nullecho; no user-facing claim made.
 - 0.9.2 was never uploaded; 0.9.3 replaces it as the next store package (0.9.2 fixes included).
+- **D59 — bot-manager stand-down** (branch `bot-manager-standdown`). tesla.com was "Access Denied" with Nullecho on
+  (Akamai Bot Manager refuses the persona shim). A site whose own response sets Akamai's `_abck` / `bm_sz` now gets the
+  device layer stood down from its first document; blocking and GPC stay on (gpc.js takes the JS signal over — the
+  shim's restore used to drop it). New storage key `botManagerSites` (site + cookie name, never a value; ≤ 500;
+  "Clear site history" empties it) — both privacy documents updated. Popup sentence, settings list with "Use my device
+  profile here anyway", THREAT-MODEL and README limit rows. Measured on the store zip: tesla.com 3/3 OK, a control
+  site still gets its persona, the four attacks in D59. ⚠ **Director call before upload:** the stand-down also covers
+  eight measured Akamai sites that worked with the profile (D59 "The cost"); `research/bot-manager-2026-10/`.
+  Still owed for D59: a real Firefox and Edge run (Firefox: `web-ext lint` 0/0/0 only); the owner's own Chrome.

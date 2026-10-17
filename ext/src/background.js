@@ -38,9 +38,12 @@ import * as heuristics from './heuristics.js';
 import { personaFor, newSalt, hashString, personasForFamily, hostFamily } from './personas.js';
 import { buildLinkageGraph, reachByOwner } from './linkage.js';
 import { EXTENSION_BLOCK_ERRORS, buildMatcher, requestFacts } from './block-counter.js';
+import { topLevelHit, lateFlagReload, prune as pruneBotManagerSites, vendorLabel } from './bot-manager.js';
 import {
   MSG,
   GPC_MSG,
+  FP_STAND_DOWN,
+  BOT_MANAGER_STORAGE_KEY,
   RULESETS,
   BLOCKING_RULESET_IDS,
   DEFAULT_SETTINGS,
@@ -85,7 +88,11 @@ function bootStep(label, fn) {
   try { fn(); } catch (e) { console.error(`[nullecho] boot step "${label}" failed:`, e); }
 }
 
-bootStep('heuristics.install', () => heuristics.install());
+// D59's bot-manager observer rides on the heuristics layer's `onHeadersReceived`
+// listener rather than registering a second one: the same filter, the same
+// feature-detected `extraHeaders` (Chrome hides Set-Cookie without it, Firefox
+// rejects it — D42), one event per response instead of two.
+bootStep('heuristics.install', () => heuristics.install({ responseObservers: [onBotManagerHeaders] }));
 
 bootStep('gpc.init', () => { void globalThis.NullechoGPC.init(); });
 
@@ -180,6 +187,14 @@ let allowlist = null;
  * @type {Record<string, any> | null}
  */
 let stats = null;
+/**
+ * D59 — sites whose own responses set a bot-manager cookie (bot-manager.js):
+ * site → { vendor, cookie, at, override, reloadedAt? }. Persisted under
+ * BOT_MANAGER_STORAGE_KEY, like the allowlist. `override: true` is the user's
+ * "Use my device profile here anyway".
+ * @type {Record<string, {vendor:string, cookie:string, at:number, override:boolean, reloadedAt?:number}> | null}
+ */
+let botSites = null;
 
 let readyPromise = null;
 
@@ -189,13 +204,15 @@ function ready() {
 }
 
 async function init() {
-  const got = await api.storage.local.get(['identity', 'settings', 'allowlist', 'stats']);
+  const got = await api.storage.local.get(['identity', 'settings', 'allowlist', 'stats', BOT_MANAGER_STORAGE_KEY]);
 
   identity = got.identity ?? { salt: newSalt(), rotatedAt: Date.now() };
   settings = { ...DEFAULT_SETTINGS, ...(got.settings ?? {}) };
   settings.categories = { ...DEFAULT_SETTINGS.categories, ...(got.settings?.categories ?? {}) };
   allowlist = new Set(got.allowlist ?? []);
   stats = got.stats ?? {};
+  const bm = got[BOT_MANAGER_STORAGE_KEY];
+  botSites = bm && typeof bm === 'object' && !Array.isArray(bm) ? bm : {};
 
   if (!got.identity) await api.storage.local.set({ identity });
 
@@ -690,6 +707,86 @@ async function blockedOnPage(tabId) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// D59 — bot-manager stand-down: the observer (the rules are in bot-manager.js)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// A site whose OWN response sets a measured bot manager's cookie gets the device
+// layer stood down; blocking and GPC stay on. The decision has to be in place
+// before the site's sensor runs — after one denial the next load is denied too —
+// so it is taken from the response headers of the first document itself, which
+// reach this worker before the loader's GET_PERSONA does (measured 2026-10-17 on
+// tesla.com: 12-14 ms ahead with the worker running; with it stopped, the response
+// event is what wakes it and is delivered first — research/bot-manager-2026-10/
+// timing/). The handler queues on `ready()`, the same
+// promise `handleShell` awaits, so a response heard first is recorded first.
+
+/** Is the device layer standing down on this site? */
+function botManagerStandsDown(site) {
+  const e = botSites?.[site];
+  return !!e && e.override !== true;
+}
+
+function botManagerReport(site) {
+  const e = botSites?.[site];
+  if (!e) return null;
+  return {
+    vendor: e.vendor,
+    label: vendorLabel(e.vendor),
+    cookie: e.cookie,
+    at: e.at,
+    override: e.override === true,
+    standingDown: e.override !== true,
+  };
+}
+
+/** tabId → the last top-frame handshake in it: { site, at, active }. Memory only. */
+const topDocuments = new Map();
+const TOP_DOCUMENTS_MAX = 300;
+
+function noteTopDocument(tabId, rec) {
+  if (!topDocuments.has(tabId) && topDocuments.size >= TOP_DOCUMENTS_MAX) {
+    topDocuments.delete(topDocuments.keys().next().value);
+  }
+  topDocuments.set(tabId, rec);
+}
+
+/**
+ * One response header event. Exported for the tests. Returns the work promise,
+ * or undefined when the response is not a first-party bot-manager cookie.
+ */
+export function onBotManagerHeaders(details) {
+  const hit = topLevelHit(details);
+  if (!hit) return undefined;
+  return ready().then(() => recordBotManager(hit, details)).catch(warn('bot-manager'));
+}
+
+async function recordBotManager(hit, details) {
+  if (botSites[hit.site]) return;                 // known already: nothing changes, nothing is written
+  const now = Date.now();
+  // Synchronous up to the first `await`, so a GET_PERSONA queued behind this
+  // event on `ready()` already sees the record.
+  const entry = { vendor: hit.vendor, cookie: hit.cookie, at: now, override: false };
+  botSites[hit.site] = entry;
+  pruneBotManagerSites(botSites);
+
+  const reload = lateFlagReload({
+    entry, isNew: true, topDoc: topDocuments.get(details.tabId), site: hit.site,
+    mainFrame: hit.mainFrame, responseAt: Number(details.timeStamp) || now, now,
+  });
+  // Recorded BEFORE the reload is issued, and persisted with the flag: the guard
+  // that makes a second reload for this site impossible survives the worker.
+  if (reload) entry.reloadedAt = now;
+  await api.storage.local.set({ [BOT_MANAGER_STORAGE_KEY]: botSites });
+  if (reload) {
+    try { await api.tabs?.reload?.(details.tabId); } catch (e) { warn('bot-manager reload')(e); }
+  }
+}
+
+// The response listener itself is registered by `heuristics.install()` at the top
+// of this file (`responseObservers`). A closed tab's record goes with it.
+bootStep('botManager.tabs', () => { api.tabs?.onRemoved?.addListener((tabId) => { topDocuments.delete(tabId); }); });
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Message surface — ONE listener, registered synchronously (see header)
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -753,6 +850,7 @@ async function handleShell(msg, sender) {
     case MSG.SET_SITE_ENABLED: return onSetSiteEnabled(msg);
     case MSG.SET_SETTINGS:     return onSetSettings(msg);
     case MSG.CLEAR_STATS:      return onClearStats(msg);
+    case MSG.SET_BOT_MANAGER_OVERRIDE: return onSetBotManagerOverride(msg);
     default:                   return { ok: false, error: 'unknown message type' };
   }
 }
@@ -768,12 +866,21 @@ function onGetPersona(sender) {
   if (!site) return { ok: false, error: 'unsupported scheme' };
 
   const enabled = !allowlist.has(site);
+  // D59: the site's own responses carried a bot-manager cookie and the user has
+  // not overridden it → the device layer stands down here; blocking and GPC do not.
+  const botManager = enabled && botManagerStandsDown(site);
   const persona = personaFor(identity.salt, site);
 
   const s = siteStats(site);
   s.lastSeen = Date.now();
   s.personaId = persona.id;
   scheduleFlush();
+
+  // The tab's top document and whether it got a device profile — the one fact the
+  // D59 race fallback needs (`lateFlagReload`). The browser's own frame id and tab.
+  if (sender?.frameId === 0 && Number.isInteger(sender?.tab?.id)) {
+    noteTopDocument(sender.tab.id, { site, at: Date.now(), active: enabled && !botManager });
+  }
 
   return {
     ok: true,
@@ -784,8 +891,9 @@ function onGetPersona(sender) {
     // excluded from them in the manifest.
     gpc: settings.gpc && !globalThis.NullechoGPC.isExceptedSync(site),
     loudFailures: settings.loudFailures,
+    fpStandDown: botManager ? FP_STAND_DOWN.BOT_MANAGER : null,
     // Only this origin's persona. The salt itself never crosses this boundary.
-    persona: enabled ? persona : null,
+    persona: enabled && !botManager ? persona : null,
   };
 }
 
@@ -890,6 +998,8 @@ async function onGetSiteReport(msg) {
     site,
     enabled: !allowlist.has(site),
     persona,
+    /** D59: null, or why (and whether) the device layer stands down on this site. */
+    botManager: botManagerReport(site),
     settings,
     gpc: {
       sent: gpcSent,
@@ -975,6 +1085,10 @@ function onGetOverview() {
     ok: true,
     settings,
     allowlist: [...allowlist].sort(),
+    /** D59: every site a bot manager made the device layer stand down on, newest first. */
+    botManagerSites: Object.keys(botSites)
+      .map((site) => ({ site, ...botManagerReport(site) }))
+      .sort((a, b) => (b.at || 0) - (a.at || 0)),
     identity: publicIdentity(),
     sites,
     /**
@@ -1073,10 +1187,25 @@ async function onSetSettings(msg) {
   return { ok: true, settings };
 }
 
+async function onSetBotManagerOverride(msg) {
+  const site = siteKeyFor(msg.url) || String(msg.site ?? '');
+  const entry = site ? botSites[site] : null;
+  if (!entry) return { ok: false, error: 'not a bot-manager site' };
+  entry.override = msg.override === true;
+  await api.storage.local.set({ [BOT_MANAGER_STORAGE_KEY]: botSites });
+  return { ok: true, site, ...botManagerReport(site) };
+}
+
 async function onClearStats(msg) {
   if (msg.site) delete stats[msg.site];
   else stats = {};
   await flushNow();
+  // D59: the bot-manager list is a list of sites you loaded too, so "Clear site
+  // history" clears it — overrides included. Nothing is lost that protects you: a
+  // site's own next response flags it again, before its handshake.
+  if (msg.site) delete botSites[msg.site];
+  else botSites = {};
+  await api.storage.local.set({ [BOT_MANAGER_STORAGE_KEY]: botSites });
   return { ok: true };
 }
 

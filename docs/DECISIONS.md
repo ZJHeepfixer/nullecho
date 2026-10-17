@@ -3687,3 +3687,90 @@ diff), so the extension the lab tested is this branch's, byte for byte except co
 add-to-cart could not be confirmed with the extension OFF on 12 of the 34 pages, so parity there is unknown; no
 checkout, no account, no form submitted; whether any Intelligems store ran a live price test during the lab is not
 known; Firefox and Edge were not lab-tested (Firefox: `web-ext lint` only); travel sites were not covered.
+
+## D59 — On a site whose own response shows a bot manager measured to refuse disguised devices, the device layer stands down; blocking and GPC stay on. 2026-10-17.
+
+**Evidence.** The owner's report: tesla.com "Access Denied" in Chrome with Nullecho on, fine with it off. Bisected in a
+rig that passes Akamai's automation check as a plain browser (headful Chrome for Testing 149, automation flags off,
+`navigator.webdriver` false; `research/bot-manager-2026-10/tesla/`): the first document is Akamai Bot Manager's sensor
+page (200) and the request after it is **403 `AkamaiGHost`** with the shim in the page and **200** without it.
+Client-hint removal, the Sec-GPC header, gpc.js and every block rule were each switched off in turn and the denial
+stayed (0 requests blocked in any run). Reproduced before building anything (`research/bot-manager-2026-10/README.md`
+§1). Director decision D59, owner-approved: on sites fronted by a bot manager that rejects device disguises, the
+fingerprint layer stands down for that site; tracker blocking and GPC stay on.
+
+**Two measurements that fixed the design.**
+1. *A refusal cannot be waited for.* After one denial the same profile's next load — with the shim already stood
+   down — was 403 on its **first** document, before any sensor ran (`recovery/`). So detection after the fact (a 403)
+   is useless, and the stand-down must be in place before the sensor's first run.
+2. *The site's first response arrives in time.* webRequest `onHeadersReceived` for the main_frame reached the worker
+   **12-14 ms before** the loader's GET_PERSONA with the worker running, and **first** (same millisecond) when the
+   worker was stopped and the response event is what woke it (`timing/`, a probe extension). Chrome shows
+   `Set-Cookie` only with `extraHeaders`. tesla.com's first document sets `_abck, bm_s, bm_sc, bm_so, bm_sz`; not
+   `ak_bmsc`.
+
+**Decision.**
+1. **Detection (`ext/src/bot-manager.js`), from the site's own responses only.** A response counts if it is the
+   top-level document (`main_frame`, frame 0) or a request that document made to its own registrable domain (frame 0,
+   initiator same site). Never a sub-frame, never a third-party host, never a non-tab request. The trigger is the
+   cookie NAME, `_abck` or `bm_sz` (Akamai Bot Manager: the sensor's cookie and the one set with it on every Akamai
+   site measured). `ak_bmsc` is not a trigger: it is the edge-only cookie, tesla.com does not set it, and the two
+   sites measured with it alone (walmart, nike) load fine with the shim. No other vendor is in the table — none was
+   measured to break (below).
+2. **The flag** is persisted per site under `botManagerSites` (`{ vendor, cookie, at, override, reloadedAt? }`, never
+   a value; at most 500, overrides kept longest; cleared by "Clear site history"). The observer shares the heuristics
+   layer's `onHeadersReceived` listener (one listener, its feature-detected `extraHeaders` — D42), and queues on
+   `ready()` like the handshake, so a response heard first is recorded first.
+3. **The stand-down reuses the allowlist's.** GET_PERSONA answers `{ enabled: true, fpStandDown: 'bot-manager',
+   persona: null }`; the loader carries it; the shim takes the same nonce-gated branch the allowlist takes —
+   `restoreAll()`, every descriptor back to the engine's — and reports `bot-manager` (or `resist-fingerprinting` under
+   D54's RFP, the more fundamental fact). Blocking is untouched (no allow rule is written).
+4. **GPC survives it.** The shim's restore removes its own GPC getter (D46 put the property in the shim), and gpc.js
+   had stood aside at boot because the signal was already up — so the stand-down silently dropped the JS signal. The
+   shim now relays `fpStandDown` to gpc.js, which re-reads the realm (`rebaseline()`) and puts the signal up itself:
+   exactly the realm of the `no-shim` bisect run, which passed. A test fails without it.
+5. **The race fallback.** If the flag ever lands after the tab's top document took a device profile (the order is
+   measured, not promised), that tab is reloaded **once**: only on the record's creation, only for a document under
+   10 s old, with `reloadedAt` written before the reload, and a stood-down document can never qualify again.
+6. **The user's way back.** The popup says, on a stood-down site: "This site's security checks reject disguised
+   devices, so Nullecho leaves your device profile alone here. Tracker blocking stays on." Settings lists the sites,
+   each with **"Use my device profile here anyway"**, behind a warning that the site may block them — on that visit or
+   a later one — and keep refusing for a while after they switch back (measured, below). The allowlist still wins.
+
+**The other bot managers, measured** (`survey/`; shim ON vs OFF, one load each, fresh profiles, polite pauses). No
+shim-caused break: PerimeterX (zillow, walmart, fiverr, homedepot OK both ways; wayfair walled both), DataDome
+(tripadvisor, leboncoin, vinted, pokemoncenter OK; hermes, footlocker walled both; allegro walled with the shim OFF
+only), Kasada (kick, ticketmaster, costco OK; realestate.com.au, wizzair 429 both), Imperva (pokemoncenter, smythstoys
+OK), Cloudflare (medium, discord, indeed, glassdoor, canva, stockx, vinted, kick OK). **None is added**, Cloudflare's
+`__cf_bm` least of all.
+
+**The cost, stated plainly.** Within Akamai the stand-down is per vendor, and the vendor mostly does not refuse the
+shim: eleven sites set `_abck`/`bm_sz`; of the nine comparable, **eight** (homedepot, lowes, bestbuy, united, macys,
+delta, zara, sephora) loaded with the shim exactly as without it, and only tesla.com refused (adidas and kohls walled
+the rig both ways). Nothing in a first response separates tesla from the eight (its most distinctive cookie, `bm_sc`,
+is on macys too), and measurement 1 rules out waiting for a refusal. So on every Akamai Bot Manager site the page reads
+the real device: a tracker that gets past the blocklists can recognise the user there and join those sites to each
+other. Home pages only, one load per variant: a site that passes on its home page may still refuse at sign-in or
+checkout, which was not tested. **Would change this:** a first-response signal that separates refusing configurations
+from the rest, or a sensor-level fix to whatever Akamai keys on (not bisected — the shim was removed whole), either of
+which would let the profile come back on the eight.
+
+**Measured on the build (packaged store zip, same rig; `gate/`, `attacks/`, `ui/`).** tesla.com **3 / 3 OK** from a
+fresh profile, stood down from the first document, GPC true, real cores and GPU. Control (en.wikipedia.org): persona
+`macos-chrome-m2-air` applied — the page read 8 cores, 16 GB and "Apple M2" against this Mac's 12 cores and M2 Max.
+A local site whose own first document sets `_abck`: flagged 14 ms before the shim's status, real device, GPC true, and
+its two listed tracker requests still blocked. **Attacked:** a cross-site frame, a third-party script and fetches all
+answering `Set-Cookie: _abck, bm_sz` (and the frame calling back to the top site's host) flagged nothing and the top
+site kept its persona; with the trigger list emptied tesla.com is DENIED again; with every hit delayed 400 ms (the lost
+race) and with main_frame responses ignored (the late cookie) visit 1 reloaded once and loaded, visit 2 did not reload;
+the override re-enabled the persona (v2 `upgraded`, 10 cores, "Apple M1 Pro") and the next visit, with the override
+switched back off, was DENIED on its first document.
+
+**Tests.** `ext/src/bot-manager-2026-10-17.test.js` (26): which responses count (sub-frames, third parties, non-tabs and
+cookieless views never do); only Akamai's two names trigger; the reload rule; the bound; the real worker — the flag
+lands before a same-tick handshake, persisted, no allow rule, report and overview, cross-site frames flip nothing,
+override on/off, allowlist wins, one reload ever, clear history; the shim — a snapshot of every interface descriptor is
+the engine's after the stand-down (as after the allowlist's), a forged or prototype-supplied `fpStandDown` does nothing;
+loader + shim + gpc.js — real device and GPC still `true` with a native-looking getter, `false` when the user's GPC is
+off. Mutants killed: main's shim (the snapshot), gpc.js without `rebaseline()` (GPC dropped — 2 fail), a flag recorded
+2 ms late (4 fail). `privacy-page-2026-10-14.test.js` pins the new key in both privacy documents.

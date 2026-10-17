@@ -88,7 +88,7 @@
       is hosted by someone else who keeps server logs. Saying only the first half would be the kind of
       claim this project exists not to make.
     </p>
-    <p class="meta">Effective 2026-10-14 (Nullecho 0.9.2). It covers the extension in Chrome, Microsoft
+    <p class="meta">Effective 2026-10-17 (Nullecho 0.9.3). It covers the extension in Chrome, Microsoft
       Edge and Firefox — the same code runs in all three — and the Safari app for iPhone, iPad and Mac, which has its own section below. Every claim about the extension was checked
       against the source in <code>ext/</code>, not asserted from memory — the grep citations are below.</p>
   </div>
@@ -183,6 +183,7 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
       <tr><td class="k">identity</td><td>A random salt — it decides which device profile each site sees — and when it was last rotated. The salt itself is never shown or sent anywhere; the popup and settings page show only a six-character tag derived from it.</td></tr>
       <tr><td class="k">settings</td><td>Which tracker categories you block, whether GPC is on, whether you said you live in California (it only decides whether the DROP step is suggested), the salt auto-rotation interval, and loud-failure logging.</td></tr>
       <tr><td class="k">allowlist</td><td>Sites where you've turned Nullecho off.</td></tr>
+      <tr><td class="k">botManagerSites</td><td>Sites whose <strong>own</strong> responses showed a bot check that refuses disguised devices — today one kind, Akamai Bot Manager. For each: the site name (for example <code>tesla.com</code>), which check it was and the name of the cookie that showed it — never the cookie's value — when it was first seen, whether you chose "Use my device profile here anyway", and whether Nullecho reloaded the page once because the check showed up after the page had started. On these sites the device profile stands down; blocking and GPC do not. At most 500 sites. "Clear site history" empties it.</td></tr>
       <tr><td class="k">stats</td><td>One entry per site whose pages — or frames embedded in a page — you load, by site name (for example <code>example.com</code>), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and how many requests were blocked and to which tracker domains (in a store install, taken from the browser's own report that an extension cancelled a request, and counted only when one of Nullecho's own rules covers it). Requests that went through with their cookies removed are counted only in unpacked developer builds of Chrome and Edge, the one place the browser reports them. At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site.</td></tr>
       <tr><td class="k">nullecho:heuristics:v1</td><td>The tracker learner. For each third-party domain seen setting or sending an identifying cookie: the names of the sites it was seen on, whether it has been learned as a tracker (three different sites), and when it was first and last seen. It keeps domain names, never a cookie's value.</td></tr>
       <tr><td class="k">nullecho:gpc:v1</td><td>Sites where you've manually excepted the GPC signal because it broke something.</td></tr>
@@ -192,8 +193,8 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
   </table>
   </div>
   <p>
-    <strong>What that adds up to, plainly.</strong> <code>stats</code> and the tracker learner are, between
-    them, a list of the sites you have loaded — by site name, with when each was last seen — and
+    <strong>What that adds up to, plainly.</strong> <code>stats</code>, the tracker learner and
+    <code>botManagerSites</code> are, between them, a list of the sites you have loaded — by site name, with when each was last seen — and
     <code>pricingObservations</code> holds a page address and a short excerpt of page text for each of the
     (rare) pages it describes. All of it stays in this browser profile on this machine.
   </p>
@@ -279,8 +280,8 @@ ext/src/gpc.js          fetch(chrome.runtime.getURL(RULESET_PATH))</pre>
       extension's <code>storage.local</code> data and the rules it added automatically on uninstall —
       there is nothing left behind, because there was never anywhere else for it to go.</li>
     <li><strong>Clear the site list without uninstalling.</strong> "Clear site history" on the settings
-      page empties <code>stats</code>. It does not touch the tracker learner or the price-disclosure
-      observations.</li>
+      page empties <code>stats</code> and <code>botManagerSites</code>. It does not touch the tracker
+      learner or the price-disclosure observations.</li>
     <li><strong>Clear the price-disclosure observations.</strong> "Clear saved price notices" on the
       settings page deletes every entry in <code>pricingObservations</code>.</li>
     <li><strong>Get a "new identity" without uninstalling.</strong> The popup's "New identity" button
