@@ -11,5 +11,7 @@ voice around it, never a replacement for the name.
 | Wordmark | **nah.** in lowercase, bold, with a period, set beside the icon, never on it. |
 | Slogan | Trackers: "Can we follow you around the internet?" Nullecho: **Nah.** |
 | Name | Always **Nullecho** in product names and store listings. "nah." is personality, not the product name. |
+| Merch | "nah." hoodie and tee print files for Printful: `MERCH.md` and `merch/`. |
+| Press kit | `site/press/` (nullecho.org/press/): icon PNGs at 512 and 1024, the SVG, the slogan cards and store screenshots. |
 
 Don'ts: no claims inside the slogan (it never implies Nullecho blocks *all* tracking or lowers prices); no "Na" without the h, which reads as sodium or "N/A".
