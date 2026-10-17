@@ -3,6 +3,25 @@
  * the OFF/ON pairs, and `ext/src/shopping-verdict-2026-10-15.test.js` holds it to the cases that went wrong once.
  */
 
+/**
+ * What the add-to-cart just added, priced by the cart itself: (total after − total before) / (count after − count
+ * before), and the cart's state before the add. A cart that already held items prices the next one differently
+ * when the store discounts by quantity or bundles (measured 2026-10-17: nativecos.com read 39.00, 15.60 and 19.50 as
+ * "unit prices" of one product, as each side's cart filled at a different rate), so two carts are compared only from
+ * the SAME state. Shopify stores only (their /cart.js); null when the add was not confirmed.
+ */
+export function cartAdd(atc) {
+  const b = atc && atc.before && atc.before.shopify;
+  const a = atc && atc.after && atc.after.shopify;
+  if (!atc || !atc.ok || !b || !a) return null;
+  if (![b.count, a.count, b.totalPrice, a.totalPrice].every(Number.isInteger) || a.count <= b.count) return null;
+  return { price: ((a.totalPrice - b.totalPrice) / 100 / (a.count - b.count)).toFixed(2), state: `${b.count}/${b.totalPrice}` };
+}
+const cartPair = (off, on) => {
+  const x = cartAdd(off && off.atc), y = cartAdd(on && on.atc);
+  return x && y && x.state === y.state ? [x.price, y.price] : [null, null];
+};
+
 /** ON vs OFF for one pair of loads. Every price difference is reported, whatever its cause. */
 export function compareShopping(off, on) {
   const out = [];
@@ -11,7 +30,8 @@ export function compareShopping(off, on) {
   if (p(off.declared) !== null && p(on.declared) === null) out.push(`declared price ${p(off.declared)} OFF, none ON`);
   if (p(off.visible) && p(on.visible) && p(off.visible) !== p(on.visible)) out.push(`RENDERED PRICE DIFFERS: OFF ${p(off.visible)} vs ON ${p(on.visible)}`);
   if (p(off.visible) && !p(on.visible)) out.push(`rendered price ${p(off.visible)} OFF, none ON`);
-  if (off.atc && off.atc.cartTotal && on.atc && on.atc.cartTotal && off.atc.cartTotal !== on.atc.cartTotal) out.push(`CART PRICE DIFFERS: OFF ${off.atc.cartTotal} vs ON ${on.atc.cartTotal}`);
+  const [co, cn] = cartPair(off, on);
+  if (co && cn && co !== cn) out.push(`CART PRICE DIFFERS: OFF ${co} vs ON ${cn} (both carts from the same state)`);
   if (off.atc && off.atc.ok && on.atc && on.atc.attempted && !on.atc.ok) out.push('add-to-cart worked OFF, not ON');
   if (off.search && off.search.ok && on.search && !on.search.ok && !on.search.blocked) out.push(`search: ${off.search.count} product links OFF, ${on.search.count} ON`);
   if (typeof off.render === 'number' && off.render > 0 && on.render === 0) out.push(`render: ${off.render} vendor-rendered elements OFF, 0 ON`);
@@ -50,7 +70,7 @@ export function shoppingVerdict(site, loads) {
   const s = {
     declaredOff: uniq(both.map((l) => priceOf(l.off, 'declared') ?? '—')), declaredOn: uniq(both.map((l) => priceOf(l.on, 'declared') ?? '—')),
     visibleOff: uniq(both.map((l) => priceOf(l.off, 'visible') ?? '—')), visibleOn: uniq(both.map((l) => priceOf(l.on, 'visible') ?? '—')),
-    cartOff: uniq(both.map((l) => l.off.detail?.atc?.cartTotal ?? '—')), cartOn: uniq(both.map((l) => l.on.detail?.atc?.cartTotal ?? '—')),
+    cartOff: uniq(both.map((l) => cartPair(l.off.detail, l.on.detail)[0] ?? '—')), cartOn: uniq(both.map((l) => cartPair(l.off.detail, l.on.detail)[1] ?? '—')),
     atcOff: both.map((l) => (l.off.detail?.atc?.attempted ? (l.off.detail.atc.ok ? '✓' : '✗') : '·')).join(''),
     atcOn: both.map((l) => (l.on.detail?.atc?.attempted ? (l.on.detail.atc.ok ? '✓' : '✗') : '·')).join(''),
     searchOff: both.map((l) => (l.off.detail?.search ? (l.off.detail.search.blocked ? 'W' : l.off.detail.search.count) : '·')).join('/'),

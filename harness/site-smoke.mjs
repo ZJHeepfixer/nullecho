@@ -88,7 +88,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 // The shopping lab's verdicts live apart so a unit test can hold them (0.9.3).
-import { compareShopping, shoppingVerdict, uniq, normErr } from './shopping-verdict.mjs';
+import { compareShopping, shoppingVerdict, cartAdd, uniq, normErr } from './shopping-verdict.mjs';
 // The learned-rule id ranges come from the extension's own protocol table, never a copy (seeded mode).
 import { DYNAMIC_RULE_RANGES } from '../ext/src/protocol.js';
 // …and the protected lists are the CURRENT policy, read from the source tree (also in a control run: the
@@ -1273,6 +1273,9 @@ async function collectPriceSources(page, selector, topOnly = false) {
           // The generic selector (breadth rows) takes the first price in the top of the page, where the product's own
           // price sits — never a recommendation carousel further down. Same rule on both sides.
           if (top && r.top + window.scrollY > 1400) continue;
+          // …and never a cart drawer or mini-cart's total, which grows as the lab's own adds accumulate (measured
+          // 2026-10-17: untuckit.com's ON side read its 2-item cart, $199.00, as the price).
+          if (top && el.closest('[class*="cart" i], [id*="cart" i], [class*="drawer" i], [class*="basket" i], [aria-label*="cart" i]')) continue;
           if (r.width && r.height && /\$\s?\d/.test(t) && t.length <= 80) { out.visibleText = t.slice(0, 120); break; }
         }
       } catch (e) { out.visibleError = String(e.message || e).slice(0, 100); }
@@ -1404,11 +1407,13 @@ async function addToCart(page, site) {
       decided = shopifyCart ? !!countUp : evidence.length > 0;
       if (decided) break;
     }
-    // The cart's price for ONE unit, and only from a cart that holds the item: an empty cart's 0.00 is not a price.
-    const count = after && after.shopify && after.shopify.count;
-    const unit = shopifyCart && decided && Number.isInteger(count) && count > 0 && Number.isInteger(after.shopify.totalPrice)
-      ? (after.shopify.totalPrice / 100 / count).toFixed(2) : null;
-    return { attempted: true, ok: decided, picked, clicked: label, evidence: evidence.slice(), cartRequests: net.slice(0, 6), before, after, cartTotal: unit };
+    // What this add put in the cart, by the cart's own totals (shopping-verdict.mjs cartAdd: the verdict compares two
+    // carts only from the same starting state). Shown in the report as `cartTotal`.
+    const res = { attempted: true, ok: decided, picked, clicked: label, evidence: evidence.slice(), cartRequests: net.slice(0, 6), before, after };
+    const added = cartAdd(res);
+    res.cartTotal = added ? added.price : null;
+    res.cartState = added ? added.state : null;
+    return res;
   } catch (e) {
     return { attempted: true, ok: false, error: String(e.message || e).slice(0, 160) };
   } finally {

@@ -25,7 +25,7 @@
    "label": "asos.com product",
    "url": "https://www.asos.com/us/cotton-on/cotton-on-90s-baby-tee-in-white/prd/208039168",
    "category": "apparel",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.asos.com/us/search/?q=shirt",
     "link": "/prd/"
@@ -147,7 +147,7 @@
    "label": "nordstrom.com product",
    "url": "https://www.nordstrom.com/s/assorted-4-pack-everyday-rib-crew-socks/8802665?origin=keywordsearch-personalizedsort&breadcrumb=Home%2FAll+Results&color=444445Y479",
    "category": "apparel",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.nordstrom.com/sr?keyword=socks",
     "link": "/s/"
@@ -274,7 +274,7 @@
    "label": "untuckit.com product",
    "url": "https://www.untuckit.com/products/hemsworth-cabernet-rose?variant=44117139816526",
    "category": "apparel",
-   "vendors": "—",
+   "vendors": "\u2014",
    "shopify": true,
    "search": {
     "url": "https://www.untuckit.com/search?q=flannel",
@@ -306,7 +306,7 @@
    "label": "elfcosmetics.com product",
    "url": "https://www.elfcosmetics.com/products/glow-reviver-melting-lip-balm?Color=Birthday+Cake",
    "category": "beauty",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.elfcosmetics.com/search?q=lip",
     "link": "/products/"
@@ -377,7 +377,7 @@
    "label": "maccosmetics.com product",
    "url": "https://www.maccosmetics.com/product/13854/123863/products/makeup/lips/lipstick/macximal-silky-matte-lipstick",
    "category": "beauty",
-   "vendors": "—",
+   "vendors": "\u2014",
    "shopify": true,
    "discovered": {
     "date": "2026-10-17",
@@ -445,7 +445,7 @@
    "label": "jcpenney.com product",
    "url": "https://www.jcpenney.com/p/mixit-cozy-womens-2-pair-crew-socks/ppr5008323563?pTmplType=regular&searchTerm=socks",
    "category": "department",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.jcpenney.com/s?searchTerm=socks",
     "link": "/p/"
@@ -630,7 +630,7 @@
    "label": "cupshe.com product",
    "url": "https://www.cupshe.com/products/fall-charm-plaid-maxi-dress-CAA05E6K032RE",
    "category": "dtc",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "46.00",
@@ -733,7 +733,7 @@
    "label": "huel.com product",
    "url": "https://huel.com/products/huel-daily-greens-ready-to-drink",
    "category": "dtc",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "42.65",
@@ -800,7 +800,7 @@
    "label": "kotn.com product",
    "url": "https://kotn.com/products/unisex-antifit-denim?colour=dark-wash",
    "category": "dtc",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "79.0",
@@ -862,7 +862,7 @@
    "label": "mvmt.com product",
    "url": "https://www.mvmt.com/products/odyssey-ii-ceramic-fusion-grey-40mm-28000461",
    "category": "dtc",
-   "vendors": "—",
+   "vendors": "\u2014",
    "shopify": true,
    "search": {
     "url": "https://www.mvmt.com/search?q=odyssey",
@@ -872,24 +872,6 @@
     "date": "2026-10-17",
     "declared": "144.00",
     "rendered": "Sale price $144.00 Regular price $288.00"
-   }
-  },
-  {
-   "n": 118,
-   "key": "shop-native-deodorant",
-   "label": "nativecos.com product",
-   "url": "https://www.nativecos.com/products/starter-set?variant=67614907170990",
-   "category": "dtc",
-   "vendors": "Attentive, Rebuy, AB Tasty",
-   "shopify": true,
-   "search": {
-    "url": "https://www.nativecos.com/search?q=starter",
-    "link": "/products/"
-   },
-   "discovered": {
-    "date": "2026-10-17",
-    "declared": "39",
-    "rendered": "$56.00"
    }
   },
   {
@@ -1085,7 +1067,7 @@
    "n": 130,
    "key": "shop-stanley",
    "label": "stanley1913.com product",
-   "url": "https://www.stanley1913.com/products/the-iceflow™-flip-straw-tumbler-30-oz-0-89-l?variant=53974939042152",
+   "url": "https://www.stanley1913.com/products/the-iceflow\u2122-flip-straw-tumbler-30-oz-0-89-l?variant=53974939042152",
    "category": "dtc",
    "vendors": "Klaviyo",
    "shopify": true,
@@ -1172,7 +1154,7 @@
    "label": "bhphotovideo.com product",
    "url": "https://www.bhphotovideo.com/c/product/1762222-REG/belkin_cab014bt2mbk_100w_usb_c_to_usb_c.html",
    "category": "electronics",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.bhphotovideo.com/c/search?q=usb%20c%20cable",
     "link": "/c/product/"
@@ -1245,7 +1227,7 @@
    "label": "samsung.com product",
    "url": "https://www.samsung.com/us/mobile-accessories/all-mobile-accessories/",
    "category": "electronics",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "349.99",
@@ -1258,7 +1240,7 @@
    "label": "article.com product",
    "url": "https://www.article.com/product/30333/timber-90-leather-sofa-charme-tan?queryID=97ec0a3f9251a92477a85fb2a6b905fd&index=production_product",
    "category": "furniture",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "1799",
@@ -1297,7 +1279,7 @@
    "label": "joybird.com product",
    "url": "https://joybird.com/sofas/lewis-sofa/?fabric=key-largo-zenith-teal",
    "category": "furniture",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "1706",
@@ -1323,7 +1305,7 @@
    "label": "gopuff.com product",
    "url": "https://www.gopuff.com/p/basically-12ct-large-roll-soft-toilet-paper/p63531",
    "category": "grocery",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "11.99",
@@ -1336,7 +1318,7 @@
    "label": "truevalue.com product",
    "url": "https://www.truevalue.com/product/533392/first-alert-sm210l-10-year-battery-photoelectric-smoke-alarm-with-safety-path-light-533392/",
    "category": "home-improvement",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.truevalue.com/search?q=hammer",
     "link": "/product/"
@@ -1353,7 +1335,7 @@
    "label": "1800petmeds.com product",
    "url": "https://www.1800petmeds.com/category/flea-and-tick.html",
    "category": "pet",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.1800petmeds.com/search?q=flea",
     "link": ".html"
@@ -1405,7 +1387,7 @@
    "label": "walgreens.com product",
    "url": "https://www.walgreens.com/store/c/productlist/N=20007800",
    "category": "pharmacy",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.walgreens.com/search/results.jsp?Ntt=vitamin%20c",
     "link": "/store/c/"
@@ -1503,7 +1485,7 @@
    "label": "academy.com product",
    "url": "https://www.academy.com/p/big-game-treestands-guardian-xlt-2-man-ladder-stand",
    "category": "sporting",
-   "vendors": "—",
+   "vendors": "\u2014",
    "search": {
     "url": "https://www.academy.com/search?query=water%20bottle",
     "link": "/p/"
@@ -1520,7 +1502,7 @@
    "label": "gymshark.com product",
    "url": "https://www.gymshark.com/products/gymshark-featherform-v-neck-bralette-underwear-black-ss26",
    "category": "sporting",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "20",
@@ -1547,7 +1529,7 @@
    "label": "roguefitness.com product",
    "url": "https://www.roguefitness.com/rogue-echo-bike",
    "category": "sporting",
-   "vendors": "—",
+   "vendors": "\u2014",
    "discovered": {
     "date": "2026-10-17",
     "declared": "945",
@@ -2028,5 +2010,6 @@
    "at": "start",
    "error": "no product link containing \"/products/\" (0 links)"
   }
- ]
+ ],
+ "_dedup": "shop-native-deodorant removed 2026-10-17: same product URL as shop-nativecos (two candidates resolved to one page)."
 }

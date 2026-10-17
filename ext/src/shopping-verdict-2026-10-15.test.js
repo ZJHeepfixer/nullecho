@@ -15,10 +15,14 @@ import { shoppingVerdict, compareShopping } from '../../harness/shopping-verdict
 
 const site = { key: 'shop-x', n: 99 };
 const rec = (detail, extra = {}) => ({ ok: true, reasons: [], detail, pageErrors: [], personalizationHits: { hits: [] }, ...extra });
-const page = ({ price = '10.00', visible = '10.00', atc = true, search = 40, cart = null } = {}) => ({
+const page = ({ price = '10.00', visible = '10.00', atc = true, search = 40, cart = null, cartFrom = [0, 0] } = {}) => ({
   declared: price === null ? null : { price, currency: 'USD', source: 'json-ld' },
   visible: visible === null ? null : { price: visible, text: `$${visible}` },
-  atc: atc === null ? { attempted: false } : { attempted: true, ok: atc, cartTotal: cart },
+  atc: atc === null ? { attempted: false } : {
+    attempted: true, ok: atc,
+    before: { shopify: { count: cartFrom[0], totalPrice: cartFrom[1] } },
+    after: { shopify: cart === null || !atc ? { count: cartFrom[0], totalPrice: cartFrom[1] } : { count: cartFrom[0] + 1, totalPrice: cartFrom[1] + Math.round(Number(cart) * 100) } },
+  },
   search: { ok: search > 0, count: search },
 });
 const pair = (round, off, on) => ({ round, off, on });
@@ -74,6 +78,14 @@ test('a price OFF read and ON did not read is still a loss (the reverse of the c
   const v = shoppingVerdict(site, [pair(1, off, on)]);
   assert.equal(v.verdict, 'FAIL');
   assert.deepEqual(compareShopping(off.detail, on.detail).filter((d) => /none ON/.test(d)).length, 2);
+});
+
+test('REGRESSION: carts are compared only from the same starting state — a fuller cart is not a different price', () => {
+  // nativecos.com, 2026-10-17: the ON cart already held items its OFF twin did not; "unit prices" 39.00 vs 15.60.
+  const differentStates = shoppingVerdict(site, [1, 2, 3].map((r) => pair(r, rec(page({ cart: '39.00', cartFrom: [0, 0] })), rec(page({ cart: '15.60', cartFrom: [4, 3900] })))));
+  assert.notEqual(differentStates.verdict, 'FAIL');
+  const sameState = shoppingVerdict(site, [1, 2, 3].map((r) => pair(r, rec(page({ cart: '39.00', cartFrom: [1, 3900] })), rec(page({ cart: '15.60', cartFrom: [1, 3900] })))));
+  assert.equal(sameState.verdict, 'FAIL');
 });
 
 test('walls: both sides walled is BLOCKED; walled ON only is FAIL', () => {
