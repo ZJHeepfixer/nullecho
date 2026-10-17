@@ -119,13 +119,20 @@ const ROUNDS = Math.max(1, Number(opt('--rounds', SHOPPING ? '3' : '1')) || 1);
 //   --drop-rules all            remove the whole personalization ruleset — the 0.9.2 blocking on the 0.9.3 code: a
 //                               difference that persists without a single personalization rule is not theirs.
 const PLANT_BLOCK = (opt('--plant-block', null) || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+//   --plant-filter /vendor/x.js  add a block rule (id 6998) with that urlFilter — the PRICE positive control blocks the
+//                               fixture's price-test script this way (harness/fixtures/price-control.html).
+const PLANT_FILTER = opt('--plant-filter', null);
+// The shopping lab's breadth (0.9.3, second pass): `--shard 2/3` runs every third row starting at the second, so a
+// long lab runs in parallel browsers; `--pause-ms` waits between pages (politeness — default 4 s).
+const SHARD = (() => { const m = /^(\d+)\/(\d+)$/.exec(opt('--shard', '') || ''); return m ? { i: Number(m[1]), n: Number(m[2]) } : null; })();
+const PAUSE_MS = Number(opt('--pause-ms', '4000'));
 const DROP_ALL = opt('--drop-rules', null) === 'all';
 // `--label shard1` is appended to the report name, so several shards of one lab run in parallel without overwriting.
 const LABEL = (opt('--label', '') || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 24);
 const DROP_RULES = DROP_ALL ? [] : (opt('--drop-rules', null) || '').split(',').map((x) => x.trim()).filter(Boolean).map(Number).filter((x) => Number.isInteger(x));
 const ONLY = (opt('--only', null) || '').split(',').filter(Boolean);
 const MAX_RUNTIME_MS = Number(opt('--max-runtime', String((SHOPPING ? 40 + 25 * ROUNDS : SEEDED ? 75 : THIRD_PARTY ? 35 : 23) * 60 * 1000)));
-if (OFF_ONLY && (SEEDED || LEARNER_FROM || PLANT_BLOCK.length || DROP_RULES.length || DROP_ALL)) {
+if (OFF_ONLY && (SEEDED || LEARNER_FROM || PLANT_BLOCK.length || PLANT_FILTER || DROP_RULES.length || DROP_ALL)) {
   console.error('--off cannot be combined with --seeded / --learner-from / --plant-block / --drop-rules: they need the extension.');
   process.exit(2);
 }
@@ -222,11 +229,11 @@ function swapLearner(unpackDir, rev) {
  * A drop that removes nothing, or a plant onto an empty host list, is not a control and aborts.
  */
 function applyRuleControls(unpackDir) {
-  if (!PLANT_BLOCK.length && !DROP_RULES.length && !DROP_ALL) return null;
+  if (!PLANT_BLOCK.length && !PLANT_FILTER && !DROP_RULES.length && !DROP_ALL) return null;
   const file = path.join(unpackDir, 'rules', 'personalization.json');
   const before = fs.readFileSync(file, 'utf8');
   let rules = JSON.parse(before);
-  const out = { plantBlock: PLANT_BLOCK.slice(), dropRules: [], dropAll: DROP_ALL, packagedSha256: sha256Of(before) };
+  const out = { plantBlock: PLANT_BLOCK.slice(), plantFilter: PLANT_FILTER, dropRules: [], dropAll: DROP_ALL, packagedSha256: sha256Of(before) };
   if (DROP_ALL) DROP_RULES.push(...rules.map((r) => r.id));
   if (DROP_RULES.length) {
     const missing = DROP_RULES.filter((id) => !rules.some((r) => r.id === id));
@@ -238,10 +245,14 @@ function applyRuleControls(unpackDir) {
     if (rules.some((r) => r.id === 6999)) throw new Error('--plant-block: id 6999 is taken in the packaged ruleset');
     rules.push({ id: 6999, priority: 1, action: { type: 'block' }, condition: { requestDomains: PLANT_BLOCK } });
   }
+  if (PLANT_FILTER) {
+    if (rules.some((r) => r.id === 6998)) throw new Error('--plant-filter: id 6998 is taken in the packaged ruleset');
+    rules.push({ id: 6998, priority: 1, action: { type: 'block' }, condition: { urlFilter: PLANT_FILTER } });
+  }
   const after = JSON.stringify(rules, null, 2) + '\n';
   fs.writeFileSync(file, after);
   out.controlSha256 = sha256Of(after);
-  console.error(`[site-smoke] ⚠ CONTROL BUILD: personalization.json in ${unpackDir}${PLANT_BLOCK.length ? ` + planted block on ${PLANT_BLOCK.join(',')}` : ''}${DROP_ALL ? ' − ALL personalization rules' : DROP_RULES.length ? ` − rules ${DROP_RULES.join(',')}` : ''}`);
+  console.error(`[site-smoke] ⚠ CONTROL BUILD: personalization.json in ${unpackDir}${PLANT_BLOCK.length ? ` + planted block on ${PLANT_BLOCK.join(',')}` : ''}${PLANT_FILTER ? ` + planted urlFilter ${PLANT_FILTER}` : ''}${DROP_ALL ? ' − ALL personalization rules' : DROP_RULES.length ? ` − rules ${DROP_RULES.join(',')}` : ''}`);
   return out;
 }
 
@@ -1171,7 +1182,33 @@ const SHOPPING_SITES = [
   shop(60, 'shop-homedepot', 'homedepot.com search', 'https://www.homedepot.com/s/hammer', {}),
   shop(61, 'shop-kohls', 'kohls.com search', 'https://www.kohls.com/search.jsp?search=towel', {}),
   shop(62, 'shop-macys', 'macys.com search', 'https://www.macys.com/shop/featured/towel', {}),
+  // The PRICE positive control: a local page whose declared and rendered price drop from 20.00 to 15.00 only when its
+  // "vendor" price-test script runs. Unplanted, OFF and ON both read 15.00; with `--plant-filter /vendor/price-test.js`
+  // the ON side keeps 20.00 and the row must FAIL.
+  shop(63, 'shop-fixture-price', 'price positive control (fixture, client-side price test)', null,
+    { fixture: 'price-control.html', settleMs: 1000, priceSelector: '#price', atc: { button: '#atc' }, vendors: 'fixture price-test script' }),
 ];
+// Rows 29–63 run in the seeded release gate (once each); the rest only under `--shopping`.
+for (const s of SHOPPING_SITES) s.gate = true;
+// Rows 64+: the breadth pass (2026-10-16/17), generated by harness/shopping-discover.mjs into harness/shopping-sites.json
+// — real product pages, one per site, chosen where the discovery saw a vendor the ruleset blocks, plus controls with none.
+// Each declares its price in markup or renders it under the generic selector below; search is checked where the
+// discovery found a search page that lists products.
+const GENERIC_PRICE = '[itemprop="price"], [data-testid*="price" i], [data-test*="price" i], [class*="product-price" i], [class*="ProductPrice" i], [class*="price" i]';
+{
+  const f = path.join(HERE, 'shopping-sites.json');
+  if (fs.existsSync(f)) {
+    const list = JSON.parse(fs.readFileSync(f, 'utf8')).sites || [];
+    for (const x of list) {
+      SHOPPING_SITES.push(shop(x.n, x.key, x.label, x.url, {
+        vendors: x.vendors || null, category: x.category, shopify: x.shopify || undefined,
+        priceSelector: x.priceSelector || GENERIC_PRICE, priceTopOnly: !x.priceSelector,
+        atc: x.atc === false ? undefined : {},
+        search: x.search ? { url: x.search.url, link: x.search.link } : undefined,
+      }));
+    }
+  }
+}
 
 // The extractor is the extension's own (`ext/src/pricing.js`), loaded once, exactly as harness/device-price-probe.mjs does.
 let PRICING = null;
@@ -1215,8 +1252,8 @@ function visibleAmount(text) {
   return m ? `${m[1].replace(/,/g, '')}.${m[2] ?? '00'}` : null;
 }
 
-async function collectPriceSources(page, selector) {
-  return page.evaluate((sel) => {
+async function collectPriceSources(page, selector, topOnly = false) {
+  return page.evaluate((sel, top) => {
     const out = { jsonLd: [], microdata: [], meta: {}, visibleText: null };
     for (const n of Array.from(document.querySelectorAll('script[type="application/ld+json"]')).slice(0, 24)) {
       const t = n.textContent; if (t && t.length < 300000) out.jsonLd.push(t);
@@ -1233,19 +1270,22 @@ async function collectPriceSources(page, selector) {
         for (const el of document.querySelectorAll(sel)) {
           const r = el.getBoundingClientRect();
           const t = (el.innerText || '').replace(/\s+/g, ' ').trim();
-          if (r.width && r.height && /\$\s?\d/.test(t)) { out.visibleText = t.slice(0, 120); break; }
+          // The generic selector (breadth rows) takes the first price in the top of the page, where the product's own
+          // price sits — never a recommendation carousel further down. Same rule on both sides.
+          if (top && r.top + window.scrollY > 1400) continue;
+          if (r.width && r.height && /\$\s?\d/.test(t) && t.length <= 80) { out.visibleText = t.slice(0, 120); break; }
         }
       } catch (e) { out.visibleError = String(e.message || e).slice(0, 100); }
     }
     return out;
-  }, selector || null);
+  }, selector || null, !!topOnly);
 }
 
 /** Poll for the declared and rendered price (client-rendered pages need the wait), then read again after hydration. */
 async function readPrices(page, site) {
   await loadPricing();
   const read = async () => {
-    const c = await collectPriceSources(page, site.priceSelector).catch(() => ({ jsonLd: [] }));
+    const c = await collectPriceSources(page, site.priceSelector, site.priceTopOnly).catch(() => ({ jsonLd: [] }));
     return { declared: declaredPrice(c), visible: c.visibleText ? { price: visibleAmount(c.visibleText), text: c.visibleText } : null };
   };
   let r = await read();
@@ -1328,7 +1368,8 @@ async function addToCart(page, site) {
       }, a.pick), 8000, 'size pick').catch(() => null);
       if (picked) await sleep(1200);
     }
-    const before = await cartSignals(page, site.shopify);
+    const shopify = site.shopify ?? await withTimeout(page.evaluate(() => !!(window.Shopify && window.Shopify.shop)), 5000, 'shopify?').catch(() => false);
+    const before = await cartSignals(page, shopify);
     // The button: the row's selector, else the first visible, enabled "add to cart/bag/basket" control.
     const handle = await withTimeout(page.evaluateHandle((sel) => {
       const visible = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.disabled && el.getAttribute('aria-disabled') !== 'true'; };
@@ -1352,7 +1393,7 @@ async function addToCart(page, site) {
     const deadline = Date.now() + 12000;
     while (Date.now() < deadline) {
       await sleep(1000);
-      after = await cartSignals(page, site.shopify);
+      after = await cartSignals(page, shopify);
       evidence.length = 0;
       const countUp = after.shopify && Number.isInteger(after.shopify.count) && after.shopify.count > before.shopify?.count;
       if (countUp) evidence.push(`Shopify /cart.js item_count ${before.shopify.count}→${after.shopify.count}`);
@@ -1468,10 +1509,12 @@ const selectedSites = () => {
   const pool = THIRD_PARTY ? [...SITES, ...THIRD_PARTY_SITES] : SITES;
   return ONLY.length ? [...SITES, ...THIRD_PARTY_SITES].filter((s) => ONLY.includes(s.key)) : pool;
 };
-/** The shopping rows: always with `--shopping`, and in the seeded release gate (once each). */
+/** The shopping rows: all of them with `--shopping`; the gate rows (29–63) in the seeded release gate, once each. */
 const selectedShoppingSites = () => {
   if (!SHOPPING && !SEEDED) return [];
-  return ONLY.length ? SHOPPING_SITES.filter((s) => ONLY.includes(s.key)) : SHOPPING_SITES;
+  let rows = ONLY.length ? SHOPPING_SITES.filter((s) => ONLY.includes(s.key)) : SHOPPING_SITES.filter((s) => SHOPPING || s.gate);
+  if (SHARD) rows = rows.filter((_, i) => i % SHARD.n === SHARD.i - 1);
+  return rows;
 };
 
 /** Serves harness/fixtures/ on 127.0.0.1:<ephemeral> — the third-party embedding site for the fixture rows. */
@@ -1699,6 +1742,7 @@ async function runShoppingLab({ unpackDir, ua, rounds, sites }) {
       for (const site of sites) {
         if (budgetLeft() < 150000) { loads[site.key].push({ round, skipped: 'runtime budget exceeded' }); continue; }
         await pair(site, round);
+        if (PAUSE_MS > 0) await sleep(PAUSE_MS);
       }
     }
     // The gate runs each row once; a row that FAILs there gets one more pair before it is reported (the retry the
@@ -1786,7 +1830,7 @@ async function main() {
   const shopSites = OFF_ONLY ? [] : selectedShoppingSites();
   // The fixture page is also where the seeded positive control proves its rules are enforced — so a seeded
   // shopping-only run needs it too.
-  const fixture = (THIRD_PARTY && stdSites.length) || (SEEDED && !OFF_ONLY) ? await startFixtureServer() : null;
+  const fixture = (THIRD_PARTY && stdSites.length) || (SEEDED && !OFF_ONLY) || shopSites.some((x) => x.fixture) ? await startFixtureServer() : null;
   if (fixture) FIXTURE = { origin: fixture.origin };
 
   // probe browser version + build a stable desktop UA before any real pass
@@ -1996,7 +2040,7 @@ async function main() {
   for (const r of results) console.error(`  ${String(r.site.n).padStart(2)}. ${r.site.label.padEnd(56)} ${r.verdict}${r.verdict !== 'PASS' && r.reason ? ' — ' + r.reason.slice(0, 160) : ''}`);
   for (const f of seedFindings) console.error('  ⚠ seeding finding: ' + f);
   if (control) console.error(`  ⚠ CONTROL RUN (learner from ${control.rev}) — this is NOT the store package; its FAILs are the point.`);
-  if (ruleControl) console.error(`  ⚠ CONTROL RUN (personalization rules ${ruleControl.plantBlock.length ? 'planted: ' + ruleControl.plantBlock.join(',') : ''}${ruleControl.dropAll ? ' dropped: ALL' : ruleControl.dropRules.length ? ' dropped: ' + ruleControl.dropRules.join(',') : ''}) — NOT the store package.`);
+  if (ruleControl) console.error(`  ⚠ CONTROL RUN (personalization rules ${ruleControl.plantBlock.length ? 'planted: ' + ruleControl.plantBlock.join(',') : ''}${ruleControl.plantFilter ? 'planted urlFilter: ' + ruleControl.plantFilter : ''}${ruleControl.dropAll ? ' dropped: ALL' : ruleControl.dropRules.length ? ' dropped: ' + ruleControl.dropRules.join(',') : ''}) — NOT the store package.`);
   // Seeded mode is a release GATE: a FAIL, a VOID measurement, a finding from the reload, or a seeded rule
   // disappearing mid-run all make it red. The default smoke keeps its report-only exit code.
   if (SEEDED || SHOPPING) {
@@ -2020,7 +2064,7 @@ function writeReports(meta, results) {
   const outDir = path.join(REPO, 'docs', 'breakage-runs');
   fs.mkdirSync(outDir, { recursive: true });
   const suffix = (meta.shoppingMode ? '-shopping' : '') + (meta.seeded ? '-seeded' : meta.thirdParty ? '-thirdparty' : '') + (meta.control ? `-control-${meta.control.revSha.slice(0, 7)}` : '')
-    + (meta.ruleControl ? `-control-${meta.ruleControl.plantBlock.length ? 'plant' : ''}${meta.ruleControl.dropAll ? 'dropall' : meta.ruleControl.dropRules.length ? 'drop' + meta.ruleControl.dropRules.join('_') : ''}` : '');
+    + (meta.ruleControl ? `-control-${meta.ruleControl.plantBlock.length ? 'plant' : ''}${meta.ruleControl.plantFilter ? 'plantfilter' : ''}${meta.ruleControl.dropAll ? 'dropall' : meta.ruleControl.dropRules.length ? 'drop' + meta.ruleControl.dropRules.join('_') : ''}` : '');
   const base = `${meta.date}-site-smoke${suffix}-${meta.code.tag}${LABEL ? '-' + LABEL : ''}`;
   const jsonPath = path.join(outDir, `${base}.json`);
   const mdPath = path.join(outDir, `${base}.md`);
@@ -2034,7 +2078,7 @@ function writeReports(meta, results) {
   let md = `# Nullecho pre-release site smoke${meta.shoppingMode ? ` — SHOPPING LAB (${meta.rounds} rounds)` : ''}${meta.seeded ? ' — SEEDED learned state' : ''}${meta.control || meta.ruleControl ? ' — ⚠ NEGATIVE CONTROL' : ''} — ${meta.date}\n\n`;
   if (meta.ruleControl) {
     md += `> **⚠ CONTROL RUN — NOT THE STORE PACKAGE.** The unpacked store zip's \`rules/personalization.json\` was rewritten in the temp dir`;
-    md += `${meta.ruleControl.plantBlock.length ? ` with a planted block rule (id 6999) on \`${meta.ruleControl.plantBlock.join(', ')}\`` : ''}${meta.ruleControl.dropAll ? ' with EVERY personalization rule removed (0.9.2 blocking)' : meta.ruleControl.dropRules.length ? ` with rules ${meta.ruleControl.dropRules.join(', ')} removed` : ''} `;
+    md += `${meta.ruleControl.plantBlock.length ? ` with a planted block rule (id 6999) on \`${meta.ruleControl.plantBlock.join(', ')}\`` : ''}${meta.ruleControl.plantFilter ? ` with a planted block rule (id 6998) on urlFilter \`${meta.ruleControl.plantFilter}\`` : ''}${meta.ruleControl.dropAll ? ' with EVERY personalization rule removed (0.9.2 blocking)' : meta.ruleControl.dropRules.length ? ` with rules ${meta.ruleControl.dropRules.join(', ')} removed` : ''} `;
     md += `(sha256 packaged \`${meta.ruleControl.packagedSha256.slice(0, 16)}…\` → control \`${meta.ruleControl.controlSha256.slice(0, 16)}…\`). Its FAILs, or its lower counts, are the point.\n\n`;
   }
   if (meta.control) {

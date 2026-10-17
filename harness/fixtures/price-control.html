@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Price positive control — Nullecho shopping lab</title>
+<!--
+  The shopping lab's PRICE positive control (0.9.3). It models the one way a block could change the price a shopper
+  sees — a client-side price test (Intelligems-style): the server ships the HIGHER price in both the markup and the
+  page, and a script from a separate "vendor" path rewrites both to the shopper's test price. If that script is blocked,
+  the page keeps the higher price.
+
+  `harness/site-smoke.mjs --shopping --only shop-fixture-price` with no planted rule: OFF and ON both read 15.00 → PASS.
+  With `--plant-filter /vendor/price-test.js`: ON keeps 20.00 while OFF reads 15.00 → the lab must say FAIL.
+  Nothing here leaves 127.0.0.1.
+-->
+<script type="application/ld+json" id="ld">{"@context":"https://schema.org","@type":"Product","name":"Control widget","offers":{"@type":"Offer","price":"20.00","priceCurrency":"USD"}}</script>
+<body>
+<h1>Control widget</h1>
+<div class="product-price" id="price">$20.00</div>
+<button id="atc" type="button">Add to cart</button>
+<div id="cart-count" aria-label="cart 0 items">0</div>
+<a href="/price-control.html?item=1">a</a>
+<script>
+  // A real cart, kept in this page: the lab's add-to-cart check needs the cart to say so.
+  document.getElementById('atc').addEventListener('click', () => {
+    const el = document.getElementById('cart-count');
+    const n = Number(el.textContent) + 1;
+    el.textContent = String(n);
+    el.setAttribute('aria-label', `cart ${n} items`);
+  });
+</script>
+<script src="/vendor/price-test.js"></script>
+</body>
