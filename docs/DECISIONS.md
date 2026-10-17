@@ -3780,3 +3780,17 @@ loader + shim + gpc.js — real device and GPC still `true` with a native-lookin
 off. Mutants killed: main's shim (the snapshot), gpc.js without `rebaseline()` (GPC dropped — 2 fail), a flag recorded
 2 ms late (4 fail), the first draft's detection that also read the page's own sub-requests (5 fail).
 `privacy-page-2026-10-14.test.js` pins the new key in both privacy documents.
+
+### D59 addendum — the director's call on "The cost" (2026-10-17)
+
+Accepted: the stand-down covers every site whose top document sets `_abck`/`bm_sz`, including the 8 measured Akamai sites
+that tolerated the shim (homedepot, lowes, bestbuy, united, macys, delta, zara, sephora). Reasons:
+1. Nothing in the first response separates a refusing site from a tolerant one, and a refusal sticks (after one 403 the
+   next load is refused even with the shim off), so a reactive "wait for the denial" design blocks the user anyway.
+2. A per-site allowlist of tolerant Akamai sites would break silently whenever a site changes its bot policy.
+3. What stays on is what the pricing evidence supports: tracker blocking (including the 0.9.3 Pricing & personalization
+   rules) and GPC. The device-fingerprint signal has the weakest evidence of any price input (SURVEILLANCE-PRICING §2:
+   null results in Mikians 2012 and Hupperich 2018), and Akamai's own fingerprinting on these sites is first-party bot
+   defense, not a third-party tracker.
+4. Breakage on big retail and airline sites costs more user trust than the disguise gains there.
+Revisit if a measured, stable signal distinguishes tolerant sites, or if evidence ties first-party bot-manager data to pricing.
