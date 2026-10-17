@@ -3605,7 +3605,9 @@ dell, macys), 4 failed on both sides with HTTP/2 or QUIC protocol errors (office
   anywhere, and 4 of 4 with the extension loaded, in both directions. Every arm of a one-variable-at-a-time run (each
   layer off in turn, the UA and hints copied, fresh and seeded profiles) showed either price. The lab's OFF and ON
   browsers are two visitors, so this reads as a difference; it is not something Nullecho does, and must never be
-  quoted as Nullecho lowering a price. Why Walmart splits visitors this way is not established.
+  quoted as Nullecho lowering a price. Why Walmart splits visitors this way is not established. In the final seeded
+  gate (`22d28e3`) it read OFF 149.99 vs ON **173.99**, a third price. The lab's visitor swap, which would have tested
+  it, was walled. That gate exited 1 on this row alone.
 - **Verdicts:** 17 PASS, 14 NOT-OURS (the page's own add-to-cart or price could not be confirmed with the extension
   OFF either, and ON was never worse), 2 BLOCKED, 1 INCONCLUSIVE, **0 FAIL.** Add-to-cart was confirmed on both sides in
   32 pairs and lost ON in none; search was compared in 63 pairs and never lost.

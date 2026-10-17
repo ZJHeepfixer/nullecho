@@ -99,6 +99,11 @@ by seller `F55CDC31…` (Walmart itself), and none showed a gap.
 
 With the extension on, a copied visitor still sees its donor's price (4 of 4 that loaded), in both directions.
 
+**Later sightings (lab, not this probe).** In the seeded gate on `22d28e3`, OFF read 149.99 and ON read **173.99**,
+a third price, again with 0 personalization matches. The lab's visitor swap (ON reloading with OFF's cookies) and its
+retry were both walled, so that run could not test it. In the walmart-only re-check (`…-walmart-swap`), both profiles
+drew 169.99.
+
 ## What this means for the lab
 
 The price this item shows is switched on and off by the visitor's Walmart cookies: 10 of 10 copies without the

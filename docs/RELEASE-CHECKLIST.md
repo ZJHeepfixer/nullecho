@@ -358,5 +358,18 @@ On walmart it has not yet run live: in the `…-walmart-swap` re-check both prof
 Seeded smoke (§3d), earlier runs: on `96adfbe`, exit 1 (one harness false positive, fixed); on `980d532`, crashed. **The
 clean gate on the final tip is recorded below this entry.**
 
+**Seeded gate on the final tip `22d28e3`, 2026-10-17: exit 1** (`docs/breakage-runs/2026-10-17-site-smoke-seeded-22d28e3.md`):
+40 PASS, 16 NOT-OURS, 5 BLOCKED, 1 ERROR (bestbuy, HTTP/2 errors on both sides) and **1 FAIL: walmart.com**. Its OFF
+browser read 149.99 and its ON browser 173.99 (a third offer price), with 0 personalization matches. The visitor swap
+and the retry were both walled, so the swap could not decide the row. Everything the gate exists for was clean:
+
+- the 28 standard rows (27 PASS + nytimes BLOCKED);
+- the seeding positive control (all ✅);
+- the D50 invariant (0 protected-host blocks);
+- the price positive control (PASS).
+
+walmart.com's price follows the visitor (research note), so whether it stays a gate row is a director call. Until that
+is decided, this gate is NOT green.
+
 Still owed before upload: the seeded gate's exit code on the final commit; the real-Chrome battery (§3); a look at the new
 options toggle in real Chrome and Firefox; uploading the updated store-listing text.
