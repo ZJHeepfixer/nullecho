@@ -1,0 +1,28 @@
+{
+ "note": "J2 targets, calibrated 2026-10-17 (METHOD.md §4.1-4.2; calibration records in raw/calibration-hotel-*.json). Registered: Excalibur Hotel & Casino, Las Vegas; check-in Wed 2026-12-09, check-out Fri 2026-12-11; 2 adults, 1 room, USD; room type regex \\bking\\b, primary = cheapest non-sold-out matching card. Second site: agoda.com (first in the registered order; rendered rates without a wall).",
+ "sites": [
+  {
+   "id": "priceline",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "room": "\\bking\\b",
+   "cardSelector": "[data-testid=\"RATE_CARD\"]",
+   "nameSelector": "[class*=\"SrOnly\"]",
+   "settleMs": 25000,
+   "basis": "nightly = the 'Per night' base rate, before taxes and the resort fee; total = the 2-night stay total with taxes and fees"
+  },
+  {
+   "id": "agoda",
+   "url": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD",
+   "room": "\\bking\\b",
+   "cardSelector": "[data-testid=\"room-offer\"]",
+   "nameAncestor": "[data-testid=\"room-item\"]",
+   "nameSelector": "[data-testid=\"room-name\"]",
+   "priceSelector": "[data-testid=\"room-offer-final-price\"]",
+   "scrollSteps": 4,
+   "scrollTo": "[data-testid=\"room-grid-element\"]",
+   "settleMs": 40000,
+   "basis": "nightly = the offer's final price 'per night before taxes' (it appears to include the resort fee); the card shows no stay total",
+   "status": "CONDITIONAL. Calibration 2026-10-17: load 2 rendered the room grid (reader then verified offline on the saved page); loads 4-5 returned HTTP 200 with an empty title and no grid (a soft block). J2 includes agoda only if ONE check load just before slot 1 reads room cards with this configuration; otherwise J2 is priceline only (METHOD.md §4.1). expedia.com and hotels.com answered HTTP 429 'Bot or Not?' on their first load and were not retried."
+  }
+ ]
+}

@@ -1,0 +1,145 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:43:07.111Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:43:19.668Z",
+   "type": "end",
+   "verdict": "NO-REGISTERED-ROOM",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD",
+   "finalUrl": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD&ds=xAuEBIzN8rnBc9DQ",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "heuristic",
+   "title": "Excalibur Hotel, Las Vegas (NV) | 2026 Updated Prices, Deals",
+   "rooms": [
+    {
+     "name": "- Guests may use their room key or MGM Resorts App parking barcode to access all parking f",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "- The 24-hour parking fee provides guests with in-out privileges within the same parking type (self) across all MGM Reso"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      25,
+      20,
+      20
+     ]
+    },
+    {
+     "name": "Property announcements",
+     "nightly": 35,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      35,
+      50,
+      200,
+      50
+     ]
+    }
+   ],
+   "primary": null,
+   "availability": {
+    "roomCards": 2,
+    "priced": 2,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 20
+   },
+   "cfg": {
+    "cardSelector": null,
+    "nameSelector": null,
+    "priceSelector": null,
+    "settleMs": 30000
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Self-Parking",
+      "- Visitors (daily rate): USD 20.00 (Monday - Thursday); USD 25.00 (Friday - Sunday)",
+      "- Registered Hotel Guests (daily rate): USD 20.00 (Monday - Thursday); USD 20.00 (Friday -",
+      "Additional Information",
+      "- The 24-hour parking fee provides guests with in-out privileges within the same parking t",
+      "- Guests may use their room key or MGM Resorts App parking barcode to access all parking f",
+      "- Cash or credit card payment. Parking may be charged to a guest’s room bill.",
+      "- Self-parking prices may be higher during special events.",
+      "- Nevada residents receive up to three hours complimentary parking with valid Nevada drive",
+      "- Terms and conditions vary for registered hotel guests vs. others (e.g., weekend rates do"
+     ],
+     "chain": [
+      "li",
+      "ul.Liststyled__ListStyled-sc-ksl08h-0.dRnTHV",
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.Box-sc-kv6pi1-0.huYQOy",
+      "div.Itemstyled__Item-sc-12uga7p-0.jHuQNC",
+      "div.Gridstyled__GridStyled-sc-dfh2k0-0.hKhKfU"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Property announcements",
+      "Cardholder funds released after checkout may take up to 7 business days to become availabl",
+      "A rollaway bed is available at the property for USD 35 per night.",
+      "The property requires a refundable security deposit of USD 50 (maximum USD 200), upon chec",
+      "An incidental deposit of $50.00 per room, per night is required at check-in."
+     ],
+     "chain": [
+      "div.Box-sc-kv6pi1-0.krcUda",
+      "div.Box-sc-kv6pi1-0.huYQOy",
+      "div.Itemstyled__Item-sc-12uga7p-0.jHuQNC",
+      "div.Gridstyled__GridStyled-sc-dfh2k0-0.hKhKfU",
+      "div.Itemstyled__Item-sc-12uga7p-0.jHuQNC",
+      "div.Gridstyled__GridStyled-sc-dfh2k0-0.hgDCFv"
+     ],
+     "pricedLeaves": [
+      "p.Paragraphstyled__ParagraphStyled-sc-180znkb-0.ieMsxy → \"A rollaway bed is available at the prope\"",
+      "p.Paragraphstyled__ParagraphStyled-sc-180znkb-0.ieMsxy → \"The property requires a refundable secur\"",
+      "p.Paragraphstyled__ParagraphStyled-sc-180znkb-0.ieMsxy → \"An incidental deposit of $50.00 per room\""
+     ]
+    }
+   ],
+   "markup": null
+  }
+ ]
+}

@@ -1,0 +1,434 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:40:27.968Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:40:37.018Z",
+   "type": "end",
+   "verdict": "NO-REGISTERED-ROOM",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "finalUrl": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "heuristic",
+   "title": "Excalibur - Priceline.com",
+   "rooms": [
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      133
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      134
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      134
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      132
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      23,
+      137
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      22,
+      136
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      25,
+      141
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      33,
+      158
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      37,
+      165
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      361,
+      813
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      380,
+      864
+     ]
+    },
+    {
+     "name": "Children of age 0 and above can stay with extra bed, subject to additional charges.",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20
+     ]
+    }
+   ],
+   "primary": null,
+   "availability": {
+    "roomCards": 18,
+    "priced": 1,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 20
+   },
+   "cfg": {
+    "cardSelector": null,
+    "nameSelector": null,
+    "priceSelector": null,
+    "settleMs": 25000
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.mb-2",
+      "div.ml-4.hidden",
+      "div.flex.w-full",
+      "div.Box-sc-n9h3nv-0.DetailsHero__ResponsiveWrapper-sc-aflhr3-2",
+      "div[data-testid=\"HERO_DESKTOP\"].Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "21",
+      "$",
+      "133",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    }
+   ],
+   "markup": [
+    "<div testid=\"RATE_CARD\" class=\"Box-sc-n9h3nv-0 Card-sc-1iw8zza-0\">\n  <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n    <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n      <div class=\"Box-sc-n9h3nv-0 RateCard__PolicySection-iBVbBH\">\n        <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n          <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n            <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n              <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n                <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n                  <button aria=\"Non Refundable\" class=\"Button__StyledButton-sc-uq13ez-0 fHgznA\">\n            <div class=\"Box-sc-n9h3nv-0 dUfJQU\">\n              <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n      <div class=\"Box-sc-n9h3nv-0 RateCard__PriceSection-LLEBe\">\n        <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n          <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n            <div class=\"flex flex-col\">\n              <div class=\"flex flex-col\">\n                <div class=\"flex flex-row\">\n                  <span class=\"text-body3 text-primary-13\"> \"Per night\"\n                  <div class=\"flex items-center\">\n                <div class=\"max-w-full flex-wrap\">\n                  <div class=\"flex max-w-full\">\n              <div class=\"flex flex-row\">\n                <span class=\"text-body3 text-right\"> \"2 nights, 1 room\"\n      <div class=\"Box-sc-n9h3nv-0 ggOhNp\">\n        <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n          <div class=\"Box-sc-n9h3nv-0 jFJjdL\">\n            <button class=\"Button__StyledButton-sc-uq13ez-0 iLzfFH\">\n              <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n                <span class=\"Text__Span-sc-1xtb652-1 cGwqtN\"> \"Book\"\n                <span class=\"SrOnly-sc-3hvdi4-0 dHtTRc\"> \"Royal Tower Two Queen Room\"\n  <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n  <span class=\"pclndbg\">\n",
+    "<div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n  <div class=\"Box-sc-n9h3nv-0 RateCard__PolicySection-iBVbBH\">\n    <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n      <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n        <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n          <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n            <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n              <button aria=\"Non Refundable\" class=\"Button__StyledButton-sc-uq13ez-0 fHgznA\">\n                <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\"> \"Non Refundable\"\n        <div class=\"Box-sc-n9h3nv-0 dUfJQU\">\n          <div class=\"Box-sc-n9h3nv-0 gJzoyp\">\n  <div class=\"Box-sc-n9h3nv-0 RateCard__PriceSection-LLEBe\">\n    <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n      <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n        <div class=\"flex flex-col\">\n          <div class=\"flex flex-col\">\n            <div class=\"flex flex-row\">\n              <span class=\"text-body3 text-primary-13\"> \"Per night\"\n              <div class=\"flex items-center\">\n                <span >\n                <span >\n                <span > \"$\"\n                <div class=\"relative flex\">\n                  <span > \"17\"\n                  <span >\n                  <span class=\"absolute right-0\">\n                <span class=\"whitespace-pre\">\n            <div class=\"max-w-full flex-wrap\">\n              <div class=\"flex max-w-full\">\n                <span testid=\"pricing-popover\" class=\"inline-flex items-center\">\n                  <div class=\"relative inline-block\">\n          <div class=\"flex flex-row\">\n            <span class=\"text-body3 text-right\"> \"2 nights, 1 room\"\n  <div class=\"Box-sc-n9h3nv-0 ggOhNp\">\n    <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n      <div class=\"Box-sc-n9h3nv-0 jFJjdL\">\n        <button class=\"Button__StyledButton-sc-uq13ez-0 iLzfFH\">\n          <div class=\"Box-sc-n9h3nv-0 Flex-sc-1yrtwh8-0\">\n            <span class=\"Text__Span-sc-1xtb652-1 cGwqtN\"> \"Book\"\n            <span class=\"SrOnly-sc-3hvdi4-0 dHtTRc\"> \"Royal Tower Two Queen Room\"\n"
+   ]
+  }
+ ]
+}

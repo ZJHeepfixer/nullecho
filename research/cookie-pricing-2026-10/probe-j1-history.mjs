@@ -77,6 +77,9 @@ async function init() {
     days: c.num('--days', 3), readTimes: c.list('--read-times', '09:30,18:30'), shopTime: c.opt('--shop-time', '10:00'), dayMs: c.num('--day-ms', 0),
     gap: [c.num('--gap-min', 45000), c.num('--gap-max', 75000)], stepGap: [c.num('--step-min', 20000), c.num('--step-max', 40000)],
     out: path.resolve(c.opt('--out', path.join(HERE, 'raw', `j1-history-${today()}.json`))), perBucket: c.num('--per-bucket', 3), enrollMax: c.num('--enroll-max', 14),
+    // Deviation D1 (RESULTS.md): walmart.com's cart controls could not be calibrated within budget, so the live run
+    // shops by views only. --no-cart skips add/empty; the cart code stays for a later, calibrated run.
+    cart: !c.flag('--no-cart'),
   };
   const rec = new Recorder(cfg.out, { study: 'J1.3 does shopping history move the offer', site: site.id, item, device: DEVICE, seed, days: cfg.days, readTimes: cfg.readTimes, shopTime: cfg.shopTime, compressedDayMs: cfg.dayMs || null });
   const storeLabel = storeLabeler();
@@ -159,6 +162,7 @@ async function runEvent(st, ev, ctx, rec, rules) {
       for (const id of rel) { await step(); await read(env, p, site.itemUrl(id), 'shop-related', { relatedItem: id }); }
       await step();
       const v2 = await read(env, p, site.itemUrl(cfg.item), 'shop-view');
+      if (cfg.cart === false) { await env.close(); if (rules.stopped) return; await sleep(gapMs(rand, ...cfg.gap)); continue; }
       const add = v2.r.product ? await addToCart(v2.page, v2.s.cartCount) : { added: false, why: 'item page did not load' };
       rec.add({ kind: 'cart-add', event: ev.id, profile: p.id, at: new Date().toISOString(), ...add });
       await step();

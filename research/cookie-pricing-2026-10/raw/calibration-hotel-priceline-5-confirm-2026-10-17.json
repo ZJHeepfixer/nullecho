@@ -1,0 +1,475 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:45:41.510Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:45:56.482Z",
+   "type": "end",
+   "verdict": "HOTEL-OK (Royal Tower King 19, via selector)",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "finalUrl": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "selector",
+   "title": "Excalibur - Priceline.com",
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      141
+     ]
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      151
+     ]
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      151
+     ]
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      151
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      150
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      23,
+      156
+     ]
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      22,
+      153
+     ]
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      25,
+      159
+     ]
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      33,
+      178
+     ]
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      37,
+      186
+     ]
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      361,
+      922
+     ]
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      380,
+      965
+     ]
+    }
+   ],
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "cfg": {
+    "cardSelector": "[data-testid=\"RATE_CARD\"]",
+    "nameSelector": "[class*=\"SrOnly\"]",
+    "nameAncestor": null,
+    "priceSelector": null,
+    "settleMs": 25000,
+    "scrollSteps": 0
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Non Refundable",
+      "$",
+      "17",
+      "nightly",
+      "$",
+      "141",
+      "total",
+      "with taxes and fees",
+      "Book",
+      "Royal Tower Two Queen Room"
+     ],
+     "chain": [
+      "div[data-testid=\"RATE_CARD\"].Box-sc-n9h3nv-0.Card-sc-1iw8zza-0",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RateBox-dzAiGH",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RoomRowRatesContainer-eHqPkD",
+      "div.Box-sc-n9h3nv-0.ComposableRoomRow__Box3-jMPEnI",
+      "div[data-testid=\"ROOM_ROW_VARIANT\"].Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.dSgyIZ"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Fully Refundable",
+      "until December 5 at 11:59pm",
+      "$",
+      "19",
+      "nightly",
+      "$",
+      "146",
+      "total",
+      "with taxes and fees",
+      "Book",
+      "Royal Tower Two Queen Room"
+     ],
+     "chain": [
+      "div[data-testid=\"RATE_CARD\"].Box-sc-n9h3nv-0.Card-sc-1iw8zza-0",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RateBox-dzAiGH",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RoomRowRatesContainer-eHqPkD",
+      "div.Box-sc-n9h3nv-0.ComposableRoomRow__Box3-jMPEnI",
+      "div[data-testid=\"ROOM_ROW_VARIANT\"].Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.dSgyIZ"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Non Refundable",
+      "$",
+      "19",
+      "nightly",
+      "$",
+      "146",
+      "total",
+      "with taxes and fees",
+      "Book",
+      "Resort Accessible Tower Two Queen"
+     ],
+     "chain": [
+      "div[data-testid=\"RATE_CARD\"].Box-sc-n9h3nv-0.Card-sc-1iw8zza-0",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RateBox-dzAiGH",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RoomRowRatesContainer-eHqPkD",
+      "div.Box-sc-n9h3nv-0.ComposableRoomRow__Box3-jMPEnI",
+      "div[data-testid=\"ROOM_ROW_VARIANT\"].Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.dSgyIZ"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Fully Refundable",
+      "until December 5 at 11:59pm",
+      "$",
+      "21",
+      "nightly",
+      "$",
+      "151",
+      "total",
+      "with taxes and fees",
+      "Book",
+      "Resort Accessible Tower Two Queen"
+     ],
+     "chain": [
+      "div[data-testid=\"RATE_CARD\"].Box-sc-n9h3nv-0.Card-sc-1iw8zza-0",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RateBox-dzAiGH",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RoomRowRatesContainer-eHqPkD",
+      "div.Box-sc-n9h3nv-0.ComposableRoomRow__Box3-jMPEnI",
+      "div[data-testid=\"ROOM_ROW_VARIANT\"].Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.dSgyIZ"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Non Refundable",
+      "$",
+      "19",
+      "nightly",
+      "$",
+      "146",
+      "total",
+      "with taxes and fees",
+      "Book",
+      "Resort Tower Two Queen"
+     ],
+     "chain": [
+      "div[data-testid=\"RATE_CARD\"].Box-sc-n9h3nv-0.Card-sc-1iw8zza-0",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RateBox-dzAiGH",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RoomRowRatesContainer-eHqPkD",
+      "div.Box-sc-n9h3nv-0.ComposableRoomRow__Box3-jMPEnI",
+      "div[data-testid=\"ROOM_ROW_VARIANT\"].Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.dSgyIZ"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Fully Refundable",
+      "until December 5 at 11:59pm",
+      "$",
+      "21",
+      "nightly",
+      "$",
+      "151",
+      "total",
+      "with taxes and fees",
+      "Book",
+      "Resort Tower Two Queen"
+     ],
+     "chain": [
+      "div[data-testid=\"RATE_CARD\"].Box-sc-n9h3nv-0.Card-sc-1iw8zza-0",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RateBox-dzAiGH",
+      "div.Box-sc-n9h3nv-0.RoomRowRates__RoomRowRatesContainer-eHqPkD",
+      "div.Box-sc-n9h3nv-0.ComposableRoomRow__Box3-jMPEnI",
+      "div[data-testid=\"ROOM_ROW_VARIANT\"].Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.dSgyIZ"
+     ],
+     "pricedLeaves": []
+    }
+   ],
+   "markup": null
+  }
+ ]
+}

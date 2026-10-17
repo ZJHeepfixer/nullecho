@@ -1,0 +1,67 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:55:11.874Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:55:44.838Z",
+   "type": "end",
+   "verdict": "BLOCKED (http 429)",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.hotels.com/ho135542/excalibur-hotel-casino-las-vegas-united-states-of-america/?chkin=2026-12-09&chkout=2026-12-11&rm1=a2",
+   "finalUrl": "https://www.hotels.com/ho135542/excalibur-hotel-casino-las-vegas-united-states-of-america/?chkin=2026-12-09&chkout=2026-12-11&rm1=a2",
+   "http": 429,
+   "wall": true,
+   "wallWhy": "http 429",
+   "wallText": "Show us your human side... We can't tell if you're a human or a bot. d5769ca7-d3f7-473d-8fdf-f10ed61f0460",
+   "how": "heuristic",
+   "title": "Bot or Not?",
+   "rooms": [],
+   "primary": null,
+   "availability": {
+    "roomCards": 0,
+    "priced": 0,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": null
+   },
+   "cfg": {
+    "cardSelector": null,
+    "nameSelector": null,
+    "nameAncestor": null,
+    "priceSelector": null,
+    "settleMs": 30000,
+    "scrollSteps": 6,
+    "scrollTo": null
+   },
+   "cardDebug": [],
+   "markup": null
+  }
+ ]
+}

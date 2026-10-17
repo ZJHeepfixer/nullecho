@@ -1,0 +1,555 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:41:09.654Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:41:18.695Z",
+   "type": "end",
+   "verdict": "NO-REGISTERED-ROOM",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "finalUrl": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "heuristic",
+   "title": "Excalibur - Priceline.com",
+   "rooms": [
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "Choose a room with a Refundable Rate for maximum flexibility",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Guests rave about the convenient location, friendly staff, and clean accommodations at this hotel. While some find the r"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      107
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      133
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      134
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      134
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      132
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      23,
+      137
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      22,
+      136
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      25,
+      141
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      33,
+      158
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      37,
+      165
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      361,
+      813
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      380,
+      864
+     ]
+    },
+    {
+     "name": "Children of age 0 and above can stay with extra bed, subject to additional charges.",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      8,
+      106
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      10,
+      120
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      10,
+      110
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      11,
+      117,
+      115
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      14,
+      186,
+      136
+     ]
+    },
+    {
+     "name": "2 nights, 1 room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      12,
+      168,
+      138
+     ]
+    }
+   ],
+   "primary": null,
+   "availability": {
+    "roomCards": 26,
+    "priced": 1,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 20
+   },
+   "cfg": {
+    "cardSelector": null,
+    "nameSelector": null,
+    "priceSelector": null,
+    "settleMs": 25000
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.mb-2",
+      "div.ml-4.hidden",
+      "div.flex.w-full",
+      "div.Box-sc-n9h3nv-0.DetailsHero__ResponsiveWrapper-sc-aflhr3-2",
+      "div[data-testid=\"HERO_DESKTOP\"].Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Top Reasons to Book",
+      "FULLY REFUNDABLE RATES",
+      "Choose a room with a Refundable Rate for maximum flexibility",
+      "TOP RATED LOCATION",
+      "Guests rate the location 8.4/10",
+      "19,562 Reviews",
+      "7.5",
+      "Good",
+      "7.9",
+      "Cleanliness",
+      "7.7",
+      "Staff",
+      "8.3",
+      "Location"
+     ],
+     "chain": [
+      "div.Box-sc-n9h3nv-0.styles__ResponsiveWrapper-sc-33r0uq-7",
+      "div.Box-sc-n9h3nv-0.gJzoyp",
+      "div.Box-sc-n9h3nv-0.gJzoyp",
+      "section.HotelDetail__DetailsWrap-sc-2qqdsr-0.dLncq",
+      "div",
+      "div.fs-unmask"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "21",
+      "$",
+      "133",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.RateCard__PriceSection-LLEBe",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0",
+      "div.Box-sc-n9h3nv-0.Flex-sc-1yrtwh8-0"
+     ],
+     "pricedLeaves": []
+    }
+   ],
+   "markup": null
+  }
+ ]
+}

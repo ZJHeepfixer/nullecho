@@ -36,7 +36,7 @@ const ctx = makeCtx(c, { label: 'j2' });
 for (const s of SITES) assertTarget(s.url, ctx.live);
 const release = await liveLock(ctx, 'j2');
 const rand = rng(SEED);
-const rec = new Recorder(OUT, { study: 'J2 repeat views vs fresh views', device: DEVICE, slots: SLOTS, slotGapMs: [SLOT_MIN, SLOT_MAX], pairGapMs: [PAIR_MIN, PAIR_MAX], seed: SEED, targets: SITES.map(({ id, url, room, cardSelector, nameSelector, priceSelector, settleMs }) => ({ id, url, room, cardSelector: cardSelector ?? null, nameSelector: nameSelector ?? null, priceSelector: priceSelector ?? null, settleMs: settleMs ?? null })) });
+const rec = new Recorder(OUT, { study: 'J2 repeat views vs fresh views', device: DEVICE, slots: SLOTS, slotGapMs: [SLOT_MIN, SLOT_MAX], pairGapMs: [PAIR_MIN, PAIR_MAX], seed: SEED, targets: SITES.map(({ id, url, room, cardSelector, nameSelector, nameAncestor, priceSelector, scrollSteps, scrollTo, settleMs }) => ({ id, url, room, cardSelector: cardSelector ?? null, nameSelector: nameSelector ?? null, nameAncestor: nameAncestor ?? null, priceSelector: priceSelector ?? null, scrollSteps: scrollSteps ?? 0, scrollTo: scrollTo ?? null, settleMs: settleMs ?? null })) });
 const timingFor = (s) => ({ ...s, settleMs: s.settleMs ?? (ctx.live ? 25000 : 6000) });
 // balanced, seeded order per site: exactly half of the slots load the repeat browser first
 const order = Object.fromEntries(SITES.map((s) => [s.id, shuffle(Array.from({ length: SLOTS }, (_, i) => i < Math.ceil(SLOTS / 2)), rand)]));

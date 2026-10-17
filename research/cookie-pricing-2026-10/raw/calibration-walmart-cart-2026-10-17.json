@@ -1,0 +1,68 @@
+{
+ "meta": {
+  "study": "calibration: walmart-cart (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:14:34.976Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:15:26.092Z",
+   "type": "end",
+   "verdict": "ADD-NOT-CONFIRMED (no add-to-cart control)",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "item",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "609E2BE5A3EB30",
+   "sellerId": "66306FC579CE45",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 159.99,
+   "was": 199,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false
+  },
+  {
+   "kind": "cart-add",
+   "added": false,
+   "why": "no add-to-cart control"
+  },
+  {
+   "kind": "cart-empty",
+   "emptied": true,
+   "removed": 0,
+   "http": 200
+  }
+ ]
+}
