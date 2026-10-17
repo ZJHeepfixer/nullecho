@@ -373,3 +373,11 @@ is decided, this gate is NOT green.
 
 Still owed before upload: the seeded gate's exit code on the final commit; the real-Chrome battery (§3); a look at the new
 options toggle in real Chrome and Firefox; uploading the updated store-listing text.
+
+### 0.9.3 — release notes added by the director, 2026-10-17
+- Ships NOTICE.txt, LICENSE.txt and GPL-3.0.txt in both store zips (licence review H §7.1), linked from a new
+  "Credits and licences" section in settings; packaged via `<link rel="license">` so the closure packager includes them.
+- Seeded gate exit 1 on walmart.com only: ACCEPTED. The OFF/ON price gap is a per-visitor marketplace offer that follows
+  Walmart's own cookies with no extension present (cookie transfer 10/10 and 4/4 both directions;
+  research/walmart-price-gap-2026-10/). Not caused by Nullecho; no user-facing claim made.
+- 0.9.2 was never uploaded; 0.9.3 replaces it as the next store package (0.9.2 fixes included).
