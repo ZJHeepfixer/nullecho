@@ -22,6 +22,21 @@ const cartPair = (off, on) => {
   return x && y && x.state === y.state ? [x.price, y.price] : [null, null];
 };
 
+/**
+ * The visitor swap (site-smoke.mjs): after a price difference the ON browser reloaded the page with the OFF browser's
+ * cookies for that site. True when it then read OFF's declared and rendered price — the difference followed the
+ * visitor, not the extension.
+ */
+export function swapFollowsVisitor(off, on) {
+  const sw = on && on.swap;
+  if (!sw || sw.blocked || sw.error || !off || !off.detail) return false;
+  const p = (x) => (x ? x.price : null);
+  const d = off.detail;
+  const declOk = p(d.declared) === null || p(sw.declared) === p(d.declared);
+  const visOk = p(d.visible) === null || p(sw.visible) === p(d.visible);
+  return declOk && visOk && (p(sw.declared) !== null || p(sw.visible) !== null);
+}
+
 /** ON vs OFF for one pair of loads. Every price difference is reported, whatever its cause. */
 export function compareShopping(off, on) {
   const out = [];
@@ -97,18 +112,24 @@ export function shoppingVerdict(site, loads) {
     if (onWall && !offWall) return { ...out, verdict: 'FAIL', reason: `bot wall ON only, ${onWall}/${usable.length} pair(s): ${(usable.find((l) => l.on.blocked).on.blockedEvidence || '').slice(0, 120)}` };
     return { ...out, verdict: 'BLOCKED', reason: (usable.find((l) => l.off.blocked) || usable[0]).off.blockedEvidence || (usable[0].on.blockedEvidence || 'walled') };
   }
+  const swapped = new Set(both.filter((l) => swapFollowsVisitor(l.off, l.on)).map((l) => l.round));
   for (const l of both) {
     for (const d of compareShopping(l.off.detail || {}, l.on.detail || {})) {
-      (/PRICE DIFFERS|price .* none ON/.test(d) ? out.priceNotes : out.functionalNotes).push(`r${l.round}: ${d}`);
+      const tag = swapped.has(l.round) && /PRICE DIFFERS/.test(d) ? " — followed the visitor: ON with OFF's site cookies read OFF's price" : '';
+      (/PRICE DIFFERS|price .* none ON/.test(d) ? out.priceNotes : out.functionalNotes).push(`r${l.round}: ${d}${tag}`);
     }
   }
+  out.visitorSwapped = [...swapped];
   const lostPairs = both.filter((l) => compareShopping(l.off.detail || {}, l.on.detail || {}).some((d) => !/PRICE DIFFERS/.test(d))).length + onOnlyErr.length;
   const offVaries = s.declaredOff.length > 1 || s.visibleOff.length > 1 || s.cartOff.length > 1;
   // Novel = a price ON read that OFF never read, judged only where OFF read that kind of price at all. An OFF side
   // that read NO price (a half-loaded or challenge page) is a failed measurement, not a different price (gate run
   // 2026-10-15: harborfreight's OFF page loaded with HTTP 200 and no price, and the row read FAIL).
   const onOnly = (on, off) => (off.some((p) => p !== '—') ? on.filter((p) => p !== '—' && !off.includes(p)) : []);
-  const novelPrice = [...onOnly(s.declaredOn, s.declaredOff), ...onOnly(s.visibleOn, s.visibleOff), ...onOnly(s.cartOn, s.cartOff)];
+  // A price ON read only in pairs where the visitor swap showed it follows the visitor is not the extension's.
+  const unswapped = both.filter((l) => !swapped.has(l.round));
+  const onSet = (k) => uniq(unswapped.map((l) => priceOf(l.on, k) ?? '—'));
+  const novelPrice = [...onOnly(onSet('declared'), s.declaredOff), ...onOnly(onSet('visible'), s.visibleOff), ...onOnly(s.cartOn, s.cartOff)];
   const allOffFail = both.every((l) => !l.off.ok);
   if (onWall && !offWall) return { ...out, verdict: 'FAIL', reason: `bot wall ON only in ${onWall}/${usable.length} pair(s)` };
   if (novelPrice.length) return { ...out, verdict: 'FAIL', reason: `ON read a price OFF never read: ${novelPrice.join(', ')} — ${out.priceNotes.slice(0, 2).join(' | ')}` };
@@ -116,6 +137,7 @@ export function shoppingVerdict(site, loads) {
   // (Attacked 2026-10-15: with a block planted on Algolia and Constructor, gymshark's and jcpenney's search went
   // from 60 product links to 0 — and the row read NOT-OURS, because OFF had also missed an unrelated add-to-cart.)
   if (lostPairs * 2 > both.length + onOnlyErr.length) return { ...out, verdict: 'FAIL', reason: out.functionalNotes.slice(0, 3).join(' | ') };
+  if (swapped.size && out.priceNotes.length) return { ...out, verdict: 'INCONCLUSIVE', reason: `price differed in ${swapped.size} pair(s) and followed the visitor, not the extension (ON reloaded with OFF's cookies read OFF's price) — ${out.priceNotes.slice(0, 2).join(' | ')}` };
   if (out.priceNotes.length && offVaries) return { ...out, verdict: 'INCONCLUSIVE', reason: `price varies with the extension OFF too (OFF ${s.declaredOff.join('/')}${s.visibleOff.length > 1 ? `, rendered ${s.visibleOff.join('/')}` : ''}) — ${out.priceNotes.slice(0, 2).join(' | ')}` };
   if (allOffFail && both.every((l) => !l.on.ok)) return { ...out, verdict: 'NOT-OURS', reason: `fails with the extension OFF too — off: ${(both[0].off.reasons || []).join('; ') || both[0].off.error || 'check failed'}` };
   const notes = [...out.priceNotes, ...out.functionalNotes];

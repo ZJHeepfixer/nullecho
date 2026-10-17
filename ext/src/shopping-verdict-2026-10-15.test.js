@@ -88,6 +88,19 @@ test('REGRESSION: carts are compared only from the same starting state — a ful
   assert.equal(sameState.verdict, 'FAIL');
 });
 
+test('THE VISITOR SWAP: a price that follows OFF\'s cookies into the ON browser is INCONCLUSIVE, one that does not is FAIL', () => {
+  // walmart.com 2026-10-15/17: two visitors, two offers — the price followed Walmart's cookies with no extension at all.
+  const swap = (price) => ({ swap: { cookies: 12, declared: { price }, visible: { price } } });
+  const followed = [1, 2, 3].map((r) => pair(r, rec(page({ price: '169.99', visible: '169.99' })), rec(page({ price: '149.99', visible: '149.99' }), swap('169.99'))));
+  const v = shoppingVerdict(site, followed);
+  assert.equal(v.verdict, 'INCONCLUSIVE');
+  assert.ok(v.priceNotes.every((n) => /followed the visitor/.test(n)), 'every difference stays listed, tagged');
+  const stuck = [1, 2, 3].map((r) => pair(r, rec(page({ price: '169.99', visible: '169.99' })), rec(page({ price: '149.99', visible: '149.99' }), swap('149.99'))));
+  assert.equal(shoppingVerdict(site, stuck).verdict, 'FAIL', 'the extension is still the suspect when OFF\'s cookies do not move the ON price');
+  const walledSwap = [1, 2, 3].map((r) => pair(r, rec(page({ price: '169.99', visible: '169.99' })), rec(page({ price: '149.99', visible: '149.99' }), { swap: { blocked: true } })));
+  assert.equal(shoppingVerdict(site, walledSwap).verdict, 'FAIL', 'a swap that measured nothing proves nothing');
+});
+
 test('walls: both sides walled is BLOCKED; walled ON only is FAIL', () => {
   const wall = { blocked: true, blockedEvidence: 'HTTP 403 — Access Denied', detail: {} };
   assert.equal(shoppingVerdict(site, [pair(1, wall, wall)]).verdict, 'BLOCKED');

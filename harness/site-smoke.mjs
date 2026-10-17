@@ -1737,8 +1737,24 @@ async function runShoppingLab({ unpackDir, ua, rounds, sites }) {
       runSite(offEnv.browser, site, { withExtension: false }, ua),
       runSite(onEnv.browser, site, { withExtension: true, seed: onEnv.seed, ext: onEnv.ext }, ua),
     ]);
-    loads[site.key].push({ round, off, on });
     const diffs = off.blocked || on.blocked ? [] : compareShopping(off.detail || {}, on.detail || {});
+    // THE VISITOR SWAP. OFF and ON are two different visitors, and a store may show different visitors different offers
+    // (walmart.com, 2026-10-15/17: the price followed the visitor's own cookies with no extension anywhere —
+    // research/walmart-price-gap-2026-10/). So when a pair's PRICE differs, the ON browser takes the OFF browser's
+    // cookies for that site and loads the page once more. If it then reads OFF's price, the difference followed the
+    // visitor, not the extension; if it keeps its own, the extension is still the suspect.
+    if (diffs.some((d) => /PRICE DIFFERS/.test(d))) {
+      try {
+        const reg = new URL(urlOf(site)).hostname.split('.').slice(-2).join('.');
+        const jar = (await offEnv.browser.cookies()).filter((c) => c.domain.replace(/^\./, '').endsWith(reg));
+        if (jar.length) await onEnv.browser.setCookie(...jar.map(({ name, value, domain, path: p, expires, httpOnly, secure, sameSite }) => ({ name, value, domain, path: p, expires, httpOnly, secure, sameSite })));
+        const probeSite = { ...site, atc: undefined, search: undefined, klaviyo: false };
+        const again = await runSite(onEnv.browser, probeSite, { withExtension: true, seed: onEnv.seed, ext: onEnv.ext }, ua);
+        on.swap = { cookies: jar.length, blocked: !!again.blocked, error: again.error || null, declared: again.detail?.declared || null, visible: again.detail?.visible || null };
+        console.error(`  ↺ visitor swap: ON with OFF's ${jar.length} cookies → ${again.blocked ? 'BLOCKED' : again.detail?.declared?.price ?? again.detail?.visible?.price ?? '-'}`);
+      } catch (e) { on.swap = { error: String(e.message || e).slice(0, 120) }; }
+    }
+    loads[site.key].push({ round, off, on });
     console.error(`  → OFF ${off.blocked ? 'BLOCKED' : off.ok ? 'ok' : 'not-ok'} ${off.detail?.declared?.price ?? off.detail?.visible?.price ?? '-'} | ON ${on.blocked ? 'BLOCKED' : on.ok ? 'ok' : 'not-ok'} ${on.detail?.declared?.price ?? on.detail?.visible?.price ?? '-'}${diffs.length ? ' | ' + diffs.join('; ') : ''} | pz hits ${(on.personalizationHits?.hits || []).length}`);
   };
   let rulesAtEnd = null;

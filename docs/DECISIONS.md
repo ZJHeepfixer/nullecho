@@ -3599,10 +3599,13 @@ dell, macys), 4 failed on both sides with HTTP/2 or QUIC protocol errors (office
   both microdata and the rendered price, with **zero** personalization-rule matches on the page; in the three-round lab
   walmart read `$149.99` on both sides in its one unwalled pair. **Seen again** in the seeded-gate re-run on the tip
   (`980d532`, 2026-10-15 evening, log only — the run crashed before writing a report): walmart r1 OFF `$169.99`, ON
-  `$149.99`, again with zero personalization matches. A rule that matches nothing cannot change a page, so this is not
-  the new ruleset; whether it is Walmart rotating the offer it shows or something else Nullecho does (the persona, GPC,
-  the older rulesets, the seeded learned rules) is **unknown and owed** — re-run walmart with `--drop-rules all` and with
-  the extension's other layers off before anyone draws a conclusion, and never quote it as Nullecho lowering a price.
+  `$149.99`, again with zero personalization matches. **Isolated 2026-10-17** (`research/walmart-price-gap-2026-10/`):
+  the two prices are two offers from one marketplace seller. Which one a browser profile is shown follows that
+  profile's Walmart cookies. Copying them into fresh profiles switched the price 10 of 10 times with no extension
+  anywhere, and 4 of 4 with the extension loaded, in both directions. Every arm of a one-variable-at-a-time run (each
+  layer off in turn, the UA and hints copied, fresh and seeded profiles) showed either price. The lab's OFF and ON
+  browsers are two visitors, so this reads as a difference; it is not something Nullecho does, and must never be
+  quoted as Nullecho lowering a price. Why Walmart splits visitors this way is not established.
 - **Verdicts:** 17 PASS, 14 NOT-OURS (the page's own add-to-cart or price could not be confirmed with the extension
   OFF either, and ON was never worse), 2 BLOCKED, 1 INCONCLUSIVE, **0 FAIL.** Add-to-cart was confirmed on both sides in
   32 pairs and lost ON in none; search was compared in 63 pairs and never lost.
@@ -3631,8 +3634,11 @@ labelled it NOT-OURS, because OFF had missed an unrelated add-to-cart — a verd
 the f841733 lab found no row it had masked. The `redsky.target.com` plant was not judgeable (OFF read no Target price),
 and a planted block on `cdn.intelligems.io` (`…-plant-96adfbe-plant-intelligems.md`, 4 stores × 2) changed no declared,
 rendered or cart price — no live Intelligems price test was visible to a fresh visitor that day. So the lab is proven to
-catch a lost search grid; that it would catch a changed PRICE is designed for (rendered and cart prices are read, not
-just markup) but has not been demonstrated by a control.
+catch a lost search grid. **The PRICE control, 2026-10-17** (`…-shopping-ab90d45-pricectl-*`): `harness/fixtures/
+price-control.html` ships 20.00 in its markup and on the page, and a "vendor" price-test script rewrites both to 15.00.
+The sequence was: unplanted, OFF and ON both read 15.00 (PASS, exit 0); with `--plant-filter /vendor/price-test.js` the
+ON side kept 20.00 (FAIL, exit 1, every pair: "DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00"); unplanted again, PASS
+(exit 0). The lab catches a blocked script raising the declared and rendered price.
 (3) `harness/personalization-attack.mjs` (`2026-10-15-personalization-attack-f841733.json`): on a loopback fixture each
 of the 49 block rules is counted exactly once (per-tab tally 49, `getMatchedRules` 49) and removing each one alone drops
 the count by exactly one; 32 price/cart/search/form URLs match no block rule in any ruleset; 13 tracking URLs match the
@@ -3642,7 +3648,33 @@ rule meant for them. (4) Planting bad rules in the source makes `validate.mjs` (
 exited 1 on one row, and the row was the harness's: harborfreight's OFF page loaded with HTTP 200 and no price, ON read
 `$59.99`, and the verdict called that "a price OFF never read". Novelty is now judged only against a price OFF actually
 read; the verdict logic moved to `harness/shopping-verdict.mjs` under unit tests (`shopping-verdict-2026-10-15.test.js`,
-whose two regression tests fail on the old rules). Re-judged, the gate run has 0 FAIL; a clean re-run is owed.
+whose two regression tests fail on the old rules). Re-judged, the gate run has 0 FAIL. The clean re-run on the final
+tip is recorded in RELEASE-CHECKLIST.
+
+**The breadth pass, 2026-10-17** (`2026-10-17-site-smoke-shopping-seeded-0aba497-breadth-{1..4}.md`,
+`…-edd749c-breadth-rerun.md`). `harness/shopping-discover.mjs` visited about 180 candidate retailers once, with no
+extension. 100 product pages loaded with a price (one duplicate was dropped later) and became rows 64–163 of
+`harness/shopping-sites.json`: 79 load a vendor the ruleset blocks, 21 load none. 65 candidates walled discovery or
+offered no product link; they are listed in the file, never evaded.
+
+With the 34 earlier rows that makes **133 real product pages** across apparel and shoes, beauty, DTC/Shopify,
+electronics, sporting goods, furniture, pet, pharmacy, grocery, big-box, department and home improvement (grocery,
+department and home improvement walled most). Each ran 3 interleaved rounds, seeded, OFF and ON at the same moment,
+with a 4 s pause between pages: 405 pairs, 373 comparable, 25 walled, 7 with protocol errors. The declared price was
+compared in 344 pairs, the rendered price in 286, the cart in 54 (same starting state only), add-to-cart was confirmed
+on both sides in 131 and search in 245. 20 personalization rules matched on 83 pages.
+
+**Verdicts: 65 PASS, 61 NOT-OURS, 5 BLOCKED, 1 ERROR (bestbuy, protocol errors both sides), 1 FAIL (walmart.com, the
+cookie-assigned offer above).** As recorded, six rows failed; three of those were the harness's and are fixed:
+- nativecos.com and summerfridays.com compared cart "unit prices" from carts filled at different rates (39.00, 15.60,
+  19.50 for one product). Carts are now compared only from the same starting state.
+- untuckit.com's generic selector read the ON side's cart drawer (199.00). Cart containers are now skipped.
+- dell.com walled ON in 2 of 3 pairs. In the re-run it walled OFF instead, as it had on 2026-10-15.
+
+The four re-ran three rounds on `edd749c`: all PASS. **Every price difference recorded:** walmart r1 (169.99 / 149.99,
+above); untuckit r3 rendered 99.50 / 199.00 (drawer); nativecos and its duplicate r2 cart 39.00 / 15.60 and r3
+15.60 / 19.50 (cart state); summerfridays r3 cart 163.00 against no OFF cart (cart state). None remains once
+measured correctly, except walmart's.
 
 **Which code the lab ran.** The lab ran on `f841733` and the controls on `f841733` / `96adfbe` — this branch's commits
 before it was rebased onto main `d729d7f` (their hashes in the report names no longer exist on the branch). The rebase
