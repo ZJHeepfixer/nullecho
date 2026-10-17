@@ -46,7 +46,9 @@ if (argv[0] === '--merge') {
   for (const f of files) { const d = JSON.parse(fs.readFileSync(f, 'utf8')); pages.push(...d.pages); walls.push(...d.walls); }
   pages.sort((a, b) => a.category.localeCompare(b.category) || a.key.localeCompare(b.key));
   let n = 64;
-  const sites = pages.filter((p) => p.price || p.visible).map((p) => ({
+  // A row needs a page that loaded (200) and a real price — declared, or rendered and not $0.00 (a 404 product page
+  // or an unpriced placeholder is a candidate that failed, not a control).
+  const sites = pages.filter((p) => p.status === 200 && (p.price || (p.visible && /\$\s?(\d*[1-9]\d*)/.test(p.visible)))).map((p) => ({
     n: n++, key: `shop-${p.key}`, label: `${p.host} product`, url: p.url, category: p.category,
     vendors: p.vendors.length ? p.vendors.join(', ') : '—', shopify: p.shopify || undefined,
     search: p.search || undefined, discovered: { date: p.date, declared: p.price, rendered: p.visible },
