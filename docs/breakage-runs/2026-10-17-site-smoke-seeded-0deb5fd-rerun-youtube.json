@@ -1,0 +1,1166 @@
+{
+  "meta": {
+    "date": "2026-10-17",
+    "code": {
+      "head": "0deb5fd",
+      "dirty": false,
+      "tag": "0deb5fd"
+    },
+    "package": {
+      "version": "0.9.3",
+      "zipName": "nullecho-0.9.3-chrome.zip",
+      "sha256": "33b0c8cc7e68f8a0f2c2106eff6fc4fc9cb55127d78db024496bed1865239807",
+      "size": 295932
+    },
+    "control": null,
+    "ruleControl": null,
+    "shoppingMode": false,
+    "rounds": 1,
+    "shoppingEnv": null,
+    "seeded": true,
+    "thirdParty": true,
+    "chromeVersion": "Chrome/149.0.7827.22",
+    "puppeteerVersion": "25.1.0",
+    "node": "v22.22.3",
+    "runtimeMs": 91895,
+    "metadataLeaked": false,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+    "offOnly": false,
+    "selfTest": {
+      "youtube": {
+        "expectedFail": true,
+        "actuallyFailed": true,
+        "detail": {
+          "from": 0,
+          "currentTime": 0,
+          "readyState": 0,
+          "buffered": 0,
+          "paused": false,
+          "skipPlay": false
+        },
+        "method": "invalid video id (watch?v=00000000000)",
+        "consoleSample": []
+      },
+      "maps": {
+        "expectedFail": true,
+        "actuallyFailed": true,
+        "detail": {
+          "ok": false,
+          "error": "timeout after 15000ms: maps self-test"
+        }
+      },
+      "thirdParty": {
+        "tp-recaptcha-patrickhlauke": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-recaptcha-ascendpartner": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-recaptcha-enterprise-reddit": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-turnstile-peet": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-hcaptcha-democaptcha": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-gsi-reddit": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-gsi-pinterest": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-youtube-embed": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-maps-embed": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-maps-embed-legacy": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-calendar-embed": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-facebook-sdk-plugin": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-x-embedded-post": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        },
+        "tp-msft-signin-handoff": {
+          "expectedFail": true,
+          "actuallyFailed": true
+        }
+      }
+    },
+    "passEnv": {
+      "off": {
+        "worker": null,
+        "extensionTargets": []
+      },
+      "on": {
+        "worker": "chrome-extension://eljfnneclhilbjikbohjioiefjdhbdhn/src/background.js",
+        "extensionTargets": [
+          "service_worker chrome-extension://eljfnneclhilbjikbohjioiefjdhbdhn/src/background.js"
+        ]
+      }
+    },
+    "fixtureOrigin": "http://127.0.0.1:65118",
+    "seed": {
+      "domains": [
+        "google.com",
+        "youtube.com",
+        "facebook.com",
+        "microsoft.com",
+        "live.com",
+        "microsoftonline.com",
+        "apple.com",
+        "cloudflare.com",
+        "amazon.com",
+        "twitter.com",
+        "x.com",
+        "linkedin.com"
+      ],
+      "storageKey": "nullecho:heuristics:v1",
+      "extensionId": "eljfnneclhilbjikbohjioiefjdhbdhn",
+      "rulesBeforeReload": [],
+      "rulesAfterReload": [
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "live.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "microsoftonline.com",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "requestDomains": [
+              "microsoft.com"
+            ]
+          },
+          "id": 1000003,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "microsoft.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "microsoftonline.com",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "excludedRequestDomains": [
+              "login.live.com"
+            ],
+            "requestDomains": [
+              "live.com"
+            ]
+          },
+          "id": 1000004,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "microsoft.com",
+              "live.com",
+              "msn.com",
+              "bing.com",
+              "office.com",
+              "sharepoint.com",
+              "windows.net",
+              "msauth.net",
+              "msftauth.net",
+              "office365.com",
+              "microsoft365.com",
+              "outlook.com",
+              "onedrive.com",
+              "azure.com"
+            ],
+            "excludedRequestDomains": [
+              "login.microsoftonline.com"
+            ],
+            "requestDomains": [
+              "microsoftonline.com"
+            ]
+          },
+          "id": 1000005,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "icloud.com",
+              "cdn-apple.com",
+              "mzstatic.com"
+            ],
+            "excludedRequestDomains": [
+              "appleid.apple.com"
+            ],
+            "requestDomains": [
+              "apple.com"
+            ]
+          },
+          "id": 1000006,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "cloudflareinsights.com"
+            ],
+            "excludedRequestDomains": [
+              "cdnjs.cloudflare.com",
+              "challenges.cloudflare.com"
+            ],
+            "requestDomains": [
+              "cloudflare.com"
+            ]
+          },
+          "id": 1000007,
+          "priority": 1
+        },
+        {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "amazonaws.com",
+              "media-amazon.com",
+              "ssl-images-amazon.com",
+              "amazon-adsystem.com"
+            ],
+            "requestDomains": [
+              "amazon.com"
+            ]
+          },
+          "id": 1000008,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "facebook.net",
+              "fbcdn.net",
+              "fbsbx.com",
+              "instagram.com",
+              "whatsapp.com",
+              "messenger.com"
+            ],
+            "excludedRequestDomains": [
+              "graph.facebook.com"
+            ],
+            "requestDomains": [
+              "facebook.com"
+            ]
+          },
+          "id": 1050000,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "googleapis.com",
+              "gstatic.com",
+              "googlevideo.com",
+              "youtube.com",
+              "ytimg.com",
+              "withgoogle.com",
+              "google-analytics.com",
+              "googletagmanager.com"
+            ],
+            "excludedRequestDomains": [
+              "accounts.google.com",
+              "apis.google.com",
+              "www.google.com"
+            ],
+            "requestDomains": [
+              "google.com"
+            ]
+          },
+          "id": 1050001,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "licdn.com"
+            ],
+            "requestDomains": [
+              "linkedin.com"
+            ]
+          },
+          "id": 1050002,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "x.com",
+              "twimg.com",
+              "t.co"
+            ],
+            "requestDomains": [
+              "twitter.com"
+            ]
+          },
+          "id": 1050003,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "twitter.com",
+              "twimg.com",
+              "t.co"
+            ],
+            "requestDomains": [
+              "x.com"
+            ]
+          },
+          "id": 1050004,
+          "priority": 1
+        },
+        {
+          "action": {
+            "requestHeaders": [
+              {
+                "header": "Cookie",
+                "operation": "remove"
+              }
+            ],
+            "responseHeaders": [
+              {
+                "header": "Set-Cookie",
+                "operation": "remove"
+              }
+            ],
+            "type": "modifyHeaders"
+          },
+          "condition": {
+            "domainType": "thirdParty",
+            "excludedInitiatorDomains": [
+              "google.com",
+              "googleapis.com",
+              "gstatic.com",
+              "googlevideo.com",
+              "ytimg.com",
+              "withgoogle.com",
+              "google-analytics.com",
+              "googletagmanager.com"
+            ],
+            "requestDomains": [
+              "youtube.com"
+            ]
+          },
+          "id": 1050005,
+          "priority": 1
+        }
+      ],
+      "stateAfterReload": {
+        "amazon.com": {
+          "status": "blocked",
+          "ruleId": 1000008,
+          "source": "learned"
+        },
+        "apple.com": {
+          "status": "blocked",
+          "ruleId": 1000006,
+          "source": "learned"
+        },
+        "cloudflare.com": {
+          "status": "blocked",
+          "ruleId": 1000007,
+          "source": "learned"
+        },
+        "facebook.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050000,
+          "source": "learned"
+        },
+        "google.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050001,
+          "source": "learned"
+        },
+        "linkedin.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050002,
+          "source": "learned"
+        },
+        "live.com": {
+          "status": "blocked",
+          "ruleId": 1000004,
+          "source": "learned"
+        },
+        "microsoft.com": {
+          "status": "blocked",
+          "ruleId": 1000003,
+          "source": "learned"
+        },
+        "microsoftonline.com": {
+          "status": "blocked",
+          "ruleId": 1000005,
+          "source": "learned"
+        },
+        "twitter.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050003,
+          "source": "learned"
+        },
+        "x.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050004,
+          "source": "learned"
+        },
+        "youtube.com": {
+          "status": "cookieblocked",
+          "ruleId": 1050005,
+          "source": "learned"
+        }
+      },
+      "reloadWorkerConsole": [],
+      "positiveControl": [
+        {
+          "ok": true,
+          "what": "no learned-range rule existed before the reload (found 0) — so every rule below was written by the extension's reconcile(), not left over"
+        },
+        {
+          "ok": true,
+          "what": "the reloaded extension still has its static blocking rulesets on ([\"gpc\",\"ads\",\"analytics\",\"social\",\"fingerprinting\",\"personalization\",\"ua-mac\"]) — the seeded ON pass is the whole extension plus the learned rules, not a lesser one"
+        },
+        {
+          "ok": true,
+          "what": "google.com: a live learned rule covers it (id 1050001, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "google.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050001)"
+        },
+        {
+          "ok": true,
+          "what": "youtube.com: a live learned rule covers it (id 1050005, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "youtube.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050005)"
+        },
+        {
+          "ok": true,
+          "what": "facebook.com: a live learned rule covers it (id 1050000, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "facebook.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050000)"
+        },
+        {
+          "ok": true,
+          "what": "microsoft.com: a live learned rule covers it (id 1000003, block)"
+        },
+        {
+          "ok": true,
+          "what": "microsoft.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000003)"
+        },
+        {
+          "ok": true,
+          "what": "live.com: a live learned rule covers it (id 1000004, block)"
+        },
+        {
+          "ok": true,
+          "what": "live.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000004)"
+        },
+        {
+          "ok": true,
+          "what": "microsoftonline.com: a live learned rule covers it (id 1000005, block)"
+        },
+        {
+          "ok": true,
+          "what": "microsoftonline.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000005)"
+        },
+        {
+          "ok": true,
+          "what": "apple.com: a live learned rule covers it (id 1000006, block)"
+        },
+        {
+          "ok": true,
+          "what": "apple.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000006)"
+        },
+        {
+          "ok": true,
+          "what": "cloudflare.com: a live learned rule covers it (id 1000007, block)"
+        },
+        {
+          "ok": true,
+          "what": "cloudflare.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000007)"
+        },
+        {
+          "ok": true,
+          "what": "amazon.com: a live learned rule covers it (id 1000008, block)"
+        },
+        {
+          "ok": true,
+          "what": "amazon.com: stored record is promoted and points at that live rule (status blocked, ruleId 1000008)"
+        },
+        {
+          "ok": true,
+          "what": "twitter.com: a live learned rule covers it (id 1050003, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "twitter.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050003)"
+        },
+        {
+          "ok": true,
+          "what": "x.com: a live learned rule covers it (id 1050004, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "x.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050004)"
+        },
+        {
+          "ok": true,
+          "what": "linkedin.com: a live learned rule covers it (id 1050002, modifyHeaders)"
+        },
+        {
+          "ok": true,
+          "what": "linkedin.com: stored record is promoted and points at that live rule (status cookieblocked, ruleId 1050002)"
+        },
+        {
+          "ok": true,
+          "what": "enforcement + recorder: a fetch from http://127.0.0.1:65118 to www.linkedin.com matched learned rule 1050002 and the recorder saw it (fetch loaded; 1 hit(s))"
+        }
+      ],
+      "ok": true,
+      "findings": [],
+      "enabledRulesetsAfterReload": [
+        "gpc",
+        "ads",
+        "analytics",
+        "social",
+        "fingerprinting",
+        "personalization",
+        "ua-mac"
+      ],
+      "recorder": "installed",
+      "enforcementProbe": {
+        "fetched": "loaded",
+        "hits": [
+          {
+            "t": 1792271229189,
+            "ruleId": 1050002,
+            "type": "xmlhttprequest",
+            "url": "https://www.linkedin.com/robots.txt",
+            "initiator": "http://127.0.0.1:65118"
+          }
+        ]
+      }
+    },
+    "retrySeeds": [],
+    "rulesAtEnd": [
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "live.com",
+            "msn.com",
+            "bing.com",
+            "office.com",
+            "sharepoint.com",
+            "windows.net",
+            "microsoftonline.com",
+            "msauth.net",
+            "msftauth.net",
+            "office365.com",
+            "microsoft365.com",
+            "outlook.com",
+            "onedrive.com",
+            "azure.com"
+          ],
+          "requestDomains": [
+            "microsoft.com"
+          ]
+        },
+        "id": 1000003,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "microsoft.com",
+            "msn.com",
+            "bing.com",
+            "office.com",
+            "sharepoint.com",
+            "windows.net",
+            "microsoftonline.com",
+            "msauth.net",
+            "msftauth.net",
+            "office365.com",
+            "microsoft365.com",
+            "outlook.com",
+            "onedrive.com",
+            "azure.com"
+          ],
+          "excludedRequestDomains": [
+            "login.live.com"
+          ],
+          "requestDomains": [
+            "live.com"
+          ]
+        },
+        "id": 1000004,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "microsoft.com",
+            "live.com",
+            "msn.com",
+            "bing.com",
+            "office.com",
+            "sharepoint.com",
+            "windows.net",
+            "msauth.net",
+            "msftauth.net",
+            "office365.com",
+            "microsoft365.com",
+            "outlook.com",
+            "onedrive.com",
+            "azure.com"
+          ],
+          "excludedRequestDomains": [
+            "login.microsoftonline.com"
+          ],
+          "requestDomains": [
+            "microsoftonline.com"
+          ]
+        },
+        "id": 1000005,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "icloud.com",
+            "cdn-apple.com",
+            "mzstatic.com"
+          ],
+          "excludedRequestDomains": [
+            "appleid.apple.com"
+          ],
+          "requestDomains": [
+            "apple.com"
+          ]
+        },
+        "id": 1000006,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "cloudflareinsights.com"
+          ],
+          "excludedRequestDomains": [
+            "cdnjs.cloudflare.com",
+            "challenges.cloudflare.com"
+          ],
+          "requestDomains": [
+            "cloudflare.com"
+          ]
+        },
+        "id": 1000007,
+        "priority": 1
+      },
+      {
+        "action": {
+          "type": "block"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "amazonaws.com",
+            "media-amazon.com",
+            "ssl-images-amazon.com",
+            "amazon-adsystem.com"
+          ],
+          "requestDomains": [
+            "amazon.com"
+          ]
+        },
+        "id": 1000008,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "facebook.net",
+            "fbcdn.net",
+            "fbsbx.com",
+            "instagram.com",
+            "whatsapp.com",
+            "messenger.com"
+          ],
+          "excludedRequestDomains": [
+            "graph.facebook.com"
+          ],
+          "requestDomains": [
+            "facebook.com"
+          ]
+        },
+        "id": 1050000,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "googleapis.com",
+            "gstatic.com",
+            "googlevideo.com",
+            "youtube.com",
+            "ytimg.com",
+            "withgoogle.com",
+            "google-analytics.com",
+            "googletagmanager.com"
+          ],
+          "excludedRequestDomains": [
+            "accounts.google.com",
+            "apis.google.com",
+            "www.google.com"
+          ],
+          "requestDomains": [
+            "google.com"
+          ]
+        },
+        "id": 1050001,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "licdn.com"
+          ],
+          "requestDomains": [
+            "linkedin.com"
+          ]
+        },
+        "id": 1050002,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "x.com",
+            "twimg.com",
+            "t.co"
+          ],
+          "requestDomains": [
+            "twitter.com"
+          ]
+        },
+        "id": 1050003,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "twitter.com",
+            "twimg.com",
+            "t.co"
+          ],
+          "requestDomains": [
+            "x.com"
+          ]
+        },
+        "id": 1050004,
+        "priority": 1
+      },
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Cookie",
+              "operation": "remove"
+            }
+          ],
+          "responseHeaders": [
+            {
+              "header": "Set-Cookie",
+              "operation": "remove"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "domainType": "thirdParty",
+          "excludedInitiatorDomains": [
+            "google.com",
+            "googleapis.com",
+            "gstatic.com",
+            "googlevideo.com",
+            "ytimg.com",
+            "withgoogle.com",
+            "google-analytics.com",
+            "googletagmanager.com"
+          ],
+          "requestDomains": [
+            "youtube.com"
+          ]
+        },
+        "id": 1050005,
+        "priority": 1
+      }
+    ],
+    "ruleDrift": {
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "seedFindings": []
+  },
+  "results": [
+    {
+      "site": {
+        "key": "youtube",
+        "n": 9,
+        "label": "youtube.com/watch?v=jNQXAC9IVRw",
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "settleMs": 0
+      },
+      "on": {
+        "site": "youtube",
+        "withExtension": true,
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "from": 1.593222,
+          "currentTime": 10.595931,
+          "readyState": 4,
+          "buffered": 19,
+          "paused": false,
+          "skipPlay": false
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 8,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script https://static.doubleclick.net/instream/ad_status.js",
+          "xhr https://googleads.g.doubleclick.net/pagead/id",
+          "xhr https://googleads.g.doubleclick.net/pagead/id",
+          "script https://static.doubleclick.net/instream/ad_status.js",
+          "fetch https://googleads.g.doubleclick.net/pagead/viewthroughconversion/962985656/?backend=innertube&cname=1&cver=2_20261016&data=backend%3Dinnertube%3Bcname%3D1%3Bcver%3D2_20261016%3Bptype%3Df_view%3Btype%3",
+          "xhr https://googleads.g.doubleclick.net/pagead/id"
+        ],
+        "learnedHits": {
+          "hits": [],
+          "recorderRestarted": false
+        },
+        "pageErrors": [
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Blocked script execution in 'about:blank' because the document's frame is sandboxed and the 'allow-scripts' permission is not set.",
+          "console: Blocked script execution in 'about:blank' because the document's frame is sandboxed and the 'allow-scripts' permission is not set.",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Blocked script execution in 'about:blank' because the document's frame is sandboxed and the 'allow-scripts' permission is not set.",
+          "console: Blocked script execution in 'about:blank' because the document's frame is sandboxed and the 'allow-scripts' permission is not set.",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT"
+        ],
+        "personalizationHits": {
+          "hits": []
+        }
+      },
+      "off": {
+        "site": "youtube",
+        "withExtension": false,
+        "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "from": 1.562355,
+          "currentTime": 10.564924,
+          "readyState": 4,
+          "buffered": 19,
+          "paused": false,
+          "skipPlay": false
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "pageErrors": [
+          "console: Access to fetch at 'https://googleads.g.doubleclick.net/pagead/viewthroughconversion/962985656/?backend=innertube&cname=1&cver=2_20261016&data=backend%3Dinnertube%3Bcname%3D1%3Bcver%3D2_20261016%3Bpty",
+          "console: Failed to load resource: net::ERR_FAILED"
+        ]
+      },
+      "verdict": "PASS",
+      "reason": "",
+      "protectedHostBlocks": []
+    }
+  ]
+}

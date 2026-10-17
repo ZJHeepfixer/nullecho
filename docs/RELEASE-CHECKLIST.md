@@ -389,4 +389,10 @@ options toggle in real Chrome and Firefox; uploading the updated store-listing t
   profile here anyway", THREAT-MODEL and README limit rows. Measured on the store zip: tesla.com 3/3 OK, a control
   site still gets its persona, the four attacks in D59. ⚠ **Director call before upload:** the stand-down also covers
   eight measured Akamai sites that worked with the profile (D59 "The cost"); `research/bot-manager-2026-10/`.
+  Seeded gate on `de50c2a` (`docs/breakage-runs/2026-10-17-site-smoke-seeded-de50c2a.md`): **exit 1** — PASS 38,
+  FAIL 3, BLOCKED 7, NOT-OURS 14, ERROR 1. The FAILs: walmart.com (the accepted per-visitor offer above); youtube.com
+  watch (the video did not advance under the extension in the full run — PASS on 3 of 3 re-runs of the row,
+  `…-0deb5fd-rerun-youtube.md` is the last); bathandbodyworks.com (PerimeterX "Press & Hold" on the ON side in r1, both
+  sides walled in r2 — PASS on re-run, `…-0deb5fd-rerun-bathandbodyworks.md`). Neither site carries an Akamai trigger
+  cookie, so D59 does not act on them (both ON records show the persona). The director decides whether this gate is green.
   Still owed for D59: a real Firefox and Edge run (Firefox: `web-ext lint` 0/0/0 only); the owner's own Chrome.
