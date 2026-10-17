@@ -1,0 +1,87 @@
+{
+  "label": "attack-no-detect",
+  "url": "https://www.tesla.com/",
+  "extensions": [
+    "no-detect"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "akamai-access-denied",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7474,
+      "documents": [
+        {
+          "url": "https://www.tesla.com/",
+          "status": 200,
+          "frameId": "E64503DCF70F0BDD346BB06C1C650F36",
+          "server": "",
+          "setCookieNames": [
+            "_abck",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.tesla.com/",
+          "status": 403,
+          "frameId": "E64503DCF70F0BDD346BB06C1C650F36",
+          "server": "AkamaiGHost",
+          "setCookieNames": [
+            "bm_s",
+            "bm_sc"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_lso",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sz"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "Access Denied",
+        "href": "https://www.tesla.com/",
+        "visibility": "visible",
+        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.6cf7d517.1792268378.575bcaa8 https://errors.edgesuite.net/18.6cf7d517.1792268378.575bcaa8",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792268378913,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:19:43.836Z"
+}

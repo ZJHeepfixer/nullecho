@@ -1,0 +1,68 @@
+{
+  "label": "shim-off",
+  "url": "https://www.zillow.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 12710,
+      "documents": [
+        {
+          "url": "https://www.zillow.com/",
+          "status": 200,
+          "frameId": "A9448188EB0C7701C3DACFB4D3C9EE00",
+          "server": "CloudFront",
+          "setCookieNames": [
+            "zguid",
+            "zgsession"
+          ]
+        }
+      ],
+      "blockedByClient": 5,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "JSESSIONID",
+        "_dd_s",
+        "_px3",
+        "_pxvid",
+        "datagrail_consent_id",
+        "datagrail_consent_id_s",
+        "g_state",
+        "pxcts",
+        "zg_anonymous_id",
+        "zgsession",
+        "zguid",
+        "zjs_anonymous_id",
+        "zjs_user_id",
+        "zjs_user_id_type"
+      ],
+      "page": {
+        "title": "Zillow: Real Estate, Apartments, Mortgages & Home Values",
+        "href": "https://www.zillow.com/",
+        "text": "Skip main navigation Sign in Rentals. Homes. Agents. Loans. Submit Search No options are currently available. Trending Homes in Ridgecrest, CA Viewed and saved the most in the area over the past 24 ho",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:55:16.312Z"
+}

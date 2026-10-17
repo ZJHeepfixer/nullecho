@@ -1,0 +1,67 @@
+{
+  "label": "top-test",
+  "url": "http://top.test:4959/",
+  "extensions": [
+    "zip-chrome"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7187,
+      "documents": [
+        {
+          "url": "http://top.test:4959/",
+          "status": 200,
+          "frameId": "0BCFB876D5DC3937B36BD38E49DE482E",
+          "server": "",
+          "setCookieNames": []
+        },
+        {
+          "url": "http://third.test:4959/frame",
+          "status": 200,
+          "frameId": "A2CAF7E1762EC03DDE79386FA72E379E",
+          "server": "",
+          "setCookieNames": [
+            "_abck",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [],
+      "abckStatus": null,
+      "page": {
+        "title": "top.test",
+        "href": "http://top.test:4959/",
+        "visibility": "visible",
+        "text": "top.test â€” no bot manager here",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": null,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792268325664,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:18:52.746Z"
+}

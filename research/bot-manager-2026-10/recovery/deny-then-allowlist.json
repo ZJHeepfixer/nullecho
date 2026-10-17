@@ -1,0 +1,137 @@
+{
+  "label": "deny-then-allowlist",
+  "url": "https://www.tesla.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "akamai-access-denied",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11757,
+      "documents": [
+        {
+          "url": "https://www.tesla.com/",
+          "status": 200,
+          "frameId": "BAC579EEC7BACFD0D43C6BEA094D052A",
+          "server": "",
+          "setCookieNames": [
+            "_abck",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.tesla.com/",
+          "status": 403,
+          "frameId": "BAC579EEC7BACFD0D43C6BEA094D052A",
+          "server": "AkamaiGHost",
+          "setCookieNames": [
+            "bm_s",
+            "bm_sc"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_lso",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sz"
+      ],
+      "page": {
+        "title": "Access Denied",
+        "href": "https://www.tesla.com/",
+        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.6cf7d517.1792266782.56e2219e https://errors.edgesuite.net/18.6cf7d517.1792266782.56e2219e",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266782361,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m2-air",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    },
+    {
+      "visit": 2,
+      "verdict": "WALL",
+      "wall": "akamai-access-denied",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 5878,
+      "documents": [
+        {
+          "url": "https://www.tesla.com/",
+          "status": 403,
+          "frameId": "BAC579EEC7BACFD0D43C6BEA094D052A",
+          "server": "AkamaiGHost",
+          "setCookieNames": [
+            "bm_s"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sz"
+      ],
+      "page": {
+        "title": "Access Denied",
+        "href": "https://www.tesla.com/",
+        "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.6cf7d517.1792266789.56e2aa61 https://errors.edgesuite.net/18.6cf7d517.1792266789.56e2aa61",
+        "webdriver": false,
+        "gpc": null,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266789649,
+            "lockedToFallback": false,
+            "reason": "allowlisted",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-m2-air",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:53:15.408Z"
+}

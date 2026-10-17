@@ -1,0 +1,82 @@
+{
+  "label": "shim-off",
+  "url": "https://www.glassdoor.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8961,
+      "documents": [
+        {
+          "url": "https://www.glassdoor.com/recruiter?redirected_from=index",
+          "status": 200,
+          "frameId": "D4C71E8DD25C8A117F0187174F98BE7E",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "indeedCtk",
+            "gdsid",
+            "gdId",
+            "asst"
+          ]
+        },
+        {
+          "url": "https://dntcl.qualaroo.com/frame.html",
+          "status": 200,
+          "frameId": "550C3FFAD43FA0A3AF6660C44852558F",
+          "server": "BunnyCDN-LA1-899",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "OptanonConsent",
+        "__cf_bm",
+        "_dd_s",
+        "asst",
+        "cf_clearance",
+        "g_state",
+        "gdId",
+        "gdsid",
+        "indeedCtk",
+        "ki_r",
+        "ki_s",
+        "ki_t",
+        "rl_anonymous_id",
+        "rl_page_init_referrer",
+        "rl_session",
+        "rsReferrerData",
+        "rsSessionId"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Glassdoor | Relevant Job Matches and Company Research",
+        "href": "https://www.glassdoor.com/recruiter",
+        "visibility": "visible",
+        "text": "Sign in Yes, the job search sucks. So we built a better way. Skip the junk. We only deliver jobs that fit. Get Started Get Started Sharper matches with trusted reviews. We know companies. You know wha",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:11:08.811Z"
+}

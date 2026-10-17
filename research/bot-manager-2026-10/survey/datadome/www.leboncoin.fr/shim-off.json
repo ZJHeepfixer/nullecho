@@ -1,0 +1,88 @@
+{
+  "label": "shim-off",
+  "url": "https://www.leboncoin.fr/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8761,
+      "documents": [
+        {
+          "url": "https://www.leboncoin.fr/",
+          "status": 200,
+          "frameId": "51F2DA39B4FC6B0C9ACCAC3D50E974FC",
+          "server": "",
+          "setCookieNames": [
+            "cnfdVisitorId",
+            "__Secure-Install",
+            "datadome"
+          ]
+        },
+        {
+          "url": "https://www.leboncoin.fr/oauth2callback?error=login_required&error_debug=session+token+is+not+found+or+expired&error_description=you+should+login+first%2C+the+__Secure-login+cookie+is+not+found.",
+          "status": 200,
+          "frameId": "9109DECF4E956FE6A4DDB55E57BB6E6D",
+          "server": "",
+          "setCookieNames": [
+            "datadome"
+          ]
+        },
+        {
+          "url": "https://www.leboncoin.fr/oauth2callback?error=login_required&error_debug=session+token+is+not+found+or+expired&error_description=you+should+login+first%2C+the+__Secure-login+cookie+is+not+found.",
+          "status": 200,
+          "frameId": "55201246C522CE02CC618B928D352CCB",
+          "server": "",
+          "setCookieNames": [
+            "datadome"
+          ]
+        }
+      ],
+      "blockedByClient": 4,
+      "otherFailures": [
+        {
+          "url": "https://www.leboncoin.fr/api/confidence/apply",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "__Secure-Install",
+        "_crcl3b62c763",
+        "_pcid",
+        "_pctx",
+        "cnfdVisitorId",
+        "datadome",
+        "didomi_token",
+        "pa_privacy"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "leboncoin, site de petites annonces gratuites",
+        "href": "https://www.leboncoin.fr/",
+        "text": "aller au contenu Ignorer la liste d'annonces sélectionnées Immobilier Véhicules Matériel pro Emploi Mode Maison & Jardin Famille Électronique Loisirs Autres Bons plans ! leboncoin, site de petites ann",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:00:06.144Z"
+}

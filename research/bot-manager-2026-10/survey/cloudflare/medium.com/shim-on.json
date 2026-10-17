@@ -1,0 +1,89 @@
+{
+  "label": "shim-on",
+  "url": "https://medium.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7888,
+      "documents": [
+        {
+          "url": "https://medium.com/",
+          "status": 200,
+          "frameId": "F64F1D492ABD99A155B2E160BA2ED0A2",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "uid",
+            "_cfuvid"
+          ]
+        },
+        {
+          "url": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6Le-uGgpAAAAAPprRaokM8AKthQ9KNGdoxaGUvVp&co=aHR0cHM6Ly9tZWRpdW0uY29tOjQ0Mw..&hl=en&v=4EDjxXf4knsx6UBM1L2V6cv8&size=invisible&anchor-ms=20000&execute-ms=30000&cb=j56g14oc16vl",
+          "status": 200,
+          "frameId": "76F8467A2A3B18F8061ABC37A6656944",
+          "server": "ESF",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [
+        {
+          "url": "https://medium.com/_/clientele/reports/performance/",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://medium.com/_/clientele/reports/performance/",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://medium.com/_/clientele/reports/performance/",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "_cfuvid",
+        "_dd_s",
+        "cf_clearance",
+        "g_state",
+        "sid",
+        "uid"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Medium: Read and write stories.",
+        "href": "https://medium.com/",
+        "text": "Our story Membership Write Sign in Get started Human stories & ideas A place to read, write, and deepen your understanding Start reading AboutHelpTermsPrivacy",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 10,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267724101,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1-pro",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:08:49.995Z"
+}

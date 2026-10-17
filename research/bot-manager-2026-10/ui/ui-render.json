@@ -1,0 +1,93 @@
+{
+  "popup-tesla-light": {
+    "alerts": [
+      "This site’s security checks reject disguised devices, so Nullecho leaves your device profile alone here. Tracker blocking stays on."
+    ],
+    "personaId": "your own device (not disguised here)",
+    "rows": [
+      "as your browser reports it — not changed",
+      "as your browser reports it — not changed",
+      "as your browser reports it — not changed"
+    ],
+    "personaNote": "This site sees your real device. All settings lists the sites where Nullecho does this, with a way to use your device profile anyway — the site may then block you.",
+    "findings": [
+      "Nothing third-party recorded on this site yetEither this site does not load trackers, or you have not browsed it enough for Nullecho to see any.Nothing to do. Browse this site normally and check again.",
+      "Global Privacy Control was sent to this siteIf you live in California, Colorado or one of the several other states that recognise it, this is a legally binding opt-out. Whether the site acted on it happens on their servers — Nullecho can sh"
+    ]
+  },
+  "popup-tesla-dark": {
+    "alerts": [
+      "This site’s security checks reject disguised devices, so Nullecho leaves your device profile alone here. Tracker blocking stays on."
+    ],
+    "personaId": "your own device (not disguised here)",
+    "rows": [
+      "as your browser reports it — not changed",
+      "as your browser reports it — not changed",
+      "as your browser reports it — not changed"
+    ],
+    "personaNote": "This site sees your real device. All settings lists the sites where Nullecho does this, with a way to use your device profile anyway — the site may then block you.",
+    "findings": [
+      "Nothing third-party recorded on this site yetEither this site does not load trackers, or you have not browsed it enough for Nullecho to see any.Nothing to do. Browse this site normally and check again.",
+      "Global Privacy Control was sent to this siteIf you live in California, Colorado or one of the several other states that recognise it, this is a legally binding opt-out. Whether the site acted on it happens on their servers — Nullecho can sh"
+    ]
+  },
+  "popup-wikipedia-light": {
+    "alerts": [],
+    "personaId": "macos-chrome-m2-air",
+    "rows": [
+      "macOS 14 · Chromium 149 (your real browser, not changed)",
+      "Apple M2",
+      "8 cores · 16 GB"
+    ],
+    "personaNote": "This profile stays the same for this site until you rotate it. Every other site gets a different one, which breaks the join most trackers use between them — a library that detects spoofed values can still re-join.",
+    "findings": [
+      "Nothing third-party recorded on this site yetEither this site does not load trackers, or you have not browsed it enough for Nullecho to see any.Nothing to do. Browse this site normally and check again.",
+      "Global Privacy Control was sent to this siteIf you live in California, Colorado or one of the several other states that recognise it, this is a legally binding opt-out. Whether the site acted on it happens on their servers — Nullecho can sh"
+    ]
+  },
+  "popup-wikipedia-dark": {
+    "alerts": [],
+    "personaId": "macos-chrome-m2-air",
+    "rows": [
+      "macOS 14 · Chromium 149 (your real browser, not changed)",
+      "Apple M2",
+      "8 cores · 16 GB"
+    ],
+    "personaNote": "This profile stays the same for this site until you rotate it. Every other site gets a different one, which breaks the join most trackers use between them — a library that detects spoofed values can still re-join.",
+    "findings": [
+      "Nothing third-party recorded on this site yetEither this site does not load trackers, or you have not browsed it enough for Nullecho to see any.Nothing to do. Browse this site normally and check again.",
+      "Global Privacy Control was sent to this siteIf you live in California, Colorado or one of the several other states that recognise it, this is a legally binding opt-out. Whether the site acted on it happens on their servers — Nullecho can sh"
+    ]
+  },
+  "options-light": {
+    "rows": [
+      "tesla.comAkamai Bot Manager10/17/2026Your real device — not disguisedUse my device profile here anyway"
+    ],
+    "empty": false,
+    "button": {
+      "text": "Use my device profile here anyway",
+      "color": "rgb(22, 28, 35)",
+      "background": "rgb(238, 241, 245)"
+    }
+  },
+  "options-dark": {
+    "rows": [
+      "tesla.comAkamai Bot Manager10/17/2026Your real device — not disguisedUse my device profile here anyway"
+    ],
+    "empty": false,
+    "button": {
+      "text": "Use my device profile here anyway",
+      "color": "rgb(228, 235, 242)",
+      "background": "rgb(26, 33, 42)"
+    }
+  },
+  "overrideButton": {
+    "dialogs": [
+      "Use your device profile on tesla.com anyway?\n\nThis site’s security checks reject disguised devices. With your device profile on, it may block you (“Access Denied”), on this visit or a later one — and once it has, it can keep refusing for a while, even after you switch back.",
+      "Use your device profile on tesla.com anyway?\n\nThis site’s security checks reject disguised devices. With your device profile on, it may block you (“Access Denied”), on this visit or a later one — and once it has, it can keep refusing for a while, even after you switch back."
+    ],
+    "afterDismiss": false,
+    "afterAccept": true,
+    "labelAfter": "Leave my device alone here again"
+  }
+}

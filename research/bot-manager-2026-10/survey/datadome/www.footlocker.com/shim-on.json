@@ -1,0 +1,90 @@
+{
+  "label": "shim-on",
+  "url": "https://www.footlocker.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "http-429",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11843,
+      "documents": [
+        {
+          "url": "https://www.footlocker.com/",
+          "status": 200,
+          "frameId": "5D19403A9B6BFDDEA47386BAF8CF2132",
+          "server": "nginx",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.footlocker.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "03D076BEA9C04967D4A3ECBB711CC60D",
+          "server": "",
+          "setCookieNames": [
+            "ak_bmsc_fl_com-ssn",
+            "ak_bmsc_fl_com"
+          ]
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "url": "https://www.footlocker.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.footlocker.com/zgw/search-core/products/v3/search/lite?query=%3A%3Acollection_id%3Asale&pageSize=20&sort=undefined",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.footlocker.com/zgw/search-core/products/v3/search/lite?query=%3A%3Acollection_id%3Aneutrals&pageSize=20&sort=undefined",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "BVBRANDID",
+        "BVBRANDSID",
+        "BVImplmain_site",
+        "affinity",
+        "ak_bmsc_fl_com",
+        "ak_bmsc_fl_com-ssn",
+        "flxCalloutShown"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Sneakers, Apparel & More | Foot Locker",
+        "href": "https://www.footlocker.com/",
+        "text": "This link will open in a new window SKIP TO MAIN 🔥Up to 40% Off Sale🔥 Shop the Sale ✨Your Fall Rotation Starts Here🍂 Shop the Trend🍁 👟Buy Online, Pick Up In Store📦 Find Your Store Sign In | Join",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267221448,
+            "lockedToFallback": true,
+            "reason": "api-read-before-handshake",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-m2-air",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:00:28.372Z"
+}

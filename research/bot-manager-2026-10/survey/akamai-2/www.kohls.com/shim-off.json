@@ -1,0 +1,132 @@
+{
+  "label": "shim-off",
+  "url": "https://www.kohls.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "akamai-access-denied",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7621,
+      "documents": [
+        {
+          "url": "https://www.kohls.com/",
+          "status": 403,
+          "frameId": "1F66754EF102E5D9872D84E552B26484",
+          "server": "AkamaiGHost",
+          "setCookieNames": [
+            "page-correlation-id",
+            "AKA_GEO",
+            "AKA_STP100",
+            "AKA_SNB_STP",
+            "store_location",
+            "AKA_RV2",
+            "AKA_RV",
+            "v2catalogPerc",
+            "AKA_RV3",
+            "AKA_RV5",
+            "AKA_RV4",
+            "AKA_RV8",
+            "AKA_RV6",
+            "AKA_CNC2",
+            "AKA_CBCC",
+            "AKA_CC",
+            "ABEmbeddedEnabled",
+            "AKA_HP2",
+            "v2catalog",
+            "AKA_PDP2",
+            "AKA_STP",
+            "AKA_CDP2",
+            "AKA_ACM",
+            "AKA_PIQ",
+            "AKA_PMP_YP100",
+            "AKA_EXP",
+            "ksa-app-measurement-beta",
+            "AKA_A2",
+            "shopnext-home",
+            "akaalb_www_shopnext_web_home_prod",
+            "akavpau_www",
+            "vpusq",
+            "_abck",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "ABEmbeddedEnabled",
+        "AKA_A2",
+        "AKA_ACM",
+        "AKA_CBCC",
+        "AKA_CC",
+        "AKA_CDP2",
+        "AKA_CNC2",
+        "AKA_EXP",
+        "AKA_GEO",
+        "AKA_HP2",
+        "AKA_PDP2",
+        "AKA_PIQ",
+        "AKA_PMP_YP100",
+        "AKA_RV",
+        "AKA_RV2",
+        "AKA_RV3",
+        "AKA_RV4",
+        "AKA_RV5",
+        "AKA_RV6",
+        "AKA_RV8",
+        "AKA_SNB_STP",
+        "AKA_STP",
+        "AKA_STP100",
+        "_abck",
+        "ak_bmsc",
+        "akaalb_www_shopnext_web_home_prod",
+        "akavpau_www",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sz",
+        "ksa-app-measurement-beta",
+        "page-correlation-id",
+        "shopnext-home",
+        "store_location",
+        "v2catalog",
+        "v2catalogPerc",
+        "vpusq"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "Access Denied",
+        "href": "https://www.kohls.com/",
+        "visibility": "visible",
+        "text": "Access Denied You don't have permission to access \"http://www.kohls.com/\" on this server. Reference #18.210ed217.1792268120.57ea6b9f https://errors.edgesuite.net/18.210ed217.1792268120.57ea6b9f",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:15:28.520Z"
+}

@@ -1,0 +1,89 @@
+{
+  "label": "shim-off",
+  "url": "https://www.tripadvisor.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7241,
+      "documents": [
+        {
+          "url": "https://www.tripadvisor.com/",
+          "status": 403,
+          "frameId": "77E72A1CAD1262D0AC101C37438F3D66",
+          "server": "DataDome",
+          "setCookieNames": [
+            "datadome",
+            "TAUnique"
+          ]
+        },
+        {
+          "url": "https://geo.captcha-delivery.com/interstitial/?initialCid=AHrlqAAAAAMArQyv-xAswtcAQto0sA%3D%3D&hash=2F05D671381DB06BEE4CC52C7A6FD3&cid=0duQ~sveBfznEKRy7uGY218PRmSYRgIxycHsXa~GULT~Uz7hg81xRs5W40IE2pnhW~m_MBrOw8PoQJ~bLndVSaYHe1tyvytbnRKRuKgksPiaJBcBwAZOshWynk_HlITG&referer=https%3A%2F%2Fwww.tripadvisor.com%2F&s=46694&e=33d1e6b1d990f363e41761fdc89d77cbb0f8066492cbadd52878563fab1c7173b12b7c8c5b3708e3a07ca40756f00faf&b=1738966&dm=cd",
+          "status": 200,
+          "frameId": "9F38C409BDD5CB881F54AACA7BFD5D61",
+          "server": "",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.tripadvisor.com/",
+          "status": 200,
+          "frameId": "77E72A1CAD1262D0AC101C37438F3D66",
+          "server": "",
+          "setCookieNames": [
+            "TASID",
+            "TAUnique",
+            "__vt",
+            "datadome"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "PAC",
+        "SRT",
+        "TADCID",
+        "TART",
+        "TASID",
+        "TASSK",
+        "TASession",
+        "TAUnique",
+        "TAUnique",
+        "__vt",
+        "datadome"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Tripadvisor: Over a billion reviews & contributions for Hotels, Attractions, Restaurants, and more",
+        "href": "https://www.tripadvisor.com/",
+        "text": "Skip to main content Plan with AI Sign in Where to? Search teapottwins John C Eddie J adriansj88 Find things to do for everything you’re into Browse 400,000+ experiences and book with us. Book now Fin",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:59:29.484Z"
+}

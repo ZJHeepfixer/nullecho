@@ -1,0 +1,102 @@
+{
+  "label": "shim-off",
+  "url": "https://www.united.com/en/us",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 12081,
+      "documents": [
+        {
+          "url": "https://www.united.com/en/us",
+          "status": 200,
+          "frameId": "DBE65B31A48EC1C25CACDEE14BF70F0D",
+          "server": "AkamaiNetStorage",
+          "setCookieNames": [
+            "newHP",
+            "akacd_NS_AB",
+            "PROrigin",
+            "_abck",
+            "bm_mi",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://lpcdn.lpsnmedia.net/le_secure_storage/3.36.1-release_2314911046/storage.secure.min.html?loc=https%3A%2F%2Fwww.united.com&site=84608747&ist=sessionStorage&env=prod&accdn=cdn.lpsnmedia.net&isFetchEnabled=true&fetchCacheMode=default",
+          "status": 200,
+          "frameId": "79B0AF2402261CB96206EB34298EF33E",
+          "server": "UploadServer",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 5,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "1pc_session",
+        "LPSID-84608747",
+        "LPVID",
+        "Locale",
+        "PIM-SESSION-ID",
+        "PROrigin",
+        "RT",
+        "Session",
+        "__privaci_cookie_consent_generated",
+        "__privaci_cookie_consent_uuid",
+        "__privaci_cookie_no_action",
+        "_abck",
+        "_ucid",
+        "ak_bmsc",
+        "akacd_ABdeployment",
+        "akacd_NS_AB",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sv",
+        "bm_sz",
+        "dtCookie",
+        "dtPC",
+        "dtSa",
+        "newHP",
+        "optimizely_id",
+        "rxVisitor",
+        "rxvt"
+      ],
+      "page": {
+        "title": "United Airlines - Airline Tickets, Travel Deals and Flights",
+        "href": "https://www.united.com/en/us",
+        "text": "By entering this site, closing this banner, or using our online services, you consent to our and our third-party partners’ use of cookies and similar technologies on your device, including to operate ",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:53:13.683Z"
+}

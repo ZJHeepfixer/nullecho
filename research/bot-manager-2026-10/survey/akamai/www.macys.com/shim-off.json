@@ -1,0 +1,114 @@
+{
+  "label": "shim-off",
+  "url": "https://www.macys.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11772,
+      "documents": [
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "C4E77888400B18DE22A032F408D08006",
+          "server": "",
+          "setCookieNames": [
+            "shippingCountry",
+            "currency",
+            "_abck",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "C4E77888400B18DE22A032F408D08006",
+          "server": "",
+          "setCookieNames": [
+            "SEED",
+            "MISCGCs",
+            "SignedIn",
+            "GCs",
+            "akavpau_www_www1_macys",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_sv",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 3,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "CSL",
+        "GCLB",
+        "GCs",
+        "MISCGCs",
+        "PIM-SESSION-ID",
+        "RT",
+        "RTD",
+        "SEED",
+        "SignedIn",
+        "_abck",
+        "ak_bmsc",
+        "akavpau_www_www1_macys",
+        "bm_lso",
+        "bm_mi",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sv",
+        "bm_sz",
+        "crl8.fpcuid",
+        "currency",
+        "shippingCountry"
+      ],
+      "page": {
+        "title": "Macy's - Shop Fashion Clothing & Accessories - Official Site - Macys.com",
+        "href": "https://www.macys.com/",
+        "text": "Skip to main content TODAY'S DEALS 40-60% off our biggest deals Up to 50% off Great Shoe Sale Up to 75% off Diamond Sale Up to 70% off clearance See All Sign In I’m an AI-powered assistant. You can as",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:54:31.846Z"
+}

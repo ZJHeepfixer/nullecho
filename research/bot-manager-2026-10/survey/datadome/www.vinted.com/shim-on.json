@@ -1,0 +1,121 @@
+{
+  "label": "shim-on",
+  "url": "https://www.vinted.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 15572,
+      "documents": [
+        {
+          "url": "https://www.vinted.com/",
+          "status": 200,
+          "frameId": "F6C34C0B63D205E0BA210107420BD679",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "anon_id",
+            "v_udt",
+            "anonymous-iso-locale",
+            "non_dot_com_www_domain_cookie_buster",
+            "refresh_token_web",
+            "access_token_web",
+            "v_udt",
+            "datadome",
+            "__cf_bm"
+          ]
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "url": "chrome-extension://invalid/",
+          "type": "Fetch",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "OptanonConsent",
+        "__cf_bm",
+        "_vinted_fr_session",
+        "access_token_web",
+        "anon_id",
+        "anonymous-iso-locale",
+        "banners_ui_state",
+        "cf_clearance",
+        "consent_version",
+        "datadome",
+        "non_dot_com_www_domain_cookie_buster",
+        "refresh_token_web",
+        "v_sid",
+        "v_udt",
+        "viewport_size"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Vinted | Sell and buy clothes, shoes and accessories",
+        "href": "https://www.vinted.com/",
+        "text": "Skip to content Catalog All Women Men Designer Kids Home Electronics Books & Media Hobbies & collectibles Sports Ready to declutter your closet? Sell now Learn how it works 27 Aéropostale M / US 8-10 ",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267346015,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-mini-m2",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:02:33.468Z"
+}
