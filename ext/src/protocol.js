@@ -261,6 +261,7 @@ export const RULESETS = {
   analytics: 'analytics',
   social: 'social',
   fingerprinting: 'fingerprinting',
+  personalization: 'personalization',
   gpc: 'gpc',
 };
 
@@ -273,7 +274,7 @@ export const RULESETS = {
  * as blocked. This list decides only what the counter believes; ownership of
  * the `gpc` ruleset stays with `gpc.js` (see the header of `background.js`).
  */
-export const BLOCKING_RULESET_IDS = ['ads', 'analytics', 'social', 'fingerprinting'];
+export const BLOCKING_RULESET_IDS = ['ads', 'analytics', 'social', 'fingerprinting', 'personalization'];
 
 /** Human-facing category labels, used by popup + options. */
 export const CATEGORY_LABELS = {
@@ -281,6 +282,14 @@ export const CATEGORY_LABELS = {
   analytics: 'Analytics & telemetry',
   social: 'Social widgets & pixels',
   fingerprinting: 'Fingerprinting scripts',
+  /**
+   * `rules/personalization.json` (0.9.3): the collection endpoints of shopper-profiling,
+   * offer-targeting and price-testing vendors — Dynamic Yield, Bloomreach, Rokt,
+   * Attentive, Granify, Klaviyo's tracking hosts and friends. It blocks what they
+   * COLLECT; it never touches what renders a price, a cart, search results or a
+   * product grid (rules/README.md). Nothing here claims a lower price.
+   */
+  personalization: 'Pricing & personalization',
   /** Dynamic rules written by the three-strike observer in `heuristics.js`. */
   heuristic: 'Learned trackers',
   'heuristic-cookie': 'Cookies stripped',
@@ -292,6 +301,7 @@ export const DEFAULT_SETTINGS = {
     analytics: true,
     social: true,
     fingerprinting: true,
+    personalization: true,
   },
   /** Sec-GPC header (DNR) + navigator.globalPrivacyControl (shim). */
   gpc: true,
@@ -348,6 +358,11 @@ export const ALLOW_RULE_ID_BASE = 900000;
 export const NON_BLOCKING_STATIC_RULE_IDS = new Set([
   4700, // fingerprinting.json — anti-fraud vendors allowed on bank / checkout origins
   5000, // gpc.json — sets Sec-GPC; matches nearly every request
+  // personalization.json — strips Cookie / Set-Cookie on Dynamic Yield's hosts (the ones
+  // that render page content are cookie-strip only). Not counted as a strip
+  // either: DNR reports the match whether or not the request carried a cookie,
+  // so "cookies stripped" would over-claim. An under-count is the safe error.
+  6090,
 ]);
 
 /**

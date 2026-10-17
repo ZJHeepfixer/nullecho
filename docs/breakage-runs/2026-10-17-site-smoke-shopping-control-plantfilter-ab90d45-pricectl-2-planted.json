@@ -1,0 +1,1113 @@
+{
+  "meta": {
+    "date": "2026-10-17",
+    "code": {
+      "head": "ab90d45",
+      "dirty": false,
+      "tag": "ab90d45"
+    },
+    "package": {
+      "version": "0.9.3",
+      "zipName": "nullecho-0.9.3-chrome.zip",
+      "sha256": "b8ff1ae33cb938fdb79c758faf7f926ca99a78de77037c2b2231650ed5c9a39e",
+      "size": 270905
+    },
+    "control": null,
+    "ruleControl": {
+      "plantBlock": [],
+      "plantFilter": "/vendor/price-test.js",
+      "dropRules": [],
+      "dropAll": false,
+      "packagedSha256": "5b145e54e1b30724f7ae2f74d0302bae3394717d29d608a89cca1f4ae368dc63",
+      "controlSha256": "beba63f0a1fc72c456f82bf5738448a4b131bf129d51fbe9e10b448371ba5fa4"
+    },
+    "shoppingMode": true,
+    "rounds": 3,
+    "shoppingEnv": {
+      "presence": {
+        "off": {
+          "worker": null,
+          "extensionTargets": []
+        },
+        "on": {
+          "worker": "chrome-extension://ecdmkjpbhpapopginileabhilopdlpih/src/background.js",
+          "extensionTargets": [
+            "service_worker chrome-extension://ecdmkjpbhpapopginileabhilopdlpih/src/background.js"
+          ]
+        }
+      },
+      "extStatus": "installed",
+      "seed": null,
+      "rulesAtEnd": null
+    },
+    "seeded": false,
+    "thirdParty": false,
+    "chromeVersion": "Chrome/149.0.7827.22",
+    "puppeteerVersion": "25.1.0",
+    "node": "v22.22.3",
+    "runtimeMs": 22726,
+    "metadataLeaked": false,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+    "offOnly": false,
+    "selfTest": null,
+    "passEnv": {
+      "off": null,
+      "on": null
+    },
+    "fixtureOrigin": "http://127.0.0.1:52266",
+    "seed": null,
+    "retrySeeds": [],
+    "rulesAtEnd": null,
+    "ruleDrift": null,
+    "seedFindings": []
+  },
+  "results": [
+    {
+      "site": {
+        "n": 63,
+        "key": "shop-fixture-price",
+        "label": "price positive control (fixture, client-side price test)",
+        "url": null,
+        "settleMs": 1000,
+        "shopping": true,
+        "checkTimeoutMs": 150000,
+        "fixture": "price-control.html",
+        "priceSelector": "#price",
+        "atc": {
+          "button": "#atc"
+        },
+        "vendors": "fixture price-test script",
+        "gate": true
+      },
+      "on": {
+        "site": "shop-fixture-price",
+        "withExtension": true,
+        "url": "http://127.0.0.1:52266/price-control.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "vendors": "fixture price-test script",
+          "trace": [
+            "start@0s",
+            "prices@0s",
+            "klaviyo@1.5s",
+            "atc@2.5s",
+            "search@3.5s",
+            "done@3.5s"
+          ],
+          "title": "Price positive control — Nullecho shopping lab",
+          "bodyLen": 37,
+          "declared": {
+            "price": "20.00",
+            "currency": "USD",
+            "source": "json-ld"
+          },
+          "visible": {
+            "price": "20.00",
+            "text": "$20.00"
+          },
+          "productTally": {
+            "tabId": 720880319,
+            "matchedBy": "url",
+            "total": 1,
+            "byCategory": {
+              "personalization": 1
+            }
+          },
+          "atc": {
+            "attempted": true,
+            "ok": true,
+            "picked": null,
+            "clicked": "Add to cart",
+            "evidence": [
+              "cart badge 0→1"
+            ],
+            "cartRequests": [],
+            "before": {
+              "added": false,
+              "badge": 0,
+              "shopify": null
+            },
+            "after": {
+              "added": false,
+              "badge": 1,
+              "shopify": null
+            },
+            "cartTotal": null
+          },
+          "search": null
+        },
+        "probes": {
+          "gpc": true,
+          "cores": 8,
+          "mem": 16,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [
+          "script http://127.0.0.1:52266/vendor/price-test.js"
+        ],
+        "learnedHits": null,
+        "pageErrors": [
+          "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+          "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "personalizationHits": {
+          "hits": [
+            {
+              "ruleId": 6998,
+              "type": "script",
+              "url": "http://127.0.0.1:52266/vendor/price-test.js",
+              "tabId": 720880319
+            }
+          ]
+        }
+      },
+      "off": {
+        "site": "shop-fixture-price",
+        "withExtension": false,
+        "url": "http://127.0.0.1:52266/price-control.html",
+        "ok": true,
+        "blocked": false,
+        "blockedEvidence": null,
+        "skipped": false,
+        "skipReason": null,
+        "void": false,
+        "reasons": [],
+        "detail": {
+          "vendors": "fixture price-test script",
+          "trace": [
+            "start@0s",
+            "prices@0s",
+            "klaviyo@1.5s",
+            "atc@1.5s",
+            "search@2.5s",
+            "done@2.5s"
+          ],
+          "title": "Price positive control — Nullecho shopping lab",
+          "bodyLen": 37,
+          "declared": {
+            "price": "15.00",
+            "currency": "USD",
+            "source": "json-ld"
+          },
+          "visible": {
+            "price": "15.00",
+            "text": "$15.00"
+          },
+          "atc": {
+            "attempted": true,
+            "ok": true,
+            "picked": null,
+            "clicked": "Add to cart",
+            "evidence": [
+              "cart badge 0→1"
+            ],
+            "cartRequests": [],
+            "before": {
+              "added": false,
+              "badge": 0,
+              "shopify": null
+            },
+            "after": {
+              "added": false,
+              "badge": 1,
+              "shopify": null
+            },
+            "cartTotal": null
+          },
+          "search": null
+        },
+        "probes": {
+          "cores": 12,
+          "mem": 32,
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+          "brands": "[]",
+          "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+        },
+        "visibility": "visible",
+        "consoleLines": [],
+        "httpStatus": 200,
+        "error": null,
+        "blockedByClient": [],
+        "learnedHits": null,
+        "pageErrors": [
+          "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ]
+      },
+      "verdict": "FAIL",
+      "reason": "ON read a price OFF never read: 20.00, 20.00 — r1: DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00 | r1: RENDERED PRICE DIFFERS: OFF 15.00 vs ON 20.00",
+      "shop": {
+        "site": {
+          "n": 63,
+          "key": "shop-fixture-price",
+          "label": "price positive control (fixture, client-side price test)",
+          "url": null,
+          "settleMs": 1000,
+          "shopping": true,
+          "checkTimeoutMs": 150000,
+          "fixture": "price-control.html",
+          "priceSelector": "#price",
+          "atc": {
+            "button": "#atc"
+          },
+          "vendors": "fixture price-test script",
+          "gate": true
+        },
+        "loads": [
+          {
+            "round": 1,
+            "off": {
+              "site": "shop-fixture-price",
+              "withExtension": false,
+              "url": "http://127.0.0.1:52266/price-control.html",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "fixture price-test script",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@1.5s",
+                  "search@2.5s",
+                  "done@2.5s"
+                ],
+                "title": "Price positive control — Nullecho shopping lab",
+                "bodyLen": 37,
+                "declared": {
+                  "price": "15.00",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": {
+                  "price": "15.00",
+                  "text": "$15.00"
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to cart",
+                  "evidence": [
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [],
+                  "before": {
+                    "added": false,
+                    "badge": 0,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": false,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null
+                },
+                "search": null
+              },
+              "probes": {
+                "cores": 12,
+                "mem": 32,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [],
+              "learnedHits": null,
+              "pageErrors": [
+                "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+              ]
+            },
+            "on": {
+              "site": "shop-fixture-price",
+              "withExtension": true,
+              "url": "http://127.0.0.1:52266/price-control.html",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "fixture price-test script",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@2.5s",
+                  "search@3.5s",
+                  "done@3.5s"
+                ],
+                "title": "Price positive control — Nullecho shopping lab",
+                "bodyLen": 37,
+                "declared": {
+                  "price": "20.00",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": {
+                  "price": "20.00",
+                  "text": "$20.00"
+                },
+                "productTally": {
+                  "tabId": 720880319,
+                  "matchedBy": "url",
+                  "total": 1,
+                  "byCategory": {
+                    "personalization": 1
+                  }
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to cart",
+                  "evidence": [
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [],
+                  "before": {
+                    "added": false,
+                    "badge": 0,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": false,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null
+                },
+                "search": null
+              },
+              "probes": {
+                "gpc": true,
+                "cores": 8,
+                "mem": 16,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [
+                "script http://127.0.0.1:52266/vendor/price-test.js"
+              ],
+              "learnedHits": null,
+              "pageErrors": [
+                "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+                "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+              ],
+              "personalizationHits": {
+                "hits": [
+                  {
+                    "ruleId": 6998,
+                    "type": "script",
+                    "url": "http://127.0.0.1:52266/vendor/price-test.js",
+                    "tabId": 720880319
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "round": 2,
+            "off": {
+              "site": "shop-fixture-price",
+              "withExtension": false,
+              "url": "http://127.0.0.1:52266/price-control.html",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "fixture price-test script",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@1.5s",
+                  "search@2.5s",
+                  "done@2.5s"
+                ],
+                "title": "Price positive control — Nullecho shopping lab",
+                "bodyLen": 37,
+                "declared": {
+                  "price": "15.00",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": {
+                  "price": "15.00",
+                  "text": "$15.00"
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to cart",
+                  "evidence": [
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [],
+                  "before": {
+                    "added": false,
+                    "badge": 0,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": false,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null
+                },
+                "search": null
+              },
+              "probes": {
+                "cores": 12,
+                "mem": 32,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [],
+              "learnedHits": null,
+              "pageErrors": []
+            },
+            "on": {
+              "site": "shop-fixture-price",
+              "withExtension": true,
+              "url": "http://127.0.0.1:52266/price-control.html",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "fixture price-test script",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@2.5s",
+                  "search@3.5s",
+                  "done@3.5s"
+                ],
+                "title": "Price positive control — Nullecho shopping lab",
+                "bodyLen": 37,
+                "declared": {
+                  "price": "20.00",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": {
+                  "price": "20.00",
+                  "text": "$20.00"
+                },
+                "productTally": {
+                  "tabId": 720880323,
+                  "matchedBy": "url",
+                  "total": 1,
+                  "byCategory": {
+                    "personalization": 1
+                  }
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to cart",
+                  "evidence": [
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [],
+                  "before": {
+                    "added": false,
+                    "badge": 0,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": false,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null
+                },
+                "search": null
+              },
+              "probes": {
+                "gpc": true,
+                "cores": 8,
+                "mem": 16,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [
+                "script http://127.0.0.1:52266/vendor/price-test.js"
+              ],
+              "learnedHits": null,
+              "pageErrors": [
+                "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT"
+              ],
+              "personalizationHits": {
+                "hits": [
+                  {
+                    "ruleId": 6998,
+                    "type": "script",
+                    "url": "http://127.0.0.1:52266/vendor/price-test.js",
+                    "tabId": 720880323
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "round": 3,
+            "off": {
+              "site": "shop-fixture-price",
+              "withExtension": false,
+              "url": "http://127.0.0.1:52266/price-control.html",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "fixture price-test script",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@1.5s",
+                  "search@2.5s",
+                  "done@2.5s"
+                ],
+                "title": "Price positive control — Nullecho shopping lab",
+                "bodyLen": 37,
+                "declared": {
+                  "price": "15.00",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": {
+                  "price": "15.00",
+                  "text": "$15.00"
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to cart",
+                  "evidence": [
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [],
+                  "before": {
+                    "added": false,
+                    "badge": 0,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": false,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null
+                },
+                "search": null
+              },
+              "probes": {
+                "cores": 12,
+                "mem": 32,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [],
+              "learnedHits": null,
+              "pageErrors": []
+            },
+            "on": {
+              "site": "shop-fixture-price",
+              "withExtension": true,
+              "url": "http://127.0.0.1:52266/price-control.html",
+              "ok": true,
+              "blocked": false,
+              "blockedEvidence": null,
+              "skipped": false,
+              "skipReason": null,
+              "void": false,
+              "reasons": [],
+              "detail": {
+                "vendors": "fixture price-test script",
+                "trace": [
+                  "start@0s",
+                  "prices@0s",
+                  "klaviyo@1.5s",
+                  "atc@2.5s",
+                  "search@3.5s",
+                  "done@3.5s"
+                ],
+                "title": "Price positive control — Nullecho shopping lab",
+                "bodyLen": 37,
+                "declared": {
+                  "price": "20.00",
+                  "currency": "USD",
+                  "source": "json-ld"
+                },
+                "visible": {
+                  "price": "20.00",
+                  "text": "$20.00"
+                },
+                "productTally": {
+                  "tabId": 720880331,
+                  "matchedBy": "url",
+                  "total": 1,
+                  "byCategory": {
+                    "personalization": 1
+                  }
+                },
+                "atc": {
+                  "attempted": true,
+                  "ok": true,
+                  "picked": null,
+                  "clicked": "Add to cart",
+                  "evidence": [
+                    "cart badge 0→1"
+                  ],
+                  "cartRequests": [],
+                  "before": {
+                    "added": false,
+                    "badge": 0,
+                    "shopify": null
+                  },
+                  "after": {
+                    "added": false,
+                    "badge": 1,
+                    "shopify": null
+                  },
+                  "cartTotal": null
+                },
+                "search": null
+              },
+              "probes": {
+                "gpc": true,
+                "cores": 8,
+                "mem": 16,
+                "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+                "brands": "[]",
+                "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+              },
+              "visibility": "visible",
+              "consoleLines": [],
+              "httpStatus": 200,
+              "error": null,
+              "blockedByClient": [
+                "script http://127.0.0.1:52266/vendor/price-test.js"
+              ],
+              "learnedHits": null,
+              "pageErrors": [
+                "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT"
+              ],
+              "personalizationHits": {
+                "hits": [
+                  {
+                    "ruleId": 6998,
+                    "type": "script",
+                    "url": "http://127.0.0.1:52266/vendor/price-test.js",
+                    "tabId": 720880331
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "pairs": 3,
+        "summary": {
+          "declaredOff": [
+            "15.00"
+          ],
+          "declaredOn": [
+            "20.00"
+          ],
+          "visibleOff": [
+            "15.00"
+          ],
+          "visibleOn": [
+            "20.00"
+          ],
+          "cartOff": [
+            "—"
+          ],
+          "cartOn": [
+            "—"
+          ],
+          "atcOff": "✓✓✓",
+          "atcOn": "✓✓✓",
+          "searchOff": "·/·/·",
+          "searchOn": "·/·/·",
+          "rulesFired": {
+            "6998": 3
+          },
+          "tallyPersonalization": [
+            1,
+            1,
+            1
+          ],
+          "tallyTotal": [
+            1,
+            1,
+            1
+          ],
+          "newOnErrors": [
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT"
+          ],
+          "walls": {
+            "off": 0,
+            "on": 0
+          },
+          "newOnPageErrors": []
+        },
+        "priceNotes": [
+          "r1: DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00",
+          "r1: RENDERED PRICE DIFFERS: OFF 15.00 vs ON 20.00",
+          "r2: DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00",
+          "r2: RENDERED PRICE DIFFERS: OFF 15.00 vs ON 20.00",
+          "r3: DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00",
+          "r3: RENDERED PRICE DIFFERS: OFF 15.00 vs ON 20.00"
+        ],
+        "functionalNotes": [],
+        "verdict": "FAIL",
+        "reason": "ON read a price OFF never read: 20.00, 20.00 — r1: DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00 | r1: RENDERED PRICE DIFFERS: OFF 15.00 vs ON 20.00"
+      },
+      "onLoads": [
+        {
+          "site": "shop-fixture-price",
+          "withExtension": true,
+          "url": "http://127.0.0.1:52266/price-control.html",
+          "ok": true,
+          "blocked": false,
+          "blockedEvidence": null,
+          "skipped": false,
+          "skipReason": null,
+          "void": false,
+          "reasons": [],
+          "detail": {
+            "vendors": "fixture price-test script",
+            "trace": [
+              "start@0s",
+              "prices@0s",
+              "klaviyo@1.5s",
+              "atc@2.5s",
+              "search@3.5s",
+              "done@3.5s"
+            ],
+            "title": "Price positive control — Nullecho shopping lab",
+            "bodyLen": 37,
+            "declared": {
+              "price": "20.00",
+              "currency": "USD",
+              "source": "json-ld"
+            },
+            "visible": {
+              "price": "20.00",
+              "text": "$20.00"
+            },
+            "productTally": {
+              "tabId": 720880319,
+              "matchedBy": "url",
+              "total": 1,
+              "byCategory": {
+                "personalization": 1
+              }
+            },
+            "atc": {
+              "attempted": true,
+              "ok": true,
+              "picked": null,
+              "clicked": "Add to cart",
+              "evidence": [
+                "cart badge 0→1"
+              ],
+              "cartRequests": [],
+              "before": {
+                "added": false,
+                "badge": 0,
+                "shopify": null
+              },
+              "after": {
+                "added": false,
+                "badge": 1,
+                "shopify": null
+              },
+              "cartTotal": null
+            },
+            "search": null
+          },
+          "probes": {
+            "gpc": true,
+            "cores": 8,
+            "mem": 16,
+            "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+            "brands": "[]",
+            "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+          },
+          "visibility": "visible",
+          "consoleLines": [],
+          "httpStatus": 200,
+          "error": null,
+          "blockedByClient": [
+            "script http://127.0.0.1:52266/vendor/price-test.js"
+          ],
+          "learnedHits": null,
+          "pageErrors": [
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT",
+            "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+          ],
+          "personalizationHits": {
+            "hits": [
+              {
+                "ruleId": 6998,
+                "type": "script",
+                "url": "http://127.0.0.1:52266/vendor/price-test.js",
+                "tabId": 720880319
+              }
+            ]
+          }
+        },
+        {
+          "site": "shop-fixture-price",
+          "withExtension": true,
+          "url": "http://127.0.0.1:52266/price-control.html",
+          "ok": true,
+          "blocked": false,
+          "blockedEvidence": null,
+          "skipped": false,
+          "skipReason": null,
+          "void": false,
+          "reasons": [],
+          "detail": {
+            "vendors": "fixture price-test script",
+            "trace": [
+              "start@0s",
+              "prices@0s",
+              "klaviyo@1.5s",
+              "atc@2.5s",
+              "search@3.5s",
+              "done@3.5s"
+            ],
+            "title": "Price positive control — Nullecho shopping lab",
+            "bodyLen": 37,
+            "declared": {
+              "price": "20.00",
+              "currency": "USD",
+              "source": "json-ld"
+            },
+            "visible": {
+              "price": "20.00",
+              "text": "$20.00"
+            },
+            "productTally": {
+              "tabId": 720880323,
+              "matchedBy": "url",
+              "total": 1,
+              "byCategory": {
+                "personalization": 1
+              }
+            },
+            "atc": {
+              "attempted": true,
+              "ok": true,
+              "picked": null,
+              "clicked": "Add to cart",
+              "evidence": [
+                "cart badge 0→1"
+              ],
+              "cartRequests": [],
+              "before": {
+                "added": false,
+                "badge": 0,
+                "shopify": null
+              },
+              "after": {
+                "added": false,
+                "badge": 1,
+                "shopify": null
+              },
+              "cartTotal": null
+            },
+            "search": null
+          },
+          "probes": {
+            "gpc": true,
+            "cores": 8,
+            "mem": 16,
+            "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+            "brands": "[]",
+            "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+          },
+          "visibility": "visible",
+          "consoleLines": [],
+          "httpStatus": 200,
+          "error": null,
+          "blockedByClient": [
+            "script http://127.0.0.1:52266/vendor/price-test.js"
+          ],
+          "learnedHits": null,
+          "pageErrors": [
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT"
+          ],
+          "personalizationHits": {
+            "hits": [
+              {
+                "ruleId": 6998,
+                "type": "script",
+                "url": "http://127.0.0.1:52266/vendor/price-test.js",
+                "tabId": 720880323
+              }
+            ]
+          }
+        },
+        {
+          "site": "shop-fixture-price",
+          "withExtension": true,
+          "url": "http://127.0.0.1:52266/price-control.html",
+          "ok": true,
+          "blocked": false,
+          "blockedEvidence": null,
+          "skipped": false,
+          "skipReason": null,
+          "void": false,
+          "reasons": [],
+          "detail": {
+            "vendors": "fixture price-test script",
+            "trace": [
+              "start@0s",
+              "prices@0s",
+              "klaviyo@1.5s",
+              "atc@2.5s",
+              "search@3.5s",
+              "done@3.5s"
+            ],
+            "title": "Price positive control — Nullecho shopping lab",
+            "bodyLen": 37,
+            "declared": {
+              "price": "20.00",
+              "currency": "USD",
+              "source": "json-ld"
+            },
+            "visible": {
+              "price": "20.00",
+              "text": "$20.00"
+            },
+            "productTally": {
+              "tabId": 720880331,
+              "matchedBy": "url",
+              "total": 1,
+              "byCategory": {
+                "personalization": 1
+              }
+            },
+            "atc": {
+              "attempted": true,
+              "ok": true,
+              "picked": null,
+              "clicked": "Add to cart",
+              "evidence": [
+                "cart badge 0→1"
+              ],
+              "cartRequests": [],
+              "before": {
+                "added": false,
+                "badge": 0,
+                "shopify": null
+              },
+              "after": {
+                "added": false,
+                "badge": 1,
+                "shopify": null
+              },
+              "cartTotal": null
+            },
+            "search": null
+          },
+          "probes": {
+            "gpc": true,
+            "cores": 8,
+            "mem": 16,
+            "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.7827.22 Safari/537.36",
+            "brands": "[]",
+            "full": "{\"brands\":[],\"fullVersionList\":[],\"mobile\":false,\"platform\":\"\",\"uaFullVersion\":\"\"}"
+          },
+          "visibility": "visible",
+          "consoleLines": [],
+          "httpStatus": 200,
+          "error": null,
+          "blockedByClient": [
+            "script http://127.0.0.1:52266/vendor/price-test.js"
+          ],
+          "learnedHits": null,
+          "pageErrors": [
+            "console: Failed to load resource: net::ERR_BLOCKED_BY_CLIENT"
+          ],
+          "personalizationHits": {
+            "hits": [
+              {
+                "ruleId": 6998,
+                "type": "script",
+                "url": "http://127.0.0.1:52266/vendor/price-test.js",
+                "tabId": 720880331
+              }
+            ]
+          }
+        }
+      ],
+      "protectedHostBlocks": []
+    }
+  ]
+}

@@ -13,8 +13,8 @@ than it can account for has already lost the argument it exists to make.
 ## Requested
 
 ### `declarativeNetRequest`
-Runs the five static rulesets (`rules/ads.json`, `analytics`, `social`,
-`fingerprinting`, `gpc`), the three per-OS-family header rulesets
+Runs the six static rulesets (`rules/ads.json`, `analytics`, `social`,
+`fingerprinting`, `personalization`, `gpc`), the three per-OS-family header rulesets
 (`rules/ua-win.json`, `ua-mac`, `ua-linux` — registered disabled; the service
 worker enables the host family's one, see `rules/README.md`), and the dynamic
 per-site allowlist rules.

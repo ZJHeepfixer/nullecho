@@ -187,6 +187,33 @@ test('domains carrying a visible feature are cookie-blocked, not blocked', async
   assert.ok(rule.id >= COOKIE_BASE, `id ${rule.id} outside the cookie-block range`);
 });
 
+test('Klaviyo (0.9.3): its form hosts are never learned; its tracking hosts are cookie-stripped, never blocked, with the form hosts carved out', async () => {
+  // Until 0.9.3 all of klaviyo.com was NEVER_BLOCK, so the learner could not even record it.
+  for (const site of ['a.test', 'b.test', 'c.test', 'd.test']) {
+    await H.recordSignal('static.klaviyo.com', site, H.SIGNAL.COOKIE);
+    await H.recordSignal('static-forms.klaviyo.com', site, H.SIGNAL.SET_COOKIE);
+  }
+  assert.equal((await H.getState()).length, 0, 'a Klaviyo form host was recorded');
+
+  for (const site of ['a.test', 'b.test', 'c.test']) {
+    await H.recordSignal('static-tracking.klaviyo.com', site, H.SIGNAL.COOKIE);
+  }
+  assert.equal(await statusOf('klaviyo.com'), 'cookieblocked', 'klaviyo.com renders sign-up forms: strip, never block');
+  const [rule] = [...dynamicRules.values()];
+  assert.equal(rule.action.type, 'modifyHeaders');
+  assert.deepEqual(rule.condition.requestDomains, ['klaviyo.com']);
+  for (const host of ['a.klaviyo.com', 'fast.a.klaviyo.com', 'static.klaviyo.com', 'static-forms.klaviyo.com']) {
+    assert.ok(rule.condition.excludedRequestDomains.includes(host), `${host} is not carved out of the learned rule`);
+  }
+  // Even a user's own "block klaviyo.com" leaves the sign-up forms alone.
+  await H.setDomainStatus('klaviyo.com', 'blocked');
+  const userRule = [...dynamicRules.values()].find((r) => r.action.type === 'block');
+  assert.ok(userRule, 'the user block was not written');
+  for (const host of ['a.klaviyo.com', 'fast.a.klaviyo.com', 'static.klaviyo.com', 'static-forms.klaviyo.com']) {
+    assert.ok(userRule.condition.excludedRequestDomains.includes(host), `${host} is not carved out of a user block`);
+  }
+});
+
 // ── first parties in disguise ─────────────────────────────────────────────
 
 test('a site loading its own entity is not a third party', async () => {

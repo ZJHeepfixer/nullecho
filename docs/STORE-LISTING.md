@@ -37,8 +37,11 @@ under that name at submission time, since store categories change.]`
 ## Full description
 
 Nullecho blocks the ad networks, analytics scripts, social-media pixels, and
-known fingerprinting vendors that follow you across sites (182 static rules
+known fingerprinting vendors that follow you across sites (static rules
 sourced from DuckDuckGo Tracker Radar, EasyPrivacy, and AdGuard — not invented).
+Its "Pricing & personalization" category blocks known price-personalization and
+personalization trackers on shopping pages, without touching what shows you the
+price, the cart or search results.
 It sends Global Privacy Control, a do-not-sell/share request that is legally
 recognised if *you* live in a state that recognises it — California, Colorado and
 several others; the duty attaches to your residency, not to where the site is.
@@ -138,6 +141,21 @@ the cross-site profile is *for*, so telling a user when a page has said out loud
 that a price was set from their data is the same subject read from the other end.
 It adds no permission: the scan is a content script over text the page already
 rendered, and its record is one `chrome.storage.local` key.
+
+## What's new in 0.9.3
+
+A new blocking category, **Pricing & personalization**: it blocks known
+price-personalization and personalization trackers on shopping pages — the
+data-collection endpoints of shopper-profiling, offer-targeting and price-testing
+services such as Dynamic Yield, Bloomreach, Rokt, Attentive and Granify, and
+Klaviyo's tracking hosts (its sign-up forms keep working). It never blocks what
+shows you a price, a cart or search results, and it can be switched off in
+settings like any other category.
+
+Wording rules for this category, everywhere: say it blocks *trackers* and what
+they *collect*. Never say it gets you a lower price, a fairer price or "the real
+price" — nothing measured supports that, and blocking a price-test script can
+even show a higher price, which is why Nullecho does not block those scripts.
 
 ## What's new in 0.1
 
