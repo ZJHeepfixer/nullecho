@@ -13,6 +13,17 @@ and no verdict is final until its part is marked done. Nothing here is a public 
 | J1.4 | inside J1.1 (12 profiles per run) | same as J1.1 |
 | J2 | 10-17 run killed at slot 5 (D6); first 10-23 attempt stopped at slot 1 (D9); **rerun started 10-23 16:28 PDT** | `raw/j2-2026-10-17.json`, `raw/j2-2026-10-23-aborted-slot1.json`, `raw/j2-2026-10-23b.json` |
 
+### Notice for Jason: test-browser windows (Pacific time)
+
+Chrome windows open by themselves on the Mac at the times below. Let them run; they close on their own. Nothing is
+bought, booked or signed into.
+
+| when | which part |
+|---|---|
+| **Fri 10/23**, until about 8:00 PM | J2 and J1 |
+| **Sat 10/24, Sun 10/25 and Mon 10/26**, 9:30–9:40 AM, 10:00–10:20 AM and 6:30–6:40 PM | J1.3 |
+| **Mon 10/26**, about 6:45–7:00 PM | J1.3 swap |
+
 ### If this session ends: what is running and how to resume
 
 Every live probe was started detached (`nohup`), so a session expiry does not stop it. Logs and the private J1.3
