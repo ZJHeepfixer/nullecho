@@ -233,10 +233,27 @@ export function power() {
   return out;
 }
 
+/**
+ * Pool runs of the same probe made under the same protocol (J1.1 stopped for the day by its wall rule and resumed the
+ * next day): profile ids get a run prefix, load numbers continue, events are kept per run.
+ */
+export function pool(raws) {
+  let offset = 0;
+  const records = [], events = [];
+  raws.forEach((r, k) => {
+    const maxLoad = Math.max(0, ...r.records.map((x) => x.loadNo || 0));
+    for (const x of r.records) records.push({ ...x, profile: x.profile ? `r${k + 1}-${x.profile}` : x.profile, loadNo: x.loadNo ? x.loadNo + offset : x.loadNo, run: k + 1 });
+    for (const e of r.events) events.push({ ...e, run: k + 1 });
+    offset += maxLoad;
+  });
+  return { meta: { ...raws[0].meta, pooledRuns: raws.map((r) => ({ startedAt: r.meta.startedAt, gitHead: r.meta.gitHead, records: r.records.length })) }, records, events };
+}
+
 // ── CLI ─────────────────────────────────────────────────────────────────────────────────────────────────
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  const [kind, file] = process.argv.slice(2);
-  const raw = file ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+  const [kind, ...rest] = process.argv.slice(2);
+  const files = rest.filter((a, i) => !a.startsWith('--') && !(i > 0 && rest[i - 1] === '--split'));
+  const raw = files.length > 1 ? pool(files.map((f) => JSON.parse(fs.readFileSync(f, 'utf8')))) : files.length ? JSON.parse(fs.readFileSync(files[0], 'utf8')) : null;
   const splitArg = process.argv.indexOf('--split');
   const res = kind === 'assign' ? analyzeAssign(raw) : kind === 'cookies' ? analyzeCookies(raw, { split: splitArg > 0 ? Number(process.argv[splitArg + 1]) : 0.5 }) : kind === 'history' ? analyzeHistory(raw) : kind === 'repeat' ? analyzeRepeat(raw) : kind === 'power' ? power() : null;
   if (!res) { console.error('usage: analyze.mjs assign|cookies|history|repeat <raw.json> | power'); process.exit(2); }

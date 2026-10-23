@@ -1,0 +1,8626 @@
+{
+ "meta": {
+  "study": "J2 repeat views vs fresh views",
+  "device": "mac-chrome",
+  "slots": 10,
+  "slotGapMs": [
+   360000,
+   540000
+  ],
+  "pairGapMs": [
+   8000,
+   20000
+  ],
+  "seed": 20261020,
+  "targets": [
+   {
+    "id": "priceline",
+    "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+    "room": "\\bking\\b",
+    "cardSelector": "[data-testid=\"RATE_CARD\"]",
+    "nameSelector": "[class*=\"SrOnly\"]",
+    "nameAncestor": null,
+    "priceSelector": null,
+    "scrollSteps": 0,
+    "scrollTo": null,
+    "settleMs": 25000
+   },
+   {
+    "id": "agoda",
+    "url": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD",
+    "room": "\\bking\\b",
+    "cardSelector": "[data-testid=\"room-offer\"]",
+    "nameSelector": "[data-testid=\"room-name\"]",
+    "nameAncestor": "[data-testid=\"room-item\"]",
+    "priceSelector": "[data-testid=\"room-offer-final-price\"]",
+    "scrollSteps": 4,
+    "scrollTo": "[data-testid=\"room-grid-element\"]",
+    "settleMs": 40000
+   }
+  ],
+  "writtenBy": "probe-j2-repeat.mjs",
+  "redactions": {
+   "ip": 1
+  },
+  "order": {
+   "priceline": [
+    "fresh-first",
+    "repeat-first",
+    "repeat-first",
+    "repeat-first",
+    "fresh-first",
+    "fresh-first",
+    "repeat-first",
+    "fresh-first",
+    "fresh-first",
+    "repeat-first"
+   ],
+   "agoda": [
+    "repeat-first",
+    "fresh-first",
+    "repeat-first",
+    "fresh-first",
+    "repeat-first",
+    "repeat-first",
+    "repeat-first",
+    "fresh-first",
+    "fresh-first",
+    "fresh-first"
+   ]
+  },
+  "gitHead": "b856925",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T22:37:41.163Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false,
+  "deviceProfile": {
+   "id": "mac-chrome",
+   "label": "Chrome on macOS (desktop)",
+   "platform": "MacIntel",
+   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+   "metadata": {
+    "brands": [
+     {
+      "brand": "Chromium",
+      "version": "149"
+     },
+     {
+      "brand": "Google Chrome",
+      "version": "149"
+     },
+     {
+      "brand": "Not;A=Brand",
+      "version": "99"
+     }
+    ],
+    "fullVersionList": [
+     {
+      "brand": "Chromium",
+      "version": "149.0.7827.22"
+     },
+     {
+      "brand": "Google Chrome",
+      "version": "149.0.7827.22"
+     },
+     {
+      "brand": "Not;A=Brand",
+      "version": "[ip]"
+     }
+    ],
+    "platform": "macOS",
+    "platformVersion": "15.6.0",
+    "architecture": "arm64",
+    "model": "",
+    "mobile": false,
+    "bitness": "64",
+    "wow64": false
+   },
+   "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 2,
+    "isMobile": false,
+    "hasTouch": false
+   }
+  }
+ },
+ "events": [],
+ "records": [
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 1,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T22:37:47.294Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 3092,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": 129,
+    "fees": [],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": 125,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": 133,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": 134,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": 134,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": 132,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": 137,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": 136,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": 141,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": 158,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": 165,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": 813,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": 864,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 1,
+   "arm": "repeat",
+   "repeatViewNo": 1,
+   "at": "2026-10-17T22:38:06.366Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 4730,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_sctr",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_tt_enable_cookie",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ttp",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cto_bundle",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCNEC",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid_CE709TRC77UA05OMR5UG",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 1,
+   "arm": "repeat",
+   "repeatViewNo": 1,
+   "at": "2026-10-17T22:38:14.906Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7828,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "pricing-reset-tracker",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 1,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T22:38:41.430Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 8047,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "pricing-reset-tracker",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 2,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T22:46:06.004Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7838,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 2,
+   "arm": "repeat",
+   "repeatViewNo": 2,
+   "at": "2026-10-17T22:46:30.868Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7847,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "pricing-reset-tracker",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 2,
+   "arm": "repeat",
+   "repeatViewNo": 2,
+   "at": "2026-10-17T22:46:35.708Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 3117,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_sctr",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_tt_enable_cookie",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ttp",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cto_bundle",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCNEC",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid_CE709TRC77UA05OMR5UG",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 2,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T22:46:54.152Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 4615,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_sctr",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_tt_enable_cookie",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ttp",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cto_bundle",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCNEC",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid_CE709TRC77UA05OMR5UG",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 3,
+   "arm": "repeat",
+   "repeatViewNo": 3,
+   "at": "2026-10-17T22:52:04.785Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 3009,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_sctr",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_tt_enable_cookie",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ttp",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cto_bundle",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCNEC",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid_CE709TRC77UA05OMR5UG",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 3,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T22:52:24.765Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 4531,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": 129,
+    "fees": [],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": 125,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": 133,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": 134,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": 134,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": 132,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": 137,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": 136,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": 141,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": 158,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": 165,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": 813,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": 864,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 3,
+   "arm": "repeat",
+   "repeatViewNo": 3,
+   "at": "2026-10-17T22:52:36.463Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7835,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "pricing-reset-tracker",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 3,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T22:53:03.888Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7993,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 4,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T23:01:06.210Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7861,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 4,
+   "arm": "repeat",
+   "repeatViewNo": 4,
+   "at": "2026-10-17T23:01:33.509Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 7951,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "pricing-reset-tracker",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 4,
+   "arm": "repeat",
+   "repeatViewNo": 4,
+   "at": "2026-10-17T23:01:37.815Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 3023,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_sctr",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_tt_enable_cookie",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ttp",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cto_bundle",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCNEC",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid_CE709TRC77UA05OMR5UG",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 4,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T23:02:07.766Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 8461,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 5,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T23:09:52.176Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 4652,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "priceline",
+   "slot": 5,
+   "arm": "repeat",
+   "repeatViewNo": 5,
+   "at": "2026-10-17T23:10:10.114Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector",
+   "settledMs": 3061,
+   "webdriver": false,
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 19,
+    "total": null,
+    "fees": [
+     "with taxes and fees"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 16,
+    "priced": 16,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 17,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 21,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 23,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 22,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": 25,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 33,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": 37,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 361,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": 380,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false
+    }
+   ],
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "__eoi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__gads",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__gpi",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "__pxvid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.aid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.lid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "__rtbh.uid",
+     "role": "other",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_dc_gtm_UA-2975581-1",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_ga",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ga_DC72C50JN6",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_gcl_au",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_gid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_rdt_uuid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_scid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_scid_r",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_sctr",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "_tt_enable_cookie",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_ttp",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "_uetsid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "_uetvid",
+     "role": "analytics-ads",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "AMP_TOKEN",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "cf_clearance",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "cto_bundle",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_consent",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "dtm_token_sc",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCCDCF",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "FCNEC",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "forterToken",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ftr_blst_1h",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "locale_code",
+     "role": "location",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "OptanonConsent",
+     "role": "consent",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "PL_CINFO",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "Referral",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "7-31d"
+    },
+    {
+     "name": "should_log_to_splunk",
+     "role": "other",
+     "domain": ".www.priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "SITESERVER",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "ttcsid_CE709TRC77UA05OMR5UG",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "utag_main",
+     "role": "other",
+     "domain": ".priceline.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vid",
+     "role": "visitor-id",
+     "domain": ".priceline.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 5,
+   "arm": "repeat",
+   "repeatViewNo": 5,
+   "at": "2026-10-17T23:10:51.674Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector-none-yet",
+   "settledMs": 41032,
+   "webdriver": false,
+   "primary": null,
+   "availability": {
+    "roomCards": 0,
+    "priced": 0,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": null
+   },
+   "rooms": [],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "pricing-reset-tracker",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  },
+  {
+   "kind": "load",
+   "site": "agoda",
+   "slot": 5,
+   "arm": "fresh",
+   "repeatViewNo": null,
+   "at": "2026-10-17T23:11:50.701Z",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "error": null,
+   "how": "selector-none-yet",
+   "settledMs": 41182,
+   "webdriver": false,
+   "primary": null,
+   "availability": {
+    "roomCards": 0,
+    "priced": 0,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": null
+   },
+   "rooms": [],
+   "cookies": [
+    {
+     "name": "agoda.analytics",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "agoda.attr.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.cid",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.landings",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.price.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "agoda.price.trk.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.prius",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.search.01",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.user.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "agoda.version.03",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ASP.NET_SessionId",
+     "role": "other",
+     "domain": ".www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "t_pp",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "t_rc",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "tealiumEnable",
+     "role": "other",
+     "domain": ".agoda.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xsrf_token",
+     "role": "session-app",
+     "domain": "www.agoda.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "session"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+# Workstream J: results
+
+DRAFT — filled in as each part finishes.
+
+## Deviations from METHOD.md
+
+Each deviation below is a departure from the registration. It is listed with its reason and with what it changes.
+
+| id | what | why | effect on the results |
+|---|---|---|---|
+| D0 | The registration commit is `a7bdd07`, not `eb69cef`. | Rebased onto main `e69f6a3` before any data, as the director asked. The content is identical (`git diff eb69cef a7bdd07 -- research/cookie-pricing-2026-10` is empty). | none |
+| D1 | **J1.3 shops by views only:** the item, two related items, then the item again. There is no add-to-cart and no cart-emptying. | Walmart cart calibration failed twice and used 5 loads against a budget of 4. The first visible "Add to cart" in document order belongs to a related-item carousel, so a related item went into the cart instead of the J1 item. The cart page then showed no Remove control the reader recognised. By the pre-registered safety rule, that calibration profile's cookies were cleared: one anonymous guest cart (a "Restored AirPods Pro") was left unattached to any browser, and nothing was bought. METHOD §2.6 says a reader that cannot be made to work within budget is "not forced". | J1.3 tests whether **browsing** history moves the offer or price. It does not test cart history; that needs a calibrated cart reader in a later run. |
+| D2 | Priceline calibration used 5 loads (budget 4). | The 5th load was a live confirmation with the final selectors, so the J2 series would not start on an unverified reader. | none on the data |
+| D3 | Agoda calibration used 5 loads (budget 4; §4.1 allows 2 for site selection). J2's second site is conditional on one check load just before slot 1. | Agoda rendered its room grid on load 2, so it qualified under §4.1. The reader only worked after offline tuning on that saved page. Loads 4 and 5 then came back as HTTP 200 with an empty title and no grid (a soft block). Expedia and Hotels.com each answered HTTP 429 "Bot or Not?" on their first load and were not retried. | J2 may be Priceline-only (§4.1's registered fallback). |
+| D4 | Reader code changed during calibration (§2.6 allows this). | Made before any measured load and committed in `b856925`: <ul><li>cart: each label is tested on its own, and "Add to cart" may continue (`- <item>`);</li><li>hotel: a split "$" / "17" is re-joined, a "Per night" label is joined to its price, and a price followed by "N nights" is the stay total;</li><li>new options `nameAncestor`, `scrollSteps` and `scrollTo`;</li><li>a configured card selector never falls back to the heuristic.</li></ul>The fixture cases K1, K2, R3 and R4 passed again after the changes. | none |
+| D5 | J1.4 has 2 items, not 3. | The registered selection rule found marketplace items for 2 of its 4 queries: every Bose and Nintendo candidate was sold by walmart.com. The brief allows "2–3". | J1.4 covers 2 items. |
+
+Not a deviation, but it changes the question: **the offers on item 5689919121 are no longer the two seen in the prior
+isolation.** At calibration, two fresh profiles drew $159.99 from seller `66306FC5…`, the prior study's seller (offer
+`609E2BE5…`), and $173.99 from a *different* seller, `7E9CC878…` (offer `1C388ED2…`). The prior study's $149.99 and
+$169.99 offers were not seen. J1 measures whatever offers fresh visitors are shown now, which is what METHOD registers
+(bucket = offer id).

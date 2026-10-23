@@ -1,0 +1,409 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "b856925",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T22:37:12.728Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T22:37:26.988Z",
+   "type": "end",
+   "verdict": "HOTEL-OK (Royal Tower King 64, via selector)",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD",
+   "finalUrl": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD&ds=qsK%2BIsSqTxcJu3T1",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "selector",
+   "title": "Excalibur Hotel, Las Vegas (NV) | 2026 Updated Prices, Deals",
+   "rooms": [
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 62,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      62
+     ]
+    },
+    {
+     "name": "Royal Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      66
+     ]
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      66
+     ]
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 64,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      66
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 66,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      66
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": 68,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      68
+     ]
+    }
+   ],
+   "primary": {
+    "name": "Royal Tower King",
+    "nightly": 64,
+    "total": null,
+    "fees": [
+     "Per night before taxes"
+    ],
+    "left": null,
+    "memberOnly": false,
+    "matches": 4
+   },
+   "availability": {
+    "roomCards": 10,
+    "priced": 10,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 62
+   },
+   "cfg": {
+    "cardSelector": "[data-testid=\"room-offer\"]",
+    "nameSelector": "[data-testid=\"room-name\"]",
+    "nameAncestor": "[data-testid=\"room-item\"]",
+    "priceSelector": "[data-testid=\"room-offer-final-price\"]",
+    "settleMs": 40000,
+    "scrollSteps": 4,
+    "scrollTo": "[data-testid=\"room-grid-element\"]"
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Lowest price available!",
+      "Offer 1",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancellation policy",
+      "Pay to hotel",
+      "Free Wi-Fi",
+      "See details",
+      "Cheapest price you've seen!",
+      "USD",
+      "62",
+      "Per night before taxes",
+      "1 room",
+      "Book"
+     ],
+     "chain": [
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex",
+      "div.a07fe-grow.a07fe-h-full",
+      "div.a07fe-box.a07fe-bg-generic-base-background"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 2",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancel for free before Dec 6, 2026",
+      "Pay to hotel",
+      "Free Wi-Fi",
+      "See details",
+      "USD",
+      "64",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex",
+      "div.a07fe-grow.a07fe-h-full",
+      "div.a07fe-box.a07fe-bg-generic-base-background"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 1",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancellation policy",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "64",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex",
+      "div.a07fe-grow.a07fe-h-full",
+      "div.a07fe-box.a07fe-bg-generic-base-background"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 2",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancel for free before Dec 6, 2026",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "66",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex",
+      "div.a07fe-grow.a07fe-h-full",
+      "div.a07fe-box.a07fe-bg-generic-base-background"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 1",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancellation policy",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "64",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex",
+      "div.a07fe-grow.a07fe-h-full",
+      "div.a07fe-box.a07fe-bg-generic-base-background"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 2",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancel for free before Dec 6, 2026",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "66",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex",
+      "div.a07fe-grow.a07fe-h-full",
+      "div.a07fe-box.a07fe-bg-generic-base-background"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    }
+   ],
+   "markup": null
+  }
+ ]
+}
