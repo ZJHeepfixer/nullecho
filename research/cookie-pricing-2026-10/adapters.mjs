@@ -184,7 +184,9 @@ function hotelPageScript(cfg) {
     const struck = [...card.querySelectorAll('s, del, strike, [style*="line-through"]')].map((e) => num(e.innerText)).filter((v) => v !== null);
     const priceLines = lines.filter((l) => priceRe.test(l));
     const nightlyLine = (cfg.priceSelector && card.querySelector(cfg.priceSelector)?.innerText) || priceLines.find((l) => /night|nightly|avg|per room/i.test(l) && !/total/i.test(l)) || priceLines.find((l) => !/total|tax|fee/i.test(l) && !struck.includes(num(l)));
-    const totalLine = priceLines.find((l) => /total/i.test(l)) || lines.find((l, i) => priceRe.test(l) && l !== nightlyLine && /^\d+ nights?\b/i.test(lines[i + 1] || ''));
+    // Priceline renders the stay total under one of two captions ("2 nights, 1 room" or "with taxes and fees"; found in
+    // the aborted 2026-10-17 J2 run, D7). Agoda's "Per night before taxes" caption is NOT a total.
+    const totalLine = priceLines.find((l) => /total/i.test(l)) || lines.find((l, i) => priceRe.test(l) && l !== nightlyLine && /^(\d+ nights?\b|with taxes and fees|incl(?:uding|\.)? taxes)/i.test(lines[i + 1] || ''));
     return {
       name,
       nightly: num(nightlyLine),
