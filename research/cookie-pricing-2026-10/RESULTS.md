@@ -1,6 +1,33 @@
 # Workstream J: results
 
-DRAFT — filled in as each part finishes.
+**Status (updated 2026-10-23 16:35 PDT): DRAFT, stage 2 in progress.** This file is filled in as each part finishes,
+and no verdict is final until its part is marked done. Nothing here is a public claim. METHOD.md is the registration
+(`a7bdd07`); the deviations listed below are the only departures from it.
+
+| part | state | raw file(s) |
+|---|---|---|
+| calibration | done 10-17; Priceline recalibrated 10-23 (D9) | `raw/calibration-*.json`, `j1-items.json`, `j2-targets.json` |
+| J1.1 + 1b | run 1 (10-17) stopped by the wall rule after 21 loads; **run 2 (10-23) queued** behind J2 | `raw/j1-assign-2026-10-17.json`, `raw/j1-assign-2026-10-23.json` |
+| J1.2 | queued after J1.1 run 2 | `raw/j1-cookies-2026-10-23.json` |
+| J1.3 | registered enrolment stopped 10-23 (one offer, 14/14); **single-offer version (D8) running 10-24 to 10-26** | `raw/j1-history-2026-10-23.json` (stopped); `raw/j1-history-2026-10-23-single.json` |
+| J1.4 | inside J1.1 (12 profiles per run) | same as J1.1 |
+| J2 | 10-17 run killed at slot 5 (D6); first 10-23 attempt stopped at slot 1 (D9); **rerun started 10-23 16:28 PDT** | `raw/j2-2026-10-17.json`, `raw/j2-2026-10-23-aborted-slot1.json`, `raw/j2-2026-10-23b.json` |
+
+### If this session ends: what is running and how to resume
+
+Every live probe was started detached (`nohup`), so a session expiry does not stop it. Logs and the private J1.3
+state are in `~/.cache/nullecho-cookie-pricing/`, outside the repo.
+
+- **J2:** `probe-j2-repeat.mjs` → `raw/j2-2026-10-23b.json` (log `j2-2026-10-23b.log`), about 90 min from 16:28.
+- **J1 chain:** `probe-j1-assign.mjs` then `probe-j1-cookies.mjs` (log `j1-chain-2026-10-23.log`). Each waits on the
+  live lock, so J1.1 starts when J2 ends.
+- **J1.3 daemon:** `caffeinate -i node probe-j1-history.mjs daemon` (log `j1-history-daemon.log`).
+  - Events: 09:30, 10:00 and 18:30 PDT on Sat 10-24, Sun 10-25 and Mon 10-26, then the swap at 18:45 on 10-26.
+  - `node probe-j1-history.mjs status` lists them.
+  - If the daemon has died, `node probe-j1-history.mjs daemon` resumes it. An event more than 4 h late is skipped and
+    recorded, as registered.
+- **Analysis:** `node analyze.mjs assign|cookies|history|repeat <raw>`.
+- **Clean-up after J1.3's swap:** delete `~/.cache/nullecho-cookie-pricing/j1-history/` (METHOD §2.7).
 
 ## Deviations from METHOD.md
 
