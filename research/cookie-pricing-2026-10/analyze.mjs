@@ -117,8 +117,9 @@ export function analyzeHistory(raw) {
   // difference in the share of readings that differ from baseline, shoppers − controls, over the randomisation used
   const stat = (shopIds) => { const S = profiles.filter((p) => shopIds.includes(p.id)), C = profiles.filter((p) => !shopIds.includes(p.id)); const m = (xs) => xs.reduce((a, p) => a + (p.changedShare || 0), 0) / (xs.length || 1); return m(S) - m(C); };
   const obs = stat(shoppers.map((p) => p.id));
-  const byBucket = ['low', 'high'].map((b) => profiles.filter((p) => p.bucket === b));
-  const assignments = combinations(byBucket[0].map((p) => p.id), shoppers.filter((p) => p.bucket === 'low').length).flatMap((a) => combinations(byBucket[1].map((p) => p.id), shoppers.filter((p) => p.bucket === 'high').length).map((b) => [...a, ...b]));
+  // the randomisation actually used: within each bucket (two buckets as registered; one under deviation D8)
+  const strata = [...new Set(profiles.map((p) => p.bucket))].map((b) => combinations(profiles.filter((p) => p.bucket === b).map((p) => p.id), shoppers.filter((p) => p.bucket === b).length));
+  const assignments = strata.reduce((acc, opts) => acc.flatMap((a) => opts.map((o) => [...a, ...o])), [[]]);
   const pPerm = assignments.filter((a) => Math.abs(stat(a)) >= Math.abs(obs) - 1e-12).length / assignments.length;
   const sameDir = (ps) => { const d = new Set(ps.flatMap((p) => p.directions)); return d.size === 1 ? [...d][0] : d.size ? 'mixed' : null; };
   let verdict;

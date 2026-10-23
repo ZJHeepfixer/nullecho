@@ -80,13 +80,17 @@ async function init() {
     // Deviation D1 (RESULTS.md): walmart.com's cart controls could not be calibrated within budget, so the live run
     // shops by views only. --no-cart skips add/empty; the cart code stays for a later, calibrated run.
     cart: !c.flag('--no-cart'),
+    // Deviation D8: walmart.com showed ONE offer to every new visitor on 2026-10-23, so the two-bucket design cannot be
+    // enrolled. --single-bucket enrols six profiles on that offer: four shoppers, two controls, drawn at random.
+    single: c.flag('--single-bucket'),
   };
   const rec = new Recorder(cfg.out, { study: 'J1.3 does shopping history move the offer', site: site.id, item, device: DEVICE, seed, days: cfg.days, readTimes: cfg.readTimes, shopTime: cfg.shopTime, compressedDayMs: cfg.dayMs || null });
   const storeLabel = storeLabeler();
   const timing = ctx.live ? {} : { minMs: 200, settleMs: 3000 };
   const kept = []; let first = true;
   const counts = new Map();
-  for (let i = 1; i <= cfg.enrollMax && (counts.size < 2 || [...counts.values()].some((v) => v < cfg.perBucket)); i++) {
+  const enough = () => (cfg.single ? [...counts.values()].some((v) => v >= 2 * cfg.perBucket) : counts.size >= 2 && [...counts.values()].every((v) => v >= cfg.perBucket));
+  for (let i = 1; i <= cfg.enrollMax && !enough(); i++) {
     await powerGate({ onPause: (p) => rec.event({ type: 'power-pause', source: p.source, pct: p.pct }) });
     const dir = path.join(STATE_DIR, 'profiles', `e${String(i).padStart(2, '0')}`);
     fs.mkdirSync(dir, { recursive: true });
@@ -97,7 +101,7 @@ async function init() {
     const jar = await siteJar(env.browser, site.host); rec.secretJar(jar);
     await env.close();
     const s = itemSummary(r, storeLabel);
-    const keep = !!r.product && (counts.get(s.offerId) || 0) < cfg.perBucket && (counts.size < 2 || counts.has(s.offerId));
+    const keep = cfg.single ? !!r.product && (counts.size === 0 || counts.has(s.offerId)) && (counts.get(s.offerId) || 0) < 2 * cfg.perBucket : !!r.product && (counts.get(s.offerId) || 0) < cfg.perBucket && (counts.size < 2 || counts.has(s.offerId));
     rec.add({ kind: 'enroll', try: i, at: new Date().toISOString(), kept: keep, ...s, cookies: describeCookies(jar) });
     if (keep) { counts.set(s.offerId, (counts.get(s.offerId) || 0) + 1); kept.push({ dir, offerId: s.offerId, price: s.price, jar: jar.map(({ name, value, domain, path: p }) => ({ name, value, domain, path: p })), at: new Date().toISOString() }); }
     else fs.rmSync(dir, { recursive: true, force: true });
@@ -105,14 +109,17 @@ async function init() {
   }
   await closeAll(ctx);
   const buckets = [...counts.keys()];
-  if (buckets.length < 2 || buckets.some((b) => counts.get(b) < 2)) {
+  if (cfg.single ? !enough() : buckets.length < 2 || buckets.some((b) => counts.get(b) < 2)) {
     rec.event({ type: 'stopped', why: `enrolment found ${buckets.map((b) => `${counts.get(b)}×${b}`).join(', ') || 'nothing'}; J1.3 needs ≥2 profiles in each of two offers` });
     for (const k of kept) fs.rmSync(k.dir, { recursive: true, force: true });
     release(); return;
   }
   const profiles = [];
   let n = 0;
-  for (const b of buckets.sort((x, y) => kept.find((k) => k.offerId === x).price - kept.find((k) => k.offerId === y).price)) {
+  if (cfg.single) {
+    const all = shuffle(kept, rand);
+    all.forEach((k, i) => profiles.push({ id: `h${++n}`, dir: k.dir, bucket: 'single', role: i < all.length - 2 ? 'shopper' : 'control', baseline: { offerId: k.offerId, price: k.price, at: k.at }, baselineJar: k.jar, withdrawn: false }));
+  } else for (const b of buckets.sort((x, y) => kept.find((k) => k.offerId === x).price - kept.find((k) => k.offerId === y).price)) {
     const inB = shuffle(kept.filter((k) => k.offerId === b), rand);
     inB.forEach((k, i) => profiles.push({ id: `h${++n}`, dir: k.dir, bucket: b === buckets[0] ? 'low' : 'high', role: i < inB.length - 1 ? 'shopper' : 'control', baseline: { offerId: k.offerId, price: k.price, at: k.at }, baselineJar: k.jar, withdrawn: false }));
   }

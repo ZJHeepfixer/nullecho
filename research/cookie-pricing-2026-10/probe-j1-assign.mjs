@@ -40,8 +40,13 @@ const rec = new Recorder(OUT, { study: 'J1.1 assignment + J1.1b device + J1.4 ot
 const rules = new WallRules({ coolOffMs: c.num('--cooloff-ms', 15 * 60000) });
 const timing = ctx.live ? {} : { minMs: 200, settleMs: 3000 };
 
+// --need mac-chrome=9,win-chrome=8,…: a continuation run (D6) tops each device up to its registered total; blocks
+// stay shuffled per device that still needs profiles.
+const NEED = Object.fromEntries(DEVICES.map((d) => [d, PER_DEVICE]));
+for (const kv of c.list('--need', '')) { const [d, n] = kv.split('='); if (d in NEED) NEED[d] = Number(n); }
+rec.data.meta.need = NEED;
 const queue = [];
-for (let b = 0; b < PER_DEVICE; b++) queue.push(...shuffle(DEVICES, rand));
+for (let b = 0; b < Math.max(...Object.values(NEED)); b++) queue.push(...shuffle(DEVICES.filter((d) => NEED[d] > b), rand));
 const ok = Object.fromEntries(DEVICES.map((d) => [d, 0]));
 const replaced = Object.fromEntries(DEVICES.map((d) => [d, 0]));
 let loads = 0, profiles = 0, successes = 0, followDone = 0, first = true;
@@ -63,7 +68,7 @@ async function one(env, device, item, kind, profile, extra = {}) {
 try {
   while (queue.length && loads < MAX_LOADS && !rules.stopped) {
     const device = queue.shift();
-    if (ok[device] >= PER_DEVICE) continue;
+    if (ok[device] >= NEED[device]) continue;
     await powerGate({ onPause: (p) => rec.event({ type: 'power-pause', source: p.source, pct: p.pct }) });
     const env = await launch(ctx);
     if (first) { Object.assign(rec.data.meta, runMeta(ctx), { profiles: Object.fromEntries(DEVICES.map((d) => [d, ctx.profiles[d]])) }); first = false; }
