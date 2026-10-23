@@ -180,7 +180,9 @@ function hotelPageScript(cfg) {
     }
     // `nameAncestor` (calibrated on agoda.com): the card is one rate offer; the room's name sits on the enclosing room.
     const nameRoot = cfg.nameAncestor ? card.closest(cfg.nameAncestor) || card : card;
-    const name = ((cfg.nameSelector && nameRoot.querySelector(cfg.nameSelector)?.innerText) || lines.find((l) => kw.test(l) && !priceRe.test(l)) || lines[0] || '').trim().slice(0, 90);
+    // `nameAttr` (priceline.com's 2026-10-23 layout): the room name is an attribute of the ancestor, "<name>-<index>".
+    const attrName = cfg.nameAttr ? (nameRoot.getAttribute(cfg.nameAttr) || '').replace(/-\d+$/, '') : '';
+    const name = (attrName || (cfg.nameSelector && nameRoot.querySelector(cfg.nameSelector)?.innerText) || lines.find((l) => kw.test(l) && !priceRe.test(l)) || lines[0] || '').trim().slice(0, 90);
     const struck = [...card.querySelectorAll('s, del, strike, [style*="line-through"]')].map((e) => num(e.innerText)).filter((v) => v !== null);
     const priceLines = lines.filter((l) => priceRe.test(l));
     const nightlyLine = (cfg.priceSelector && card.querySelector(cfg.priceSelector)?.innerText) || priceLines.find((l) => /night|nightly|avg|per room/i.test(l) && !/total/i.test(l)) || priceLines.find((l) => !/total|tax|fee/i.test(l) && !struck.includes(num(l)));

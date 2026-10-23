@@ -5,9 +5,11 @@
    "id": "priceline",
    "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
    "room": "\\bking\\b",
-   "cardSelector": "[data-testid=\"RATE_CARD\"]",
-   "nameSelector": "[class*=\"SrOnly\"]",
+   "cardSelector": "[data-name] [class*=\"group/card\"]",
+   "nameAncestor": "[data-name]",
+   "nameAttr": "data-name",
    "settleMs": 25000,
+   "recalibrated": "2026-10-23 (deviation D9): priceline.com redesigned its room section between 10-17 and 10-23, and the 10-17 hook [data-testid=RATE_CARD] no longer exists. Rate rows are now [class*=group/card] inside a [data-name='<room>-<n>'] container. Checked offline on the saved 10-23 page and confirmed live (raw/calibration-hotel-priceline-7-confirm-2026-10-23.json). Previous: cardSelector [data-testid=\"RATE_CARD\"], nameSelector [class*=\"SrOnly\"].",
    "basis": "nightly = the 'Per night' base rate, before taxes and the resort fee; total = the 2-night stay total with taxes and fees"
   },
   {

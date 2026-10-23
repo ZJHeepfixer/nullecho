@@ -57,7 +57,7 @@ if (what === 'walmart-cart') {
   const env = await launch(ctx);
   Object.assign(rec.data.meta, runMeta(ctx));
   const page = await devicePage(ctx, env.browser, 'mac-chrome');
-  const cfg = { cardSelector: c.opt('--card'), nameSelector: c.opt('--name'), nameAncestor: c.opt('--name-ancestor'), priceSelector: c.opt('--price'), settleMs: c.num('--settle-ms', ctx.live ? 25000 : 6000), scrollSteps: c.num('--scroll-steps', 0), scrollTo: c.opt('--scroll-to') };
+  const cfg = { cardSelector: c.opt('--card'), nameSelector: c.opt('--name'), nameAncestor: c.opt('--name-ancestor'), nameAttr: c.opt('--name-attr'), priceSelector: c.opt('--price'), settleMs: c.num('--settle-ms', ctx.live ? 25000 : 6000), scrollSteps: c.num('--scroll-steps', 0), scrollTo: c.opt('--scroll-to') };
   const r = await readHotel(page, url, cfg);
   const prim = primaryRoom(r.rooms, c.opt('--room', '\\bking\\b'));
   const debug = await hotelCardDebug(page, cfg);

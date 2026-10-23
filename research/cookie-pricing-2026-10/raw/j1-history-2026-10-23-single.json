@@ -1,0 +1,3067 @@
+{
+ "meta": {
+  "study": "J1.3 does shopping history move the offer",
+  "site": "walmart",
+  "item": "5689919121",
+  "device": "mac-chrome",
+  "seed": 20261019,
+  "days": 3,
+  "readTimes": [
+   "09:30",
+   "18:30"
+  ],
+  "shopTime": "10:00",
+  "compressedDayMs": null,
+  "writtenBy": "probe-j1-history.mjs",
+  "redactions": {
+   "ip": 1
+  },
+  "gitHead": "8478151",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-23T23:13:11.150Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false,
+  "deviceProfile": {
+   "id": "mac-chrome",
+   "label": "Chrome on macOS (desktop)",
+   "platform": "MacIntel",
+   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+   "metadata": {
+    "brands": [
+     {
+      "brand": "Chromium",
+      "version": "149"
+     },
+     {
+      "brand": "Google Chrome",
+      "version": "149"
+     },
+     {
+      "brand": "Not;A=Brand",
+      "version": "99"
+     }
+    ],
+    "fullVersionList": [
+     {
+      "brand": "Chromium",
+      "version": "149.0.7827.22"
+     },
+     {
+      "brand": "Google Chrome",
+      "version": "149.0.7827.22"
+     },
+     {
+      "brand": "Not;A=Brand",
+      "version": "[ip]"
+     }
+    ],
+    "platform": "macOS",
+    "platformVersion": "15.6.0",
+    "architecture": "arm64",
+    "model": "",
+    "mobile": false,
+    "bitness": "64",
+    "wow64": false
+   },
+   "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 2,
+    "isMobile": false,
+    "hasTouch": false
+   }
+  }
+ },
+ "events": [
+  {
+   "at": "2026-10-23T23:20:53.045Z",
+   "type": "enrolled",
+   "profiles": [
+    {
+     "id": "h1",
+     "bucket": "single",
+     "role": "shopper",
+     "baseline": {
+      "offerId": "F5392DD499223E",
+      "price": 127,
+      "at": "2026-10-23T23:17:18.931Z"
+     }
+    },
+    {
+     "id": "h2",
+     "bucket": "single",
+     "role": "shopper",
+     "baseline": {
+      "offerId": "F5392DD499223E",
+      "price": 127,
+      "at": "2026-10-23T23:13:21.921Z"
+     }
+    },
+    {
+     "id": "h3",
+     "bucket": "single",
+     "role": "shopper",
+     "baseline": {
+      "offerId": "F5392DD499223E",
+      "price": 127,
+      "at": "2026-10-23T23:16:04.093Z"
+     }
+    },
+    {
+     "id": "h4",
+     "bucket": "single",
+     "role": "shopper",
+     "baseline": {
+      "offerId": "F5392DD499223E",
+      "price": 127,
+      "at": "2026-10-23T23:19:50.780Z"
+     }
+    },
+    {
+     "id": "h5",
+     "bucket": "single",
+     "role": "control",
+     "baseline": {
+      "offerId": "F5392DD499223E",
+      "price": 127,
+      "at": "2026-10-23T23:18:28.595Z"
+     }
+    },
+    {
+     "id": "h6",
+     "bucket": "single",
+     "role": "control",
+     "baseline": {
+      "offerId": "F5392DD499223E",
+      "price": 127,
+      "at": "2026-10-23T23:14:38.171Z"
+     }
+    }
+   ],
+   "schedule": [
+    {
+     "id": "d1-am",
+     "type": "read",
+     "due": "2026-10-24T16:30:00.000Z"
+    },
+    {
+     "id": "d1-shop",
+     "type": "shop",
+     "due": "2026-10-24T17:00:00.000Z"
+    },
+    {
+     "id": "d1-pm",
+     "type": "read",
+     "due": "2026-10-25T01:30:00.000Z"
+    },
+    {
+     "id": "d2-am",
+     "type": "read",
+     "due": "2026-10-25T16:30:00.000Z"
+    },
+    {
+     "id": "d2-shop",
+     "type": "shop",
+     "due": "2026-10-25T17:00:00.000Z"
+    },
+    {
+     "id": "d2-pm",
+     "type": "read",
+     "due": "2026-10-26T01:30:00.000Z"
+    },
+    {
+     "id": "d3-am",
+     "type": "read",
+     "due": "2026-10-26T16:30:00.000Z"
+    },
+    {
+     "id": "d3-shop",
+     "type": "shop",
+     "due": "2026-10-26T17:00:00.000Z"
+    },
+    {
+     "id": "d3-pm",
+     "type": "read",
+     "due": "2026-10-27T01:30:00.000Z"
+    },
+    {
+     "id": "swap",
+     "type": "swap",
+     "due": "2026-10-27T01:45:00.000Z"
+    }
+   ]
+  }
+ ],
+ "records": [
+  {
+   "kind": "enroll",
+   "try": 1,
+   "at": "2026-10-23T23:13:21.911Z",
+   "kept": true,
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "F5392DD499223E",
+   "sellerId": "66656029CC6541",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 127,
+   "was": null,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false,
+   "cookies": [
+    {
+     "name": "_astc",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_intlbu",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_m",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_shcc",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_tap_path",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_tap-criteo",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "_xrps",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "abqme",
+     "role": "session-app",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "ACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "adblocked",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "AID",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": "Strict",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ak_bmsc",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "akavpau_p2",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "assortmentStoreId",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "b30msc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bm_sv",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bsc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "bstc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "btc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "com.wm.reflector",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "doorwayId",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "exp-ck",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "hasACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "hasLocData",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "if_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "io_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ipSessionTrafficType",
+     "role": "traffic-class",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "isoLoc",
+     "role": "location",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "sbstc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "svtc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "TS012768cf",
+     "role": "bot-manager",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS016ef4c8",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01a90220",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01f89308",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS2a5e0c5c027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS8cb5a80e027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "userAppVersion",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "visitCount",
+     "role": "other",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vtc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "xpa",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpm",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptc",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpth",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptwg",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "xptwj",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    }
+   ]
+  },
+  {
+   "kind": "enroll",
+   "try": 2,
+   "at": "2026-10-23T23:14:38.168Z",
+   "kept": true,
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "F5392DD499223E",
+   "sellerId": "66656029CC6541",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 127,
+   "was": null,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false,
+   "cookies": [
+    {
+     "name": "_astc",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_intlbu",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_m",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_shcc",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_tap_path",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_tap-criteo",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "_xrps",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "abqme",
+     "role": "session-app",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "ACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "adblocked",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "AID",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": "Strict",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ak_bmsc",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "akavpau_p2",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "assortmentStoreId",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "b30msc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bm_sv",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bsc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "bstc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "btc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "com.wm.reflector",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "doorwayId",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "exp-ck",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "hasACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "hasLocData",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "if_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "io_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ipSessionTrafficType",
+     "role": "traffic-class",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "isoLoc",
+     "role": "location",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "sbstc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "svtc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "TS012768cf",
+     "role": "bot-manager",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS016ef4c8",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01a90220",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01f89308",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS2a5e0c5c027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS8cb5a80e027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "userAppVersion",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "visitCount",
+     "role": "other",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vtc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "xpa",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpm",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptc",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpth",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptwg",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "xptwj",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    }
+   ]
+  },
+  {
+   "kind": "enroll",
+   "try": 3,
+   "at": "2026-10-23T23:16:04.091Z",
+   "kept": true,
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "F5392DD499223E",
+   "sellerId": "66656029CC6541",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 127,
+   "was": null,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false,
+   "cookies": [
+    {
+     "name": "_astc",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_intlbu",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_m",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_shcc",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_tap_path",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_tap-criteo",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "_xrps",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "abqme",
+     "role": "session-app",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "ACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "adblocked",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "AID",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": "Strict",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ak_bmsc",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "akavpau_p2",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "assortmentStoreId",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "b30msc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bm_sv",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bsc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "bstc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "btc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "com.wm.reflector",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "doorwayId",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "exp-ck",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "hasACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "hasLocData",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "if_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "io_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ipSessionTrafficType",
+     "role": "traffic-class",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "isoLoc",
+     "role": "location",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "sbstc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "svtc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "TS012768cf",
+     "role": "bot-manager",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS016ef4c8",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01a90220",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01f89308",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS2a5e0c5c027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS8cb5a80e027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "userAppVersion",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "visitCount",
+     "role": "other",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vtc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "xpa",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpm",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptc",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpth",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptwg",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "xptwj",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    }
+   ]
+  },
+  {
+   "kind": "enroll",
+   "try": 4,
+   "at": "2026-10-23T23:17:18.928Z",
+   "kept": true,
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "F5392DD499223E",
+   "sellerId": "66656029CC6541",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 127,
+   "was": null,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false,
+   "cookies": [
+    {
+     "name": "_astc",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_intlbu",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_m",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_shcc",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_tap_path",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_tap-criteo",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "_xrps",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "abqme",
+     "role": "session-app",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "ACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "adblocked",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "AID",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": "Strict",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ak_bmsc",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "akavpau_p2",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "assortmentStoreId",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "b30msc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bm_sv",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bsc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "bstc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "btc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "com.wm.reflector",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "doorwayId",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "exp-ck",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "hasACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "hasLocData",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "if_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "io_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ipSessionTrafficType",
+     "role": "traffic-class",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "isoLoc",
+     "role": "location",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "sbstc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "svtc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "TS012768cf",
+     "role": "bot-manager",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS016ef4c8",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01a90220",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01f89308",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS2a5e0c5c027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS8cb5a80e027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "userAppVersion",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "visitCount",
+     "role": "other",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vtc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "xpa",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpm",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptc",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpth",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptwg",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "xptwj",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    }
+   ]
+  },
+  {
+   "kind": "enroll",
+   "try": 5,
+   "at": "2026-10-23T23:18:28.592Z",
+   "kept": true,
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "F5392DD499223E",
+   "sellerId": "66656029CC6541",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 127,
+   "was": null,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false,
+   "cookies": [
+    {
+     "name": "_astc",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_intlbu",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_m",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_shcc",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_tap_path",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_tap-criteo",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "_xrps",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "abqme",
+     "role": "session-app",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "ACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "adblocked",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "AID",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": "Strict",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ak_bmsc",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "akavpau_p2",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "assortmentStoreId",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "b30msc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bm_sv",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bsc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "bstc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "btc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "com.wm.reflector",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "doorwayId",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "exp-ck",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "hasACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "hasLocData",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "if_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "io_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ipSessionTrafficType",
+     "role": "traffic-class",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "isoLoc",
+     "role": "location",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "sbstc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "svtc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "TS012768cf",
+     "role": "bot-manager",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS016ef4c8",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01a90220",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01f89308",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS2a5e0c5c027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS8cb5a80e027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "userAppVersion",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "visitCount",
+     "role": "other",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vtc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "xpa",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpm",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptc",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpth",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptwg",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "xptwj",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    }
+   ]
+  },
+  {
+   "kind": "enroll",
+   "try": 6,
+   "at": "2026-10-23T23:19:50.776Z",
+   "kept": true,
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "F5392DD499223E",
+   "sellerId": "66656029CC6541",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 127,
+   "was": null,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false,
+   "cookies": [
+    {
+     "name": "_astc",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_intlbu",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_m",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_px3",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxde",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_pxhd",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_pxvid",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "_shcc",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "_tap_path",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "_tap-criteo",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "_xrps",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "abqme",
+     "role": "session-app",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "7-31d"
+    },
+    {
+     "name": "ACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "adblocked",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "1-7d"
+    },
+    {
+     "name": "AID",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": "Strict",
+     "expiry": ">1y"
+    },
+    {
+     "name": "ak_bmsc",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": true,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "akavpau_p2",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": true,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "session"
+    },
+    {
+     "name": "assortmentStoreId",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "b30msc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bm_sv",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "bsc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "bstc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "btc",
+     "role": "other",
+     "domain": "b.www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "com.wm.reflector",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "doorwayId",
+     "role": "session-app",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "None",
+     "expiry": "<1d"
+    },
+    {
+     "name": "exp-ck",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "hasACID",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "hasLocData",
+     "role": "location",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "<1d"
+    },
+    {
+     "name": "if_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "io_id",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": "Lax",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "ipSessionTrafficType",
+     "role": "traffic-class",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "isoLoc",
+     "role": "location",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "pxcts",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Lax",
+     "expiry": "session"
+    },
+    {
+     "name": "sbstc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "svtc",
+     "role": "visitor-id",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "TS012768cf",
+     "role": "bot-manager",
+     "domain": ".www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS016ef4c8",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01a90220",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS01f89308",
+     "role": "bot-manager",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS2a5e0c5c027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "TS8cb5a80e027",
+     "role": "bot-manager",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "userAppVersion",
+     "role": "session-app",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": true,
+     "sameSite": "Strict",
+     "expiry": "31-366d"
+    },
+    {
+     "name": "visitCount",
+     "role": "other",
+     "domain": "www.walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    },
+    {
+     "name": "vtc",
+     "role": "visitor-id",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": ">1y"
+    },
+    {
+     "name": "xpa",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpm",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptc",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xpth",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "<1d"
+    },
+    {
+     "name": "xptwg",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "session"
+    },
+    {
+     "name": "xptwj",
+     "role": "experiment",
+     "domain": ".walmart.com",
+     "httpOnly": false,
+     "secure": false,
+     "sameSite": null,
+     "expiry": "31-366d"
+    }
+   ]
+  }
+ ]
+}
