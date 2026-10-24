@@ -86,7 +86,7 @@ enrolment. J1.3 runs in its single-offer form (D8).
 
 ## J2: repeat views (Excalibur, Wed 12-09 to Fri 12-11)
 
-### The registered run: 2026-10-23, 16:28–17:47 PDT (`raw/j2-2026-10-23b.json`) — DONE
+### The registered run: 2026-10-23, 16:28–17:43 PDT (`raw/j2-2026-10-23b.json`) — DONE
 
 `node analyze.mjs repeat raw/j2-2026-10-23b.json`. The run had 10 slots 6–9 min apart. Each slot paired one
 long-lived REPEAT browser per site with a brand-new FRESH browser, seconds apart, in a balanced order. The registered
