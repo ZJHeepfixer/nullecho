@@ -40,6 +40,59 @@ state are in `~/.cache/nullecho-cookie-pricing/`, outside the repo.
 - **Analysis:** `node analyze.mjs assign|cookies|history|repeat <raw>`.
 - **Clean-up after J1.3's swap:** delete `~/.cache/nullecho-cookie-pricing/j1-history/` (METHOD §2.7).
 
+## Plain-language summary for Jason (SUMMARY-FOR-JASON.md text)
+
+> Meant to become `SUMMARY-FOR-JASON.md`. The agent's harness refused to create that file, so it lives here until the
+> director copies it out.
+
+**Two questions:**
+- **Walmart:** why did one shopper see the AirPods at one price and another shopper at another?
+- **Priceline:** does looking at the same hotel room again make it cost more?
+
+**Walmart: what we found.**
+- **The difference is which seller's listing the page shows you by default.** Several marketplace sellers list the
+  same AirPods. When a brand-new visitor opens the page, Walmart picks one seller's listing to show as "the" offer.
+  - On 10-23, about half of 40 brand-new test browsers were shown **$127** (one seller) and about half
+    **$161–172** (another seller).
+  - On 10-17 the pair was $159.99 and $173.99, from different sellers again.
+  - It changes from day to day, and within a day.
+- **Your device didn't change it.** iPhone, Android, Mac and Windows profiles were all shown both offers. No device
+  effect was detectable, though only a big one would have been.
+- **It sticks to one cookie: `vtc`**, Walmart's visitor-tracking id.
+  - Copying only that one cookie into a brand-new browser made it show the same offer as the browser it came from,
+    16 times out of 16.
+  - Walmart's anti-bot cookies weren't needed for that, and nothing was hidden from Walmart to get the result.
+- **It looks like a site-wide assignment, not a "cheap group".** On the iPad item, the visitors who got one AirPods
+  seller also got one particular iPad seller, every time. But being in the cheaper AirPods group did not always mean
+  the cheaper iPad: on 10-17 it was the reverse.
+
+**Priceline: what we found.**
+- **Looking again did not raise the price.** A browser looked at Excalibur (Dec 9–11, cheapest king room) ten times
+  over 75 minutes. A brand-new browser looked at the same moments. Both were shown **$19 a night** ($129 for the two-night stay
+  "with taxes and fees") every single time.
+- **The price didn't move for anyone either**, so there was no "demand" bump in that window.
+- **Agoda (the second site):**
+  - New visitors were always shown $64. That figure appears to include the resort fee.
+  - The browser that kept coming back stopped being shown the room list at all, on 8 of 10 visits.
+  - When its cookies were moved into a fresh browser, that browser was shown the rooms at $64. So the hiding wasn't
+    about the cookies, and it wasn't a higher price, but it does mean Agoda couldn't be tested properly.
+
+**What this means.**
+- On Walmart, two people can see different prices for the same item at the same moment, because Walmart shows them
+  different sellers' listings, keyed to a visitor-id cookie.
+  - **Checking "other sellers" on the page** is the practical way to see the cheaper one.
+  - **A fresh browser might be shown a different listing**, which is not the same thing as a better price.
+- On Priceline, **this test found no "you looked twice, so it went up"** for this hotel, these dates, this hour.
+
+**What it does NOT mean.**
+- Nothing here shows Walmart or Priceline using personal data. Every test browser was brand-new and anonymous.
+- It doesn't show the folk belief is false everywhere. Other hotels, flights, longer browsing, signed-in accounts and
+  checkout pages weren't tested.
+- It is **not** a claim that Nullecho lowers prices. No extension was used anywhere in this study.
+
+**Still running:** the "does shopping history move it" test, J1.3. Six test browsers, four of them "shopping", run
+Sat–Mon. The windows open at about 9:30 AM, 10:00 AM and 6:30 PM Pacific.
+
 ## J1: walmart.com item 5689919121
 
 ### What a new visitor is shown changed between the two study days
