@@ -1,0 +1,540 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:44:01.929Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:44:12.092Z",
+   "type": "end",
+   "verdict": "NO-REGISTERED-ROOM",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD",
+   "finalUrl": "https://www.agoda.com/excalibur-hotel/hotel/las-vegas-nv-us.html?checkIn=2026-12-09&los=2&adults=2&rooms=1&currencyCode=USD&ds=uubOzorGMVAWYmRR",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "heuristic",
+   "title": "Excalibur Hotel, Las Vegas (NV) | 2026 Updated Prices, Deals",
+   "rooms": [
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      62
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 2,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      2,
+      20,
+      64
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 2,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      2,
+      20,
+      66
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 2,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      2,
+      20,
+      66
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      64
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 2,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      2,
+      20,
+      66
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      66
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 2,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      2,
+      20,
+      68
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      67
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 2,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      2,
+      20,
+      70
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      78
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 4,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      4,
+      20,
+      82
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      406
+     ]
+    },
+    {
+     "name": "1 room",
+     "nightly": 19,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "Per night before taxes"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      20,
+      425
+     ]
+    },
+    {
+     "name": "- Guests may use their room key or MGM Resorts App parking barcode to access all parking f",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "- The 24-hour parking fee provides guests with in-out privileges within the same parking type (self) across all MGM Reso"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20,
+      25,
+      20,
+      20
+     ]
+    },
+    {
+     "name": "Property announcements",
+     "nightly": 35,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      35,
+      50,
+      200,
+      50
+     ]
+    }
+   ],
+   "primary": null,
+   "availability": {
+    "roomCards": 18,
+    "priced": 18,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 2
+   },
+   "cfg": {
+    "cardSelector": null,
+    "nameSelector": null,
+    "priceSelector": null,
+    "settleMs": 30000,
+    "scrollSteps": 6
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Offer 1",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancellation policy",
+      "Pay to hotel",
+      "Free Wi-Fi",
+      "See details",
+      "Cheapest price you've seen!",
+      "USD",
+      "62",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet"
+     ],
+     "chain": [
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.a07fe-grow.a07fe-flex",
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 2",
+      "Lowest price with free cancellation included",
+      "Free cancellation included, for a price difference of just USD 2 per night",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancel for free before Dec 6, 2026",
+      "Pay to hotel",
+      "Free Wi-Fi",
+      "See details",
+      "USD",
+      "64",
+      "Per night before taxes",
+      "1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.a07fe-grow.a07fe-flex",
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex"
+     ],
+     "pricedLeaves": [
+      "span.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Free cancellation included, for a price \"",
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 1",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancellation policy",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "64",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.a07fe-grow.a07fe-flex",
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 2",
+      "Lowest price with free cancellation included",
+      "Free cancellation included, for a price difference of just USD 2 per night",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancel for free before Dec 6, 2026",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "66",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet"
+     ],
+     "chain": [
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.a07fe-grow.a07fe-flex",
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex"
+     ],
+     "pricedLeaves": [
+      "span.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Free cancellation included, for a price \"",
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 1",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancellation policy",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "64",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet",
+      "Our last few!"
+     ],
+     "chain": [
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.a07fe-grow.a07fe-flex",
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex"
+     ],
+     "pricedLeaves": [
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    },
+    {
+     "lines": [
+      "Offer 2",
+      "Lowest price with free cancellation included",
+      "Free cancellation included, for a price difference of just USD 2 per night",
+      "2 adults",
+      "Breakfast available (USD 20 / person)",
+      "Cancel for free before Dec 6, 2026",
+      "Pay to hotel",
+      "See details",
+      "USD",
+      "66",
+      "Per night before taxes",
+      "1 room",
+      "Book",
+      "You won't be charged yet"
+     ],
+     "chain": [
+      "div.a07fe-box.a07fe-fill-inherit",
+      "div.a07fe-grow.a07fe-flex",
+      "div[data-testid=\"room-offer\"].a07fe-box.a07fe-bg-generic-base-surface",
+      "div.a07fe-grow.a07fe-mb-4",
+      "div.a07fe-grow.a07fe-mb-12",
+      "div.a07fe-h-full.a07fe-flex"
+     ],
+     "pricedLeaves": [
+      "span.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Free cancellation included, for a price \"",
+      "p.sc-aXZVg.Typographystyled__TypographyStyled-sc-1uoovui-0 → \"Breakfast available (USD 20 / person)\""
+     ]
+    }
+   ],
+   "markup": null
+  }
+ ]
+}

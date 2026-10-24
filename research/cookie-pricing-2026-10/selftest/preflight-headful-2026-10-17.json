@@ -1,0 +1,360 @@
+{
+ "ranAt": "2026-10-17T21:13:58.596Z",
+ "minutes": 3.7,
+ "headless": false,
+ "cases": 8,
+ "passed": 8,
+ "failed": [],
+ "results": [
+  {
+   "id": "A1",
+   "what": "J1.1: a fair 50/50 cookie bucket, no device effect; J1.4 follow items (one follows the bucket, one has a single offer, one splits on its own)",
+   "kind": "positive+negative",
+   "pass": true,
+   "seconds": 60,
+   "checks": [
+    {
+     "label": "two offers found",
+     "pass": true,
+     "observed": [
+      "[email]×26",
+      "[email]×14"
+     ]
+    },
+    {
+     "label": "verdict SPLIT-CONSISTENT-WITH-HALF",
+     "pass": true,
+     "observed": "SPLIT-CONSISTENT-WITH-HALF {\"share\":0.65,\"lo\":0.4951,\"hi\":0.7787,\"x\":26,\"n\":40,\"binomVsHalf\":0.0807}"
+    },
+    {
+     "label": "10 observed per device",
+     "pass": true,
+     "observed": {
+      "android-chrome": 10,
+      "iphone-safari": 10,
+      "mac-chrome": 10,
+      "win-chrome": 10
+     }
+    },
+    {
+     "label": "no device effect (negative control)",
+     "pass": true,
+     "observed": {
+      "chi2": 2.1978,
+      "p": 0.6884,
+      "permutations": 20000,
+      "verdict": "NO-DEVICE-EFFECT-DETECTED"
+     }
+    },
+    {
+     "label": "no order effect",
+     "pass": true,
+     "observed": {
+      "meanLoadNoLowMinusHigh": -3.5055,
+      "p": 0.6652,
+      "verdict": "NO-ORDER-EFFECT-DETECTED"
+     }
+    },
+    {
+     "label": "reloads sticky",
+     "pass": true,
+     "observed": {
+      "reloads": 10,
+      "same": 10,
+      "verdict": "STICKY"
+     }
+    },
+    {
+     "label": "F1 follows the main bucket (positive)",
+     "pass": true,
+     "observed": {
+      "table": [
+       [
+        9,
+        0
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "agreement": 1,
+      "fisherP": 0.0045
+     }
+    },
+    {
+     "label": "F2 single offer (negative)",
+     "pass": true,
+     "observed": "NO-SPLIT-IN-12"
+    },
+    {
+     "label": "F3 splits independently",
+     "pass": true,
+     "observed": {
+      "table": [
+       [
+        4,
+        5
+       ],
+       [
+        1,
+        2
+       ]
+      ],
+      "agreement": 0.5,
+      "fisherP": 1
+     }
+    },
+    {
+     "label": "iPhone profile sends no client hints",
+     "pass": true,
+     "observed": 22
+    },
+    {
+     "label": "Android profile sends Sec-CH-UA-Mobile ?1, platform Android",
+     "pass": true,
+     "observed": {
+      "path": "/ip/5689919121",
+      "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36",
+      "ch": "\"Chromium\";v=\"149\", \"Google Chrome\";v=\"149\", \"Not;A=Brand\";v=\"99\"",
+      "chMobile": "?1",
+      "chPlatform": "\"Android\"",
+      "lang": "en-US,en;q=0.9"
+     }
+    },
+    {
+     "label": "Windows profile sends platform Windows",
+     "pass": true,
+     "observed": "\"Windows\""
+    },
+    {
+     "label": "Mac profile sends platform macOS",
+     "pass": true,
+     "observed": "\"macOS\""
+    },
+    {
+     "label": "no \"Headless\" in any user agent",
+     "pass": true,
+     "observed": null
+    },
+    {
+     "label": "navigator.webdriver false on every page",
+     "pass": true,
+     "observed": 86
+    },
+    {
+     "label": "navigator.platform matches each profile",
+     "pass": true,
+     "observed": [
+      "iPhone",
+      "Linux armv81",
+      "Win32",
+      "MacIntel"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "what": "J1.2: a deciding cookie (xpa) and a fallback carrier (vtc), like walmart.com's two subsets",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 65,
+   "checks": [
+    {
+     "label": "deciders = [xpa, vtc]",
+     "pass": true,
+     "observed": [
+      "xpa",
+      "vtc"
+     ]
+    },
+    {
+     "label": "both carry alone",
+     "pass": true,
+     "observed": [
+      "yes",
+      "yes"
+     ]
+    },
+    {
+     "label": "then NO-FURTHER-CARRIER",
+     "pass": true,
+     "observed": "NO-FURTHER-CARRIER: without xpa + vtc the remaining cookies do not carry the offer"
+    }
+   ]
+  },
+  {
+   "id": "G1",
+   "what": "guard: J1.1 probe refuses walmart.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "G2",
+   "what": "guard: J1.2 probe refuses walmart.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "G3",
+   "what": "guard: J1.3 init refuses walmart.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "G4",
+   "what": "guard: J2 probe refuses priceline.com without --live",
+   "kind": "negative",
+   "pass": true,
+   "seconds": 0,
+   "checks": [
+    {
+     "label": "exit code 3",
+     "pass": true,
+     "observed": 3
+    },
+    {
+     "label": "no output file",
+     "pass": true,
+     "observed": false
+    }
+   ]
+  },
+  {
+   "id": "P1",
+   "what": "privacy: no fixture cookie value, IP address or local path in any output; no request left [ip]",
+   "kind": "guard",
+   "checks": [
+    {
+     "label": "no cookie value in 3 output files (954 values issued)",
+     "pass": true,
+     "observed": 0
+    },
+    {
+     "label": "no fake IP",
+     "pass": true,
+     "observed": 0
+    },
+    {
+     "label": "no local path",
+     "pass": true,
+     "observed": 0
+    },
+    {
+     "label": "no non-loopback request",
+     "pass": true,
+     "observed": 0
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "R3",
+   "what": "J2: +$12 from a visitor's second view, counted on a cookie",
+   "kind": "positive",
+   "pass": true,
+   "seconds": 97,
+   "checks": [
+    {
+     "label": "REPEAT-VIEW-EFFECT (carried by cookies)",
+     "pass": true,
+     "observed": {
+      "slotsCompared": 9,
+      "meanGap": 12,
+      "sum": 108,
+      "signFlipP": 0.0039,
+      "exact": true,
+      "sameSignSlots": 9,
+      "needed": 6,
+      "gapAtFirstView": 0,
+      "repeatOwnChangeSlots": 9,
+      "doseRho": 0.5222,
+      "doseP": 0.2021,
+      "verdict": "REPEAT-VIEW-EFFECT (carried by cookies)"
+     }
+    },
+    {
+     "label": "demand NONE-DETECTED",
+     "pass": true,
+     "observed": {
+      "freshRho": 0,
+      "p": 1,
+      "theilSenPerSlot": 0,
+      "first": 189,
+      "last": 189,
+      "min": 189,
+      "max": 189,
+      "repeatRho": 0.5222,
+      "repeatP": 0.1969,
+      "verdict": "NONE-DETECTED"
+     }
+    },
+    {
+     "label": "swap-C carries",
+     "pass": true,
+     "observed": {
+      "copies": [
+       {
+        "k": 1,
+        "swap": 201,
+        "fresh": 189,
+        "swapGap": 12,
+        "measuredGap": 12,
+        "outcome": "carried"
+       },
+       {
+        "k": 2,
+        "swap": 201,
+        "fresh": 189,
+        "swapGap": 12,
+        "measuredGap": 12,
+        "outcome": "carried"
+       }
+      ],
+      "verdict": "CARRIES"
+     }
+    }
+   ]
+  }
+ ]
+}

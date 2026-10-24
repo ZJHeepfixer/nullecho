@@ -1,0 +1,190 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "8478151",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-23T23:24:19.643Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-23T23:24:48.290Z",
+   "type": "end",
+   "verdict": "NO-ROOM-CARDS",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "finalUrl": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "selector-none-yet",
+   "title": "Excalibur - Priceline.com",
+   "rooms": [],
+   "primary": null,
+   "availability": {
+    "roomCards": 0,
+    "priced": 0,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": null
+   },
+   "cfg": {
+    "cardSelector": "[data-testid=\"RATE_CARD\"]",
+    "nameSelector": "[class*=\"SrOnly\"]",
+    "nameAncestor": null,
+    "priceSelector": null,
+    "settleMs": 25000,
+    "scrollSteps": 0,
+    "scrollTo": null
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div.mb-2",
+      "div.ml-4.hidden",
+      "div.flex.w-full",
+      "div.Box-sc-n9h3nv-0.DetailsHero__ResponsiveWrapper-sc-aflhr3-2",
+      "div[data-testid=\"HERO_DESKTOP\"].Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Top Reasons to Book",
+      "FULLY REFUNDABLE RATES",
+      "Choose a room with a Refundable Rate for maximum flexibility",
+      "TOP RATED LOCATION",
+      "Guests rate the location 8.4/10",
+      "19,571 Reviews",
+      "7.5",
+      "Good",
+      "7.9",
+      "Cleanliness",
+      "7.7",
+      "Staff",
+      "8.3",
+      "Location"
+     ],
+     "chain": [
+      "div.Box-sc-n9h3nv-0.styles__ResponsiveWrapper-sc-33r0uq-7",
+      "div.Box-sc-n9h3nv-0.gJzoyp",
+      "div.Box-sc-n9h3nv-0.gJzoyp",
+      "section.HotelDetail__DetailsWrap-sc-2qqdsr-0.dLncq",
+      "div",
+      "div.fs-unmask"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div",
+      "div.flex.flex-col",
+      "div.flex.flex-col",
+      "div.flex.w-full",
+      "div.pointer-events-none.col-start-1"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div",
+      "div.flex.flex-col",
+      "div.flex.flex-col",
+      "div.flex.w-full",
+      "div.pointer-events-none.col-start-1"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div",
+      "div.flex.flex-col",
+      "div.flex.flex-col",
+      "div.flex.w-full",
+      "div.pointer-events-none.col-start-1"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Per night",
+      "$",
+      "21",
+      "$",
+      "133",
+      "2 nights, 1 room"
+     ],
+     "chain": [
+      "div.flex.flex-col",
+      "div",
+      "div.flex.flex-col",
+      "div.flex.flex-col",
+      "div.flex.w-full",
+      "div.pointer-events-none.col-start-1"
+     ],
+     "pricedLeaves": []
+    }
+   ],
+   "markup": null
+  }
+ ]
+}

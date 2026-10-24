@@ -1,0 +1,94 @@
+{
+ "meta": {
+  "study": "calibration: walmart-cart (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:16:17.226Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:17:50.058Z",
+   "type": "cookies-cleared",
+   "why": "cart not seen empty; the calibration profile is discarded with its cart"
+  },
+  {
+   "at": "2026-10-17T21:17:50.192Z",
+   "type": "end",
+   "verdict": "EMPTY-NOT-SEEN",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "item",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "wallPhraseWithData": null,
+   "error": null,
+   "offerId": "1C388ED23EE53C",
+   "sellerId": "7E9CC878BEC34B",
+   "sellerName": null,
+   "walmartSold": false,
+   "fulfillment": "MARKETPLACE",
+   "condition": "New",
+   "price": 173.99,
+   "was": 199,
+   "wPlus": null,
+   "store": "S1",
+   "cartCount": 0,
+   "webdriver": false
+  },
+  {
+   "kind": "cart-add",
+   "added": true,
+   "cartCount": 1,
+   "cartControlLabelsBefore": [
+    "button aria=\"Cart contains 0 items Total Amount $0.00\" text=\"0 $0.00\"",
+    "button aria=\"Add to cart - Restored Apple AirPods Pro White with Magsafe \" text=\"\"",
+    "button aria=\"Add to cart - SHOKZ OpenDots ONE - Open-Ear Headphones - Wir\" text=\"\"",
+    "button aria=\"Add to cart - Pre-Owned Apple AirPods Pro with Wireless MagS\" text=\"\"",
+    "button aria=\"Add to cart - Pre-Owned Apple AirPods Pro 3\" text=\"\"",
+    "button aria=\"Add to cart - Restored Apple AirPods Pro 2 White With USB-C \" text=\"\"",
+    "button aria=\"Add to cart - Pre-Owned Apple AirPods Pro Wireless Bluetooth\" text=\"\"",
+    "button aria=\"Add to cart - Pre-Owned Apple, AirPods Pro, In-Ear Headphone\" text=\"\"",
+    "button aria=\"Add to cart - Restored Apple AirPods Pro with MagSafe Chargi\" text=\"\"",
+    "button aria=\"Add to cart - Apple Earbuds Wired, Lightning Headphone for i\" text=\"\"",
+    "button aria=\"Add to cart - Restored Apple AirPods 3rd Gen A2566 Bluetooth\" text=\"\"",
+    "button aria=\"Add to cart - Case Cover Fits for AirPods Pro 2, DISEN Prote\" text=\"\""
+   ]
+  },
+  {
+   "kind": "cart-empty",
+   "emptied": false,
+   "removed": 0,
+   "http": 200
+  },
+  {
+   "kind": "cart-empty",
+   "attempt": 2,
+   "emptied": false,
+   "removed": 0,
+   "http": 200
+  }
+ ]
+}

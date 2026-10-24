@@ -1,0 +1,403 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "8478151",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-23T23:25:52.679Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-23T23:25:58.324Z",
+   "type": "end",
+   "verdict": "HOTEL-OK (Royal Tower, King Bed 19, via selector)",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "finalUrl": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "selector",
+   "title": "Excalibur - Priceline.com",
+   "rooms": [
+    {
+     "name": "Royal Tower, 2 Queen Beds",
+     "nightly": 17,
+     "total": 125,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      125
+     ]
+    },
+    {
+     "name": "Royal Tower, 2 Queen Beds",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "Tower Resort, 2 Queen Beds, Accessible",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "Tower Resort, 2 Queen Beds, Accessible",
+     "nightly": 21,
+     "total": 133,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      133
+     ]
+    },
+    {
+     "name": "Royal Tower, King Bed",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "Royal Tower, King Bed",
+     "nightly": 21,
+     "total": 134,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      134
+     ]
+    },
+    {
+     "name": "Resort Tower, 2 Queen Beds",
+     "nightly": 19,
+     "total": 129,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      129
+     ]
+    },
+    {
+     "name": "Resort Tower, 2 Queen Beds",
+     "nightly": 21,
+     "total": 134,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      134
+     ]
+    },
+    {
+     "name": "Resort Tower, King Bed",
+     "nightly": 22,
+     "total": 136,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      22,
+      136
+     ]
+    },
+    {
+     "name": "Resort Tower, King Bed",
+     "nightly": 25,
+     "total": 141,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      25,
+      141
+     ]
+    },
+    {
+     "name": "Resort, 2 Queen Beds, Strip View",
+     "nightly": 33,
+     "total": 158,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      33,
+      158
+     ]
+    },
+    {
+     "name": "Resort, 2 Queen Beds, Strip View",
+     "nightly": 37,
+     "total": 165,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      37,
+      165
+     ]
+    },
+    {
+     "name": "Luxury Royal Suite, King Bed And Sofa",
+     "nightly": 289,
+     "total": 668,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      289,
+      668
+     ]
+    },
+    {
+     "name": "Luxury Royal Suite, King Bed And Sofa",
+     "nightly": 304,
+     "total": 708,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      304,
+      708
+     ]
+    }
+   ],
+   "primary": {
+    "name": "Royal Tower, King Bed",
+    "nightly": 19,
+    "total": 129,
+    "fees": [],
+    "left": null,
+    "memberOnly": false,
+    "matches": 6
+   },
+   "availability": {
+    "roomCards": 14,
+    "priced": 14,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 17
+   },
+   "cfg": {
+    "cardSelector": "[data-name] [class*=\"group/card\"]",
+    "nameSelector": null,
+    "nameAncestor": "[data-name]",
+    "nameAttr": "data-name",
+    "priceSelector": null,
+    "settleMs": 25000,
+    "scrollSteps": 0,
+    "scrollTo": null
+   },
+   "cardDebug": [
+    {
+     "lines": [
+      "Non Refundable",
+      "Per night",
+      "$",
+      "17",
+      "$",
+      "125",
+      "2 nights, 1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.group/card.relative",
+      "div.flex.flex-col",
+      "div.isolate.flex",
+      "div.w-full",
+      "div.mt-4.grid",
+      "div.Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Fully Refundable",
+      "until December 5 at 11:59pm",
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.group/card.relative",
+      "div.flex.flex-col",
+      "div.isolate.flex",
+      "div.w-full",
+      "div.mt-4.grid",
+      "div.Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Non Refundable",
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.group/card.relative",
+      "div.flex.flex-col",
+      "div.isolate.flex",
+      "div.w-full",
+      "div.mt-4.grid",
+      "div.Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Fully Refundable",
+      "until December 5 at 11:59pm",
+      "Per night",
+      "$",
+      "21",
+      "$",
+      "133",
+      "2 nights, 1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.group/card.relative",
+      "div.flex.flex-col",
+      "div.isolate.flex",
+      "div.w-full",
+      "div.mt-4.grid",
+      "div.Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Non Refundable",
+      "Per night",
+      "$",
+      "19",
+      "$",
+      "129",
+      "2 nights, 1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.group/card.relative",
+      "div.flex.flex-col",
+      "div.isolate.flex",
+      "div.w-full",
+      "div.mt-4.grid",
+      "div.Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    },
+    {
+     "lines": [
+      "Fully Refundable",
+      "until December 5 at 11:59pm",
+      "Per night",
+      "$",
+      "21",
+      "$",
+      "134",
+      "2 nights, 1 room",
+      "Book"
+     ],
+     "chain": [
+      "div.group/card.relative",
+      "div.flex.flex-col",
+      "div.isolate.flex",
+      "div.w-full",
+      "div.mt-4.grid",
+      "div.Box-sc-n9h3nv-0.gJzoyp"
+     ],
+     "pricedLeaves": []
+    }
+   ],
+   "markup": null
+  }
+ ]
+}

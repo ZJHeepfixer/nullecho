@@ -1,0 +1,348 @@
+{
+ "meta": {
+  "study": "calibration: hotel (not data)",
+  "writtenBy": "probe-calibrate.mjs",
+  "redactions": {},
+  "gitHead": "a7bdd07",
+  "method": "research/cookie-pricing-2026-10/METHOD.md",
+  "startedAt": "2026-10-17T21:38:45.466Z",
+  "node": "v22.22.3",
+  "puppeteer": null,
+  "chrome": "149.0.7827.22",
+  "headless": false,
+  "live": true,
+  "launchFlags": [
+   "--no-first-run",
+   "--no-default-browser-check",
+   "--disable-blink-features=AutomationControlled",
+   "--lang=en-US"
+  ],
+  "ignoreDefaultArgs": [
+   "--enable-automation",
+   "--disable-extensions"
+  ],
+  "extensionLoaded": false
+ },
+ "events": [
+  {
+   "at": "2026-10-17T21:38:56.120Z",
+   "type": "end",
+   "verdict": "NO-REGISTERED-ROOM",
+   "nonLoopbackRequestsBlocked": 0
+  }
+ ],
+ "records": [
+  {
+   "kind": "hotel",
+   "url": "https://www.priceline.com/relax/at/46431/from/20261209/to/20261211/rooms/1/adults/2",
+   "http": 200,
+   "wall": false,
+   "wallWhy": null,
+   "wallText": null,
+   "how": "heuristic",
+   "title": "Excalibur - Priceline.com",
+   "rooms": [
+    {
+     "name": "Choose a room with a Refundable Rate for maximum flexibility",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees",
+      "Guests rave about the convenient location, friendly staff, and clean accommodations at this hotel. While some find the r"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      141
+     ]
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      17,
+      141
+     ]
+    },
+    {
+     "name": "Royal Tower Two Queen Room",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower Two Queen",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      151
+     ]
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Royal Tower King",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      151
+     ]
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      19,
+      146
+     ]
+    },
+    {
+     "name": "Resort Tower Two Queen",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      151
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      21,
+      150
+     ]
+    },
+    {
+     "name": "Resort Accessible Tower King",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      23,
+      156
+     ]
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      22,
+      153
+     ]
+    },
+    {
+     "name": "Resort Tower King",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      25,
+      159
+     ]
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      33,
+      178
+     ]
+    },
+    {
+     "name": "Resort Strip View Two Queen",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      37,
+      186
+     ]
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      361,
+      922
+     ]
+    },
+    {
+     "name": "Royal Luxury Suite",
+     "nightly": null,
+     "total": null,
+     "struck": [],
+     "fees": [
+      "with taxes and fees"
+     ],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      380,
+      965
+     ]
+    },
+    {
+     "name": "Children of age 0 and above can stay with extra bed, subject to additional charges.",
+     "nightly": 20,
+     "total": null,
+     "struck": [],
+     "fees": [],
+     "left": null,
+     "soldOut": false,
+     "memberOnly": false,
+     "prices": [
+      20
+     ]
+    }
+   ],
+   "primary": null,
+   "availability": {
+    "roomCards": 18,
+    "priced": 1,
+    "soldOut": 0,
+    "left": [],
+    "cheapest": 20
+   },
+   "cfg": {
+    "cardSelector": null,
+    "nameSelector": null,
+    "priceSelector": null,
+    "settleMs": 25000
+   }
+  }
+ ]
+}
