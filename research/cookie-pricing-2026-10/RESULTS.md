@@ -20,7 +20,7 @@ bought, booked or signed into.
 
 | when | which part |
 |---|---|
-| **Fri 10/23**, until about 8:00 PM | J2 and J1 |
+| **Fri 10/23**, until about 10:30 PM | J1.1 and J1.2 (J2 finished at 5:43 PM) |
 | **Sat 10/24, Sun 10/25 and Mon 10/26**, 9:30–9:40 AM, 10:00–10:20 AM and 6:30–6:40 PM | J1.3 |
 | **Mon 10/26**, about 6:45–7:00 PM | J1.3 swap |
 
