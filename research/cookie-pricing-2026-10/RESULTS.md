@@ -104,7 +104,7 @@ room is the cheapest king card.
 | swap-CS (cookies + localStorage) | $19: no gap | $64: no gap |
 | availability per slot | 14 rate cards; cheapest card $17 throughout | 6–10 offer cards; cheapest $62 throughout |
 
-**What this says.** On Priceline, looking at the same hotel, dates and room ten times over 80 minutes did not change
+**What this says.** On Priceline, looking at the same hotel, dates and room ten times over 75 minutes did not change
 the price this browser was shown. A brand-new browser was shown the same price at every slot, and the price did not
 drift for anyone. The prediction was H0, and H0 held.
 
