@@ -1,6 +1,6 @@
 # Workstream J: results
 
-**Status (updated 2026-10-23 19:35 PDT): DRAFT, stage 2 in progress.** This file is filled in as each part finishes,
+**Status (updated 2026-10-23 20:50 PDT): DRAFT, stage 2 in progress (J1.3 runs to 10-26).** This file is filled in as each part finishes,
 and no verdict is final until its part is marked done. Nothing here is a public claim. METHOD.md is the registration
 (`a7bdd07`); the deviations listed below are the only departures from it.
 
@@ -8,7 +8,7 @@ and no verdict is final until its part is marked done. Nothing here is a public 
 |---|---|---|
 | calibration | done 10-17; Priceline recalibrated 10-23 (D9) | `raw/calibration-*.json`, `j1-items.json`, `j2-targets.json` |
 | J1.1 + 1b | run 1 (10-17) stopped by the wall rule after 21 loads; **run 2 (10-23) DONE**, 40/40 observed | `raw/j1-assign-2026-10-17.json`, `raw/j1-assign-2026-10-23.json` |
-| J1.2 | **running** (started 19:16 PDT) | `raw/j1-cookies-2026-10-23.json` |
+| J1.2 | **DONE** 19:16–20:43 PDT: `vtc` alone carries the offer (16/16) | `raw/j1-cookies-2026-10-23.json` |
 | J1.3 | registered enrolment stopped 10-23 (one offer, 14/14); **single-offer version (D8) running 10-24 to 10-26** | `raw/j1-history-2026-10-23.json` (stopped); `raw/j1-history-2026-10-23-single.json` |
 | J1.4 | **DONE** inside J1.1 run 2 (and run 1, descriptive) | same as J1.1 |
 | J2 | 10-17 run killed at slot 5 (D6); first 10-23 attempt stopped at slot 1 (D9); **rerun DONE** 10-23 16:28–17:43 PDT | `raw/j2-2026-10-17.json`, `raw/j2-2026-10-23-aborted-slot1.json`, `raw/j2-2026-10-23b.json` |
@@ -92,6 +92,42 @@ $161–172, in roughly even proportions. Which device they presented did not det
   ±0.15, and the share moved during the day.
 - **Device:** only a large device tilt was detectable (METHOD §6). The Mac profile's 0.2 is within chance here.
 - **Personal data:** nothing about it. Every profile was a new, anonymous lab browser on one connection.
+
+### J1.2 which cookie carries the offer (10-23, 19:16–20:43 PDT, `raw/j1-cookies-2026-10-23.json`) — DONE
+
+`node analyze.mjs cookies raw/j1-cookies-2026-10-23.json --split 0.45`.
+- **Donors:** A drew $127 (`F5392DD4…`), B drew $172.25 (`0C3F46B1…`). Both were unchanged when re-read at the end.
+- **Volume:** 66 copies, all into brand-new mac-chrome profiles, **0 walled**.
+- **Cookies moved:** 36 transferable names. The 14 bot-manager cookies were never moved (PerimeterX `_px3`/`_pxde`/
+  `_pxhd`/`_pxvid`/`pxcts`; Akamai `ak_bmsc`/`akavpau_p2`/`bm_sv`; six F5 `TS…`).
+
+| step | what was copied | result |
+|---|---|---|
+| FULL | all 36 transferable cookies, alternately from A and B | 6 of 6 showed their donor's offer: **the jar carries the offer without any bot-manager cookie** |
+| BISECT 1 | first 18 names (the experiment and visitor-id groups) from one donor, the rest from the other | both mirror pairs agreed: the decider is in those 18 |
+| BISECT 2 | first 9 (`exp-ck`, `xpa`, `xpm`, `xptc`, `xpth`, `xptwg`, `xptwj`, `_m`, `ACID`) from one donor, all else, including `vtc`, from the other | pair 1 mirrored (the group of 9 won); pair 2 showed a **third seller's offer** (`1C388ED2…`, $173.99, seller `7E9CC878…`), so the pair was not a clean mirror and the registered rule switched to DDMIN |
+| DDMIN (fresh transfers) | the 9 visitor-id names → `sbstc, svtc, vtc, _intlbu` → `vtc, _intlbu` → `_intlbu` alone (failed on its 3rd copy) → **`vtc` alone** | `vtc` alone: **8 of 8**, then re-verified **8 of 8** |
+| registered verdict | | **`INTERACTION: no single deciding cookie; minimal carrying set {vtc}`** |
+
+**How to read that verdict.**
+- **Not a two-cookie dependency.** The label comes from the path the search had to take, not from one found.
+  DDMIN's minimal carrying set is **one** cookie. The non-mirror that sent the search to DDMIN was one mixed jar
+  falling back to a third seller's offer.
+- **The finding:** **`vtc`, Walmart's visitor-tracking id, carries the offer by itself, in both directions, 16 of 16
+  copies.** If a copy were re-drawn at random at J1.1's split, a non-carrying cookie would pass 16 alternating copies
+  with probability about 0.45⁸ × 0.55⁸ ≈ 1.4 × 10⁻⁵.
+- **Bot-manager cookies are not needed.** This settles the prior isolation's caveat: both of its subsets contained one,
+  and neither `_pxvid` nor `TS01…` is required.
+- **Against the pre-registered prediction:** the visitor-id fallback is **confirmed**. An experiment-class decider is
+  **not established**. In the one clean mirror pair of BISECT 2, the experiment/`ACID` group from one donor beat `vtc`
+  from the other, which is what an "experiment cookie decides when present, visitor id carries when alone" design would
+  do. One pair is not enough to say so.
+
+**What it does not say.**
+- **Who decides:** whether Walmart or the seller decides which listing a `vtc` gets.
+- **Whether `vtc` is the cause or a key:** whether the assignment is computed from `vtc` (for example a hash) or merely
+  looked up by it.
+- **Anything about the person:** `vtc` here is a random id that Walmart gave an anonymous lab browser seconds earlier.
 
 ### J1.4 in the registered run (10-23)
 
