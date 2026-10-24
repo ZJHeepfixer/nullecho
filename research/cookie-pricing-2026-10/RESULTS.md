@@ -40,6 +40,101 @@ state are in `~/.cache/nullecho-cookie-pricing/`, outside the repo.
 - **Analysis:** `node analyze.mjs assign|cookies|history|repeat <raw>`.
 - **Clean-up after J1.3's swap:** delete `~/.cache/nullecho-cookie-pricing/j1-history/` (METHOD §2.7).
 
+## J1: walmart.com item 5689919121
+
+### What a new visitor is shown changed between the two study days
+
+| date | fresh profiles observed | offers seen (offer id, price, seller) |
+|---|---|---|
+| 10-17, calibration and J1.1 run 1 | 8 | `609E2BE5…` $159.99 from seller `66306FC5…` (the prior study's seller); `1C388ED2…` $173.99 from seller `7E9CC878…` |
+| 10-23, J1.3 enrolment (both attempts) | 20 of 20 | `F5392DD4…` **$127.00 from seller `66656029…`** only |
+
+- **10-17:** neither of the prior isolation's offers ($149.99 / $169.99) appeared.
+- **10-23:** none of the 10-17 offers appeared.
+- **What the "offer" is.** On both days the price difference came from **which marketplace seller's listing the page
+  shows as its default**, not from one seller quoting two prices. Each offer is a different seller.
+
+### J1.1 run 1 (10-17): stopped by the wall rule
+
+- **Walls.** 21 loads, 7 of them walled (HUMAN "Robot or human?"), 5 of those on a profile's second or third page.
+  After the second run of three walls in a row, the registered rule stopped the probe for the day.
+- **Draws.** 6 profiles were observed: 2 drew $159.99 and 4 drew $173.99. The share of the cheaper offer was
+  0.33 (95% CI 0.10–0.70), verdict `INSUFFICIENT` (n < 20).
+- **Stickiness.** The one reload kept its offer.
+- **Device and pooling.** No device association can be judged at n = 6 (permutation p = 0.73). Because the offers
+  changed by 10-23, run 1 **is not pooled** with run 2 (D6) and is reported here on its own.
+
+### J1.4 in run 1 (10-17), descriptive
+
+- **Galaxy Buds 8470119448:** one offer ($95, seller `66656029…`) in all 3 reads.
+- **iPad 324081942:** two offers from two sellers, $164 (`8C8D812C…`) and $159 (`575677CF…`, Magnakom). In 4 of 4
+  profiles, the iPad offer was the **mirror** of the AirPods draw:
+
+| AirPods drawn | iPad drawn |
+|---|---|
+| $159.99 | $164 |
+| $173.99 | $159 |
+
+  Fisher p = 0.33 at n = 4, so the registered verdict is `SPLIT-NOT-SHOWN-TO-FOLLOW-MAIN-BUCKET`. The pattern is
+  worth testing, not claiming. If it held, a visitor's draw would select which seller's listing wins the default
+  slot across items, not make the visitor cheaper or dearer overall.
+
+### J1.3 registered enrolment (10-23): stopped
+
+All 14 fresh profiles drew the same $127 offer, and the registered rule ("≥2 profiles in each of two offers") stopped
+enrolment. J1.3 runs in its single-offer form (D8).
+
+## J2: repeat views (Excalibur, Wed 12-09 to Fri 12-11)
+
+### The registered run: 2026-10-23, 16:28–17:47 PDT (`raw/j2-2026-10-23b.json`) — DONE
+
+`node analyze.mjs repeat raw/j2-2026-10-23b.json`. The run had 10 slots 6–9 min apart. Each slot paired one
+long-lived REPEAT browser per site with a brand-new FRESH browser, seconds apart, in a balanced order. The registered
+room is the cheapest king card.
+
+| | Priceline | Agoda |
+|---|---|---|
+| repeat browser, slots 1–10 ($/night) | 19 at every slot | 64, —, —, —, —, 64, —, —, —, — |
+| fresh browser, slots 1–10 ($/night) | 19 at every slot | 64 at every slot |
+| repeat − fresh, slots 2–10 | 0 at all 9 (sign-flip p = 1.0) | 1 slot comparable (slot 6: 0) |
+| **PERSONAL verdict** | **NONE-DETECTED** | **INCONCLUSIVE** (fewer than 6 slots compared) |
+| fresh-series trend (Spearman) | flat (ρ = 0) | flat (ρ = 0) |
+| **DEMAND verdict** | **NONE-DETECTED** | **NONE-DETECTED** |
+| swap-C (repeat cookies in a fresh browser) | $19, $19: no gap to carry | $64 ($64 on both copies; one paired fresh unreadable) |
+| swap-CS (cookies + localStorage) | $19: no gap | $64: no gap |
+| availability per slot | 14 rate cards; cheapest card $17 throughout | 6–10 offer cards; cheapest $62 throughout |
+
+**What this says.** On Priceline, looking at the same hotel, dates and room ten times over 80 minutes did not change
+the price this browser was shown. A brand-new browser was shown the same price at every slot, and the price did not
+drift for anyone. The prediction was H0, and H0 held.
+
+**What it does not say.**
+- **Within reach of this design:** no other hotel, no longer or busier stretch, no logged-in user, no checkout page.
+- **Below its sensitivity:** a difference appearing in fewer than 6 of 9 slots could not reach significance (METHOD §6).
+- **Beyond the stay:** flights were not tested.
+
+**Agoda's returning browser lost the room grid.** On 8 of its 10 views, the long-lived repeat browser got an HTTP 200
+page with no room grid within the 40-second budget. Fresh browsers at the same slots rendered 6–10 offers in about 8
+seconds. New browsers carrying that repeat browser's cookies (swap-C) or its cookies plus localStorage (swap-CS) also
+rendered the grid at $64. So the cause did not travel with the cookies; it belongs to the long-lived session itself
+(its tab history, caches or in-memory state), which this design cannot tell apart. Agoda's personal comparison is
+therefore **INCONCLUSIVE**, not "none". The two repeat views that did render (slots 1 and 6) showed the fresh price.
+
+**Display variants (not prices).** Priceline served the same room under two naming templates ("Royal Tower King" /
+"Royal Tower, King Bed") and two stay-total captions. Both carried the same price.
+
+### The aborted 10-17 run (D6), descriptive only
+
+- **Coverage.** 4 complete slots on both sites, about 30 min.
+  - Priceline: Royal Tower King $19 a night on all 8 loads.
+  - Agoda: $64 on all 8.
+  - Every slot's repeat-minus-fresh gap was **0** on both sites.
+  - Agoda's slot 5 had no room cards on either arm.
+- **The "64/19 alternation" in this file is two sites interleaved.** Each slot holds both a Priceline load and an
+  Agoda load. It is not a reader fault: on each site the reading never changed.
+- **Templates.** On Priceline, the repeat browser got the "with taxes and fees" caption on all five views, including
+  its first. Fresh browsers got either caption. That is a display bucket, not a price difference.
+
 ## Deviations from METHOD.md
 
 Each deviation below is a departure from the registration. It is listed with its reason and with what it changes.
