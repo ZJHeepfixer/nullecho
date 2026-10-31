@@ -311,7 +311,7 @@ listed above, the answer for this app is None / No throughout.
 
 ## 7. Screenshots (`safari/store/`)
 
-All captured 2026-10-15 from the **0.9.2** build, real app, no frames or overlays (Review Guideline 2.3.3), no
+iPhone and iPad sets captured 2026-10-31 from the **0.9.3** build (main 8fcc6d8 app sources, 186 block rules), the Mac set still 2026-10-15; real app, no frames or overlays (Review Guideline 2.3.3), no
 alpha channel. iPhone and iPad shots are produced by a test in the repo —
 `safari/xcode/UITests/StoreScreenshotTests.swift` (run on its own with `-only-testing`, attachments exported with
 `xcrun xcresulttool export attachments`) — on iOS 27.0 (24A434) simulators in light appearance with the status
@@ -321,7 +321,7 @@ of `TipJarTests/testProductsLoadSortedByPriceWithDisplayPrices` on that simulato
 
 | File | Size | Device / class | Shows |
 |---|---|---|---|
-| `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.2", "Turn it on in Safari" steps |
+| `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.3", "Turn it on in Safari" steps |
 | `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "186 block rules on" (200 before PR #15's 14 exclusions), the collapsed "Acknowledgements" row |
 | `iphone-63-3-limits.png` | 1206×2622 | same | "What it does not do in Safari" and "Collects nothing" |
 | `iphone-63-4-support.png` | 1206×2622 | same | "If a site misbehaves" and "Support the project" with the four tips at $1.00 / $2.00 / $3.00 / $5.00 |
