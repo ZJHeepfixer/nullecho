@@ -97,6 +97,7 @@ test('the offline plan runs without credentials or network and names every step'
   assert.ok(plan.some((x) => x.startsWith('1. apps: contentRightsDeclaration = USES_THIRD_PARTY_CONTENT')));
   assert.ok(plan.some((x) => x.includes('SKIPPED: stale')), 'the stale Mac set is announced as skipped');
   const out = execFileSync('node', [path.join(REPO, 'safari', 'tools', 'asc-listing.mjs'), '--plan', '--offline'], { encoding: 'utf8', env: { PATH: process.env.PATH } });
-  assert.ok(out.includes('PLAN for Nullecho 0.9.2 (org.nullecho.app); nothing is sent:'));
+  const version = JSON.parse(fs.readFileSync(path.join(REPO, 'ext', 'manifest.json'), 'utf8')).version;
+  assert.ok(out.includes(`PLAN for Nullecho ${version} (org.nullecho.app); nothing is sent:`));
   assert.ok(out.includes('10. in-app purchases'));
 });

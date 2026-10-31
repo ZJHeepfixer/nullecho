@@ -1,4 +1,4 @@
-# Nullecho for Safari — App Store listing (version 0.9.2, first Safari release)
+# Nullecho for Safari — App Store listing (version 0.9.3, first Safari release)
 
 Prepared 2026-10-15 for App Store Connect, field by field, in the order App Store Connect asks for them. Every
 limit quoted below was read on Apple's pages on **2026-10-15** (URLs in §0); anything Apple's pages did not
@@ -55,11 +55,12 @@ Things only the owner can decide are marked **OWNER**. Nothing here was entered 
 
 ---
 
-## 2. Version 0.9.2 — App Store page (iOS; the macOS version of the same record reuses every text field)
+## 2. Version 0.9.3 — App Store page (iOS; the macOS version of the same record reuses every text field)
 
-Version string `0.9.2` comes from `ext/manifest.json` through `Scripts/stamp-version.sh`; build number is
-`CURRENT_PROJECT_VERSION` (currently 1). The simulator build the screenshots were taken from still reads
-`0.9.1` in its "Extension version" row (see §7).
+Version string `0.9.3` comes from `ext/manifest.json` through `Scripts/stamp-version.sh`; build number is
+`CURRENT_PROJECT_VERSION` (currently 1). The first Safari release follows the extension's version (owner,
+2026-10-31): it was prepared as 0.9.2, and the extension moved to 0.9.3 before it shipped. The Safari build
+carries the same four block categories as 0.9.2; 0.9.3's personalization ruleset (D58) is Chrome-only (§10).
 
 ### 2.1 Promotional text (165 characters; limit 170)
 
@@ -262,7 +263,7 @@ Per product, also:
   only effect is a one-line thank-you that disappears when the app quits. No account, no server, no restore
   (consumable). See the app's review notes."
 - **Submission**: the first consumable of an app must be submitted with an app version: Monetization ▸
-  In-App Purchases ▸ the item ▸ Add for Review ▸ add to the 0.9.2 submission (`audit/05-tip-jar-rules.md` §3,
+  In-App Purchases ▸ the item ▸ Add for Review ▸ add to the 0.9.3 submission (`audit/05-tip-jar-rules.md` §3,
   step 8). All four should ride with this version so App Review sees the section complete (2.1(b)).
 - No promotional images (the tips are not promoted on the App Store).
 
@@ -309,7 +310,8 @@ listed above, the answer for this app is None / No throughout.
 
 ## 7. Screenshots (`safari/store/`)
 
-All captured 2026-10-15 from the **0.9.2** build, real app, no frames or overlays (Review Guideline 2.3.3), no
+iPhone and iPad shots captured 2026-10-31 from the **0.9.3** build (main e69f6a3); the Mac shot 2026-10-15
+from the 0.9.2 build and marked stale (below). Real app, no frames or overlays (Review Guideline 2.3.3), no
 alpha channel. iPhone and iPad shots are produced by a test in the repo —
 `safari/xcode/UITests/StoreScreenshotTests.swift` (run on its own with `-only-testing`, attachments exported with
 `xcrun xcresulttool export attachments`) — on iOS 27.0 (24A434) simulators in light appearance with the status
@@ -319,7 +321,7 @@ of `TipJarTests/testProductsLoadSortedByPriceWithDisplayPrices` on that simulato
 
 | File | Size | Device / class | Shows |
 |---|---|---|---|
-| `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.2", "Turn it on in Safari" steps |
+| `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.3", "Turn it on in Safari" steps |
 | `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "186 block rules on" (200 before PR #15's 14 exclusions), the collapsed "Acknowledgements" row |
 | `iphone-63-3-limits.png` | 1206×2622 | same | "What it does not do in Safari" and "Collects nothing" |
 | `iphone-63-4-support.png` | 1206×2622 | same | "If a site misbehaves" and "Support the project" with the four tips at $1.00 / $2.00 / $3.00 / $5.00 |
@@ -337,8 +339,10 @@ The in-app "What it does" text visible in shots 2 no longer names any third-part
 review: the blocking row says the entries were "checked against the published tracker lists credited under
 Acknowledgements below", and a collapsed "Acknowledgements" row follows "Rule lists in this build"); the store
 *text* names none either (director's rule). The sets were re-shot after that change, and again from main 7753ed7 after PR #15's exclusions changed the
-counted row to "186 block rules on" (the app counts the rule files it ships). If the copy or the lists change again,
-re-run the screenshot test.
+counted row to "186 block rules on" (the app counts the rule files it ships), and again on 2026-10-31 from the 0.9.3
+build: only the "Extension version" row changed (the count is still 186, since the Safari build has no personalization
+ruleset), and the iPad status bar shows that day's date. If the copy or the lists change again, re-run the
+screenshot test.
 
 ## 8. Notes for App Review (2443 characters, 2447 bytes with the optional paragraph; limit 4000 bytes)
 
@@ -406,9 +410,13 @@ Phrases checked as absent from every field (script run on the final strings): "p
    Store Connect offers it for this record (platform availability unverified).
 7. **September 2026 age-rating changes**: not found on Apple's pages; the live questionnaire dates from
    January 31, 2026.
-8. ~~Screenshot source build reads 0.9.1~~ — re-shot from the 0.9.2 build 2026-10-15 (§7). The Mac shot is dark and shows the extension off (the build machine's real state); a light one needs the owner's appearance setting.
+8. ~~Screenshot source build reads 0.9.1~~ — re-shot from the 0.9.2 build 2026-10-15, and the iPhone and iPad sets again from the 0.9.3 build 2026-10-31 (§7). The Mac shot still reads 0.9.2 and is marked stale (§11). The Mac shot is dark and shows the extension off (the build machine's real state); a light one needs the owner's appearance setting.
 9. **Support URL contact information**: Apple wants real contact details reachable from the support page.
 10. **Required iPhone screenshot class** is the medium display (1206×2622); that set is provided. No large-display set.
+11. **Personalization ruleset is Chrome-only.** 0.9.3 added it to Chrome (D58, which ships nothing in that category
+    without the shopping lab); `safari/tools/safari-rules.mjs` was not changed, so Safari 0.9.3 blocks the same four
+    categories as 0.9.2. Adding it to Safari needs the shopping lab on Safari first. The store text promises no
+    category list, so nothing in this listing is wrong either way.
 
 ---
 
@@ -430,7 +438,7 @@ run `--apply` until `GET /v1/apps` finds `org.nullecho.app`, i.e. after the owne
 it never creates the record, the in-app purchases or the agreements.
 
 What `--apply` does, in order: content rights (`USES_THIRD_PARTY_CONTENT`); categories on the in-flight app info;
-subtitle + privacy-policy URL; per platform (IOS, MAC_OS) the version (0.9.2, MANUAL, copyright), its en-US text
+subtitle + privacy-policy URL; per platform (IOS, MAC_OS) the version (0.9.3, MANUAL, copyright), its en-US text
 (description, keywords, promotional text, support and marketing URLs; What's New omitted on a first version), the
 age-rating declaration (§6; attributes the API does not know are dropped on its word and reported), the review
 details (§8 notes, `demoAccountRequired: false`, contact from the environment if present), and the screenshot sets
