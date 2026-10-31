@@ -30,7 +30,8 @@ cd ext && npm test && npm run validate
 Then load it unpacked and check the popup still renders in light *and* dark.
 
 Touched `harness/blocking-proof.html`? Also run `node --test harness/blocking-proof.test.mjs`
-(offline) and `node harness/blocking-proof-check.mjs` (needs puppeteer and a network connection).
+(offline) and `node harness/blocking-proof-check.mjs` (needs puppeteer and a network connection;
+CI runs it too, `.github/workflows/blocking-proof-live.yml`).
 
 ## What we publish, and what we don't
 
