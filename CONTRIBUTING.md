@@ -23,8 +23,11 @@ behaviour, load it and look at it.
 
 ## Before you open a PR
 
+CI (`.github/workflows/ci.yml`) runs these on every pull request. Run them first anyway; it is faster.
+
 ```bash
-cd ext && npm test && npm run validate
+(cd ext && npm test && npm run validate)
+node --test safari/test/*.test.mjs
 ```
 
 Then load it unpacked and check the popup still renders in light *and* dark.
