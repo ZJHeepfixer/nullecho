@@ -15,7 +15,7 @@
     "availability": "owner's decision (EU trader status, STORE-LISTING §3); not set by the tool"
   },
   "version": {
-    "versionString": "0.9.2",
+    "versionString": "0.9.3",
     "platforms": [
       "IOS",
       "MAC_OS"
@@ -52,7 +52,7 @@
     "violenceRealistic": "NONE",
     "violenceRealisticProlongedGraphicOrSadistic": "NONE",
     "gunsOrOtherWeapons": "NONE",
-    "healthOrWellnessTopics": "NONE",
+    "healthOrWellnessTopics": false,
     "lootBox": false,
     "unrestrictedWebAccess": false,
     "userGeneratedContent": false,
