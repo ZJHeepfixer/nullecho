@@ -1,0 +1,108 @@
+{
+  "label": "shim-on",
+  "url": "https://www.costco.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8454,
+      "documents": [
+        {
+          "url": "https://www.costco.com/",
+          "status": 200,
+          "frameId": "2AFA2DE972166FAF88BD6738D260BEAD",
+          "server": "",
+          "setCookieNames": [
+            "client-zip-short",
+            "C_LOC",
+            "f_as"
+          ]
+        },
+        {
+          "url": "https://www.costco.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 200,
+          "frameId": "CDBC266788D4869A66728D9B7BA7E79A",
+          "server": "",
+          "setCookieNames": [
+            "KP_UIDz-ssn",
+            "KP_UIDz",
+            "KP_UIDz-ssn",
+            "KP_UIDz",
+            "BCO"
+          ]
+        }
+      ],
+      "blockedByClient": 4,
+      "otherFailures": [
+        {
+          "url": "https://www.costco.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "BCO",
+        "C_LOC",
+        "C_WHLOC",
+        "CriteoSessionUserId",
+        "JSESSIONID",
+        "KP_UIDz",
+        "KP_UIDz-ssn",
+        "STORELOCATION",
+        "WAREHOUSEDELIVERY_WHS",
+        "WC_ACTIVEPOINTER",
+        "WC_AUTHENTICATION_-1002",
+        "WC_GENERIC_ACTIVITYDATA",
+        "WC_PERSISTENT",
+        "WC_SESSION_ESTABLISHED",
+        "WC_USERACTIVITY_-1002",
+        "_lr_hb_-costco%2Fproduction-vrwno",
+        "_lr_tabs_-costco%2Fproduction-vrwno",
+        "client-zip-short",
+        "dtCookie",
+        "dtPC",
+        "dtSa",
+        "f_as",
+        "invCheckCity",
+        "invCheckPostalCode",
+        "invCheckStateCode",
+        "rxVisitor",
+        "rxvt"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Welcome to Costco Wholesale",
+        "href": "https://www.costco.com/",
+        "visibility": "visible",
+        "text": "Skip to Main Content Pre-Order iPhone Duo, Shop Now What's New While Supplies Last Get Email Offers Customer Service US Shop Type and press the down arrow to browse search suggestions ​ Warehouses Acc",
+        "webdriver": false,
+        "gpc": null,
+        "cores": 10,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267939262,
+            "lockedToFallback": true,
+            "reason": "api-read-before-handshake",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-m1-pro",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:12:24.744Z"
+}

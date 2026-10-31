@@ -1,0 +1,54 @@
+{
+  "_note": "Candidate sites per bot-manager vendor, as GUESSED before measuring. The vendor actually in front of each site is read from the cookies its own responses set (survey/<vendor>/<host>.json, documents[].setCookieNames and cookiesAfterLoad), not from this list. 'akamai-2' is a second Akamai batch, run after the first showed that most Akamai Bot Manager sites load with the shim.",
+  "akamai": [
+    "https://www.homedepot.com/",
+    "https://www.lowes.com/",
+    "https://www.bestbuy.com/",
+    "https://www.united.com/en/us",
+    "https://www.adidas.com/us",
+    "https://www.macys.com/"
+  ],
+  "perimeterx": [
+    "https://www.zillow.com/",
+    "https://www.walmart.com/",
+    "https://stockx.com/",
+    "https://www.fiverr.com/",
+    "https://www.ssense.com/en-us",
+    "https://www.wayfair.com/"
+  ],
+  "datadome": [
+    "https://www.tripadvisor.com/",
+    "https://www.leboncoin.fr/",
+    "https://www.footlocker.com/",
+    "https://www.hermes.com/us/en/",
+    "https://allegro.pl/",
+    "https://www.vinted.com/"
+  ],
+  "kasada": [
+    "https://www.hyatt.com/",
+    "https://www.realestate.com.au/",
+    "https://www.canadagoose.com/us/en/",
+    "https://kick.com/"
+  ],
+  "imperva": [
+    "https://www.pokemoncenter.com/",
+    "https://www.wizzair.com/",
+    "https://www.ticketmaster.com/",
+    "https://www.smythstoys.com/uk/en-gb"
+  ],
+  "cloudflare": [
+    "https://medium.com/",
+    "https://discord.com/",
+    "https://www.indeed.com/",
+    "https://www.glassdoor.com/",
+    "https://www.canva.com/"
+  ],
+  "akamai-2": [
+    "https://www.costco.com/",
+    "https://www.nike.com/",
+    "https://www.delta.com/",
+    "https://www.zara.com/us/",
+    "https://www.kohls.com/",
+    "https://www.sephora.com/"
+  ]
+}

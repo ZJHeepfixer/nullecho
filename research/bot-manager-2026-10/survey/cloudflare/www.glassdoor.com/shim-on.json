@@ -1,0 +1,87 @@
+{
+  "label": "shim-on",
+  "url": "https://www.glassdoor.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 9716,
+      "documents": [
+        {
+          "url": "https://www.glassdoor.com/recruiter?redirected_from=index",
+          "status": 200,
+          "frameId": "9032F7EE5BBB33BDDA6613945E06211D",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "indeedCtk",
+            "gdsid",
+            "gdId",
+            "asst"
+          ]
+        },
+        {
+          "url": "https://dntcl.qualaroo.com/frame.html",
+          "status": 200,
+          "frameId": "710E5CCF34CAF4AC6CC9BC02B090D94C",
+          "server": "BunnyCDN-LA1-899",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "OptanonConsent",
+        "__cf_bm",
+        "_dd_s",
+        "asst",
+        "cf_clearance",
+        "g_state",
+        "gdId",
+        "gdsid",
+        "indeedCtk",
+        "ki_r",
+        "ki_s",
+        "ki_t",
+        "rl_anonymous_id",
+        "rl_page_init_referrer",
+        "rl_session",
+        "rsReferrerData",
+        "rsSessionId"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Glassdoor | Relevant Job Matches and Company Research",
+        "href": "https://www.glassdoor.com/recruiter",
+        "visibility": "visible",
+        "text": "Sign in Yes, the job search sucks. So we built a better way. Skip the junk. We only deliver jobs that fit. Get Started Get Started Sharper matches with trusted reviews. We know companies. You know wha",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 10,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267843477,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1-pro",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:10:51.678Z"
+}

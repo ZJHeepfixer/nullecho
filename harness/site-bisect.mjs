@@ -11,7 +11,7 @@
  * Variants
  *   off       no extension at all (the protocol's mandatory OFF pass)
  *   full      ext/ as committed
- *   no-block  ads/analytics/social/fingerprinting rules emptied (gpc + ua rules kept)
+ *   no-block  ads/analytics/social/fingerprinting/personalization rules emptied (gpc + ua rules kept)
  *   no-ua     ua-win/ua-mac/ua-linux rules emptied (UA header never rewritten)
  *   no-gpc    gpc.js content script removed + gpc.json emptied
  *   no-shim   shim.js + shim-loader.js content scripts removed
@@ -74,7 +74,7 @@ function buildVariant(name) {
   const allRules = () => (m.declarative_net_request?.rule_resources ?? []).map((r) => r.id);
   switch (name) {
     case 'full': break;
-    case 'no-block': emptyRules(['ads', 'analytics', 'social', 'fingerprinting']); break;
+    case 'no-block': emptyRules(['ads', 'analytics', 'social', 'fingerprinting', 'personalization']); break;
     case 'no-ua': emptyRules(['ua-win', 'ua-mac', 'ua-linux']); break;
     case 'no-gpc': emptyRules(['gpc']); dropScripts(['gpc.js']); break;
     case 'no-shim': dropScripts(['shim.js', 'shim-loader.js']); break;

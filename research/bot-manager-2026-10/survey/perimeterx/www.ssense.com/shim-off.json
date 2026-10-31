@@ -1,0 +1,93 @@
+{
+  "label": "shim-off",
+  "url": "https://www.ssense.com/en-us",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 10526,
+      "documents": [
+        {
+          "url": "https://www.ssense.com/en-us",
+          "status": 200,
+          "frameId": "D50F6A36B826BB405ECD75AAEEF8733C",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "isp",
+            "preferredLanguage",
+            "visitorId",
+            "detect_one_trust_policy",
+            "cookieDisclaimerAccepted",
+            "gdprCountry",
+            "x-routing-origin"
+          ]
+        },
+        {
+          "url": "https://analytics.ssense.com/_/service_worker/6a60/sw_iframe.html?origin=https%3A%2F%2Fwww.ssense.com&1p=1",
+          "status": 200,
+          "frameId": "FB27D20FB24A76368E6E4906C93ED3F7",
+          "server": "cloudflare",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 5,
+      "otherFailures": [
+        {
+          "url": "https://ssensesupport.zendesk.com/frontendevents/pv?client=1B752747-577B-429A-A0E0-83861AF69088",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "FPAU",
+        "OptanonConsent",
+        "_dd_s",
+        "_ga",
+        "_ga_3L9QF4WT0T",
+        "_gcl_au",
+        "cf_clearance",
+        "country",
+        "detect_one_trust_policy",
+        "gdprCountry",
+        "isp",
+        "lang",
+        "lastRskxRun",
+        "preferredLanguage",
+        "rCookie",
+        "rskxRunCookie",
+        "shopping_bag",
+        "sid",
+        "visitorId",
+        "x-routing-origin"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Luxury fashion & independent designers | SSENSE",
+        "href": "https://www.ssense.com/en-us",
+        "text": "Get 20% off select full-price styles with code FALL26. Eligible styles: Menswear, Womenswear, and Everything Else. Details 0 SHOP MENSWEAR SHOP WOMENSWEAR Fashion WHAT’S CRACKING Why butt cleavage is ",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:58:10.743Z"
+}

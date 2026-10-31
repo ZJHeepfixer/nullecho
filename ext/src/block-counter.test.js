@@ -35,7 +35,8 @@ test('every shipped block rule covers a request built from its own condition, un
       let url;
       if (c.requestDomains) url = `https://${c.requestDomains[0]}/x.js`;
       else url = 'https://' + c.urlFilter.replace(/^\|\|/, '').replace(/\*/g, 'a').replace(/\^$/, '?q=1').replace(/\^/g, '/');
-      const m = M.match(req(url));
+      // A rule scoped to resource types (personalization#6707: EasyPrivacy's `$image`) is probed with one of them.
+      const m = M.match(req(url, undefined, c.resourceTypes?.[0] ?? 'script'));
       assert.ok(m, `rule ${id}#${r.id} does not cover ${url}`);
       assert.equal(classifyMatchedRule(m).outcome, OUTCOME.BLOCKED, `${url}`);
       assert.equal(classifyMatchedRule(m).category, id, `${url} credited to ${m.rulesetId}#${m.ruleId}`);

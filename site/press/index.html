@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Press kit — Nullecho</title>
+<meta name="description" content="Press kit for Nullecho, a free, open-source browser extension that blocks known trackers. Fact sheet, the story behind it, its honest limits, the Maryland research and the public FTC comment, and downloadable logos, slogan cards and screenshots.">
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141922; --line:#242c3a; --raise:#1b2230;
+    --text:#e8edf5; --dim:#93a0b5; --faint:#7d8a9f;
+    --accent:#5eead4; --accent-dim:#2dd4bf; --warn:#fbbf24; --on-accent:#04211c;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#fbfcfd; --panel:#fff; --line:#e2e8f0; --raise:#f1f5f9;
+      --text:#0f172a; --dim:#475569; --faint:#5b6878;
+      --accent:#0f766e; --accent-dim:#0b5f58; --warn:#a16207; --on-accent:#fff;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--text); font:16px/1.65 var(--sans); -webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px; margin:0 auto; padding:0 20px}
+
+  nav{padding:16px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+  nav .wrap{display:flex; gap:6px 18px; flex-wrap:wrap; align-items:center}
+  nav a{color:var(--dim); text-decoration:none}
+  nav a:hover{color:var(--text)}
+  nav .brand{color:var(--text); font-weight:700; letter-spacing:.02em; margin-right:4px}
+
+  header{padding:52px 0 32px; border-bottom:1px solid var(--line)}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:16px}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent)}
+  h1{font:600 clamp(30px,5.2vw,44px)/1.15 var(--serif); margin:0 0 16px; letter-spacing:-.02em}
+  .lede{font-size:18px; color:var(--dim); margin:0 0 18px; line-height:1.6}
+  .lede b{color:var(--text); font-weight:600}
+  .local{padding:12px 16px; border-left:3px solid var(--accent); background:var(--panel);
+    border-radius:0 8px 8px 0; font-size:14.5px; color:var(--dim); margin:0}
+  .local b{color:var(--text)}
+  .toc{display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 0; padding:0; list-style:none}
+  .toc a{display:inline-block; font-size:13.5px; padding:6px 11px; border:1px solid var(--line);
+    border-radius:999px; color:var(--dim); text-decoration:none; background:var(--panel)}
+  .toc a:hover{color:var(--text); border-color:var(--faint)}
+
+  section{padding:40px 0; border-bottom:1px solid var(--line)}
+  h2{font:600 24px/1.3 var(--serif); margin:0 0 10px; letter-spacing:-.01em}
+  h3{font-size:16.5px; margin:22px 0 6px; font-weight:650}
+  p{margin:0 0 14px; color:var(--dim)}
+  p b, li b, dd b{color:var(--text); font-weight:600}
+  ul{margin:8px 0 14px; padding-left:20px; color:var(--dim)}
+  li{margin-bottom:9px}
+  a{color:var(--accent); text-underline-offset:3px; overflow-wrap:anywhere}
+  code{font-family:var(--mono); font-size:13.5px; color:var(--text)}
+
+  /* fact sheet: two columns on wide screens, stacked on phones */
+  dl.facts{display:grid; grid-template-columns:170px 1fr; margin:16px 0 0; border-top:1px solid var(--line)}
+  dl.facts dt, dl.facts dd{margin:0; padding:12px 0; border-bottom:1px solid var(--line)}
+  dl.facts dt{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); font-weight:700; padding-top:15px}
+  dl.facts dd{color:var(--dim); font-size:15px}
+  dl.facts dd ul{margin:0; padding-left:18px}
+  dl.facts dd li{margin-bottom:5px}
+  .soon{display:inline-block; font-size:12px; font-weight:700; color:var(--warn); border:1px solid currentColor;
+    border-radius:999px; padding:0 8px; margin-left:4px; vertical-align:1px}
+  .live{display:inline-block; font-size:12px; font-weight:700; color:var(--accent); border:1px solid currentColor;
+    border-radius:999px; padding:0 8px; margin-left:4px; vertical-align:1px}
+  @media (max-width: 600px){
+    dl.facts{grid-template-columns:1fr}
+    dl.facts dt{border-bottom:0; padding:14px 0 0}
+    dl.facts dd{padding:2px 0 14px}
+  }
+
+  blockquote{margin:20px 0; padding:14px 18px; border-left:3px solid var(--accent); background:var(--panel);
+    border-radius:0 8px 8px 0; font:italic 19px/1.5 var(--serif); color:var(--text)}
+  blockquote cite{display:block; margin-top:6px; font:normal 13.5px var(--sans); color:var(--faint)}
+
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:18px 20px; margin:18px 0}
+  .box.warn{border-left:3px solid var(--warn)}
+  .box ul:last-child, .box p:last-child{margin-bottom:0}
+
+  /* assets */
+  .assets{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin:18px 0 6px}
+  .asset{background:var(--panel); border:1px solid var(--line); border-radius:11px; overflow:hidden; display:flex; flex-direction:column}
+  .asset .thumb{background:var(--raise); display:flex; align-items:center; justify-content:center; height:190px; padding:14px}
+  .asset .thumb.check{background-color:#e9edf2;
+    background-image:linear-gradient(45deg,#d5dbe3 25%,transparent 25%,transparent 75%,#d5dbe3 75%),
+                     linear-gradient(45deg,#d5dbe3 25%,transparent 25%,transparent 75%,#d5dbe3 75%);
+    background-size:16px 16px; background-position:0 0,8px 8px}
+  .asset img{max-width:100%; max-height:100%; height:auto; width:auto; display:block; border-radius:4px}
+  .asset .meta{padding:12px 14px 14px; font-size:13.5px; color:var(--dim); flex:1; display:flex; flex-direction:column; gap:6px}
+  .asset .meta b{color:var(--text); font-size:14px}
+  .asset .dl{display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:auto}
+  .asset .dl a{font-weight:600; font-size:13.5px}
+  .rules{font-size:14.5px}
+
+  /* contact */
+  .contact{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin:14px 0 8px}
+  .email{font:600 19px var(--mono); color:var(--text); background:var(--raise); border:1px solid var(--line);
+    padding:9px 14px; border-radius:9px; user-select:all; overflow-wrap:anywhere}
+  button.copy{background:var(--accent); color:var(--on-accent); border:0; padding:11px 18px; border-radius:9px;
+    font:700 15px var(--sans); cursor:pointer}
+  button.copy:hover{background:var(--accent-dim)}
+  .status{font-size:13.5px; color:var(--dim); min-height:1.2em; margin:0}
+  .nojs .copy{display:none}
+
+  footer{padding:34px 0 64px; font-size:13.5px; color:var(--faint)}
+  footer p{color:var(--faint); font-size:13.5px}
+  footer a{color:var(--dim)}
+</style>
+</head>
+<body class="nojs">
+
+<nav><div class="wrap">
+  <a class="brand" href="/">Nullecho</a>
+  <a href="/">Measure it yourself</a>
+  <a href="/drop/">California DROP guide</a>
+  <a href="/rights/">Your data rights</a>
+  <a href="/research/">Research</a>
+  <a href="/privacy/">Privacy</a>
+  <a href="https://github.com/ZJHeepfixer/nullecho">Source</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="eyebrow"><span class="dot"></span>Press kit</div>
+  <h1>Nullecho, for reporters and writers.</h1>
+  <p class="lede">
+    <b>Nullecho is a free, open-source browser extension for Chrome.</b> It blocks known trackers (ad networks,
+    analytics, social pixels and fingerprinting companies), sends Global Privacy Control, a "do not sell or share my
+    data" signal that California, Colorado and several other states legally recognize for their residents, and shows
+    each website a different, realistic device profile, so most trackers can't link your visits from one site to the
+    next. It needs no account, shows no ads and doesn't send your data anywhere. It was built by Jason Luker, a bar
+    owner and former auto technician in Ridgecrest, California.
+  </p>
+  <p class="local">
+    <b>Everything here is free to use in coverage of Nullecho.</b> The logos, cards and screenshots below are plain
+    files in this site's folder; nothing on this page records your visit.
+  </p>
+  <ul class="toc">
+    <li><a href="#facts">Fact sheet</a></li>
+    <li><a href="#story">Why it exists</a></li>
+    <li><a href="#limits">What it can't do</a></li>
+    <li><a href="#research">Research and the FTC comment</a></li>
+    <li><a href="#assets">Logos and screenshots</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</div></header>
+
+<section id="facts"><div class="wrap">
+  <h2>Fact sheet</h2>
+  <dl class="facts">
+    <dt>What it does</dt>
+    <dd><ul>
+      <li>Blocks known trackers: ad networks, analytics, social pixels and fingerprinting companies.</li>
+      <li>Sends <b>Global Privacy Control</b>, a "do not sell or share my data" signal that California, Colorado and
+        several other states legally recognize, for their residents.</li>
+      <li>Shows each website a <b>different, realistic device profile</b>, so most trackers can't link your visits.
+        Most, not all: see <a href="#limits">what it can't do</a>.</li>
+      <li>Lets anyone check it on their own computer: <a href="/">nullecho.org</a> shows what a site can read about
+        your browser, and the measurement never leaves your device.</li>
+    </ul></dd>
+
+    <dt>Price</dt>
+    <dd><b>Free.</b> No account, no ads, no paid tier.</dd>
+
+    <dt>Platforms</dt>
+    <dd><ul>
+      <li><b>Chrome</b> on a computer <span class="live">Live</span> —
+        <a href="https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn">Chrome Web Store</a></li>
+      <li><b>Firefox</b> <span class="soon">Coming soon</span></li>
+      <li><b>Microsoft Edge</b> <span class="soon">Coming soon</span></li>
+      <li><b>Safari</b> (iPhone, iPad and Mac) <span class="soon">Coming soon</span></li>
+    </ul></dd>
+
+    <dt>Version</dt>
+    <dd>0.9.1, an early release, on the Chrome Web Store since October 5, 2026.</dd>
+
+    <dt>License</dt>
+    <dd><b>MIT</b>, open source. Code, tests and the decision log:
+      <a href="https://github.com/ZJHeepfixer/nullecho">github.com/ZJHeepfixer/nullecho</a>.</dd>
+
+    <dt>Data collected</dt>
+    <dd><b>None.</b> The extension doesn't send your data anywhere: no account, no analytics, no telemetry. Its
+      settings and the counts it shows you stay in your browser. The website is a separate question: it is hosted on
+      GitHub Pages, which logs visitors' IP addresses, as the <a href="/privacy/">privacy page</a> explains.</dd>
+
+    <dt>Made by</dt>
+    <dd>Jason Luker, Ridgecrest, California. One person, working with AI assistance (Claude); the design decisions and
+      the accountability are his, as the
+      <a href="https://github.com/ZJHeepfixer/nullecho#how-this-was-built">README</a> says.</dd>
+
+    <dt>Contact</dt>
+    <dd><a href="#contact">jason@nullecho.org</a></dd>
+  </dl>
+</div></section>
+
+<section id="story"><div class="wrap">
+  <h2>Why it exists</h2>
+  <p>
+    Jason Luker spent years in automotive service, repairs and diagnostics, and now owns a small pub in Ridgecrest,
+    California. He has run businesses for most of his life and dealt with customers face to face, and he believes in
+    charging a fair price for something you stand behind.
+  </p>
+  <p>
+    People are noticing that the price they see online might not be the price their neighbor sees. Some companies use
+    personal data to set a personal price; the FTC calls it surveillance pricing. To him, charging someone more because
+    a computer guessed they'd pay it isn't a fair price, so he did two things.
+  </p>
+  <p>
+    <b>He read the actual laws.</b> New York has required a pricing disclosure since November 10, 2025. Maryland's ban
+    for large food retailers and third-party food delivery began October 1, 2026. Connecticut's law takes effect July 1,
+    2027, and New Jersey's grocery ban by August 1, 2027. Reading Maryland's own text, he found that a warning-label
+    section some summaries still describe as law was cut before the bill passed. He also filed a public comment with
+    the FTC.
+  </p>
+  <p>
+    <b>He built Nullecho</b>, a free tool that makes it harder for companies to follow people around the internet in
+    the first place. It makes tracking harder; it can't promise anyone a price.
+  </p>
+  <blockquote>
+    “It should be one price for all, not lower or higher prices for some.”
+    <cite>Jason Luker</cite>
+  </blockquote>
+</div></section>
+
+<section id="limits"><div class="wrap">
+  <h2>What it can't do</h2>
+  <p>A privacy tool that oversells is worse than none, because people make real decisions based on what it implies.
+    These limits are part of the story; please include the ones that matter to yours.</p>
+  <div class="box warn"><ul>
+    <li><b>Most trackers, not all.</b> Tested against the FingerprintJS and ClientJS libraries, four device profiles
+      got four different IDs, so those couldn't link the visits. A tracker that detects faked values, throws them out
+      and uses what's left can still link them; the free CreepJS library does exactly that.</li>
+    <li><b>The canvas protection can be beaten.</b> Since October 14, 2026 the project has documented that a page which
+      draws its canvas about 21 times and keeps each pixel's most common value gets the real canvas back, the same under
+      every profile, in under a second. A page that reads the canvas from a Web Worker gets it in one try. No fix has
+      shipped; it is disclosed in the <a href="https://github.com/ZJHeepfixer/nullecho/blob/main/docs/THREAT-MODEL.md">threat model</a>.</li>
+    <li><b>It is detectable.</b> A site that looks can tell Nullecho is installed.</li>
+    <li><b>Nothing about your IP address or TLS fingerprint.</b> No browser extension can reach those. That takes a
+      VPN or Tor.</li>
+    <li><b>Firefox's built-in protection and Brave are stronger</b> at resisting fingerprinting, because they work
+      below the layer an extension can reach. Nullecho's niche is Chrome, where neither exists.</li>
+    <li><b>It can't get anyone a better price</b>, and it can't end personalized pricing. It makes tracking harder.
+      The best controlled study found that clearing your tracks gave the worse price more often than the better one.</li>
+    <li><b>A logged-in account still identifies you</b> to the service you're signed in to.</li>
+    <li><b>It does nothing against government or ISP surveillance.</b> Different threat model entirely.</li>
+    <li><b>Global Privacy Control's legal weight depends on where you live</b>, and it covers only the browser profile
+      it's installed in.</li>
+    <li><b>It's an early release.</b> On Linux, the graphics-card names in the device profiles aren't yet verified on
+      real hardware.</li>
+  </ul></div>
+</div></section>
+
+<section id="research"><div class="wrap">
+  <h2>Research and the FTC comment</h2>
+  <h3>The Maryland finding</h3>
+  <p>
+    Maryland HB 895 as introduced had a section, Com. Law § 13-322, requiring the sentence "THIS PRICE WAS SET BY AN
+    ALGORITHM OR BY USING YOUR PERSONAL DATA." That section was struck before the bill passed. At least one published
+    law-firm alert, and the AI answers of the major search engines, have described it as law. Maryland's own statute site
+    shows "File Not Found" for it. The write-up, with a three-click check anyone can run:
+    <a href="/research/#maryland">nullecho.org/research/#maryland</a>.
+  </p>
+  <h3>The public FTC comment</h3>
+  <p>
+    Jason filed a comment on the FTC's Proposed Enforcement Policy Statement Regarding Personalized Pricing (File No.
+    P034101). The Commission posted it on September 21, 2026:
+    <a href="https://www.regulations.gov/comment/FTC-2026-1057-1137">Comment from Luker, Jason, FTC-2026-1057-1137</a>
+    on regulations.gov.
+  </p>
+  <p>
+    Not legal advice: it's written by the developer of a free browser extension, not by a lawyer.
+  </p>
+</div></section>
+
+<section id="assets"><div class="wrap">
+  <h2>Logos, cards and screenshots</h2>
+  <p>Right-click to save, or use the download links. The screenshots are the real ones from the Chrome Web Store
+    listing, captured September 23, 2026.</p>
+
+  <div class="assets">
+    <div class="asset">
+      <div class="thumb check"><img src="nullecho-icon-512.png" alt="The Nullecho icon: eight teal dots on a dark rounded square" width="160" height="160" loading="lazy"></div>
+      <div class="meta"><b>Icon</b>Teal dots on a dark tile. PNG with a transparent background outside the tile, and the SVG master.
+        <div class="dl"><a href="nullecho-icon-1024.png" download>PNG 1024</a><a href="nullecho-icon-512.png" download>PNG 512</a><a href="nullecho-icon.svg" download>SVG</a></div></div>
+    </div>
+    <div class="asset">
+      <div class="thumb"><img src="nullecho-nah-card-1080x1350.png" alt="Slogan card: Trackers: 'Can we follow you around the internet?' Nullecho: Nah." width="144" height="180" loading="lazy"></div>
+      <div class="meta"><b>"Nah." slogan card</b>Feed size, 1080 × 1350.
+        <div class="dl"><a href="nullecho-nah-card-1080x1350.png" download>PNG 1080 × 1350</a></div></div>
+    </div>
+    <div class="asset">
+      <div class="thumb"><img src="nullecho-nah-card-1080x1920.png" alt="Slogan card, tall: Trackers: 'Can we follow you around the internet?' Nullecho: Nah." width="101" height="180" loading="lazy"></div>
+      <div class="meta"><b>"Nah." slogan card, tall</b>Stories size, 1080 × 1920.
+        <div class="dl"><a href="nullecho-nah-card-1080x1920.png" download>PNG 1080 × 1920</a></div></div>
+    </div>
+    <div class="asset">
+      <div class="thumb"><img src="nullecho-screenshot-popup-1280x800.png" alt="Screenshot: the Nullecho popup on a news site, showing blocked requests and the device profile that site was shown" width="288" height="180" loading="lazy"></div>
+      <div class="meta"><b>Screenshot: the popup</b>What one news site loaded, and the device profile it was shown.
+        <div class="dl"><a href="nullecho-screenshot-popup-1280x800.png" download>PNG 1280 × 800</a></div></div>
+    </div>
+    <div class="asset">
+      <div class="thumb"><img src="nullecho-screenshot-blocking-gpc-1280x800.png" alt="Screenshot: Nullecho settings with the four blocking categories and Global Privacy Control" width="288" height="180" loading="lazy"></div>
+      <div class="meta"><b>Screenshot: blocking and GPC</b>The four blocking categories and the Global Privacy Control switch.
+        <div class="dl"><a href="nullecho-screenshot-blocking-gpc-1280x800.png" download>PNG 1280 × 800</a></div></div>
+    </div>
+    <div class="asset">
+      <div class="thumb"><img src="nullecho-screenshot-limits-1280x800.png" alt="Screenshot: the 'What Nullecho can't do' section of the settings page" width="288" height="180" loading="lazy"></div>
+      <div class="meta"><b>Screenshot: the limits</b>"What Nullecho can't do", kept on the settings page, not in a footnote.
+        <div class="dl"><a href="nullecho-screenshot-limits-1280x800.png" download>PNG 1280 × 800</a></div></div>
+    </div>
+  </div>
+
+  <h3>Using the name and the slogan</h3>
+  <ul class="rules">
+    <li>The product is always <b>Nullecho</b>, one word, capital N.</li>
+    <li>The slogan: Trackers: "Can we follow you around the internet?" Nullecho: <b>Nah.</b> Always "Nah." with the
+      h and the period.</li>
+    <li>Colors: tile <code>#0D1117</code>, dots <code>#56C3A4</code>. Please don't redraw, recolor or put words on the
+      icon.</li>
+  </ul>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <h2>Contact</h2>
+  <p>Questions, interviews or a fact check: write to Jason directly. Replies come from a person, not a PR firm.</p>
+  <div class="contact">
+    <span class="email" id="email">jason@nullecho.org</span>
+    <button class="copy" type="button" data-copy="jason@nullecho.org">Copy address</button>
+  </div>
+  <p class="status" id="copy-status" aria-live="polite"></p>
+  <p>Based in Ridgecrest, California (Pacific time).</p>
+</div></section>
+
+<footer><div class="wrap">
+  <p>
+    No analytics on this page. No cookies set. Its one script copies the email address to your clipboard and makes no
+    network request. GitHub Pages serves this site and logs visitors' IP addresses, as our
+    <a href="/privacy/">privacy page</a> explains.
+  </p>
+  <p><a href="/">Home</a> · <a href="/drop/">California DROP guide</a> · <a href="/rights/">Your data rights</a> · <a href="/research/">Research</a> · <a href="/privacy/">Privacy</a> · <a href="https://github.com/ZJHeepfixer/nullecho">Source on GitHub</a></p>
+</div></footer>
+
+<script>
+/* Copies the email address. Local only: no fetch, no storage. */
+(function(){
+  document.body.classList.remove('nojs');
+  var btn = document.querySelector('button.copy'), status = document.getElementById('copy-status');
+  btn.addEventListener('click', function(){
+    var text = btn.getAttribute('data-copy');
+    function done(ok){ status.textContent = ok ? 'Copied.' : 'Couldn’t copy automatically. Select the address and press Ctrl+C or ⌘C.'; }
+    function fallback(){
+      var r = document.createRange(); r.selectNodeContents(document.getElementById('email'));
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      done(ok);
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function(){ done(true); }, fallback);
+    else fallback();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,928 @@
+{
+ "chrome": "Chrome/149.0.7827.22",
+ "package": "dist/nullecho-0.9.3-chrome.zip (unzipped), built from f841733",
+ "probes": 49,
+ "baseline": {
+  "tallyPersonalization": 49,
+  "tallyTotal": 49,
+  "getMatchedRulesPersonalization": 49,
+  "rawMatched": 52
+ },
+ "removals": [
+  {
+   "id": 6000,
+   "url": "https://async-px.dynamicyield.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6001,
+   "url": "https://direct-collect.dy-api.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6002,
+   "url": "https://dynamicyield.com/uia?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6003,
+   "url": "https://dynamicyield.com/batch?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6004,
+   "url": "https://dynamicyield.com/imp?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6005,
+   "url": "https://dynamicyield.com/clog",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6006,
+   "url": "https://dynamicyield.com/rcomEvent?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6100,
+   "url": "https://p.brsrvr.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6101,
+   "url": "https://cdns.brsrvr.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6102,
+   "url": "https://brcdn.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6200,
+   "url": "https://apps.rokt-api.com/webevents/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6201,
+   "url": "https://apps.roktecommerce.com/webevents/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6204,
+   "url": "https://rokt.com/v1/events?q=1",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6205,
+   "url": "https://rokt.com/v2/metrics?q=1",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6206,
+   "url": "https://pps.rokt.com/v1/timings/events",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6300,
+   "url": "https://attn.tv/a/dtag.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6301,
+   "url": "https://attn.tv/tag/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6302,
+   "url": "https://events.attentivemobile.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6400,
+   "url": "https://bounceexchange.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6500,
+   "url": "https://granify.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6510,
+   "url": "https://api.blackcrow.ai/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6600,
+   "url": "https://evergage.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6601,
+   "url": "https://p.cquotient.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6700,
+   "url": "https://insights.algolia.io/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6701,
+   "url": "https://cnstrc.com/behavior?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6702,
+   "url": "https://ac.cnstrc.com/v2/behavioral_action/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6703,
+   "url": "https://analytics.cloud.coveo.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6704,
+   "url": "https://nosto.com/analytics/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6705,
+   "url": "https://beacon.searchspring.io/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6706,
+   "url": "https://tracker.unbxdapi.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6707,
+   "url": "https://rfksrv.com/rfkj/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6708,
+   "url": "https://groupbycloud.com/wisdom/v2/pixel",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6709,
+   "url": "https://sitecorecloud.io/v1/events/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6710,
+   "url": "https://onsitestats.bluecore.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6711,
+   "url": "https://richrelevance.com/rrserver/tracking?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6712,
+   "url": "https://recs.richrelevance.com/rrserver/api/engage/trackExperienceEvent?",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6713,
+   "url": "https://listrakbi.com/activity/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6714,
+   "url": "https://listrakbi.com/api/ActivityEvents/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6715,
+   "url": "https://rebuyengine.com/api/a/analytics/event/",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6800,
+   "url": "https://convertexperiments.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6801,
+   "url": "https://ariane.abtasty.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6900,
+   "url": "https://api.intelligems.io/v3/track",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6901,
+   "url": "https://intelligems.io/track",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6910,
+   "url": "https://triptease.io/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6950,
+   "url": "https://static-tracking.klaviyo.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6951,
+   "url": "https://telemetrics.klaviyo.com/x.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6952,
+   "url": "https://a.klaviyo.com/onsite/track-analytics",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6953,
+   "url": "https://fast.a.klaviyo.com/media/js/analytics/klaviyo_analytics.js",
+   "count": 48,
+   "drop": 1
+  },
+  {
+   "id": 6954,
+   "url": "https://a.klaviyo.com/client/events/",
+   "count": 48,
+   "drop": 1
+  }
+ ],
+ "mustPass": [
+  {
+   "label": "Dynamic Yield page script",
+   "url": "https://cdn.dynamicyield.com/api/8772758/api_dynamic.js",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    },
+    {
+     "ruleId": 6090,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Dynamic Yield static script",
+   "url": "https://cdn.dynamicyield.com/api/8772758/api_static.js",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    },
+    {
+     "ruleId": 6090,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Dynamic Yield content (st)",
+   "url": "https://st.dynamicyield.com/st?sec=8772758&ref=&scriptVersion=2.100.0&inHead=true&id=0",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    },
+    {
+     "ruleId": 6090,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Dynamic Yield SPA content",
+   "url": "https://st.dynamicyield.com/spa/json?sec=8772758&ref=&scriptVersion=2.100.0&id=0",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    },
+    {
+     "ruleId": 6090,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Dynamic Yield recommendations",
+   "url": "https://rcom.dynamicyield.com/v3/recommend/8772758?_=1",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    },
+    {
+     "ruleId": 6090,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Dynamic Yield images",
+   "url": "https://cdn.dynamicyield.com/api/8772758/images/0bf339c52d13.webp",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    },
+    {
+     "ruleId": 6090,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Bloomreach search API",
+   "url": "https://core.dxpapi.com/api/v1/core/?account_id=5073&q=paper",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Bloomreach suggest API",
+   "url": "https://suggest.dxpapi.com/api/v2/suggest/?account_id=5073&q=pa",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Bloomreach legacy search",
+   "url": "https://brm-core-0.brsrvr.com/api/v1/core/?account_id=1",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Constructor search/browse",
+   "url": "https://ac.cnstrc.com/search/jeans?key=key_x",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Constructor recommendations",
+   "url": "https://ac.cnstrc.com/recommendations/v1/pods/pdp-1?key=key_x",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Constructor beacon script (NEEDS LAB, not blocked)",
+   "url": "https://cnstrc.com/js/cust/gap_nf8JL7.js",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Algolia search",
+   "url": "https://2deaes0cuo-dsn.algolia.net/1/indexes/production_us_products/query",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Algolia search (alt host)",
+   "url": "https://2deaes0cuo-1.algolianet.com/1/indexes/production_us_products/query",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Coveo search",
+   "url": "https://platform.cloud.coveo.com/rest/search/v2",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Salesforce Einstein recs",
+   "url": "https://e.cquotient.com/recs/x/y",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Salesforce Einstein API",
+   "url": "https://api.cquotient.com/v3/activities/x/viewProduct",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Intelligems bundle (rewrites the price)",
+   "url": "https://cdn.intelligems.io/esm/d0df0385db68/bundle.js",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Intelligems config",
+   "url": "https://cdn.intelligems.io/configs/d0df0385db68/config.1791567380.json",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Rebuy cart drawer API",
+   "url": "https://rebuyengine.com/api/v1/products/recommended?key=x",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Nosto recommendations",
+   "url": "https://connect.nosto.com/ev1?m=shopify-1",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Rokt SDK (mParticle by Rokt) \u2014 not blocked, only its event upload",
+   "url": "https://apps.rokt-api.com/js/v2/us2-6a2d0e4dc6b9e749870271a2f16058a1/app.js?env=0&",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo loader",
+   "url": "https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=pWh7nE",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo sign-up form bundle",
+   "url": "https://static.klaviyo.com/onsite/js/signup_forms.783874669fbb8.js?cb=2",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo form definitions",
+   "url": "https://static-forms.klaviyo.com/forms/api/v7/pWh7nE/full-forms",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo form fonts",
+   "url": "https://fast.a.klaviyo.com/custom-fonts/api/v1/company-fonts/onsite?company_id=pWh7nE",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo form SUBMIT",
+   "url": "https://a.klaviyo.com/client/subscriptions/?company_id=pWh7nE",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo back-in-stock SUBMIT",
+   "url": "https://a.klaviyo.com/client/back-in-stock-subscriptions/?company_id=pWh7nE",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo consent page",
+   "url": "https://a.klaviyo.com/consent-pages/client/x",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo legacy subscribe",
+   "url": "https://a.klaviyo.com/ajax/subscriptions/subscribe",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo forms geo-ip",
+   "url": "https://a.klaviyo.com/forms/api/v3/geo-ip",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  },
+  {
+   "label": "Shopify cart add",
+   "url": "https://shop.example/cart/add.js",
+   "matched": [
+    {
+     "ruleId": 5201,
+     "rulesetId": "ua-mac"
+    },
+    {
+     "ruleId": 5000,
+     "rulesetId": "gpc"
+    }
+   ]
+  }
+ ],
+ "mustBlock": [
+  {
+   "label": "Klaviyo analytics modules",
+   "url": "https://static-tracking.klaviyo.com/onsite/js/fender_analytics.231256e109566.js?cb=2",
+   "expected": 6950,
+   "matched": [
+    {
+     "ruleId": 6950,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo telemetry",
+   "url": "https://telemetrics.klaviyo.com/v1/metric",
+   "expected": 6951,
+   "matched": [
+    {
+     "ruleId": 6951,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo form analytics",
+   "url": "https://a.klaviyo.com/onsite/track-analytics?company_id=JpiXrs",
+   "expected": 6952,
+   "matched": [
+    {
+     "ruleId": 6952,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo legacy analytics script",
+   "url": "https://fast.a.klaviyo.com/media/js/analytics/klaviyo_analytics.js",
+   "expected": 6953,
+   "matched": [
+    {
+     "ruleId": 6953,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Klaviyo browse events",
+   "url": "https://a.klaviyo.com/client/events/?company_id=pWh7nE",
+   "expected": 6954,
+   "matched": [
+    {
+     "ruleId": 6954,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Dynamic Yield collection",
+   "url": "https://async-px.dynamicyield.com/uia?cnst=1&_=1",
+   "expected": 6000,
+   "matched": [
+    {
+     "ruleId": 6000,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Bloomreach pixel",
+   "url": "https://p.brsrvr.com/pix.gif?acct_id=5073",
+   "expected": 6100,
+   "matched": [
+    {
+     "ruleId": 6100,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Bloomreach tracker script",
+   "url": "https://cdns.brsrvr.com/v1/br-trk-6489.js",
+   "expected": 6101,
+   "matched": [
+    {
+     "ruleId": 6101,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Rokt/mParticle event upload",
+   "url": "https://apps.rokt-api.com/webevents/v3/JS/us2-6a2d0e4dc6b9e749870271a2f16058a1/events",
+   "expected": 6200,
+   "matched": [
+    {
+     "ruleId": 6200,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Rokt fallback event upload (D56)",
+   "url": "https://apps.roktecommerce.com/webevents/v3/JS/us2-6a2d0e4dc6b9e749870271a2f16058a1/events",
+   "expected": 6201,
+   "matched": [
+    {
+     "ruleId": 6201,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Attentive tag",
+   "url": "https://cdn.attn.tv/gap/dtag.js",
+   "expected": 6300,
+   "matched": [
+    {
+     "ruleId": 6300,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Granify",
+   "url": "https://matching.granify.com/match",
+   "expected": 6500,
+   "matched": [
+    {
+     "ruleId": 6500,
+     "rulesetId": "personalization"
+    }
+   ]
+  },
+  {
+   "label": "Intelligems tracking",
+   "url": "https://api.intelligems.io/v3/track",
+   "expected": 6900,
+   "matched": [
+    {
+     "ruleId": 6900,
+     "rulesetId": "personalization"
+    }
+   ]
+  }
+ ],
+ "failures": [],
+ "ok": true
+}

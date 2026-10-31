@@ -1,0 +1,144 @@
+{
+  "label": "shim-on",
+  "url": "https://www.canadagoose.com/us/en/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 15740,
+      "documents": [
+        {
+          "url": "https://www.canadagoose.com/us/en/",
+          "status": 404,
+          "frameId": "5EF65C8A97B4EEA669F11D2A4910A67E",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "cart_currency",
+            "_shopify_essential",
+            "_shopify_analytics",
+            "_shopify_marketing"
+          ]
+        },
+        {
+          "url": "https://www.canadagoose.com/web-pixels@9f5e2762wb720532ap19708c42m93b2bec3/custom/web-pixel-shopify-custom-pixel@0530/sandbox/modern/us/en/",
+          "status": 200,
+          "frameId": "EF76D59715CB004316971D7EDB7ADFF0",
+          "server": "cloudflare",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.canadagoose.com/web-pixels@9f5e2762wb720532ap19708c42m93b2bec3/custom/web-pixel-155877600@1/sandbox/modern/us/en/",
+          "status": 200,
+          "frameId": "FFB3C9F1A4236F584D188AA2503F4877",
+          "server": "cloudflare",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.canadagoose.com/services/login_with_shop/buyer/callback?analytics_trace_id=0c89abba-37af-40e4-8140-0323bad711dd&target_origin=https%3A%2F%2Fwww.canadagoose.com&token=UTgxZnNycVdYamtQNkE2ZW1pWFpGSXFsNzZ5NmMxYXRYellDbHhXcUNnQVdZb29JSHpUc0RQRC9kZHNnV2F4TXFReWVZeVZIeWhMWDJLc0NXMm9MdS9BMk1MRFd3ZzhZdmJFRWtRWGhmc1ZVRWx4M0V2SnhlYmovWVBJN2pWVFFiMUF1SVdDRytkYUZTZDd4bDdLbUs2YitnOXRsQUhLc0o4cnlvNDM1OHV1ZnZZYThOUDFXVktQSTE3dTV4dEZudUNHQUpQaDJnMEJ6MWhzMlUycUFPM3FMUlNWT0V3am5EazFTZm9MWVIrK0ZSWU1HYWxJdjVCTmRJM1IvQzRwaEkxQ0ZJbEp1M3YrZEFMMDhMa0tQT1loazRTSHNOdmRta0FweDhzTnJxVFFUSGxvSU4wQWF1dDBKU0pYcXJGeGlwanZFR3YrTnhPLzlmTmtxd2J1Q09JcmhmNVBWdWl2d2NpUVdUSjNoSURqelJ4WHFvb2hSa3FxM1IyWWVvUHEzL3FjRXpYSjlZUzFpUEJkYVp2eTVhS0l0QWd2czR3Mm5tN0ZieTJyYm5PNnI5dzVwWUNNNWRweWVGZHNWL2s0eFJucFZuMTIwOWE2SXl2OTFJNmFJd1paMTJwQkFUVGpvOXJVT2FqNFFSL1d2ZHk4V3Y3V1RGUlp6cmpuZ3R1eUpoUDRnUmdjSEhqNTRsRk9LdkxzYVE5TS9IdVVZZmVwUUUvTjJZb1dOYkhJaUdOU2hxNVB2ak5vcWhWZnNhdUloWmVYVi9QM3VmNHcyZ1BjcExQdURXWmc2ZkhJVXNucnVOOGY3UmtnVCtoOGhRVUd0MHBLbER5eVZ5Mkp2ZHF4Z2FpWXlYc3FMMmxPV1grYXRrbWxmSVFrQVFtazFpZSsrdFJLcGoxOTJ6L1VPSmZYTG5HbE95OFh1cjN2b0htaVFhMW51d2VsM20yTkhuN1hFRndOSjh3VVpQUnhMcGR1Z1hPUTZ6ODNPWGNPbDYwQnBkd2RTVWE0ZzVtSFVsVzF5NEZDNEpCc3NFN25CbVlvT1ZtRHJFeDdkdEh3R2IxeDdvdi9nb0daWHIwMitGa3pXSTJEMEJVR1lKeGR4TzRXMWkzNXBqSVZZVFR3TFJNYXhYTFUrQXYxTWxlYnhtdWFGU0FPN3E3enlQZzVlUktvUUVVT25xMVJNVEJPTUdJL0phaXY0eVFndHJhR2xTWHNWZFNvM21zYUUrTzhXVmZzODl0RkZ6RFFEOFArRVI0a3dWbDdqdzJNcFZTUE1HelFLRDZiUFVYQktYZHpGbnk0OTduN1daY0I1c1RYcEhNWjFleVVpL2d5cHZucW55Mjd6c05qSnJ5RXRkQStpNHRCZVZ1azJnUDZOMFNJU20vYjhDU0pud01BSmE5QUZ5d0RZVC9XaTcxaWZtdXRNZ2JPdDBvWUpMQkFvMDMrelpPSDZzR1VnMFZDeGxRUThoMFJuY2MyTWhid0haZzhwS2FDNkpLTDZxb0trZEVrPS0tbVZBMnl2ckd3c2R2S0g3dVB6cHBwQT09--a99ca7949c7a28a8f310e939572eb804300f1ba9",
+          "status": 200,
+          "frameId": "EDA1B2F8281A9628D20F987AD04D2881",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "_shopify_essential"
+          ]
+        },
+        {
+          "url": "https://canadagoose.my.site.com/ESWMIWNAEN1749637797148/assets/htdocs/sitecontext.min.html?parent_domain=https%3A%2F%2Fwww.canadagoose.com",
+          "status": 200,
+          "frameId": "D0EBE8103516F385F6D6D07D16800574",
+          "server": "cloudflare",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "url": "https://www.canadagoose.com/api/collect",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.canadagoose.com/.well-known/shopify/monorail/unstable/produce_batch",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.canadagoose.com/.well-known/shopify/monorail/unstable/produce_batch",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.canadagoose.com/.well-known/shopify/monorail/unstable/produce_batch",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.canadagoose.com/shopify_pay/accelerated_checkout",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://monorail-edge.shopifysvc.com/v1/produce",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://monorail-edge.shopifysvc.com/v1/produce",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.canadagoose.com/.well-known/shopify/monorail/unstable/produce_batch",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "OptanonConsent",
+        "_shopify_essential",
+        "cart_currency",
+        "lastRskxRun",
+        "rCookie",
+        "rskxRunCookie",
+        "swym-email",
+        "swym-pid",
+        "swym-session-id",
+        "swym-swymRegid",
+        "swym-v-ckd"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "404 Not Found | Canada Goose",
+        "href": "https://www.canadagoose.com/us/en/",
+        "text": "SKIP TO CONTENT UNITED STATES (USD) / EN WE'RE SORRY! WE CAN'T SEEM TO LOCATE THE PAGE OR PRODUCT YOU WERE LOOKING FOR. PLEASE TRY AGAIN. MEN'S PARKAS 29 PUFFERS 11 FLEECE 12 ACCESSORIES 58 SHOES 8 WO",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267474809,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:04:44.256Z"
+}

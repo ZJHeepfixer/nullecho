@@ -1,0 +1,103 @@
+{
+  "label": "shim-on",
+  "url": "https://www.delta.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11090,
+      "documents": [
+        {
+          "url": "https://www.delta.com/",
+          "status": 200,
+          "frameId": "64E3A0C6676C5F91F8CC8D82F0E34B6C",
+          "server": "AmazonS3",
+          "setCookieNames": [
+            "location",
+            "AKA_A2",
+            "akaalb_www_alb_homepage",
+            "_abck",
+            "bm_mi",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 6,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AKA_A2",
+        "DELTA_ENSIGHTEN_PRIVACY_Advertising",
+        "DELTA_ENSIGHTEN_PRIVACY_EnhancedFunctionality",
+        "DELTA_ENSIGHTEN_PRIVACY_FirstPartyAnalytics",
+        "DELTA_ENSIGHTEN_PRIVACY_ThirdPartyAnalytics",
+        "OptanonConsent",
+        "RT",
+        "_abck",
+        "ak_bmsc",
+        "akaalb_www_alb",
+        "akaalb_www_alb_homepage",
+        "bm_lso",
+        "bm_mi",
+        "bm_s",
+        "bm_so",
+        "bm_sv",
+        "bm_sz",
+        "dlsite",
+        "location",
+        "prefConf",
+        "prefUI",
+        "uuid",
+        "xssid"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "Delta Air Lines | Flights & Plane Tickets + Hotels & Cars",
+        "href": "https://www.delta.com/",
+        "visibility": "visible",
+        "text": "Skip to Main Content Sign Up Log in 3 Book Check-in My Trips Flight Status Flights Stays Cars Vacations Cruises ONT Ontario, CA To Destination View Search Options Book Your Next Trip Explore our curre",
+        "webdriver": false,
+        "gpc": null,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792268020777,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:13:48.481Z"
+}

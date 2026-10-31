@@ -24,7 +24,11 @@ Naive randomization fails three ways, all documented:
 2. **Instability as signal.** If values change on every page load, the *pattern of variance*
    becomes the fingerprint. You are now the only visitor whose GPU changes every refresh.
 3. **Averaging attacks.** Per-read noise is recoverable: sample the canvas 50 times, average,
-   the noise cancels and the true value surfaces. Demonstrated against Brave in 2025.
+   the noise cancels and the true value surfaces. *(Corrected 2026-10-14, D56: this line used to
+   say "Demonstrated against Brave in 2025". Brave's noise is not per-read — it is keyed on
+   session, domain and canvas content, like ours — and the 2025 attack on it (Nguyen & Vadrevu,
+   WWW '25) is a majority vote across canvases that differ outside the region read, not an
+   average of repeated reads. Stable-per-read noise does not stop that vote; ours falls to it.)*
 
 ## The design: per-origin stable personas
 

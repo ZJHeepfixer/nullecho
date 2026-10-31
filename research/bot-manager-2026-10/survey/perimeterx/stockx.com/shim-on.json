@@ -1,0 +1,87 @@
+{
+  "label": "shim-on",
+  "url": "https://stockx.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 14835,
+      "documents": [
+        {
+          "url": "https://stockx.com/",
+          "status": 200,
+          "frameId": "C1784D154588C808DC307EF2D82ABF0E",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "stockx_device_id",
+            "stockx_session_id",
+            "stockx_session",
+            "stockx_selected_locale",
+            "stockx_selected_region",
+            "__cf_bm"
+          ]
+        },
+        {
+          "url": "https://api.sardine.ai/assets/collector.min.8b3fea3.html?r=2026-09-14-8b3fea3",
+          "status": 200,
+          "frameId": "40C21A8062A3CED88831CA5059570F85",
+          "server": "UploadServer",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "OTGPPConsent",
+        "OptanonConsent",
+        "__cf_bm",
+        "_dd_s_v2",
+        "ajs_anonymous_id",
+        "cf_clearance",
+        "display_location_selector",
+        "is_gdpr",
+        "lastRskxRun",
+        "rCookie",
+        "rskxRunCookie",
+        "stockx_device_id",
+        "stockx_ip_region",
+        "stockx_selected_locale",
+        "stockx_selected_region",
+        "stockx_session",
+        "stockx_session_id"
+      ],
+      "page": {
+        "title": "StockX: Sneakers, Streetwear, Trading Cards, Handbags, Watches",
+        "href": "https://stockx.com/",
+        "text": "Skip to Main Content StockX Live Listings About Opens In New Tab Help Sign Up | Login All Trending New Deals Men Women Kids Sneakers Shoes Apparel Accessories Collectibles Trading Cards Mystery Boxes ",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266977111,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:56:24.866Z"
+}

@@ -1,0 +1,70 @@
+{
+  "label": "own-test",
+  "url": "http://own.test:4959/",
+  "extensions": [
+    "final-chrome"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7104,
+      "documents": [
+        {
+          "url": "http://own.test:4959/",
+          "status": 200,
+          "frameId": "E718F965208C1EB30AAF74E67DF73EE0",
+          "server": "",
+          "setCookieNames": [
+            "_abck",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_sz"
+      ],
+      "abckStatus": "0",
+      "page": {
+        "title": "own.test",
+        "href": "http://own.test:4959/",
+        "visibility": "visible",
+        "text": "own.test sets its own _abck",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": null,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792269394319,
+            "lockedToFallback": false,
+            "reason": "bot-manager",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": {
+            "at": 1792269394303,
+            "cookie": "_abck",
+            "override": false,
+            "vendor": "akamai"
+          },
+          "botManagerSites": [
+            "own.test"
+          ]
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:36:41.343Z"
+}

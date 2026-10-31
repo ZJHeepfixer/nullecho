@@ -755,14 +755,28 @@ function addWebRequestListener(label, event, fn, filter, base, optionsEnum) {
  * MUST NOT throw. It is called above `runtime.onMessage.addListener`, and a
  * throw here means the extension has no message surface at all.
  */
-export function install() {
+export function install({ responseObservers = [] } = {}) {
   const filter = { urls: ['http://*/*', 'https://*/*'] };
   const wr = chrome.webRequest;
 
   // No `onBeforeRequest`: see the note above `onBeforeSendHeaders`.
   addWebRequestListener('onBeforeSendHeaders', wr?.onBeforeSendHeaders, onBeforeSendHeaders,
     filter, ['requestHeaders'], wr?.OnBeforeSendHeadersOptions);
-  addWebRequestListener('onHeadersReceived', wr?.onHeadersReceived, onHeadersReceived,
+
+  // `responseObservers`: other layers that need the same response headers — the
+  // D59 bot-manager observer in background.js — share this one listener rather
+  // than registering a second with an identical filter and spec. Each runs first
+  // and on its own: a throw in one never costs this layer its observation.
+  const observers = responseObservers.filter((fn) => typeof fn === 'function');
+  const onHeaders = observers.length
+    ? (details) => {
+        for (const fn of observers) {
+          try { fn(details); } catch (e) { console.warn('[nullecho] response observer failed:', e); }
+        }
+        onHeadersReceived(details);
+      }
+    : onHeadersReceived;
+  addWebRequestListener('onHeadersReceived', wr?.onHeadersReceived, onHeaders,
     filter, ['responseHeaders'], wr?.OnHeadersReceivedOptions);
 
   // Reconcile in the background; nothing above depends on it finishing.

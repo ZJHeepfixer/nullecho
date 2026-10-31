@@ -1,0 +1,83 @@
+{
+  "label": "shim-on",
+  "url": "https://www.leboncoin.fr/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 9291,
+      "documents": [
+        {
+          "url": "https://www.leboncoin.fr/",
+          "status": 200,
+          "frameId": "8BED24F2AAA7A0BFE3096B61EB63C348",
+          "server": "",
+          "setCookieNames": [
+            "cnfdVisitorId",
+            "__Secure-Install",
+            "datadome"
+          ]
+        },
+        {
+          "url": "https://www.leboncoin.fr/oauth2callback?error=login_required&error_debug=session+token+is+not+found+or+expired&error_description=you+should+login+first%2C+the+__Secure-login+cookie+is+not+found.",
+          "status": 200,
+          "frameId": "E456A80572F1F50DD521F9F939C4369A",
+          "server": "",
+          "setCookieNames": [
+            "datadome"
+          ]
+        }
+      ],
+      "blockedByClient": 3,
+      "otherFailures": [
+        {
+          "url": "https://www.leboncoin.fr/api/confidence/apply",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "__Secure-Install",
+        "_pcid",
+        "_pctx",
+        "cnfdVisitorId",
+        "datadome",
+        "didomi_token",
+        "pa_privacy"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "leboncoin, site de petites annonces gratuites",
+        "href": "https://www.leboncoin.fr/",
+        "text": "aller au contenu Ignorer la liste d'annonces sélectionnées Immobilier Véhicules Matériel pro Emploi Mode Maison & Jardin Famille Électronique Loisirs Autres Bons plans ! leboncoin, site de petites ann",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267183267,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:59:49.136Z"
+}

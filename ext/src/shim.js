@@ -28,6 +28,10 @@
  *    happened we stay locked on the fallback and say so, loudly.
  *  · `{ enabled: false }` / `persona: null` (allowlisted site) → restore every
  *    original descriptor and stand down.
+ *  · `{ fpStandDown: 'bot-manager' }` (D59: the site's bot manager rejects
+ *    disguised devices) → the SAME restore, but blocking and GPC stay on: the
+ *    relay tells gpc.js the realm was handed back, and gpc.js puts the signal
+ *    up itself — the configuration measured to pass (shim absent, gpc.js live).
  *  · Report suspicious read volume over `nullecho:detect` { api, count }.
  *
  * The upgrade is a *data* swap, not a re-patch: every shim reads its values out of
@@ -41,10 +45,24 @@
  * content, stable coordinates) — D22. Content-keyed, so a known input teaches a page
  * nothing about the pattern on any other image; deterministic, so repeated reads agree.
  * No call counters, no Math.random, no time. Reading the same canvas 50 times
- * returns 50 identical results, which is what defeats the averaging attack that
- * broke Brave's per-read farbling in 2025. Noise that varies per read is not a
- * defense; it is a slower way to leak the same value plus a "this user runs an
- * anti-fingerprinting tool" flag.
+ * returns 50 identical results, which defeats AVERAGING REPEATED READS of one
+ * canvas. Noise that varies per read is not a defense; it is a slower way to leak
+ * the same value plus a "this user runs an anti-fingerprinting tool" flag.
+ *
+ * What determinism does NOT defeat (corrected 2026-10-14, D56 — this paragraph
+ * used to say the 50-read property "defeats the averaging attack that broke
+ * Brave's per-read farbling in 2025"; it does not, and Brave's farbling was never
+ * per-read). The 2025 attack (Nguyen & Vadrevu, "Breaking the Shield", WWW '25,
+ * Algorithm 3) draws the same content on several canvases that differ only in a
+ * strip OUTSIDE the region it reads. Brave keys its noise on session + domain +
+ * canvas content; we key ours on persona + size + a digest of the whole canvas.
+ * Either way each strip is a fresh digest, hence a fresh 1-in-8 selection, and a
+ * per-pixel vote over the reads returns the real bytes. Measured on this kernel
+ * (harness/canvas-majority-vote.mjs; numbers in D56 and research/canvas-majority-
+ * vote/): 21 canvases, well under a second, exact recovery in nearly every trial,
+ * the SAME bytes under two personas on two sites.
+ * Every deterministic kernel we prototyped fell to the vote or a variant of it
+ * (translated or colour-shifted copies) or to the A1 subtraction — gap G10.
  *
  * ──────────────────────────────────────────────────────────────────────────────
  * KNOWN GAPS — stated here so nobody has to discover them the hard way
@@ -91,6 +109,15 @@
  *      (docs/THREAT-MODEL.md, "MAIN-world injection race"). The loader measures
  *      whether the race was won on each page and reports `nonce-exposed` when it
  *      was not, so the failure is visible rather than assumed away.
+ * G10. CANVAS READ-BACK IS RECOVERABLE BY A VOTE (D56, measured 2026-10-14). A page
+ *      that reads ~21 canvases whose shared region is identical but whose whole
+ *      content differs (a strip, an offset, a colour shift) and keeps each pixel's
+ *      most frequent value gets the real canvas back, the same under every persona
+ *      — the cross-site join, restored for this one signal. A1's lesson stands:
+ *      noise that does NOT change with the content is learnable from a known input.
+ *      No content- or position-keyed kernel escapes both (D56 has the table), and a
+ *      per-document read budget is bypassed by using more documents. G1 is the
+ *      cheaper road to the same bytes: one OffscreenCanvas read in a Worker.
  */
 
 (() => {
@@ -106,6 +133,8 @@
   const CHANNEL = 'shim';
   const BOOT_PHASE = 'boot';
   const NONCE_BYTES = 16;
+  /** D59: `fpStandDown` value — this site's bot manager rejects disguised devices. */
+  const FP_STAND_DOWN_BOT_MANAGER = 'bot-manager';
 
   // ══════════════════════════════════════════════════════════════════════════
   // 0a. PRISTINE PRIMITIVES — captured before anything else in this file runs.
@@ -1852,8 +1881,9 @@
    *    a page drew a uniform fill, read the pattern off it and subtracted that
    *    pattern from the real fingerprint canvas — exact recovery, join restored.
    *    Now a known input yields a pattern that says nothing about any other image.
-   *    Same content still gives the same bytes on every read, so the averaging
-   *    attack stays defeated.
+   *    Same content still gives the same bytes on every read, so averaging repeated
+   *    reads stays defeated. A vote across canvases whose content differs OUTSIDE the
+   *    region of interest does not — each one is a fresh digest (G10, D56).
    *  · The digest and the ink gate are computed over the whole canvas ONCE per
    *    read and the returned rectangle is sliced from that (review B5): a
    *    sub-rectangle read yields exactly the bytes of the same region inside a
@@ -3857,7 +3887,9 @@
 
   /**
    * 50 consecutive canvas reads must produce ONE hash. If this ever reports more
-   * than one, the noise has become per-read and the averaging attack works again.
+   * than one, the noise has become per-read and averaging repeated reads works
+   * again. One hash says nothing about the D56 vote across differently-drawn
+   * canvases, which this kernel does not survive (G10).
    *
    * Dev-only. The canvas calls here go through the PATCHED page API on purpose —
    * the self-test measures what a page sees.
@@ -3948,10 +3980,15 @@
     // `Object.prototype.gpc = false` silently suppressed the user's GPC signal on
     // every page where the service worker was unreachable. Explicit `null` keeps
     // that default ON and cannot be overridden.
+    //
+    // `fpStandDown` rides along since D59: when this file has just handed the realm
+    // back for a bot manager, the GPC getter went with it, and gpc.js — which stood
+    // aside at boot because it found the signal already up — has to know to take
+    // the property over. Explicit `null` otherwise, for the same D29 reason.
     const gpcNonce = ownField(accepted, 'gpcNonce');
     if (typeof gpcNonce === 'string') {
       const orNull = (key) => { const v = ownField(accepted, key); return v === undefined ? null : v; };
-      emit(EV_PERSONA, { ok: orNull('ok'), enabled: orNull('enabled'), gpc: orNull('gpc'), gpcNonce });
+      emit(EV_PERSONA, { ok: orNull('ok'), enabled: orNull('enabled'), gpc: orNull('gpc'), fpStandDown: orNull('fpStandDown'), gpcNonce });
     }
   }
 
@@ -4149,6 +4186,28 @@
       state.standingDown = true;
       restoreAll();
       status({ upgraded: false, lockedToFallback: false, reason: 'allowlisted' });
+      return;
+    }
+
+    // D59 — this site's bot manager rejects disguised devices (tesla.com under
+    // Akamai Bot Manager: 403 with the shim, 200 without it, nothing else in the
+    // extension mattered). The allowlist's restore, verbatim: every descriptor
+    // goes back to what the engine had, so the realm is the one measured to pass.
+    // That includes the GPC getter this file installed — and the signal must not
+    // go with it. `onPersonaEvent` relays `fpStandDown` to gpc.js, which then
+    // finds the property gone and puts it up itself, exactly as it does in a
+    // realm this file never patched. Blocking is the service worker's and is not
+    // touched. Same own-property read and same nonce gate as `enabled`: a page
+    // cannot reach this line.
+    //
+    // Under Firefox's resistFingerprinting nothing persona-shaped was installed
+    // (D54), but the GPC getter and the toString mask were, so the restore still
+    // runs; the status names RFP, the more fundamental fact, so the popup and the
+    // options banner keep saying the right thing about the browser.
+    if (ownField(payload, 'fpStandDown') === FP_STAND_DOWN_BOT_MANAGER) {
+      state.standingDown = true;
+      restoreAll();
+      status({ upgraded: false, lockedToFallback: false, reason: GECKO_RFP ? 'resist-fingerprinting' : 'bot-manager' });
       return;
     }
 

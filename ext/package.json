@@ -10,6 +10,7 @@
     "package:firefox": "node tools/package.mjs --firefox",
     "package:list": "node tools/package.mjs --list",
     "smoke": "node ../harness/site-smoke.mjs",
-    "smoke:seeded": "node ../harness/site-smoke.mjs --seeded"
+    "smoke:seeded": "node ../harness/site-smoke.mjs --seeded",
+    "smoke:shopping": "node ../harness/site-smoke.mjs --seeded --shopping"
   }
 }

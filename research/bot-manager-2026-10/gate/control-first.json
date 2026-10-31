@@ -1,0 +1,95 @@
+{
+  "label": "control-first",
+  "url": "https://www.tesla.com/",
+  "extensions": [],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 7670,
+      "documents": [
+        {
+          "url": "https://www.tesla.com/",
+          "status": 200,
+          "frameId": "2DE828DC183946A68B9D1944A5D67F8E",
+          "server": "",
+          "setCookieNames": [
+            "_abck",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.tesla.com/",
+          "status": 200,
+          "frameId": "2DE828DC183946A68B9D1944A5D67F8E",
+          "server": "",
+          "setCookieNames": [
+            "bm_s",
+            "bm_sc",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://digitalassets.tesla.com/tesla-contents/raw/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.en-US.vtt",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://digitalassets.tesla.com/tesla-contents/raw/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.en-US.vtt",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://digitalassets.tesla.com/tesla-contents/video/upload/f_auto,q_auto/Homepage-FSD-Card-Desktop.mp4",
+          "type": "Media",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "_abck",
+        "bm_lso",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sz"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "Electric Cars, Solar & Clean Energy | Tesla",
+        "href": "https://www.tesla.com/",
+        "visibility": "visible",
+        "text": " Skip to main content Menu Model Y 1.99% APR Available Order Now Learn More Full Self-Driving (Supervised) Makes every drive easier. Subscribe for $99/mo.1 7x Fewer Collisions 15,645,586,544 Miles Dri",
+        "webdriver": false,
+        "gpc": null,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": []
+    }
+  ],
+  "capturedAt": "2026-10-17T20:37:03.227Z"
+}

@@ -1,0 +1,393 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Canvas majority-vote attack (WWW '25, Algorithm 3)</title>
+<!--
+  The attack page driven by harness/canvas-majority-vote.mjs. Everything an attacker does lives in
+  ATTACK below; everything that needs the ground truth (scoring) lives in SCORING and never feeds back
+  into an attack. Open it by hand to watch one run: http://<host>/harness/canvas-majority-vote.html
+  then `await __mv.strip({ N: 9, trial: 1 })` in the console (scoring needs `__mv.setTruth()` first).
+
+  Source of the attack: Hoang Dai Nguyen and Phani Vadrevu, "Breaking the Shield: Analyzing and
+  Attacking Canvas Fingerprinting Defenses in the Wild", The Web Conference (WWW '25), Sydney,
+  pp. 4337-4344, doi:10.1145/3696410.3714713 (CC BY 4.0). §7.2 and Algorithm 3, "The Statistical
+  Attack": draw the same content on several Filled Canvases, add a 500x10 unique-colour rectangle to
+  the top of each, read the region EXCLUDING that rectangle with getImageData(), and for each pixel
+  and each of R, G, B take the value that appears in a majority of the canvases (">= 3" of 5).
+
+  ?kernel=<name>&key=<uint32>  installs an IN-PAGE noise kernel on getImageData (extension OFF only):
+  the positive control and the mitigation prototypes. Served by the .mjs from the shipped shim.js.
+-->
+<body>
+<div id="keep" style="position:absolute;left:-20000px;top:0" aria-hidden="true"></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+if (Q.get('kernel')) document.write('<script src="canvas-kernels.js"><\/script>');
+</script>
+<script>
+'use strict';
+(() => {
+  const Q = new URLSearchParams(location.search);
+  // ══════════════════════════════════════════════════════════════════════════
+  // Geometry. The paper's region is 500×400×4 = 800,000 numbers per canvas
+  // ("excluding the top rectangle"). We keep that region exact and put the 10-row
+  // strip ABOVE it, so a canvas is 500×410.
+  // ══════════════════════════════════════════════════════════════════════════
+  const W = 500, H = 400, STRIP = 10, CW = W, CH = H + STRIP;
+
+  /**
+   * The fingerprint content: a "Filled Canvas" (opaque background) with the usual
+   * entropy sources — gradients, text in several faces with emoji, multiply-blended
+   * arcs, a shadowed Bézier. Self-contained so the Worker path can run the same source.
+   */
+  function drawFingerprint(ctx, ox, oy) {
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.beginPath(); ctx.rect(0, 0, 500, 400); ctx.clip();
+    ctx.fillStyle = '#f4f1ea'; ctx.fillRect(0, 0, 500, 400);
+    const g = ctx.createLinearGradient(0, 0, 500, 400);
+    g.addColorStop(0, '#ff6a00'); g.addColorStop(0.5, '#2bd2ff'); g.addColorStop(1, '#7a00ff');
+    ctx.fillStyle = g; ctx.fillRect(20, 20, 460, 60);
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#069'; ctx.font = '26px Arial';
+    ctx.fillText('Cwm fjordbank glyphs vext quiz, \u{1F603}', 24, 130);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)'; ctx.font = '22px "Times New Roman"';
+    ctx.fillText('Breaking the Shield — WWW ’25 \u{1F6E1}️', 30, 170);
+    ctx.fillStyle = '#333'; ctx.font = 'italic 18px Georgia, serif';
+    ctx.fillText('The quick brown fox jumps over the lazy dog 0123456789', 20, 205);
+    ctx.globalCompositeOperation = 'multiply';
+    const disks = [['#f2f', 120, 290], ['#2ff', 190, 290], ['#ff2', 155, 240]];
+    for (let i = 0; i < disks.length; i++) {
+      ctx.fillStyle = disks[i][0]; ctx.beginPath();
+      ctx.arc(disks[i][1], disks[i][2], 60, 0, Math.PI * 2, true); ctx.closePath(); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.beginPath(); ctx.moveTo(300, 230); ctx.bezierCurveTo(480, 210, 330, 380, 470, 380);
+    ctx.lineWidth = 6; ctx.strokeStyle = '#c0c'; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#e33'; ctx.beginPath(); ctx.arc(390, 300, 40, 0, Math.PI * 1.6); ctx.fill();
+    ctx.restore();
+  }
+
+  // A seeded generator for strip colours and offsets (attacker-side; no Math.random).
+  function rng(seed) {
+    let s = (seed >>> 0) || 0x9e3779b9;
+    return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s; };
+  }
+  /** N distinct strip colours for one trial. */
+  function stripColours(N, trial) {
+    const next = rng(0x5172 + trial * 7919 + N * 104729), seen = new Set(), out = [];
+    while (out.length < N) {
+      const v = next() & 0xffffff;
+      if (seen.has(v)) continue;
+      seen.add(v); out.push(`rgb(${v >>> 16},${(v >>> 8) & 255},${v & 255})`);
+    }
+    return out;
+  }
+  const keep = (c) => { const k = document.getElementById('keep'); k.textContent = ''; k.appendChild(c); };
+  /**
+   * CONTEXT MODE. Chrome renders a GPU-backed 2D canvas and a CPU-backed one differently (24,435 of
+   * 200,000 pixels here), and it SWITCHES a document's new canvases from one to the other after
+   * enough readbacks (measured: ~200 getImageData calls into a run). Reads before and after the
+   * switch then disagree with each other for reasons that have nothing to do with noise. So by
+   * default every canvas is created CPU-backed (`willReadFrequently`, the attacker's own choice
+   * and the cheaper one for readbacks), which never switches. `?ctx=default` keeps Chrome's
+   * default — faithful to the paper's plain canvases — and the harness then loads a FRESH page
+   * per trial so a run never reaches the switch. The context is created here, at birth: a later
+   * getContext('2d', …) returns this one and ignores its options.
+   */
+  const CTX_OPTS = Q.get('ctx') === 'default' ? undefined : { willReadFrequently: true };
+  const newCanvas = (w, h, opts = CTX_OPTS) => { const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d', opts); return c; };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ATTACK — Algorithm 3, ported. Nothing here sees the truth.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Algorithm 3, step 1 + 4: N Filled Canvases, each with a unique-colour 500×10
+   * rectangle on top, and the region excluding it read back through the page's
+   * getImageData (the shimmed API when Nullecho is on). Returns the N reads.
+   */
+  function stripReads(N, trial) {
+    const t0 = performance.now();
+    const colours = stripColours(N, trial), canvases = [];
+    for (let i = 0; i < N; i++) {
+      const c = newCanvas(CW, CH), ctx = c.getContext('2d');
+      drawFingerprint(ctx, 0, STRIP);
+      ctx.fillStyle = colours[i]; ctx.fillRect(0, 0, CW, STRIP);
+      canvases.push(c);
+    }
+    const t1 = performance.now();
+    const reads = canvases.map((c) => c.getContext('2d').getImageData(0, STRIP, W, H).data);
+    const t2 = performance.now();
+    keep(canvases[0]);                       // F1 stays in the DOM for the harness's isolated-world truth read
+    return { reads, drawMs: t1 - t0, readMs: t2 - t1 };
+  }
+
+  /**
+   * ADAPTED VARIANT (ours, not the paper's): the same content at N different integer
+   * offsets. Rendered ONCE onto a source canvas that is never read, then blitted with
+   * drawImage — an exact copy — so the truth is identical in every read, while
+   * everything a content- or position-keyed kernel looks at moves.
+   */
+  function translateReads(N, trial) {
+    const t0 = performance.now();
+    // Rendered exactly as F1 is (content at y = 10: Chrome's rasteriser is NOT translation-invariant —
+    // gradients and shadows came out 9,637 channel values different at y = 0), then the region alone is
+    // blitted, which IS exact (checked by sharedCheck with the extension off).
+    const PAD = 16, src = newCanvas(CW, CH);
+    drawFingerprint(src.getContext('2d'), 0, STRIP);
+    const next = rng(0x7a11 + trial * 31337 + N), seen = new Set(), offs = [];
+    while (offs.length < N) { const dx = next() % PAD, dy = next() % PAD, k = dx * PAD + dy; if (!seen.has(k)) { seen.add(k); offs.push([dx, dy]); } }
+    const canvases = offs.map(([dx, dy]) => { const c = newCanvas(W + PAD, H + PAD); c.getContext('2d').drawImage(src, 0, STRIP, W, H, dx, dy, W, H); return c; });
+    const t1 = performance.now();
+    const reads = canvases.map((c, i) => c.getContext('2d').getImageData(offs[i][0], offs[i][1], W, H).data);
+    const t2 = performance.now();
+    return { reads, drawMs: t1 - t0, readMs: t2 - t1 };
+  }
+
+  /**
+   * ADAPTED VARIANT (ours): colour-shifted copies. The content is drawn, then a solid
+   * colour c_i is composited over it with 'difference', so canvas i holds |T − c_i| per
+   * channel — different pixel VALUES in every canvas, which is what a value-keyed kernel
+   * keys on. The attacker undoes the shift with the side (T above or below c_i) read
+   * off a plain noised copy (±2 is enough to know the side unless |T − c_i| ≤ 3; those
+   * canvases abstain for that channel). Returns per-canvas candidate truths + abstentions.
+   */
+  function colourshiftReads(N, trial) {
+    const t0 = performance.now();
+    const next = rng(0xc010 + trial * 65537 + N), cols = [];
+    for (let i = 0; i < N; i++) { const v = next() & 0xffffff; cols.push([v >>> 16, (v >>> 8) & 255, v & 255]); }
+    // The content is rendered once as F1 is, then copied (exactly) into CPU-backed canvases
+    // (`willReadFrequently`), where 'difference' is exact. Composited on the GPU-backed canvas
+    // directly, 'difference' was off by up to 2 on 576 channels — which would have made this
+    // variant fail for reasons that have nothing to do with the noise.
+    const plain = newCanvas(CW, CH); drawFingerprint(plain.getContext('2d'), 0, STRIP);
+    const canvases = cols.map((c) => {
+      const cv = newCanvas(CW, CH, { willReadFrequently: true }), x = cv.getContext('2d');
+      x.drawImage(plain, 0, 0);
+      x.globalCompositeOperation = 'difference'; x.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`; x.fillRect(0, STRIP, W, H);
+      return cv;
+    });
+    const t1 = performance.now();
+    const approx = plain.getContext('2d').getImageData(0, STRIP, W, H).data;
+    const raw = canvases.map((c) => c.getContext('2d').getImageData(0, STRIP, W, H).data);
+    const t2 = performance.now();
+    // Undo each shift; ABSTAIN (value 256 → never counted) where the side is ambiguous.
+    const reads = raw.map((d, i) => {
+      const out = new Uint16Array(d.length);
+      for (let p = 0; p < d.length; p += 4) {
+        for (let k = 0; k < 3; k++) {
+          const a = approx[p + k], c = cols[i][k];
+          out[p + k] = Math.abs(a - c) <= 3 ? 256 : (a > c ? c + d[p + k] : c - d[p + k]);
+        }
+        out[p + 3] = d[p + 3];
+      }
+      return out;
+    });
+    return { reads, base: approx, drawMs: t1 - t0, readMs: t2 - t1 };
+  }
+
+  /**
+   * Algorithm 3, the vote. For each pixel and each of R, G, B, count each value
+   * across the N reads.
+   *   'majority'  — the paper's rule: a value present in > N/2 reads ("≥ 3" of 5) is
+   *                 the original. Where none is (the paper does not say), F1's value stays.
+   *   'plurality' — the most frequent value; ties go to F1's value if it is among them,
+   *                 else to the smallest. (Our extension, as the task asked.)
+   * Alpha is copied from F1: the paper votes R, G, B only, and Nullecho never noises alpha.
+   * `base` (optional) is the array whose values fill abstentions (colour-shift variant).
+   */
+  function vote(reads, mode, base) {
+    const n = reads.length, len = reads[0].length, f1 = base || reads[0];
+    const out = new Uint8ClampedArray(len), counts = new Uint16Array(257);
+    for (let p = 0; p < len; p += 4) {
+      for (let c = 0; c < 3; c++) {
+        const i = p + c;
+        let max = 0, voters = 0;
+        for (let k = 0; k < n; k++) { const v = reads[k][i]; if (v === 256) continue; voters++; const m = ++counts[v]; if (m > max) max = m; }
+        let pick = f1[i];
+        if (mode === 'majority') {
+          // "≥ 3" of 5 is a strict majority of the voters (all N, except where a
+          // colour-shift canvas abstained on this channel).
+          if (voters && max >= (voters >> 1) + 1) for (let k = 0; k < n; k++) { const v = reads[k][i]; if (v !== 256 && counts[v] === max) { pick = v; break; } }
+        } else if (max > 0) {
+          const f = reads[0][i];
+          if (f !== 256 && counts[f] === max) pick = f;
+          else { let m = 256; for (let k = 0; k < n; k++) { const v = reads[k][i]; if (v !== 256 && counts[v] === max && v < m) m = v; } pick = m; }
+        }
+        out[i] = pick;
+        for (let k = 0; k < n; k++) { const v = reads[k][i]; if (v !== 256) counts[v] = 0; }
+      }
+      out[p + 3] = f1[p + 3];
+    }
+    return out;
+  }
+
+  /**
+   * Review item A1 (the uniform-fill subtraction attack that D22 closed): read a
+   * 128-grey canvas of the same size, take (read − 128) as "the pattern", subtract it
+   * from the fingerprint read. Clamp-aware: where the kernel's sign-flip rule must have
+   * applied (v ± δ out of range), the flipped inverse is used.
+   */
+  function subtractRecover() {
+    const t0 = performance.now();
+    const probe = newCanvas(CW, CH), px = probe.getContext('2d');
+    px.fillStyle = 'rgb(128,128,128)'; px.fillRect(0, 0, CW, CH);
+    const target = newCanvas(CW, CH), tx = target.getContext('2d');
+    drawFingerprint(tx, 0, STRIP); tx.fillStyle = 'rgb(1,2,3)'; tx.fillRect(0, 0, CW, STRIP);
+    const pat = px.getImageData(0, STRIP, W, H).data, got = tx.getImageData(0, STRIP, W, H).data;
+    const out = new Uint8ClampedArray(got.length), ambiguous = new Uint8Array(got.length);
+    const ok = (v) => v >= 0 && v <= 255;
+    for (let p = 0; p < got.length; p += 4) {
+      for (let c = 0; c < 3; c++) {
+        const d = pat[p + c] - 128, n = got[p + c];
+        // Two preimages can explain n: the normal branch (v + d in range) and the
+        // kernel's sign-flip branch (v + d out of range, so it wrote v − d).
+        const v1 = n - d, v2 = n + d;
+        const normal = ok(v1) && ok(v1 + d), flipped = d !== 0 && ok(v2) && !ok(v2 + d);
+        if (normal && flipped) ambiguous[p + c] = 1;           // lost at the clamp: no attacker can tell
+        const v = normal ? v1 : flipped ? v2 : v1;
+        out[p + c] = v < 0 ? 0 : v > 255 ? 255 : v;
+      }
+      out[p + 3] = got[p + 3];
+    }
+    return { recovered: out, ambiguous, ms: performance.now() - t0 };
+  }
+
+  /** One plain read of F1 (no strip variation) — the negative control. */
+  function singleRead() {
+    const c = newCanvas(CW, CH), x = c.getContext('2d');
+    drawFingerprint(x, 0, STRIP); x.fillStyle = 'rgb(1,2,3)'; x.fillRect(0, 0, CW, STRIP);
+    return x.getImageData(0, STRIP, W, H).data;
+  }
+
+  /**
+   * Gap G1 (shim.js header): the same canvas drawn in a dedicated Worker on an
+   * OffscreenCanvas. Content scripts never run there. Resolves with the region bytes.
+   */
+  function workerRead() {
+    const src = `${drawFingerprint.toString()}
+      onmessage = () => {
+        const c = new OffscreenCanvas(${CW}, ${CH}), x = c.getContext('2d', ${JSON.stringify(CTX_OPTS || {})});
+        drawFingerprint(x, 0, ${STRIP}); x.fillStyle = 'rgb(1,2,3)'; x.fillRect(0, 0, ${CW}, ${STRIP});
+        const d = x.getImageData(0, ${STRIP}, ${W}, ${H}).data;
+        postMessage(d, [d.buffer]);
+      };`;
+    return new Promise((resolve, reject) => {
+      const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+      w.onmessage = (e) => { w.terminate(); resolve(new Uint8ClampedArray(e.data)); };
+      w.onerror = (e) => { w.terminate(); reject(new Error(e.message || 'worker error')); };
+      w.postMessage(1);
+    });
+  }
+
+  /**
+   * MULTI-DOCUMENT variant, for a per-document readback budget: one canvas per
+   * same-origin iframe (each a fresh document, hence a fresh budget), F1 in frame 0.
+   */
+  async function framesStripReads(N, trial) {
+    const t0 = performance.now(), reads = [];
+    const colours = stripColours(N, trial);
+    for (let i = 0; i < N; i++) {
+      const f = document.createElement('iframe');
+      f.style.cssText = 'position:absolute;left:-20000px;width:10px;height:10px';
+      f.src = location.pathname + location.search + (location.search ? '&' : '?') + 'frame=' + i;
+      await new Promise((r) => { f.onload = r; document.body.appendChild(f); });
+      reads.push(f.contentWindow.__mv.readOne(colours[i]));
+      f.remove();
+    }
+    return { reads, drawMs: 0, readMs: performance.now() - t0 };
+  }
+  function readOne(colour) {
+    const c = newCanvas(CW, CH), x = c.getContext('2d');
+    drawFingerprint(x, 0, STRIP); x.fillStyle = colour; x.fillRect(0, 0, CW, STRIP);
+    return x.getImageData(0, STRIP, W, H).data;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SCORING — the only code that sees the truth. Plain JS hash: http://*.test is
+  // not a secure context, so crypto.subtle is unavailable.
+  // ══════════════════════════════════════════════════════════════════════════
+  let TRUTH = null;
+  function hash(u8) {
+    let h1 = 0x811c9dc5 ^ u8.length, h2 = 0x01000193;
+    for (let i = 0; i < u8.length; i++) { const v = u8[i]; h1 = Math.imul(h1 ^ v, 0x01000193); h2 = Math.imul(h2 ^ v, 0x5bd1e995) ^ (h2 >>> 15); }
+    return ((h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0'));
+  }
+  function score(u8) {
+    const out = { hash: hash(u8) };
+    if (!TRUTH) return out;
+    let ch = 0, px = 0;
+    for (let p = 0; p < u8.length; p += 4) {
+      let bad = false;
+      for (let c = 0; c < 4; c++) if (u8[p + c] !== TRUTH[p + c]) { ch++; bad = true; }
+      if (bad) px++;
+    }
+    out.exact = ch === 0; out.channelErrors = ch; out.pixelErrors = px;
+    return out;
+  }
+  const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = (s) => { const b = atob(s), u = new Uint8ClampedArray(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+
+  function runVotes(r, modes, extra) {
+    const res = { drawMs: r.drawMs, readMs: r.readMs, f1: score(r.reads[0]), modes: {} };
+    for (const m of modes) {
+      const t = performance.now();
+      const rec = vote(r.reads, m, r.base);
+      const voteMs = performance.now() - t;
+      res.modes[m] = { ...score(rec), voteMs, attackMs: r.drawMs + r.readMs + voteMs };
+    }
+    return Object.assign(res, extra || {});
+  }
+
+  window.__mv = Object.freeze({
+    W, H, STRIP,
+    setTruth(s) { TRUTH = unb64(s); return TRUTH.length; },
+    /** The region of one plain canvas, as base64 — the harness takes this from the extension-OFF page. */
+    truthB64() { return b64(singleRead()); },
+    /** Every variant's reads with no noise must equal one another: the shared region really is shared. */
+    sharedCheck(N) {
+      const s = stripReads(N, 0).reads, t = translateReads(N, 0).reads, cs = colourshiftReads(Math.min(N, 9), 0);
+      const h0 = hash(s[0]);
+      // With no noise, undoing each colour shift must give T exactly wherever the canvas did not abstain.
+      let csMismatch = 0, csAbstain = 0;
+      for (const r of cs.reads) for (let i = 0; i < r.length; i++) { if (i % 4 === 3) continue; if (r[i] === 256) csAbstain++; else if (r[i] !== s[0][i]) csMismatch++; }
+      return { strip: s.every((x) => hash(x) === h0), translate: t.every((x) => hash(x) === h0), colourshiftMismatches: csMismatch, colourshiftAbstentions: csAbstain, hash: h0 };
+    },
+    single() { return score(singleRead()); },
+    /** Where the variants' exactness comes from (extension OFF): which steps change bytes. */
+    diag() {
+      const plain = singleRead();
+      const at0 = newCanvas(W, H); drawFingerprint(at0.getContext('2d'), 0, 0);
+      const r0 = at0.getContext('2d').getImageData(0, 0, W, H).data;
+      const blit = (dx, dy) => { const c = newCanvas(W + 16, H + 16); c.getContext('2d').drawImage(at0, dx, dy); return c.getContext('2d').getImageData(dx, dy, W, H).data; };
+      const diff = (a, b) => { let n = 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++; return n; };
+      const b00 = blit(0, 0), b35 = blit(3, 5);
+      const col = [200, 100, 50];
+      const cs = newCanvas(CW, CH), x = cs.getContext('2d'); drawFingerprint(x, 0, STRIP);
+      x.globalCompositeOperation = 'difference'; x.fillStyle = `rgb(${col})`; x.fillRect(0, STRIP, W, H);
+      const csr = x.getImageData(0, STRIP, W, H).data;
+      let csBad = 0, csExample = null;
+      for (let p = 0; p < plain.length; p += 4) for (let k = 0; k < 3; k++) { const want = Math.abs(plain[p + k] - col[k]); if (csr[p + k] !== want) { csBad++; if (!csExample) csExample = { p, k, t: plain[p + k], a: plain[p + 3], got: csr[p + k], want }; } }
+      let alphaHist = {}; for (let p = 3; p < plain.length; p += 4) alphaHist[plain[p]] = (alphaHist[plain[p]] || 0) + 1;
+      return { renderAt0vsAt10: diff(r0, plain), blit00vsDirect: diff(b00, r0), blit35vsDirect: diff(b35, r0), blit35vsBlit00: diff(b35, b00), colourshiftChannelMismatch: csBad, csExample, alphaValues: Object.keys(alphaHist).length };
+    },
+    strip({ N, trial, modes = ['majority', 'plurality'] }) { return runVotes(stripReads(N, trial), modes, { attack: 'strip', N, trial }); },
+    translate({ N, trial, modes = ['majority', 'plurality'] }) { return runVotes(translateReads(N, trial), modes, { attack: 'translate', N, trial }); },
+    colourshift({ N, trial, modes = ['majority', 'plurality'] }) { return runVotes(colourshiftReads(N, trial), modes, { attack: 'colourshift', N, trial }); },
+    async frames({ N, trial, modes = ['majority', 'plurality'] }) { return runVotes(await framesStripReads(N, trial), modes, { attack: 'frames', N, trial }); },
+    subtract() {
+      const r = subtractRecover(), s = score(r.recovered);
+      // Errors the attack could NOT have avoided (clamp-ambiguous channels) vs errors it should not have made.
+      let amb = 0, unambiguousErrors = 0;
+      for (let i = 0; i < r.ambiguous.length; i++) { if (r.ambiguous[i]) amb++; else if (TRUTH && r.recovered[i] !== TRUTH[i]) unambiguousErrors++; }
+      return { attack: 'subtract', ...s, ambiguousChannels: amb, unambiguousErrors, attackMs: r.ms };
+    },
+    async worker() { return score(await workerRead()); },
+    async workerB64() { return b64(await workerRead()); },
+    readOne,
+  });
+})();
+</script>

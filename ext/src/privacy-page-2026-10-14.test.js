@@ -13,7 +13,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PRICING_STORAGE_KEY, MAX_SITES, MAX_TRACKERS_PER_SITE } from './protocol.js';
+import { PRICING_STORAGE_KEY, BOT_MANAGER_STORAGE_KEY, MAX_SITES, MAX_TRACKERS_PER_SITE } from './protocol.js';
+import { MAX_BOT_MANAGER_SITES } from './bot-manager.js';
 import './pricing.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -25,7 +26,7 @@ const P = globalThis.NullechoPricing;
 
 /** Every key the shipped extension writes to storage.local, from the source (see the call-site test). */
 const KEYS = ['identity', 'settings', 'allowlist', 'stats', 'nullecho:heuristics:v1', 'nullecho:gpc:v1',
-  'nullecho.drop.residency', 'nullecho.drop.submittedAt', PRICING_STORAGE_KEY];
+  'nullecho.drop.residency', 'nullecho.drop.submittedAt', PRICING_STORAGE_KEY, BOT_MANAGER_STORAGE_KEY];
 
 function shipped() {
   const out = [];
@@ -48,6 +49,9 @@ test('every storage.local write site is one the policy accounts for — a new on
   }
   assert.deepEqual(sites.sort(), [
     'options/drop.js: obj',                                        // DROP_KEYS only (store.set wrapper)
+    'src/background.js: { [BOT_MANAGER_STORAGE_KEY]: botSites }',  // D59: the flag (recordBotManager)
+    'src/background.js: { [BOT_MANAGER_STORAGE_KEY]: botSites }',  // D59: the user's override
+    'src/background.js: { [BOT_MANAGER_STORAGE_KEY]: botSites }',  // D59: "Clear site history"
     'src/background.js: { [PRICING_STORAGE_KEY]: list }',
     'src/background.js: { allowlist: [...allowlist] }',
     'src/background.js: { identity }',
@@ -60,6 +64,16 @@ test('every storage.local write site is one the policy accounts for — a new on
   ].sort(), 'a storage write was added or changed: update docs/PRIVACY-POLICY.md, site/privacy/index.html and this list');
 });
 
+test('D59: both documents describe botManagerSites truthfully — cookie names only, the cap, and how to clear it', () => {
+  for (const [name, doc] of [['site/privacy/index.html', PAGE], ['docs/PRIVACY-POLICY.md', POLICY]]) {
+    const row = doc.split('\n').find((l) => l.includes('botManagerSites') && /never the cookie/.test(l)) ?? '';
+    assert.ok(row, `${name}: the botManagerSites row does not say values are never stored`);
+    assert.match(row, /At most 500 sites/, `${name}: the cap`);
+    assert.match(row, /blocking and GPC do not/, `${name}: what stays on`);
+    assert.match(doc, /Clear site history[\s\S]{0,120}botManagerSites/, `${name}: the clear button`);
+  }
+});
+
 test('both privacy documents list every key, including pricingObservations', () => {
   for (const [name, doc] of [['site/privacy/index.html', PAGE], ['docs/PRIVACY-POLICY.md', POLICY]]) {
     for (const k of KEYS) assert.ok(doc.includes(k), `${name} omits the storage key ${k}`);
@@ -69,6 +83,8 @@ test('both privacy documents list every key, including pricingObservations', () 
 test('the numbers the documents state are the numbers the code enforces', () => {
   assert.equal(MAX_SITES, 500);
   assert.equal(MAX_TRACKERS_PER_SITE, 60);
+  assert.equal(MAX_BOT_MANAGER_SITES, 500);
+  assert.equal(BOT_MANAGER_STORAGE_KEY, 'botManagerSites');
   assert.equal(P.RECEIPT_CAP, 200);
   assert.equal(P.MAX_CONTEXT, 200);
   for (const [name, doc] of [['site', PAGE], ['policy', POLICY]]) {

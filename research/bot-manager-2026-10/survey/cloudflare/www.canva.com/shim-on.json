@@ -1,0 +1,71 @@
+{
+  "label": "shim-on",
+  "url": "https://www.canva.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11230,
+      "documents": [
+        {
+          "url": "https://www.canva.com/",
+          "status": 200,
+          "frameId": "36AD4BF92F90AA34111E808246EE3EF6",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "CDI",
+            "CL",
+            "__cf_bm",
+            "_cfuvid"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "ASI",
+        "CCDA",
+        "CDI",
+        "CL",
+        "__cf_bm",
+        "_cfuvid",
+        "cf_clearance",
+        "g_state"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Canva: Visual Suite for Everyone",
+        "href": "https://www.canva.com/",
+        "visibility": "visible",
+        "text": "Loading But first, cookies 🍪 We use essential cookies to make Canva work. We’d like to use other cookies to improve and personalize your visit, tailor ads you see from us on Canva and partner sites, ",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267882966,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:11:30.303Z"
+}

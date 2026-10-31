@@ -120,7 +120,31 @@ export const NEVER_BLOCK = [
   'hubspot.com',
   'hsforms.com',
   'hsforms.net',
-  'klaviyo.com',
+  // Klaviyo: ONLY what its sign-up, back-in-stock and consent forms need (0.9.3).
+  // Until 0.9.3 the whole of klaviyo.com sat here, which also shielded its
+  // tracking-only hosts — `static-tracking.` (analytics, identity and
+  // web-personalization modules), `telemetrics.`, the form-analytics and
+  // browse-event endpoints — from any rule and from the learner. Those are now
+  // blocked by rules/personalization.json 6950–6954. What renders and submits a
+  // form stays protected: the loader and form bundles (static.), the form
+  // definitions (static-forms.), the forms' fonts, and the client API's
+  // subscription, back-in-stock, consent and form endpoints — the same paths
+  // AdGuard's Tracking Protection keeps open with its @@ exceptions while it
+  // blocks the rest of a.klaviyo.com. The registrable domain itself moved to
+  // COOKIE_BLOCK_ONLY below, so the learner can strip its cookies, never block it.
+  // A path-scoped entry protects its whole HOST from learned rules (DNR excludes
+  // domains, not paths) and its PATH from static rules (validate.mjs).
+  'static.klaviyo.com',
+  'static-forms.klaviyo.com',
+  'fast.a.klaviyo.com/custom-fonts/',
+  'fast.a.klaviyo.com/forms/',
+  'a.klaviyo.com/client/subscriptions/',
+  'a.klaviyo.com/client/back-in-stock-subscriptions/',
+  'a.klaviyo.com/ajax/subscriptions/',
+  'a.klaviyo.com/consent-pages/',
+  'a.klaviyo.com/forms/',
+  'a.klaviyo.com/onsite/api/',
+  'a.klaviyo.com/media/js/onsite/onsite.js',
 ];
 
 /** Tracks, but provides a visible feature. Strip cookies; do not block. */
@@ -164,6 +188,9 @@ export const COOKIE_BLOCK_ONLY = [
   'gravatar.com',
   'giphy.com',
   'imgur.com',
+  // Renders the site's own sign-up forms; its form hosts and paths are on
+  // NEVER_BLOCK above, its tracking-only hosts are blocked by static rules.
+  'klaviyo.com',
 ];
 
 const NEVER_BLOCK_SET = new Set(NEVER_BLOCK.map((d) => d.toLowerCase()));

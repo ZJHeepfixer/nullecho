@@ -1,0 +1,82 @@
+{
+  "label": "shim-on",
+  "url": "https://allegro.pl/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8038,
+      "documents": [
+        {
+          "url": "https://allegro.pl/",
+          "status": 403,
+          "frameId": "DA497343B5ED48DC7FE1790D5BF10659",
+          "server": "",
+          "setCookieNames": [
+            "_cmuid",
+            "wdctx",
+            "datadome"
+          ]
+        },
+        {
+          "url": "https://geo.captcha-delivery.com/interstitial/?initialCid=AHrlqAAAAAMAqqDLC0pJFRsAQto0sA%3D%3D&hash=77DC0FFBAA0B77570F6B414F8E5BDB&cid=3BvjK2JsdHRzwqfTK5AmdQrzXAtELu2GP3NXlqEVbp7x1gtRVhTlyU89lMh~8OOpvKmAxfS4tGLQX92KP4ewvKKAGitD22irPeVSTgV1TAaiX8P9F5zxcXYjwDddp~n8&referer=https%3A%2F%2Fallegro.pl%2F&s=29701&e=416d02fc4e27818cb0334a04e5421d4923bdc7e8f103a826c1e6127b7ea253b0670a516ea7cdde9183a5f097851015c9&b=833105&dm=cd",
+          "status": 200,
+          "frameId": "232EC16E7D7BCAC43E9E88D29BFC09F0",
+          "server": "",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://allegro.pl/?dd_referrer=",
+          "status": 200,
+          "frameId": "DA497343B5ED48DC7FE1790D5BF10659",
+          "server": "",
+          "setCookieNames": [
+            "datadome"
+          ]
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "OptOutOnRequest",
+        "_cmuid",
+        "_meta_versions",
+        "datadome",
+        "wdctx"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Allegro - atrakcyjne ceny - Strona Główna",
+        "href": "https://allegro.pl/?dd_referrer=",
+        "text": "English polski українська język Dbamy o Twoją prywatność Dzięki plikom cookies i technologiom pokrewnym (np. piksele, SDK) oraz przetwarzaniu Twoich danych osobowych (między innymi unikalne identyfika",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267302765,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m3-4k",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:01:47.335Z"
+}

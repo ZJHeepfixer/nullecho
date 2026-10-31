@@ -1,0 +1,71 @@
+{
+  "label": "shim-on",
+  "url": "https://www.hermes.com/us/en/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "datadome-captcha",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 9669,
+      "documents": [
+        {
+          "url": "https://www.hermes.com/us/en/",
+          "status": 200,
+          "frameId": "41E6F574299098DAB2A3BEA20029A21E",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "__cf_bm"
+          ]
+        },
+        {
+          "url": "https://geo.captcha-delivery.com/interstitial/?initialCid=AHrlqAAAAAMAWOGMxg95_foAQto0sA==&cid=v2ywmuwnd_lyGryDcYQR13bOc_z20eKNTIjUSmB2fNDLBrPAy79yzp~VUtMxt1sHFo1exGSaDr_QRRXgOcSJ5CfXbC4IZEQv0LKXjpmCdo7RjPGCw91EWcA96AY6_al_&referer=https%3A%2F%2Fbck.hermes.com%2Fsync-form%3Flocale%3Dus_en&hash=2211F522B61E269B869FA6EAFFB5E1&t=it&s=8945&e=11a647c1b50066ab3b0bd5db790006ffdde23edc0fc8d194cd2599c491573ae0cf5eacec9ce238756e901f27d401e32d&b=2293235&dm=jd",
+          "status": 200,
+          "frameId": "EBA7151C2FB725B3B74E4071119AF923",
+          "server": "",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "__cf_bm",
+        "datadome",
+        "lastRskxRun",
+        "rCookie",
+        "rskxRunCookie"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "The official Hermes online store | Hermès USA",
+        "href": "https://www.hermes.com/us/en/",
+        "text": "Go to main content Go to product browsing Accessibility THE OFFICIAL HERMES ONLINE STORE - HOMEPAGE Homepage Hermès Paris Search Account , offline Cart , empty pause video Women’s spring-summer 2027 r",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": true
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267262314,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:01:11.058Z"
+}

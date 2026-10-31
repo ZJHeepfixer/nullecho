@@ -1,0 +1,45 @@
+Nullecho — NOTICE
+
+Copyright (c) 2026 Jason Luker
+
+CODE. Nullecho's code is licensed under the MIT License (LICENSE.txt,
+included with this extension).
+
+BLOCKING DATA. The rule files in rules/ are Nullecho's own selection of
+tracker domain names, URL patterns and site lists. Each entry was checked
+against one or more of the published lists below, or, where noted, against
+Nullecho's own first-hand evidence. Nullecho converted them to the browser's
+rule format, regrouped them into its own categories, and deliberately left
+out many entries. None of these projects endorses Nullecho.
+
+- EasyPrivacy and EasyList
+  (c) The EasyList authors, https://easylist.to/
+  Dual-licensed: GPL-3.0-or-later, or CC BY-SA 3.0 Unported or later.
+  Licence page: https://easylist.to/pages/licence.html
+  Used for: confirming tracker hosts; several URL patterns; the hosts the
+  GPC header rule leaves alone (EasyPrivacy's "! GPC" section); first-party
+  exceptions. Fetched 2026-08-20.
+
+- AdGuard Tracking Protection filter (filter 3) and AdGuard Base filter (filter 2)
+  (c) AdGuard Software Ltd, https://github.com/AdguardTeam/AdguardFilters
+  Licensed GPL-3.0: https://github.com/AdguardTeam/AdguardFilters/blob/master/LICENSE
+  Used for: confirming tracker hosts; URL patterns including
+  ||facebook.com/privacy_sandbox/pixel/, ||licdn.com/*li.lms-analytics/ and
+  ||linkedin.com/li/tscp/sct. Fetched 2026-08-20.
+
+- DuckDuckGo Tracker Radar and Tracker Blocklists (extension-tds.json, v6)
+  (c) 2020, 2022 Duck Duck Go, Inc., https://github.com/duckduckgo/tracker-radar
+  Licensed CC BY-NC-SA 4.0: https://creativecommons.org/licenses/by-nc-sa/4.0/
+  Used for: company ownership, prevalence and category, and as the qualifying
+  source for some tracker domains in this free, non-commercial extension.
+  No DuckDuckGo data file is redistributed. DuckDuckGo's names and logos are
+  their marks and are not licensed here.
+
+- The "Pricing & personalization" rules (added in 0.9.3) qualified through
+  EasyPrivacy, EasyList or AdGuard, or through Nullecho's own first-hand
+  evidence, recorded in the project's docs/DECISIONS.md (D57, D58).
+
+The GNU General Public License version 3 is included as GPL-3.0.txt.
+
+These lists are provided "as is", without warranty of any kind; see each
+licence for its disclaimer of warranties.

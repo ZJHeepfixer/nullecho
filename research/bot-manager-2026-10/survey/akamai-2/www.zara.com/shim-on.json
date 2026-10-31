@@ -1,0 +1,105 @@
+{
+  "label": "shim-on",
+  "url": "https://www.zara.com/us/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11830,
+      "documents": [
+        {
+          "url": "https://www.zara.com/us/",
+          "status": 200,
+          "frameId": "4C890FEA81EFA465E15F6C46C833E3E4",
+          "server": "",
+          "setCookieNames": [
+            "ak_bmsc"
+          ]
+        },
+        {
+          "url": "https://www.zara.com/interstitial/ic.html",
+          "status": 200,
+          "frameId": "C458BBD1267BE56947EEFF1E4B3BDDC2",
+          "server": "",
+          "setCookieNames": [
+            "ITXSESSIONID",
+            "_abck",
+            "bm_sv",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.zara.com/us/",
+          "status": 200,
+          "frameId": "4C890FEA81EFA465E15F6C46C833E3E4",
+          "server": "",
+          "setCookieNames": [
+            "ITXSESSIONID",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_sv",
+            "bm_sz"
+          ]
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "CookiesConsent",
+        "IDROSTA",
+        "ITXSESSIONID",
+        "OptanonConsent",
+        "TS0122c9b6",
+        "_abck",
+        "ak_bmsc",
+        "bm_mi",
+        "bm_sv",
+        "bm_sz",
+        "cart-was-updated-in-standard",
+        "lastRskxRun",
+        "rCookie",
+        "rid",
+        "rskxRunCookie",
+        "vwr_global"
+      ],
+      "abckStatus": "-1",
+      "page": {
+        "title": "ZARA United States | New Collection Online",
+        "href": "https://www.zara.com/us/",
+        "visibility": "visible",
+        "text": "SKIP TO MAIN CONTENT SEARCH BAG 0 LOG IN HELP ZARA United States | New Collection Online Footer SIGN UP FOR OUR NEWSLETTER TIKTOK INSTAGRAM FACEBOOK PINTEREST YOUTUBE SPOTIFY Legal documents COOKIES S",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792268062761,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-mini-m2",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:14:31.852Z"
+}

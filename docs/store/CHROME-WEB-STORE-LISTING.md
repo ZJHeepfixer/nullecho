@@ -36,7 +36,10 @@ shortest true form of it that fits the field.
 
 > Nullecho blocks the ad networks, analytics scripts, social pixels, and known fingerprinting vendors
 > that follow you across sites, using static rule lists built from DuckDuckGo Tracker Radar,
-> EasyPrivacy, and AdGuard, evaluated by the browser's own declarativeNetRequest engine. It sends Global Privacy
+> EasyPrivacy, and AdGuard, evaluated by the browser's own declarativeNetRequest engine. A "Pricing &
+> personalization" category blocks known price-personalization and personalization trackers on
+> shopping pages — the data-collection endpoints of shopper-profiling and offer-targeting services —
+> and never what shows you the price, the cart or search results. It sends Global Privacy
 > Control, a do-not-sell/share signal legally recognized in California, Colorado, and several other
 > states if you live there — the duty attaches to your residency, not the site's location.
 >

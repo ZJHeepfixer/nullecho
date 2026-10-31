@@ -1,0 +1,90 @@
+{
+  "label": "shim-off",
+  "url": "https://www.footlocker.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "http-429",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 14285,
+      "documents": [
+        {
+          "url": "https://www.footlocker.com/",
+          "status": 200,
+          "frameId": "285AC9DD56E6397720CBA2925F172615",
+          "server": "nginx",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.footlocker.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "AC907D2AEC004E3D9804AD7FD40D31F4",
+          "server": "",
+          "setCookieNames": [
+            "ak_bmsc_fl_com-ssn",
+            "ak_bmsc_fl_com"
+          ]
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "url": "https://www.footlocker.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://reporting.cdndex.io/error",
+          "type": "XHR",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.footlocker.com/zgw/search-core/products/v3/search/lite?query=%3A%3Acollection_id%3Asale&pageSize=20&sort=undefined",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.footlocker.com/zgw/search-core/products/v3/search/lite?query=%3A%3Acollection_id%3Aneutrals&pageSize=20&sort=undefined",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "BVBRANDID",
+        "BVBRANDSID",
+        "BVImplmain_site",
+        "affinity",
+        "ak_bmsc_fl_com",
+        "ak_bmsc_fl_com-ssn",
+        "flxCalloutShown"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Sneakers, Apparel & More | Foot Locker",
+        "href": "https://www.footlocker.com/",
+        "text": "This link will open in a new window SKIP TO MAIN 🔥Up to 40% Off Sale🔥 Shop the Sale ✨Your Fall Rotation Starts Here🍂 Shop the Trend🍁 👟Buy Online, Pick Up In Store📦 Find Your Store Sign In | Join",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:00:50.959Z"
+}

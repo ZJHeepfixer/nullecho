@@ -1,0 +1,4197 @@
+{
+ "date": "2026-10-14",
+ "paper": "Nguyen & Vadrevu, WWW 2025, doi:10.1145/3696410.3714713, Algorithm 3",
+ "trials": 5,
+ "ns": [
+  5,
+  9,
+  21
+ ],
+ "puppeteer": "25.1.0",
+ "commit": "94c72da",
+ "extension": "package nullecho-0.9.2-chrome.zip sha256 03ec14229bc66aa9",
+ "chrome": "Chrome/149.0.7827.22",
+ "off": {
+  "alpha.test": {
+   "env": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+    "visible": "visible",
+    "kernel": null
+   },
+   "shared": {
+    "strip": true,
+    "translate": true,
+    "colourshiftMismatches": 0,
+    "colourshiftAbstentions": 177122,
+    "hash": "555d6de08b746e0e"
+   },
+   "truthHash": "555d6de08b746e0e",
+   "workerHash": "178cab06133542b4",
+   "workerEqualsMain": true,
+   "unnoisedVoteExact": true,
+   "default": {
+    "truthHash": "3c599fefa1952504",
+    "sharedStrip": true
+   }
+  },
+  "bravo.test": {
+   "env": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+    "visible": "visible",
+    "kernel": null
+   },
+   "shared": {
+    "strip": true,
+    "translate": true,
+    "colourshiftMismatches": 0,
+    "colourshiftAbstentions": 177122,
+    "hash": "555d6de08b746e0e"
+   },
+   "truthHash": "555d6de08b746e0e",
+   "workerHash": "178cab06133542b4",
+   "workerEqualsMain": true,
+   "unnoisedVoteExact": true,
+   "default": {
+    "truthHash": "3c599fefa1952504",
+    "sharedStrip": true
+   }
+  }
+ },
+ "cpuVsDefaultTruthDiffer": true,
+ "kernels": {},
+ "on": {
+  "A": {
+   "saltTag": "03ebf53b",
+   "chrome": "Chrome/149.0.7827.22",
+   "origins": {
+    "alpha.test": {
+     "env": {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+      "visible": "visible",
+      "kernel": null
+     },
+     "single": {
+      "hash": "b3bf344213e4fa16",
+      "exact": false,
+      "channelErrors": 75447,
+      "pixelErrors": 25149
+     },
+     "singleAgain": {
+      "hash": "b3bf344213e4fa16",
+      "exact": false,
+      "channelErrors": 75447,
+      "pixelErrors": 25149
+     },
+     "strip": {
+      "5": [
+       {
+        "drawMs": 2,
+        "readMs": 79.80000001192093,
+        "f1": {
+         "hash": "3e8d0f638493072a",
+         "exact": false,
+         "channelErrors": 75321,
+         "pixelErrors": 25107
+        },
+        "modes": {
+         "majority": {
+          "hash": "ff9c4083c9ebdcda",
+          "exact": false,
+          "channelErrors": 6341,
+          "pixelErrors": 2280,
+          "voteMs": 42.19999998807907,
+          "attackMs": 124
+         },
+         "plurality": {
+          "hash": "f5d4c5fb8dff22b5",
+          "exact": false,
+          "channelErrors": 3974,
+          "pixelErrors": 2140,
+          "voteMs": 42.30000001192093,
+          "attackMs": 124.10000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1
+       },
+       {
+        "drawMs": 1.899999976158142,
+        "readMs": 79.80000001192093,
+        "f1": {
+         "hash": "b8ef33521b03759b",
+         "exact": false,
+         "channelErrors": 74958,
+         "pixelErrors": 24986
+        },
+        "modes": {
+         "majority": {
+          "hash": "96cc2ccafc0dc781",
+          "exact": false,
+          "channelErrors": 6382,
+          "pixelErrors": 2275,
+          "voteMs": 41.10000002384186,
+          "attackMs": 122.80000001192093
+         },
+         "plurality": {
+          "hash": "c27f3d7f0f0a6a42",
+          "exact": false,
+          "channelErrors": 3828,
+          "pixelErrors": 2108,
+          "voteMs": 33,
+          "attackMs": 114.69999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2
+       },
+       {
+        "drawMs": 2.199999988079071,
+        "readMs": 81.80000001192093,
+        "f1": {
+         "hash": "9ffd6e611cdcea4e",
+         "exact": false,
+         "channelErrors": 75237,
+         "pixelErrors": 25079
+        },
+        "modes": {
+         "majority": {
+          "hash": "26eca7de7bbb1168",
+          "exact": false,
+          "channelErrors": 6099,
+          "pixelErrors": 2164,
+          "voteMs": 35.799999952316284,
+          "attackMs": 119.79999995231628
+         },
+         "plurality": {
+          "hash": "83e6140ac2a2a196",
+          "exact": false,
+          "channelErrors": 3657,
+          "pixelErrors": 1991,
+          "voteMs": 35.10000002384186,
+          "attackMs": 119.10000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 3
+       },
+       {
+        "drawMs": 2.600000023841858,
+        "readMs": 88.39999997615814,
+        "f1": {
+         "hash": "4f50e325b0c6c2f7",
+         "exact": false,
+         "channelErrors": 74940,
+         "pixelErrors": 24980
+        },
+        "modes": {
+         "majority": {
+          "hash": "bc457fc1fc2bec30",
+          "exact": false,
+          "channelErrors": 6022,
+          "pixelErrors": 2186,
+          "voteMs": 32.90000003576279,
+          "attackMs": 123.90000003576279
+         },
+         "plurality": {
+          "hash": "b139b6d3f7371b34",
+          "exact": false,
+          "channelErrors": 3687,
+          "pixelErrors": 2031,
+          "voteMs": 33.60000002384186,
+          "attackMs": 124.60000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 4
+       },
+       {
+        "drawMs": 2,
+        "readMs": 82.5,
+        "f1": {
+         "hash": "46d190f37b1a2110",
+         "exact": false,
+         "channelErrors": 75207,
+         "pixelErrors": 25069
+        },
+        "modes": {
+         "majority": {
+          "hash": "81a23819f5dfeb07",
+          "exact": false,
+          "channelErrors": 6343,
+          "pixelErrors": 2250,
+          "voteMs": 35.19999998807907,
+          "attackMs": 119.69999998807907
+         },
+         "plurality": {
+          "hash": "8719d4c293e4b0a6",
+          "exact": false,
+          "channelErrors": 3921,
+          "pixelErrors": 2097,
+          "voteMs": 34.39999997615814,
+          "attackMs": 118.89999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 5
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 3.199999988079071,
+        "readMs": 148.19999998807907,
+        "f1": {
+         "hash": "48277c6861c10643",
+         "exact": false,
+         "channelErrors": 74622,
+         "pixelErrors": 24874
+        },
+        "modes": {
+         "majority": {
+          "hash": "ec72a27729629592",
+          "exact": false,
+          "channelErrors": 773,
+          "pixelErrors": 261,
+          "voteMs": 71,
+          "attackMs": 222.39999997615814
+         },
+         "plurality": {
+          "hash": "0dde9d8569f21247",
+          "exact": false,
+          "channelErrors": 110,
+          "pixelErrors": 75,
+          "voteMs": 75,
+          "attackMs": 226.39999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 5,
+        "readMs": 149.19999998807907,
+        "f1": {
+         "hash": "5c9f957df3af06fd",
+         "exact": false,
+         "channelErrors": 75174,
+         "pixelErrors": 25058
+        },
+        "modes": {
+         "majority": {
+          "hash": "38f473e02834fac6",
+          "exact": false,
+          "channelErrors": 904,
+          "pixelErrors": 304,
+          "voteMs": 69.89999997615814,
+          "attackMs": 224.0999999642372
+         },
+         "plurality": {
+          "hash": "419fd648a4a59fb6",
+          "exact": false,
+          "channelErrors": 130,
+          "pixelErrors": 86,
+          "voteMs": 72.70000004768372,
+          "attackMs": 226.9000000357628
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 3.700000047683716,
+        "readMs": 149.69999998807907,
+        "f1": {
+         "hash": "799546b724ffc81e",
+         "exact": false,
+         "channelErrors": 74931,
+         "pixelErrors": 24977
+        },
+        "modes": {
+         "majority": {
+          "hash": "1973a1ccd777907f",
+          "exact": false,
+          "channelErrors": 808,
+          "pixelErrors": 272,
+          "voteMs": 69.20000004768372,
+          "attackMs": 222.6000000834465
+         },
+         "plurality": {
+          "hash": "171bdfe9197354e6",
+          "exact": false,
+          "channelErrors": 120,
+          "pixelErrors": 84,
+          "voteMs": 72.60000002384186,
+          "attackMs": 226.00000005960464
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 3.800000011920929,
+        "readMs": 162.5,
+        "f1": {
+         "hash": "bff3dadb8ce3ffa0",
+         "exact": false,
+         "channelErrors": 74892,
+         "pixelErrors": 24964
+        },
+        "modes": {
+         "majority": {
+          "hash": "2d5f05a0d53158db",
+          "exact": false,
+          "channelErrors": 916,
+          "pixelErrors": 308,
+          "voteMs": 76.39999997615814,
+          "attackMs": 242.69999998807907
+         },
+         "plurality": {
+          "hash": "d0ab9d7e0cf7f10d",
+          "exact": false,
+          "channelErrors": 109,
+          "pixelErrors": 88,
+          "voteMs": 80.40000003576279,
+          "attackMs": 246.70000004768372
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 3.299999952316284,
+        "readMs": 161,
+        "f1": {
+         "hash": "6bc409f6cadb63dc",
+         "exact": false,
+         "channelErrors": 75261,
+         "pixelErrors": 25087
+        },
+        "modes": {
+         "majority": {
+          "hash": "9d9338386d63f4f8",
+          "exact": false,
+          "channelErrors": 814,
+          "pixelErrors": 274,
+          "voteMs": 76,
+          "attackMs": 240.29999995231628
+         },
+         "plurality": {
+          "hash": "5b0e63425e332577",
+          "exact": false,
+          "channelErrors": 106,
+          "pixelErrors": 80,
+          "voteMs": 79.40000003576279,
+          "attackMs": 243.69999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 8.400000035762787,
+        "readMs": 414.69999998807907,
+        "f1": {
+         "hash": "542837abf057ac52",
+         "exact": false,
+         "channelErrors": 75057,
+         "pixelErrors": 25019
+        },
+        "modes": {
+         "majority": {
+          "hash": "d907da14d23039f0",
+          "exact": false,
+          "channelErrors": 9,
+          "pixelErrors": 3,
+          "voteMs": 222.0999999642372,
+          "attackMs": 645.1999999880791
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 240.19999998807907,
+          "attackMs": 663.3000000119209
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 13,
+        "readMs": 492.30000001192093,
+        "f1": {
+         "hash": "35d20138f0b1e128",
+         "exact": false,
+         "channelErrors": 75945,
+         "pixelErrors": 25315
+        },
+        "modes": {
+         "majority": {
+          "hash": "3095c76725b5a4bb",
+          "exact": false,
+          "channelErrors": 9,
+          "pixelErrors": 3,
+          "voteMs": 257.10000002384186,
+          "attackMs": 762.4000000357628
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 300.0999999642372,
+          "attackMs": 805.3999999761581
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 13.300000011920929,
+        "readMs": 610.1999999880791,
+        "f1": {
+         "hash": "0d646b297033bf02",
+         "exact": false,
+         "channelErrors": 74994,
+         "pixelErrors": 24998
+        },
+        "modes": {
+         "majority": {
+          "hash": "c0c8c2152e37ffd0",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 365,
+          "attackMs": 988.5
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 382.2999999523163,
+          "attackMs": 1005.7999999523163
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 13.099999964237213,
+        "readMs": 704.7000000476837,
+        "f1": {
+         "hash": "302ab3f900fc9913",
+         "exact": false,
+         "channelErrors": 75273,
+         "pixelErrors": 25091
+        },
+        "modes": {
+         "majority": {
+          "hash": "264ffd473b0092d8",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 368.80000001192093,
+          "attackMs": 1086.6000000238419
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 388.80000001192093,
+          "attackMs": 1106.6000000238419
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 15.199999988079071,
+        "readMs": 705.4000000357628,
+        "f1": {
+         "hash": "837c299889b09404",
+         "exact": false,
+         "channelErrors": 74880,
+         "pixelErrors": 24960
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 368.9000000357628,
+          "attackMs": 1089.5000000596046
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 318.80000001192093,
+          "attackMs": 1039.4000000357628
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "isolatedTruthHash": "555d6de08b746e0e",
+     "translate": {
+      "9": [
+       {
+        "drawMs": 6.199999988079071,
+        "readMs": 252.70000004768372,
+        "f1": {
+         "hash": "08a2795230fb7fa7",
+         "exact": false,
+         "channelErrors": 74967,
+         "pixelErrors": 24989
+        },
+        "modes": {
+         "majority": {
+          "hash": "182ace9b7a35a561",
+          "exact": false,
+          "channelErrors": 914,
+          "pixelErrors": 308,
+          "voteMs": 117.19999998807907,
+          "attackMs": 376.10000002384186
+         },
+         "plurality": {
+          "hash": "44763780a780b58e",
+          "exact": false,
+          "channelErrors": 114,
+          "pixelErrors": 83,
+          "voteMs": 121.69999998807907,
+          "attackMs": 380.60000002384186
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 6.5,
+        "readMs": 253.10000002384186,
+        "f1": {
+         "hash": "bd599f169315c7dd",
+         "exact": false,
+         "channelErrors": 74796,
+         "pixelErrors": 24932
+        },
+        "modes": {
+         "majority": {
+          "hash": "7a2644c70a8c8848",
+          "exact": false,
+          "channelErrors": 817,
+          "pixelErrors": 275,
+          "voteMs": 116.10000002384186,
+          "attackMs": 375.7000000476837
+         },
+         "plurality": {
+          "hash": "1d677e23013380ff",
+          "exact": false,
+          "channelErrors": 101,
+          "pixelErrors": 80,
+          "voteMs": 121.19999998807907,
+          "attackMs": 380.80000001192093
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 5.5,
+        "readMs": 227.5999999642372,
+        "f1": {
+         "hash": "11d3bb9cad3e12c2",
+         "exact": false,
+         "channelErrors": 74466,
+         "pixelErrors": 24822
+        },
+        "modes": {
+         "majority": {
+          "hash": "07f628b74111ef41",
+          "exact": false,
+          "channelErrors": 828,
+          "pixelErrors": 278,
+          "voteMs": 97.30000001192093,
+          "attackMs": 330.39999997615814
+         },
+         "plurality": {
+          "hash": "7335b495c63faa44",
+          "exact": false,
+          "channelErrors": 90,
+          "pixelErrors": 68,
+          "voteMs": 102,
+          "attackMs": 335.0999999642372
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 4.600000023841858,
+        "readMs": 214.69999998807907,
+        "f1": {
+         "hash": "4c8b126ce6cdb4f4",
+         "exact": false,
+         "channelErrors": 74466,
+         "pixelErrors": 24822
+        },
+        "modes": {
+         "majority": {
+          "hash": "946a4e24ac6f027b",
+          "exact": false,
+          "channelErrors": 732,
+          "pixelErrors": 248,
+          "voteMs": 98.09999996423721,
+          "attackMs": 317.39999997615814
+         },
+         "plurality": {
+          "hash": "0ea7258450f28733",
+          "exact": false,
+          "channelErrors": 110,
+          "pixelErrors": 78,
+          "voteMs": 102.80000001192093,
+          "attackMs": 322.10000002384186
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 5.300000011920929,
+        "readMs": 199.39999997615814,
+        "f1": {
+         "hash": "2510015a3735229e",
+         "exact": false,
+         "channelErrors": 75333,
+         "pixelErrors": 25111
+        },
+        "modes": {
+         "majority": {
+          "hash": "37bf190773db2e19",
+          "exact": false,
+          "channelErrors": 834,
+          "pixelErrors": 284,
+          "voteMs": 85.30000001192093,
+          "attackMs": 290
+         },
+         "plurality": {
+          "hash": "c117048606ae2d68",
+          "exact": false,
+          "channelErrors": 139,
+          "pixelErrors": 93,
+          "voteMs": 89.10000002384186,
+          "attackMs": 293.80000001192093
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 7.899999976158142,
+        "readMs": 432.5,
+        "f1": {
+         "hash": "801e4fc6b9e1c1a8",
+         "exact": false,
+         "channelErrors": 74616,
+         "pixelErrors": 24872
+        },
+        "modes": {
+         "majority": {
+          "hash": "e54dae7d06f1e92c",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 222.10000002384186,
+          "attackMs": 662.5
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 213,
+          "attackMs": 653.3999999761581
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 8.5,
+        "readMs": 386.60000002384186,
+        "f1": {
+         "hash": "b0850c2cc884bad2",
+         "exact": false,
+         "channelErrors": 75078,
+         "pixelErrors": 25026
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 198.89999997615814,
+          "attackMs": 594
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 208.89999997615814,
+          "attackMs": 604
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 7.5,
+        "readMs": 386,
+        "f1": {
+         "hash": "ae67b112912009a7",
+         "exact": false,
+         "channelErrors": 74901,
+         "pixelErrors": 24967
+        },
+        "modes": {
+         "majority": {
+          "hash": "845b2c51f3786970",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 200.10000002384186,
+          "attackMs": 593.6000000238419
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 233.5,
+          "attackMs": 627
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 9.299999952316284,
+        "readMs": 432.60000002384186,
+        "f1": {
+         "hash": "e7189a13dd8b7be3",
+         "exact": false,
+         "channelErrors": 75744,
+         "pixelErrors": 25248
+        },
+        "modes": {
+         "majority": {
+          "hash": "7cd39a9caa368b35",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 223.19999998807907,
+          "attackMs": 665.0999999642372
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 266.4000000357628,
+          "attackMs": 708.3000000119209
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 8.599999964237213,
+        "readMs": 501.5,
+        "f1": {
+         "hash": "cab0ca58ade8453b",
+         "exact": false,
+         "channelErrors": 74721,
+         "pixelErrors": 24907
+        },
+        "modes": {
+         "majority": {
+          "hash": "3cff0baa41de75e5",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 255.5,
+          "attackMs": 765.5999999642372
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 278.4000000357628,
+          "attackMs": 788.5
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "subtract": {
+      "attack": "subtract",
+      "hash": "48964adac6e22195",
+      "exact": false,
+      "channelErrors": 138006,
+      "pixelErrors": 46906,
+      "ambiguousChannels": 48,
+      "unambiguousErrors": 137958,
+      "attackMs": 67.69999998807907
+     },
+     "worker": {
+      "hash": "178cab06133542b4",
+      "equalsOffWorker": true,
+      "equalsMainTruth": true
+     },
+     "defaultStrip": {
+      "5": [
+       {
+        "drawMs": 11.399999976158142,
+        "readMs": 193.80000001192093,
+        "f1": {
+         "hash": "43440b9b206227b0",
+         "exact": false,
+         "channelErrors": 75636,
+         "pixelErrors": 25212
+        },
+        "modes": {
+         "majority": {
+          "hash": "574b92d50c6a266d",
+          "exact": false,
+          "channelErrors": 5902,
+          "pixelErrors": 2105,
+          "voteMs": 47.69999998807907,
+          "attackMs": 252.89999997615814
+         },
+         "plurality": {
+          "hash": "e27d239122d1efdd",
+          "exact": false,
+          "channelErrors": 3600,
+          "pixelErrors": 1959,
+          "voteMs": 46.60000002384186,
+          "attackMs": 251.80000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 9.5,
+        "readMs": 146.9000000357628,
+        "f1": {
+         "hash": "1db8766fc04a306b",
+         "exact": false,
+         "channelErrors": 74520,
+         "pixelErrors": 24840
+        },
+        "modes": {
+         "majority": {
+          "hash": "1400c4ae07c0f1ba",
+          "exact": false,
+          "channelErrors": 6299,
+          "pixelErrors": 2259,
+          "voteMs": 46.30000001192093,
+          "attackMs": 202.70000004768372
+         },
+         "plurality": {
+          "hash": "7978004b85476dd9",
+          "exact": false,
+          "channelErrors": 3869,
+          "pixelErrors": 2106,
+          "voteMs": 43.200000047683716,
+          "attackMs": 199.6000000834465
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 9,
+        "readMs": 191.29999995231628,
+        "f1": {
+         "hash": "8ce5aa767c1c495a",
+         "exact": false,
+         "channelErrors": 74790,
+         "pixelErrors": 24930
+        },
+        "modes": {
+         "majority": {
+          "hash": "ac7df4787770c094",
+          "exact": false,
+          "channelErrors": 861,
+          "pixelErrors": 289,
+          "voteMs": 78.5,
+          "attackMs": 278.7999999523163
+         },
+         "plurality": {
+          "hash": "bea2c96b8d635d12",
+          "exact": false,
+          "channelErrors": 118,
+          "pixelErrors": 91,
+          "voteMs": 74.80000001192093,
+          "attackMs": 275.0999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 10.600000023841858,
+        "readMs": 173.30000001192093,
+        "f1": {
+         "hash": "74f421ba07bdb8e0",
+         "exact": false,
+         "channelErrors": 74865,
+         "pixelErrors": 24955
+        },
+        "modes": {
+         "majority": {
+          "hash": "6a92d1e589a21082",
+          "exact": false,
+          "channelErrors": 890,
+          "pixelErrors": 300,
+          "voteMs": 69.69999998807907,
+          "attackMs": 253.60000002384186
+         },
+         "plurality": {
+          "hash": "16d3cd8797cfadfe",
+          "exact": false,
+          "channelErrors": 125,
+          "pixelErrors": 92,
+          "voteMs": 68.29999995231628,
+          "attackMs": 252.19999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 11,
+        "readMs": 339.80000001192093,
+        "f1": {
+         "hash": "b5e55018654873e8",
+         "exact": false,
+         "channelErrors": 75027,
+         "pixelErrors": 25009
+        },
+        "modes": {
+         "majority": {
+          "hash": "8e037e745c192358",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 160.60000002384186,
+          "attackMs": 511.4000000357628
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 176.80000001192093,
+          "attackMs": 527.6000000238419
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 10.600000023841858,
+        "readMs": 437.5999999642372,
+        "f1": {
+         "hash": "c6cabdb9b6a5e96a",
+         "exact": false,
+         "channelErrors": 74607,
+         "pixelErrors": 24869
+        },
+        "modes": {
+         "majority": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 208.9000000357628,
+          "attackMs": 657.1000000238419
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 235.39999997615814,
+          "attackMs": 683.5999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ]
+     }
+    },
+    "bravo.test": {
+     "env": {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+      "visible": "visible",
+      "kernel": null
+     },
+     "single": {
+      "hash": "1509c78e98893d23",
+      "exact": false,
+      "channelErrors": 75390,
+      "pixelErrors": 25130
+     },
+     "singleAgain": {
+      "hash": "1509c78e98893d23",
+      "exact": false,
+      "channelErrors": 75390,
+      "pixelErrors": 25130
+     },
+     "strip": {
+      "5": [
+       {
+        "drawMs": 3.400000035762787,
+        "readMs": 125.19999998807907,
+        "f1": {
+         "hash": "e484f0c86bfe5b13",
+         "exact": false,
+         "channelErrors": 74943,
+         "pixelErrors": 24981
+        },
+        "modes": {
+         "majority": {
+          "hash": "bf6dc775cb328556",
+          "exact": false,
+          "channelErrors": 6133,
+          "pixelErrors": 2213,
+          "voteMs": 64.10000002384186,
+          "attackMs": 192.70000004768372
+         },
+         "plurality": {
+          "hash": "d1afbda7a35dd4ca",
+          "exact": false,
+          "channelErrors": 3783,
+          "pixelErrors": 2075,
+          "voteMs": 63.69999998807907,
+          "attackMs": 192.30000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1
+       },
+       {
+        "drawMs": 3.300000011920929,
+        "readMs": 122.69999998807907,
+        "f1": {
+         "hash": "739377ef8c5cfcf4",
+         "exact": false,
+         "channelErrors": 75033,
+         "pixelErrors": 25011
+        },
+        "modes": {
+         "majority": {
+          "hash": "87fce309ac1cdf5f",
+          "exact": false,
+          "channelErrors": 6246,
+          "pixelErrors": 2224,
+          "voteMs": 63.60000002384186,
+          "attackMs": 189.60000002384186
+         },
+         "plurality": {
+          "hash": "0ace1c2eceae56bf",
+          "exact": false,
+          "channelErrors": 3789,
+          "pixelErrors": 2088,
+          "voteMs": 49.39999997615814,
+          "attackMs": 175.39999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2
+       },
+       {
+        "drawMs": 3.800000011920929,
+        "readMs": 125.90000003576279,
+        "f1": {
+         "hash": "0092d51737dab59f",
+         "exact": false,
+         "channelErrors": 74475,
+         "pixelErrors": 24825
+        },
+        "modes": {
+         "majority": {
+          "hash": "0a4349570f9380e4",
+          "exact": false,
+          "channelErrors": 6256,
+          "pixelErrors": 2230,
+          "voteMs": 50,
+          "attackMs": 179.70000004768372
+         },
+         "plurality": {
+          "hash": "96e21544dc685925",
+          "exact": false,
+          "channelErrors": 3871,
+          "pixelErrors": 2096,
+          "voteMs": 49.10000002384186,
+          "attackMs": 178.80000007152557
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 3
+       },
+       {
+        "drawMs": 3.100000023841858,
+        "readMs": 124.79999995231628,
+        "f1": {
+         "hash": "5c9b59e10a7980f1",
+         "exact": false,
+         "channelErrors": 74643,
+         "pixelErrors": 24881
+        },
+        "modes": {
+         "majority": {
+          "hash": "561244045450a6fa",
+          "exact": false,
+          "channelErrors": 6248,
+          "pixelErrors": 2229,
+          "voteMs": 50.69999998807907,
+          "attackMs": 178.5999999642372
+         },
+         "plurality": {
+          "hash": "f989439ced8d7195",
+          "exact": false,
+          "channelErrors": 3782,
+          "pixelErrors": 2073,
+          "voteMs": 56,
+          "attackMs": 183.89999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 4
+       },
+       {
+        "drawMs": 3.099999964237213,
+        "readMs": 136.9000000357628,
+        "f1": {
+         "hash": "3487c08a1e7911ff",
+         "exact": false,
+         "channelErrors": 75207,
+         "pixelErrors": 25069
+        },
+        "modes": {
+         "majority": {
+          "hash": "11ea380bbda65b46",
+          "exact": false,
+          "channelErrors": 6059,
+          "pixelErrors": 2173,
+          "voteMs": 58.5,
+          "attackMs": 198.5
+         },
+         "plurality": {
+          "hash": "79dd1aa766ec35a4",
+          "exact": false,
+          "channelErrors": 3661,
+          "pixelErrors": 2004,
+          "voteMs": 57.5,
+          "attackMs": 197.5
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 5
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 5.300000011920929,
+        "readMs": 246.89999997615814,
+        "f1": {
+         "hash": "38b789b314fd57b9",
+         "exact": false,
+         "channelErrors": 74946,
+         "pixelErrors": 24982
+        },
+        "modes": {
+         "majority": {
+          "hash": "fc7ac98b9dfbe216",
+          "exact": false,
+          "channelErrors": 799,
+          "pixelErrors": 273,
+          "voteMs": 117.19999998807907,
+          "attackMs": 369.39999997615814
+         },
+         "plurality": {
+          "hash": "841ac4868b9ff0ae",
+          "exact": false,
+          "channelErrors": 126,
+          "pixelErrors": 94,
+          "voteMs": 122.5,
+          "attackMs": 374.69999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 7.099999964237213,
+        "readMs": 246.69999998807907,
+        "f1": {
+         "hash": "da7e8191844395bc",
+         "exact": false,
+         "channelErrors": 74952,
+         "pixelErrors": 24984
+        },
+        "modes": {
+         "majority": {
+          "hash": "7f38997b57ca3841",
+          "exact": false,
+          "channelErrors": 807,
+          "pixelErrors": 273,
+          "voteMs": 116,
+          "attackMs": 369.7999999523163
+         },
+         "plurality": {
+          "hash": "bd3882644477d74d",
+          "exact": false,
+          "channelErrors": 97,
+          "pixelErrors": 65,
+          "voteMs": 119.5,
+          "attackMs": 373.2999999523163
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 6.100000023841858,
+        "readMs": 248.0999999642372,
+        "f1": {
+         "hash": "ccd4a56b5bfbd80c",
+         "exact": false,
+         "channelErrors": 74040,
+         "pixelErrors": 24680
+        },
+        "modes": {
+         "majority": {
+          "hash": "8384fecda13ca8aa",
+          "exact": false,
+          "channelErrors": 902,
+          "pixelErrors": 302,
+          "voteMs": 114.69999998807907,
+          "attackMs": 368.89999997615814
+         },
+         "plurality": {
+          "hash": "1314458b47735671",
+          "exact": false,
+          "channelErrors": 135,
+          "pixelErrors": 92,
+          "voteMs": 119.89999997615814,
+          "attackMs": 374.0999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 7.399999976158142,
+        "readMs": 217.19999998807907,
+        "f1": {
+         "hash": "3441a640d1d28829",
+         "exact": false,
+         "channelErrors": 74382,
+         "pixelErrors": 24794
+        },
+        "modes": {
+         "majority": {
+          "hash": "b372f95287706389",
+          "exact": false,
+          "channelErrors": 814,
+          "pixelErrors": 276,
+          "voteMs": 98.19999998807907,
+          "attackMs": 322.7999999523163
+         },
+         "plurality": {
+          "hash": "51709be80e3cc701",
+          "exact": false,
+          "channelErrors": 92,
+          "pixelErrors": 74,
+          "voteMs": 103,
+          "attackMs": 327.5999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 4.099999964237213,
+        "readMs": 209.70000004768372,
+        "f1": {
+         "hash": "9d0dad3d45ec01e4",
+         "exact": false,
+         "channelErrors": 74799,
+         "pixelErrors": 24933
+        },
+        "modes": {
+         "majority": {
+          "hash": "7e74b58cb3a964a8",
+          "exact": false,
+          "channelErrors": 853,
+          "pixelErrors": 285,
+          "voteMs": 98.19999998807907,
+          "attackMs": 312
+         },
+         "plurality": {
+          "hash": "3450fda529c747e4",
+          "exact": false,
+          "channelErrors": 100,
+          "pixelErrors": 75,
+          "voteMs": 102.39999997615814,
+          "attackMs": 316.19999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 11.399999976158142,
+        "readMs": 486.10000002384186,
+        "f1": {
+         "hash": "f026a9fe736ed776",
+         "exact": false,
+         "channelErrors": 74697,
+         "pixelErrors": 24899
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 222.9000000357628,
+          "attackMs": 720.4000000357628
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234.5,
+          "attackMs": 732
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 8.800000011920929,
+        "readMs": 427.80000001192093,
+        "f1": {
+         "hash": "2db8b0efb8afda8c",
+         "exact": false,
+         "channelErrors": 74655,
+         "pixelErrors": 24885
+        },
+        "modes": {
+         "majority": {
+          "hash": "3e675c769ad13fa6",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 222.5,
+          "attackMs": 659.1000000238419
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234.69999998807907,
+          "attackMs": 671.3000000119209
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 9.600000023841858,
+        "readMs": 428.39999997615814,
+        "f1": {
+         "hash": "4a525562af0790cf",
+         "exact": false,
+         "channelErrors": 74949,
+         "pixelErrors": 24983
+        },
+        "modes": {
+         "majority": {
+          "hash": "bd4282a44b6765ae",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 211.39999997615814,
+          "attackMs": 649.3999999761581
+         },
+         "plurality": {
+          "hash": "b4849e56daed1202",
+          "exact": false,
+          "channelErrors": 1,
+          "pixelErrors": 1,
+          "voteMs": 208.60000002384186,
+          "attackMs": 646.6000000238419
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 7.800000011920929,
+        "readMs": 380.89999997615814,
+        "f1": {
+         "hash": "69b74e132e200ff1",
+         "exact": false,
+         "channelErrors": 75387,
+         "pixelErrors": 25129
+        },
+        "modes": {
+         "majority": {
+          "hash": "3a0007bbf4b2f994",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 198.30000001192093,
+          "attackMs": 587
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 209.19999998807907,
+          "attackMs": 597.8999999761581
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 7,
+        "readMs": 412.19999998807907,
+        "f1": {
+         "hash": "6bd71c5a395c0cc2",
+         "exact": false,
+         "channelErrors": 74268,
+         "pixelErrors": 24756
+        },
+        "modes": {
+         "majority": {
+          "hash": "6978c3cba7522a26",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 227.39999997615814,
+          "attackMs": 646.5999999642372
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234,
+          "attackMs": 653.1999999880791
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "isolatedTruthHash": "555d6de08b746e0e",
+     "translate": {
+      "9": [
+       {
+        "drawMs": 4.599999964237213,
+        "readMs": 186.30000001192093,
+        "f1": {
+         "hash": "72854abe5b6115b5",
+         "exact": false,
+         "channelErrors": 74805,
+         "pixelErrors": 24935
+        },
+        "modes": {
+         "majority": {
+          "hash": "7bd320e4e77d9831",
+          "exact": false,
+          "channelErrors": 788,
+          "pixelErrors": 264,
+          "voteMs": 85,
+          "attackMs": 275.89999997615814
+         },
+         "plurality": {
+          "hash": "cd45119aea399c75",
+          "exact": false,
+          "channelErrors": 80,
+          "pixelErrors": 64,
+          "voteMs": 89.19999998807907,
+          "attackMs": 280.0999999642372
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 5.399999976158142,
+        "readMs": 186.89999997615814,
+        "f1": {
+         "hash": "db0e7fda42570034",
+         "exact": false,
+         "channelErrors": 75051,
+         "pixelErrors": 25017
+        },
+        "modes": {
+         "majority": {
+          "hash": "07571edaf1dbc329",
+          "exact": false,
+          "channelErrors": 907,
+          "pixelErrors": 307,
+          "voteMs": 84.69999998807907,
+          "attackMs": 276.99999994039536
+         },
+         "plurality": {
+          "hash": "2f79c70e8c5afead",
+          "exact": false,
+          "channelErrors": 116,
+          "pixelErrors": 92,
+          "voteMs": 88.69999998807907,
+          "attackMs": 280.99999994039536
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 4.399999976158142,
+        "readMs": 186.89999997615814,
+        "f1": {
+         "hash": "1e8187ad6175e335",
+         "exact": false,
+         "channelErrors": 74811,
+         "pixelErrors": 24937
+        },
+        "modes": {
+         "majority": {
+          "hash": "d9a3b14acdc4c9cb",
+          "exact": false,
+          "channelErrors": 832,
+          "pixelErrors": 278,
+          "voteMs": 85.10000002384186,
+          "attackMs": 276.39999997615814
+         },
+         "plurality": {
+          "hash": "6bc0f1c51e0883f3",
+          "exact": false,
+          "channelErrors": 110,
+          "pixelErrors": 75,
+          "voteMs": 88.69999998807907,
+          "attackMs": 279.99999994039536
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 4.400000035762787,
+        "readMs": 186.19999998807907,
+        "f1": {
+         "hash": "b9f781bf7a2e11cc",
+         "exact": false,
+         "channelErrors": 74604,
+         "pixelErrors": 24868
+        },
+        "modes": {
+         "majority": {
+          "hash": "d7994abf0f2292d9",
+          "exact": false,
+          "channelErrors": 839,
+          "pixelErrors": 281,
+          "voteMs": 85.19999998807907,
+          "attackMs": 275.80000001192093
+         },
+         "plurality": {
+          "hash": "1b9180de58d54bba",
+          "exact": false,
+          "channelErrors": 101,
+          "pixelErrors": 79,
+          "voteMs": 88.5,
+          "attackMs": 279.10000002384186
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 5,
+        "readMs": 187.10000002384186,
+        "f1": {
+         "hash": "94660675af615bd2",
+         "exact": false,
+         "channelErrors": 75528,
+         "pixelErrors": 25176
+        },
+        "modes": {
+         "majority": {
+          "hash": "6b6cf206a5e7b40a",
+          "exact": false,
+          "channelErrors": 761,
+          "pixelErrors": 259,
+          "voteMs": 84.5,
+          "attackMs": 276.60000002384186
+         },
+         "plurality": {
+          "hash": "8dff81973ece4d6d",
+          "exact": false,
+          "channelErrors": 101,
+          "pixelErrors": 78,
+          "voteMs": 88.19999998807907,
+          "attackMs": 280.30000001192093
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 8.100000023841858,
+        "readMs": 432.80000001192093,
+        "f1": {
+         "hash": "2f30886123211471",
+         "exact": false,
+         "channelErrors": 75540,
+         "pixelErrors": 25180
+        },
+        "modes": {
+         "majority": {
+          "hash": "d524cafd335dac41",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 227.39999997615814,
+          "attackMs": 668.3000000119209
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 270.89999997615814,
+          "attackMs": 711.8000000119209
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 9.699999988079071,
+        "readMs": 500.19999998807907,
+        "f1": {
+         "hash": "89852b713f08beba",
+         "exact": false,
+         "channelErrors": 76143,
+         "pixelErrors": 25381
+        },
+        "modes": {
+         "majority": {
+          "hash": "17320aa82f3b5486",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 257.60000002384186,
+          "attackMs": 767.5
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 274.9000000357628,
+          "attackMs": 784.8000000119209
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 8,
+        "readMs": 583.1000000238419,
+        "f1": {
+         "hash": "ffa88e5619fd1bc3",
+         "exact": false,
+         "channelErrors": 74922,
+         "pixelErrors": 24974
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 302,
+          "attackMs": 893.1000000238419
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 317.89999997615814,
+          "attackMs": 909
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 11,
+        "readMs": 585.1000000238419,
+        "f1": {
+         "hash": "ce40c28b6b7c7d44",
+         "exact": false,
+         "channelErrors": 74775,
+         "pixelErrors": 24925
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 270.69999998807907,
+          "attackMs": 866.8000000119209
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 270.80000001192093,
+          "attackMs": 866.9000000357628
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 9.5,
+        "readMs": 498.19999998807907,
+        "f1": {
+         "hash": "bff6f3e4e11a93b3",
+         "exact": false,
+         "channelErrors": 75585,
+         "pixelErrors": 25195
+        },
+        "modes": {
+         "majority": {
+          "hash": "138e954c731c95b2",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 258.60000002384186,
+          "attackMs": 766.3000000119209
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 271.80000001192093,
+          "attackMs": 779.5
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "subtract": {
+      "attack": "subtract",
+      "hash": "32b09a975bdc33fb",
+      "exact": false,
+      "channelErrors": 138281,
+      "pixelErrors": 47004,
+      "ambiguousChannels": 44,
+      "unambiguousErrors": 138237,
+      "attackMs": 58.39999997615814
+     },
+     "worker": {
+      "hash": "178cab06133542b4",
+      "equalsOffWorker": true,
+      "equalsMainTruth": true
+     },
+     "defaultStrip": {
+      "5": [
+       {
+        "drawMs": 9.699999988079071,
+        "readMs": 144.89999997615814,
+        "f1": {
+         "hash": "c2e458bdd2de63b9",
+         "exact": false,
+         "channelErrors": 75384,
+         "pixelErrors": 25128
+        },
+        "modes": {
+         "majority": {
+          "hash": "71f85b931059194e",
+          "exact": false,
+          "channelErrors": 6311,
+          "pixelErrors": 2248,
+          "voteMs": 43.69999998807907,
+          "attackMs": 198.29999995231628
+         },
+         "plurality": {
+          "hash": "81c921a786f30071",
+          "exact": false,
+          "channelErrors": 3820,
+          "pixelErrors": 2082,
+          "voteMs": 43,
+          "attackMs": 197.5999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 8.800000011920929,
+        "readMs": 126.19999998807907,
+        "f1": {
+         "hash": "beedb9940571c964",
+         "exact": false,
+         "channelErrors": 74799,
+         "pixelErrors": 24933
+        },
+        "modes": {
+         "majority": {
+          "hash": "94421c5789b7b079",
+          "exact": false,
+          "channelErrors": 6023,
+          "pixelErrors": 2165,
+          "voteMs": 40.10000002384186,
+          "attackMs": 175.10000002384186
+         },
+         "plurality": {
+          "hash": "afee07bb91e53f2e",
+          "exact": false,
+          "channelErrors": 3760,
+          "pixelErrors": 2038,
+          "voteMs": 37.59999996423721,
+          "attackMs": 172.5999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 9.600000023841858,
+        "readMs": 189.29999995231628,
+        "f1": {
+         "hash": "ec23a117a573de36",
+         "exact": false,
+         "channelErrors": 75408,
+         "pixelErrors": 25136
+        },
+        "modes": {
+         "majority": {
+          "hash": "a005065d2a71c235",
+          "exact": false,
+          "channelErrors": 812,
+          "pixelErrors": 272,
+          "voteMs": 78.39999997615814,
+          "attackMs": 277.2999999523163
+         },
+         "plurality": {
+          "hash": "f10fc4a147f469b2",
+          "exact": false,
+          "channelErrors": 90,
+          "pixelErrors": 64,
+          "voteMs": 74.69999998807907,
+          "attackMs": 273.5999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 9.399999976158142,
+        "readMs": 177,
+        "f1": {
+         "hash": "a9596c13d13615c3",
+         "exact": false,
+         "channelErrors": 75150,
+         "pixelErrors": 25050
+        },
+        "modes": {
+         "majority": {
+          "hash": "37bfaf654d175a5c",
+          "exact": false,
+          "channelErrors": 713,
+          "pixelErrors": 241,
+          "voteMs": 73,
+          "attackMs": 259.39999997615814
+         },
+         "plurality": {
+          "hash": "32955ba76587cd8d",
+          "exact": false,
+          "channelErrors": 99,
+          "pixelErrors": 67,
+          "voteMs": 71.19999998807907,
+          "attackMs": 257.5999999642372
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 10.300000011920929,
+        "readMs": 359.10000002384186,
+        "f1": {
+         "hash": "bf36039463ae777a",
+         "exact": false,
+         "channelErrors": 74916,
+         "pixelErrors": 24972
+        },
+        "modes": {
+         "majority": {
+          "hash": "48858dac65358145",
+          "exact": false,
+          "channelErrors": 12,
+          "pixelErrors": 4,
+          "voteMs": 165.79999995231628,
+          "attackMs": 535.1999999880791
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 182,
+          "attackMs": 551.4000000357628
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 11.400000035762787,
+        "readMs": 484,
+        "f1": {
+         "hash": "6422ca465ed31d9f",
+         "exact": false,
+         "channelErrors": 74901,
+         "pixelErrors": 24967
+        },
+        "modes": {
+         "majority": {
+          "hash": "37168a481347cfba",
+          "exact": false,
+          "channelErrors": 9,
+          "pixelErrors": 3,
+          "voteMs": 226.80000001192093,
+          "attackMs": 722.2000000476837
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 250.69999998807907,
+          "attackMs": 746.1000000238419
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ]
+     }
+    }
+   }
+  },
+  "B": {
+   "saltTag": "c81f2040",
+   "chrome": "Chrome/149.0.7827.22",
+   "origins": {
+    "alpha.test": {
+     "env": {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+      "visible": "visible",
+      "kernel": null
+     },
+     "single": {
+      "hash": "af4027e000fa67ee",
+      "exact": false,
+      "channelErrors": 75576,
+      "pixelErrors": 25192
+     },
+     "singleAgain": {
+      "hash": "af4027e000fa67ee",
+      "exact": false,
+      "channelErrors": 75576,
+      "pixelErrors": 25192
+     },
+     "strip": {
+      "5": [
+       {
+        "drawMs": 3.5,
+        "readMs": 144.19999998807907,
+        "f1": {
+         "hash": "c0c99d84477c7208",
+         "exact": false,
+         "channelErrors": 75786,
+         "pixelErrors": 25262
+        },
+        "modes": {
+         "majority": {
+          "hash": "09f017a816f1c596",
+          "exact": false,
+          "channelErrors": 6307,
+          "pixelErrors": 2256,
+          "voteMs": 75.30000001192093,
+          "attackMs": 223
+         },
+         "plurality": {
+          "hash": "d2482d2d08a55db6",
+          "exact": false,
+          "channelErrors": 3860,
+          "pixelErrors": 2103,
+          "voteMs": 74.79999995231628,
+          "attackMs": 222.49999994039536
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1
+       },
+       {
+        "drawMs": 4,
+        "readMs": 143.39999997615814,
+        "f1": {
+         "hash": "25e604472ee23ee5",
+         "exact": false,
+         "channelErrors": 74130,
+         "pixelErrors": 24710
+        },
+        "modes": {
+         "majority": {
+          "hash": "87b0c4b17d08f786",
+          "exact": false,
+          "channelErrors": 6096,
+          "pixelErrors": 2169,
+          "voteMs": 73.10000002384186,
+          "attackMs": 220.5
+         },
+         "plurality": {
+          "hash": "d4dd19d8dfb6d141",
+          "exact": false,
+          "channelErrors": 3838,
+          "pixelErrors": 2028,
+          "voteMs": 56.09999996423721,
+          "attackMs": 203.49999994039536
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2
+       },
+       {
+        "drawMs": 3.5,
+        "readMs": 121.39999997615814,
+        "f1": {
+         "hash": "87a1a767dec68846",
+         "exact": false,
+         "channelErrors": 74094,
+         "pixelErrors": 24698
+        },
+        "modes": {
+         "majority": {
+          "hash": "6fe3a819a6b394ae",
+          "exact": false,
+          "channelErrors": 5921,
+          "pixelErrors": 2138,
+          "voteMs": 50,
+          "attackMs": 174.89999997615814
+         },
+         "plurality": {
+          "hash": "d9a97704cb25f9de",
+          "exact": false,
+          "channelErrors": 3695,
+          "pixelErrors": 2019,
+          "voteMs": 49,
+          "attackMs": 173.89999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 3
+       },
+       {
+        "drawMs": 3.200000047683716,
+        "readMs": 123.59999996423721,
+        "f1": {
+         "hash": "d3fe99b722f01a14",
+         "exact": false,
+         "channelErrors": 76068,
+         "pixelErrors": 25356
+        },
+        "modes": {
+         "majority": {
+          "hash": "e5ed21bf3f045561",
+          "exact": false,
+          "channelErrors": 6033,
+          "pixelErrors": 2173,
+          "voteMs": 46.5,
+          "attackMs": 173.30000001192093
+         },
+         "plurality": {
+          "hash": "574d5ef9341f0344",
+          "exact": false,
+          "channelErrors": 3689,
+          "pixelErrors": 2009,
+          "voteMs": 47.90000003576279,
+          "attackMs": 174.70000004768372
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 4
+       },
+       {
+        "drawMs": 2.899999976158142,
+        "readMs": 120.30000001192093,
+        "f1": {
+         "hash": "d5dd2721c3e7aa29",
+         "exact": false,
+         "channelErrors": 75342,
+         "pixelErrors": 25114
+        },
+        "modes": {
+         "majority": {
+          "hash": "80fe3324e7ec002c",
+          "exact": false,
+          "channelErrors": 6318,
+          "pixelErrors": 2251,
+          "voteMs": 49.60000002384186,
+          "attackMs": 172.80000001192093
+         },
+         "plurality": {
+          "hash": "051619667bb6729c",
+          "exact": false,
+          "channelErrors": 3806,
+          "pixelErrors": 2091,
+          "voteMs": 49.19999998807907,
+          "attackMs": 172.39999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 5
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 4.200000047683716,
+        "readMs": 213.29999995231628,
+        "f1": {
+         "hash": "aac42cd0c10cd47c",
+         "exact": false,
+         "channelErrors": 74373,
+         "pixelErrors": 24791
+        },
+        "modes": {
+         "majority": {
+          "hash": "301eccdabd1e2308",
+          "exact": false,
+          "channelErrors": 861,
+          "pixelErrors": 289,
+          "voteMs": 87.80000001192093,
+          "attackMs": 305.30000001192093
+         },
+         "plurality": {
+          "hash": "e819aab619406606",
+          "exact": false,
+          "channelErrors": 112,
+          "pixelErrors": 79,
+          "voteMs": 91.29999995231628,
+          "attackMs": 308.7999999523163
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 6.300000011920929,
+        "readMs": 181.0999999642372,
+        "f1": {
+         "hash": "ce0c895bb39412db",
+         "exact": false,
+         "channelErrors": 74841,
+         "pixelErrors": 24947
+        },
+        "modes": {
+         "majority": {
+          "hash": "1b94d50650c7403c",
+          "exact": false,
+          "channelErrors": 909,
+          "pixelErrors": 305,
+          "voteMs": 85.39999997615814,
+          "attackMs": 272.7999999523163
+         },
+         "plurality": {
+          "hash": "68dba7b4ad9d4108",
+          "exact": false,
+          "channelErrors": 117,
+          "pixelErrors": 86,
+          "voteMs": 89.09999996423721,
+          "attackMs": 276.49999994039536
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 4.600000023841858,
+        "readMs": 181.29999995231628,
+        "f1": {
+         "hash": "560f4d21d63c5bdb",
+         "exact": false,
+         "channelErrors": 75006,
+         "pixelErrors": 25002
+        },
+        "modes": {
+         "majority": {
+          "hash": "5dfdab0d89330757",
+          "exact": false,
+          "channelErrors": 769,
+          "pixelErrors": 261,
+          "voteMs": 84.89999997615814,
+          "attackMs": 270.7999999523163
+         },
+         "plurality": {
+          "hash": "06949f032fc4c2db",
+          "exact": false,
+          "channelErrors": 99,
+          "pixelErrors": 71,
+          "voteMs": 88.89999997615814,
+          "attackMs": 274.7999999523163
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 5.300000011920929,
+        "readMs": 173.69999998807907,
+        "f1": {
+         "hash": "a9404e59e9327410",
+         "exact": false,
+         "channelErrors": 74427,
+         "pixelErrors": 24809
+        },
+        "modes": {
+         "majority": {
+          "hash": "d753562c3e828704",
+          "exact": false,
+          "channelErrors": 841,
+          "pixelErrors": 283,
+          "voteMs": 76.5,
+          "attackMs": 255.5
+         },
+         "plurality": {
+          "hash": "8148a1afc97a2b6a",
+          "exact": false,
+          "channelErrors": 108,
+          "pixelErrors": 73,
+          "voteMs": 80.19999998807907,
+          "attackMs": 259.19999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 3.100000023841858,
+        "readMs": 165.5,
+        "f1": {
+         "hash": "2c8100da9d304a52",
+         "exact": false,
+         "channelErrors": 75126,
+         "pixelErrors": 25042
+        },
+        "modes": {
+         "majority": {
+          "hash": "b04e57422ded5de4",
+          "exact": false,
+          "channelErrors": 823,
+          "pixelErrors": 277,
+          "voteMs": 85.10000002384186,
+          "attackMs": 253.70000004768372
+         },
+         "plurality": {
+          "hash": "bb93a7278197e445",
+          "exact": false,
+          "channelErrors": 123,
+          "pixelErrors": 81,
+          "voteMs": 89.59999996423721,
+          "attackMs": 258.19999998807907
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 9.600000023841858,
+        "readMs": 426.30000001192093,
+        "f1": {
+         "hash": "3bb668271c72fe15",
+         "exact": false,
+         "channelErrors": 74406,
+         "pixelErrors": 24802
+        },
+        "modes": {
+         "majority": {
+          "hash": "e85a03c554e481cb",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 222,
+          "attackMs": 657.9000000357628
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234.89999997615814,
+          "attackMs": 670.8000000119209
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 12,
+        "readMs": 416.80000001192093,
+        "f1": {
+         "hash": "b34269ddd63eb1dc",
+         "exact": false,
+         "channelErrors": 74847,
+         "pixelErrors": 24949
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 197.60000002384186,
+          "attackMs": 626.4000000357628
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 209.19999998807907,
+          "attackMs": 638
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 8.399999976158142,
+        "readMs": 422.60000002384186,
+        "f1": {
+         "hash": "67ad0a5a17a9f047",
+         "exact": false,
+         "channelErrors": 74835,
+         "pixelErrors": 24945
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 222.69999998807907,
+          "attackMs": 653.6999999880791
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234.70000004768372,
+          "attackMs": 665.7000000476837
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 9.600000023841858,
+        "readMs": 464.5,
+        "f1": {
+         "hash": "98af1464348041af",
+         "exact": false,
+         "channelErrors": 74820,
+         "pixelErrors": 24940
+        },
+        "modes": {
+         "majority": {
+          "hash": "472af83fb64d7540",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 257.10000002384186,
+          "attackMs": 731.2000000476837
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 271.19999998807907,
+          "attackMs": 745.3000000119209
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 9.800000011920929,
+        "readMs": 540.6999999880791,
+        "f1": {
+         "hash": "a1efebef6c730e18",
+         "exact": false,
+         "channelErrors": 75318,
+         "pixelErrors": 25106
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 341.5,
+          "attackMs": 892
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 389.30000001192093,
+          "attackMs": 939.8000000119209
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "isolatedTruthHash": "555d6de08b746e0e",
+     "translate": {
+      "9": [
+       {
+        "drawMs": 6.600000023841858,
+        "readMs": 306.5,
+        "f1": {
+         "hash": "5bc5c6e7b00289d8",
+         "exact": false,
+         "channelErrors": 74829,
+         "pixelErrors": 24943
+        },
+        "modes": {
+         "majority": {
+          "hash": "446985296cc7eef9",
+          "exact": false,
+          "channelErrors": 861,
+          "pixelErrors": 293,
+          "voteMs": 143.10000002384186,
+          "attackMs": 456.2000000476837
+         },
+         "plurality": {
+          "hash": "db4bd0a7a0682c28",
+          "exact": false,
+          "channelErrors": 129,
+          "pixelErrors": 90,
+          "voteMs": 146.10000002384186,
+          "attackMs": 459.2000000476837
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 7.400000035762787,
+        "readMs": 308.69999998807907,
+        "f1": {
+         "hash": "cf63e766c0c5919a",
+         "exact": false,
+         "channelErrors": 75180,
+         "pixelErrors": 25060
+        },
+        "modes": {
+         "majority": {
+          "hash": "ad3958d1b740e66d",
+          "exact": false,
+          "channelErrors": 849,
+          "pixelErrors": 285,
+          "voteMs": 140,
+          "attackMs": 456.10000002384186
+         },
+         "plurality": {
+          "hash": "9a22bccb2bb40f8d",
+          "exact": false,
+          "channelErrors": 101,
+          "pixelErrors": 76,
+          "voteMs": 148.5999999642372,
+          "attackMs": 464.69999998807907
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 6.5,
+        "readMs": 307.5999999642372,
+        "f1": {
+         "hash": "803f4bdb5946ae84",
+         "exact": false,
+         "channelErrors": 74166,
+         "pixelErrors": 24722
+        },
+        "modes": {
+         "majority": {
+          "hash": "f443254e3a83527f",
+          "exact": false,
+          "channelErrors": 858,
+          "pixelErrors": 290,
+          "voteMs": 130.0999999642372,
+          "attackMs": 444.1999999284744
+         },
+         "plurality": {
+          "hash": "c0041c72f1640178",
+          "exact": false,
+          "channelErrors": 108,
+          "pixelErrors": 82,
+          "voteMs": 121.90000003576279,
+          "attackMs": 436
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 5.899999976158142,
+        "readMs": 251.9000000357628,
+        "f1": {
+         "hash": "897252e2a11ea0b7",
+         "exact": false,
+         "channelErrors": 75033,
+         "pixelErrors": 25011
+        },
+        "modes": {
+         "majority": {
+          "hash": "1beb47acb6a51c8e",
+          "exact": false,
+          "channelErrors": 932,
+          "pixelErrors": 316,
+          "voteMs": 118.19999998807907,
+          "attackMs": 376
+         },
+         "plurality": {
+          "hash": "9ddff5dbeda18626",
+          "exact": false,
+          "channelErrors": 124,
+          "pixelErrors": 93,
+          "voteMs": 124.5,
+          "attackMs": 382.30000001192093
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 5.299999952316284,
+        "readMs": 250,
+        "f1": {
+         "hash": "32645f92141080f4",
+         "exact": false,
+         "channelErrors": 74040,
+         "pixelErrors": 24680
+        },
+        "modes": {
+         "majority": {
+          "hash": "a24ac81f74587256",
+          "exact": false,
+          "channelErrors": 860,
+          "pixelErrors": 288,
+          "voteMs": 116.40000003576279,
+          "attackMs": 371.69999998807907
+         },
+         "plurality": {
+          "hash": "289e01e0a55e96ac",
+          "exact": false,
+          "channelErrors": 108,
+          "pixelErrors": 80,
+          "voteMs": 121,
+          "attackMs": 376.2999999523163
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 10.400000035762787,
+        "readMs": 584.7999999523163,
+        "f1": {
+         "hash": "261a0fb7345d31db",
+         "exact": false,
+         "channelErrors": 75486,
+         "pixelErrors": 25162
+        },
+        "modes": {
+         "majority": {
+          "hash": "3f523a5507e45135",
+          "exact": false,
+          "channelErrors": 12,
+          "pixelErrors": 4,
+          "voteMs": 301.5999999642372,
+          "attackMs": 896.7999999523163
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 309.5999999642372,
+          "attackMs": 904.7999999523163
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 9.5,
+        "readMs": 499.4000000357628,
+        "f1": {
+         "hash": "2d2453e726f64de6",
+         "exact": false,
+         "channelErrors": 74292,
+         "pixelErrors": 24764
+        },
+        "modes": {
+         "majority": {
+          "hash": "79cecfdd31cfb1e0",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 256.69999998807907,
+          "attackMs": 765.6000000238419
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 270.89999997615814,
+          "attackMs": 779.8000000119209
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 9.300000011920929,
+        "readMs": 497.5999999642372,
+        "f1": {
+         "hash": "854c6f594dbcee3e",
+         "exact": false,
+         "channelErrors": 75132,
+         "pixelErrors": 25044
+        },
+        "modes": {
+         "majority": {
+          "hash": "32d02e6000faba69",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 239,
+          "attackMs": 745.8999999761581
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 235.5,
+          "attackMs": 742.3999999761581
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 8.800000011920929,
+        "readMs": 433.0999999642372,
+        "f1": {
+         "hash": "708aef6ee0067a11",
+         "exact": false,
+         "channelErrors": 75039,
+         "pixelErrors": 25013
+        },
+        "modes": {
+         "majority": {
+          "hash": "2ab52af2608809d6",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 221.69999998807907,
+          "attackMs": 663.5999999642372
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234.9000000357628,
+          "attackMs": 676.8000000119209
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 7.5,
+        "readMs": 385.30000001192093,
+        "f1": {
+         "hash": "80c316333c7ce573",
+         "exact": false,
+         "channelErrors": 74925,
+         "pixelErrors": 24975
+        },
+        "modes": {
+         "majority": {
+          "hash": "c748cb7ac1b32a54",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 213,
+          "attackMs": 605.8000000119209
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 234.30000001192093,
+          "attackMs": 627.1000000238419
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "subtract": {
+      "attack": "subtract",
+      "hash": "5492a5720ee2dbb8",
+      "exact": false,
+      "channelErrors": 137710,
+      "pixelErrors": 46817,
+      "ambiguousChannels": 45,
+      "unambiguousErrors": 137666,
+      "attackMs": 49.90000003576279
+     },
+     "worker": {
+      "hash": "178cab06133542b4",
+      "equalsOffWorker": true,
+      "equalsMainTruth": true
+     },
+     "defaultStrip": {
+      "5": [
+       {
+        "drawMs": 9.399999976158142,
+        "readMs": 151.20000004768372,
+        "f1": {
+         "hash": "d0506457d546e686",
+         "exact": false,
+         "channelErrors": 74820,
+         "pixelErrors": 24940
+        },
+        "modes": {
+         "majority": {
+          "hash": "048e9ac4a47b8a4e",
+          "exact": false,
+          "channelErrors": 6200,
+          "pixelErrors": 2211,
+          "voteMs": 41.69999998807907,
+          "attackMs": 202.30000001192093
+         },
+         "plurality": {
+          "hash": "5030abc147793486",
+          "exact": false,
+          "channelErrors": 3773,
+          "pixelErrors": 2068,
+          "voteMs": 40.10000002384186,
+          "attackMs": 200.70000004768372
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 9,
+        "readMs": 127.19999998807907,
+        "f1": {
+         "hash": "71999dc1f12ee30e",
+         "exact": false,
+         "channelErrors": 76281,
+         "pixelErrors": 25427
+        },
+        "modes": {
+         "majority": {
+          "hash": "5c6a0e7bad86e2fb",
+          "exact": false,
+          "channelErrors": 6208,
+          "pixelErrors": 2217,
+          "voteMs": 38.60000002384186,
+          "attackMs": 174.80000001192093
+         },
+         "plurality": {
+          "hash": "52bafaa6d6b4435e",
+          "exact": false,
+          "channelErrors": 3772,
+          "pixelErrors": 2052,
+          "voteMs": 37.69999998807907,
+          "attackMs": 173.89999997615814
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 10.100000023841858,
+        "readMs": 176.80000001192093,
+        "f1": {
+         "hash": "ef5cf4086ce81406",
+         "exact": false,
+         "channelErrors": 74628,
+         "pixelErrors": 24876
+        },
+        "modes": {
+         "majority": {
+          "hash": "08ec9dfa45ed26d3",
+          "exact": false,
+          "channelErrors": 795,
+          "pixelErrors": 267,
+          "voteMs": 72.5,
+          "attackMs": 259.4000000357628
+         },
+         "plurality": {
+          "hash": "7f90b1c71bc2e144",
+          "exact": false,
+          "channelErrors": 116,
+          "pixelErrors": 82,
+          "voteMs": 70.80000001192093,
+          "attackMs": 257.7000000476837
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 9.5,
+        "readMs": 186.20000004768372,
+        "f1": {
+         "hash": "c2b492f232e16bd5",
+         "exact": false,
+         "channelErrors": 75939,
+         "pixelErrors": 25313
+        },
+        "modes": {
+         "majority": {
+          "hash": "87057e1e1a47b5a1",
+          "exact": false,
+          "channelErrors": 879,
+          "pixelErrors": 297,
+          "voteMs": 78.5,
+          "attackMs": 274.2000000476837
+         },
+         "plurality": {
+          "hash": "5bbae708306595c0",
+          "exact": false,
+          "channelErrors": 122,
+          "pixelErrors": 91,
+          "voteMs": 78.30000001192093,
+          "attackMs": 274.00000005960464
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 10.199999988079071,
+        "readMs": 415.80000001192093,
+        "f1": {
+         "hash": "ea0f49b8e76262b7",
+         "exact": false,
+         "channelErrors": 75114,
+         "pixelErrors": 25038
+        },
+        "modes": {
+         "majority": {
+          "hash": "6a8a3ead8dd36164",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 195.5,
+          "attackMs": 621.5
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 214,
+          "attackMs": 640
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 11.599999964237213,
+        "readMs": 493.80000001192093,
+        "f1": {
+         "hash": "3e396a776a75f545",
+         "exact": false,
+         "channelErrors": 75345,
+         "pixelErrors": 25115
+        },
+        "modes": {
+         "majority": {
+          "hash": "55ce3d3f8104d4bd",
+          "exact": false,
+          "channelErrors": 9,
+          "pixelErrors": 3,
+          "voteMs": 244.10000002384186,
+          "attackMs": 749.5
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 271.5999999642372,
+          "attackMs": 776.9999999403954
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ]
+     }
+    },
+    "bravo.test": {
+     "env": {
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+      "visible": "visible",
+      "kernel": null
+     },
+     "single": {
+      "hash": "8cd63f615fc4080b",
+      "exact": false,
+      "channelErrors": 74802,
+      "pixelErrors": 24934
+     },
+     "singleAgain": {
+      "hash": "8cd63f615fc4080b",
+      "exact": false,
+      "channelErrors": 74802,
+      "pixelErrors": 24934
+     },
+     "strip": {
+      "5": [
+       {
+        "drawMs": 2.600000023841858,
+        "readMs": 105.69999998807907,
+        "f1": {
+         "hash": "e29c9dd3e31c9160",
+         "exact": false,
+         "channelErrors": 74598,
+         "pixelErrors": 24866
+        },
+        "modes": {
+         "majority": {
+          "hash": "a9493f435c063da2",
+          "exact": false,
+          "channelErrors": 6174,
+          "pixelErrors": 2206,
+          "voteMs": 54.60000002384186,
+          "attackMs": 162.9000000357628
+         },
+         "plurality": {
+          "hash": "3bd61342cfeb0896",
+          "exact": false,
+          "channelErrors": 3792,
+          "pixelErrors": 2066,
+          "voteMs": 51.80000001192093,
+          "attackMs": 160.10000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1
+       },
+       {
+        "drawMs": 2.300000011920929,
+        "readMs": 93.89999997615814,
+        "f1": {
+         "hash": "678ed0df33622e3c",
+         "exact": false,
+         "channelErrors": 74886,
+         "pixelErrors": 24962
+        },
+        "modes": {
+         "majority": {
+          "hash": "73b9327122e081ff",
+          "exact": false,
+          "channelErrors": 6242,
+          "pixelErrors": 2240,
+          "voteMs": 53.90000003576279,
+          "attackMs": 150.10000002384186
+         },
+         "plurality": {
+          "hash": "a22cda7461c46a97",
+          "exact": false,
+          "channelErrors": 3913,
+          "pixelErrors": 2108,
+          "voteMs": 42.30000001192093,
+          "attackMs": 138.5
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2
+       },
+       {
+        "drawMs": 2.800000011920929,
+        "readMs": 91.80000001192093,
+        "f1": {
+         "hash": "ee7a28dd624d954e",
+         "exact": false,
+         "channelErrors": 75393,
+         "pixelErrors": 25131
+        },
+        "modes": {
+         "majority": {
+          "hash": "e90a6f7af9f12017",
+          "exact": false,
+          "channelErrors": 6319,
+          "pixelErrors": 2267,
+          "voteMs": 42.89999997615814,
+          "attackMs": 137.5
+         },
+         "plurality": {
+          "hash": "8afc54371c97cee8",
+          "exact": false,
+          "channelErrors": 3827,
+          "pixelErrors": 2122,
+          "voteMs": 42.5,
+          "attackMs": 137.10000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 3
+       },
+       {
+        "drawMs": 2.800000011920929,
+        "readMs": 102,
+        "f1": {
+         "hash": "569a58d15ab5f417",
+         "exact": false,
+         "channelErrors": 75516,
+         "pixelErrors": 25172
+        },
+        "modes": {
+         "majority": {
+          "hash": "dcfe077db2f6cc7d",
+          "exact": false,
+          "channelErrors": 6305,
+          "pixelErrors": 2253,
+          "voteMs": 39.89999997615814,
+          "attackMs": 144.69999998807907
+         },
+         "plurality": {
+          "hash": "a8a6f35f8e85e0d5",
+          "exact": false,
+          "channelErrors": 3818,
+          "pixelErrors": 2103,
+          "voteMs": 40.80000001192093,
+          "attackMs": 145.60000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 4
+       },
+       {
+        "drawMs": 2.099999964237213,
+        "readMs": 100.80000001192093,
+        "f1": {
+         "hash": "cef172396f481995",
+         "exact": false,
+         "channelErrors": 75174,
+         "pixelErrors": 25058
+        },
+        "modes": {
+         "majority": {
+          "hash": "bbd93c39130e22c6",
+          "exact": false,
+          "channelErrors": 6152,
+          "pixelErrors": 2212,
+          "voteMs": 43,
+          "attackMs": 145.89999997615814
+         },
+         "plurality": {
+          "hash": "b7a3faf9b5f0b848",
+          "exact": false,
+          "channelErrors": 3765,
+          "pixelErrors": 2070,
+          "voteMs": 42.700000047683716,
+          "attackMs": 145.60000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 5
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 3.799999952316284,
+        "readMs": 181,
+        "f1": {
+         "hash": "e3711e6094aa8dc7",
+         "exact": false,
+         "channelErrors": 75594,
+         "pixelErrors": 25198
+        },
+        "modes": {
+         "majority": {
+          "hash": "0009aafb1243a946",
+          "exact": false,
+          "channelErrors": 883,
+          "pixelErrors": 296,
+          "voteMs": 86.5,
+          "attackMs": 271.2999999523163
+         },
+         "plurality": {
+          "hash": "8f579bfd0ccb1286",
+          "exact": false,
+          "channelErrors": 135,
+          "pixelErrors": 86,
+          "voteMs": 91,
+          "attackMs": 275.7999999523163
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 5.099999964237213,
+        "readMs": 181.20000004768372,
+        "f1": {
+         "hash": "8deb09d80f2825ce",
+         "exact": false,
+         "channelErrors": 75105,
+         "pixelErrors": 25035
+        },
+        "modes": {
+         "majority": {
+          "hash": "f267c50e5d181fc7",
+          "exact": false,
+          "channelErrors": 858,
+          "pixelErrors": 289,
+          "voteMs": 85.39999997615814,
+          "attackMs": 271.69999998807907
+         },
+         "plurality": {
+          "hash": "0c004391124c51ad",
+          "exact": false,
+          "channelErrors": 107,
+          "pixelErrors": 76,
+          "voteMs": 92.5,
+          "attackMs": 278.80000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 5.100000023841858,
+        "readMs": 211.19999998807907,
+        "f1": {
+         "hash": "6e15ed9ec24e4f31",
+         "exact": false,
+         "channelErrors": 74322,
+         "pixelErrors": 24774
+        },
+        "modes": {
+         "majority": {
+          "hash": "120069029356b673",
+          "exact": false,
+          "channelErrors": 790,
+          "pixelErrors": 266,
+          "voteMs": 98.19999998807907,
+          "attackMs": 314.5
+         },
+         "plurality": {
+          "hash": "89406112ab036fa4",
+          "exact": false,
+          "channelErrors": 133,
+          "pixelErrors": 89,
+          "voteMs": 103,
+          "attackMs": 319.30000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 6.5,
+        "readMs": 140.9000000357628,
+        "f1": {
+         "hash": "ab90dec915505d98",
+         "exact": false,
+         "channelErrors": 74964,
+         "pixelErrors": 24988
+        },
+        "modes": {
+         "majority": {
+          "hash": "9cd98e72d4069069",
+          "exact": false,
+          "channelErrors": 848,
+          "pixelErrors": 286,
+          "voteMs": 49.10000002384186,
+          "attackMs": 196.50000005960464
+         },
+         "plurality": {
+          "hash": "4f11826d0c2029ed",
+          "exact": false,
+          "channelErrors": 115,
+          "pixelErrors": 79,
+          "voteMs": 50.59999996423721,
+          "attackMs": 198
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 2.300000011920929,
+        "readMs": 101.89999997615814,
+        "f1": {
+         "hash": "14b3fe18dd5b71f9",
+         "exact": false,
+         "channelErrors": 74844,
+         "pixelErrors": 24948
+        },
+        "modes": {
+         "majority": {
+          "hash": "8e37ef13c4f44e9c",
+          "exact": false,
+          "channelErrors": 856,
+          "pixelErrors": 288,
+          "voteMs": 47.90000003576279,
+          "attackMs": 152.10000002384186
+         },
+         "plurality": {
+          "hash": "c91f2b4be231748f",
+          "exact": false,
+          "channelErrors": 113,
+          "pixelErrors": 77,
+          "voteMs": 50.10000002384186,
+          "attackMs": 154.30000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 5.900000035762787,
+        "readMs": 240.39999997615814,
+        "f1": {
+         "hash": "8e2d697a17d5f26c",
+         "exact": false,
+         "channelErrors": 74535,
+         "pixelErrors": 24845
+        },
+        "modes": {
+         "majority": {
+          "hash": "340a4f8184035f4d",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 124.90000003576279,
+          "attackMs": 371.2000000476837
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132,
+          "attackMs": 378.30000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 5.900000035762787,
+        "readMs": 246,
+        "f1": {
+         "hash": "4486908112308752",
+         "exact": false,
+         "channelErrors": 74691,
+         "pixelErrors": 24897
+        },
+        "modes": {
+         "majority": {
+          "hash": "a8ec4cfdb30905a5",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 125.60000002384186,
+          "attackMs": 377.50000005960464
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132.69999998807907,
+          "attackMs": 384.60000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 5.700000047683716,
+        "readMs": 470.69999998807907,
+        "f1": {
+         "hash": "8158482c85f31e1c",
+         "exact": false,
+         "channelErrors": 74952,
+         "pixelErrors": 24984
+        },
+        "modes": {
+         "majority": {
+          "hash": "015f47a50fd9e020",
+          "exact": false,
+          "channelErrors": 12,
+          "pixelErrors": 4,
+          "voteMs": 130.0999999642372,
+          "attackMs": 606.5
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 137.39999997615814,
+          "attackMs": 613.8000000119209
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 5.300000011920929,
+        "readMs": 242.80000001192093,
+        "f1": {
+         "hash": "6bd0fe6efba021bf",
+         "exact": false,
+         "channelErrors": 75333,
+         "pixelErrors": 25111
+        },
+        "modes": {
+         "majority": {
+          "hash": "d16659b75e0523a5",
+          "exact": false,
+          "channelErrors": 12,
+          "pixelErrors": 4,
+          "voteMs": 130.10000002384186,
+          "attackMs": 378.2000000476837
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132.60000002384186,
+          "attackMs": 380.7000000476837
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 5.599999964237213,
+        "readMs": 240.70000004768372,
+        "f1": {
+         "hash": "7609913dee60746c",
+         "exact": false,
+         "channelErrors": 75831,
+         "pixelErrors": 25277
+        },
+        "modes": {
+         "majority": {
+          "hash": "8587e4cf8292b423",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 124.89999997615814,
+          "attackMs": 371.19999998807907
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132.30000001192093,
+          "attackMs": 378.60000002384186
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "isolatedTruthHash": "555d6de08b746e0e",
+     "translate": {
+      "9": [
+       {
+        "drawMs": 2.800000011920929,
+        "readMs": 104.5,
+        "f1": {
+         "hash": "a83adf0e2a3b7d64",
+         "exact": false,
+         "channelErrors": 75405,
+         "pixelErrors": 25135
+        },
+        "modes": {
+         "majority": {
+          "hash": "36a7f8b02ca7259d",
+          "exact": false,
+          "channelErrors": 822,
+          "pixelErrors": 276,
+          "voteMs": 46.5,
+          "attackMs": 153.80000001192093
+         },
+         "plurality": {
+          "hash": "84b8723f2fc4f94c",
+          "exact": false,
+          "channelErrors": 116,
+          "pixelErrors": 87,
+          "voteMs": 49,
+          "attackMs": 156.30000001192093
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 1
+       },
+       {
+        "drawMs": 2.699999988079071,
+        "readMs": 104.80000001192093,
+        "f1": {
+         "hash": "546c88b239eb3492",
+         "exact": false,
+         "channelErrors": 76158,
+         "pixelErrors": 25386
+        },
+        "modes": {
+         "majority": {
+          "hash": "c16aba4d9ac69673",
+          "exact": false,
+          "channelErrors": 865,
+          "pixelErrors": 289,
+          "voteMs": 49.39999997615814,
+          "attackMs": 156.89999997615814
+         },
+         "plurality": {
+          "hash": "59483b98372463b1",
+          "exact": false,
+          "channelErrors": 113,
+          "pixelErrors": 85,
+          "voteMs": 51,
+          "attackMs": 158.5
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 2
+       },
+       {
+        "drawMs": 2.300000011920929,
+        "readMs": 105.69999998807907,
+        "f1": {
+         "hash": "75c69e5079d5d5d7",
+         "exact": false,
+         "channelErrors": 74985,
+         "pixelErrors": 24995
+        },
+        "modes": {
+         "majority": {
+          "hash": "446b16b542a5eec0",
+          "exact": false,
+          "channelErrors": 804,
+          "pixelErrors": 270,
+          "voteMs": 46.60000002384186,
+          "attackMs": 154.60000002384186
+         },
+         "plurality": {
+          "hash": "957b7f1041897373",
+          "exact": false,
+          "channelErrors": 95,
+          "pixelErrors": 74,
+          "voteMs": 48.69999998807907,
+          "attackMs": 156.69999998807907
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 3
+       },
+       {
+        "drawMs": 2.300000011920929,
+        "readMs": 104.30000001192093,
+        "f1": {
+         "hash": "4537559277e54c03",
+         "exact": false,
+         "channelErrors": 75021,
+         "pixelErrors": 25007
+        },
+        "modes": {
+         "majority": {
+          "hash": "b2cea721e0f5ff9e",
+          "exact": false,
+          "channelErrors": 883,
+          "pixelErrors": 295,
+          "voteMs": 48.5,
+          "attackMs": 155.10000002384186
+         },
+         "plurality": {
+          "hash": "c3cfae209257ed90",
+          "exact": false,
+          "channelErrors": 107,
+          "pixelErrors": 77,
+          "voteMs": 51.200000047683716,
+          "attackMs": 157.80000007152557
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 4
+       },
+       {
+        "drawMs": 2.199999988079071,
+        "readMs": 104.59999996423721,
+        "f1": {
+         "hash": "b8b51a9f3026ffd4",
+         "exact": false,
+         "channelErrors": 75423,
+         "pixelErrors": 25141
+        },
+        "modes": {
+         "majority": {
+          "hash": "9b8abb4fbf599db7",
+          "exact": false,
+          "channelErrors": 822,
+          "pixelErrors": 280,
+          "voteMs": 47.69999998807907,
+          "attackMs": 154.49999994039536
+         },
+         "plurality": {
+          "hash": "a1fa13a468a4f071",
+          "exact": false,
+          "channelErrors": 125,
+          "pixelErrors": 91,
+          "voteMs": 50.09999996423721,
+          "attackMs": 156.8999999165535
+         }
+        },
+        "attack": "translate",
+        "N": 9,
+        "trial": 5
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 4.300000011920929,
+        "readMs": 243.0999999642372,
+        "f1": {
+         "hash": "7fd096e364417d4f",
+         "exact": false,
+         "channelErrors": 74883,
+         "pixelErrors": 24961
+        },
+        "modes": {
+         "majority": {
+          "hash": "69029da9180afca7",
+          "exact": false,
+          "channelErrors": 3,
+          "pixelErrors": 1,
+          "voteMs": 125.89999997615814,
+          "attackMs": 373.2999999523163
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132.30000001192093,
+          "attackMs": 379.69999998807907
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 1
+       },
+       {
+        "drawMs": 5,
+        "readMs": 244.70000004768372,
+        "f1": {
+         "hash": "78b82cb5a01682bd",
+         "exact": false,
+         "channelErrors": 74187,
+         "pixelErrors": 24729
+        },
+        "modes": {
+         "majority": {
+          "hash": "60f54f3795b0f638",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 126.10000002384186,
+          "attackMs": 375.8000000715256
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 133.10000002384186,
+          "attackMs": 382.8000000715256
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 2
+       },
+       {
+        "drawMs": 4.900000035762787,
+        "readMs": 243.80000001192093,
+        "f1": {
+         "hash": "4a0a5ebb69385ef5",
+         "exact": false,
+         "channelErrors": 75213,
+         "pixelErrors": 25071
+        },
+        "modes": {
+         "majority": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 125.60000002384186,
+          "attackMs": 374.3000000715256
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132.0999999642372,
+          "attackMs": 380.80000001192093
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 3
+       },
+       {
+        "drawMs": 4.599999964237213,
+        "readMs": 243.5,
+        "f1": {
+         "hash": "6e1da1dae4a43c6c",
+         "exact": false,
+         "channelErrors": 75003,
+         "pixelErrors": 25001
+        },
+        "modes": {
+         "majority": {
+          "hash": "519d25878ccb6613",
+          "exact": false,
+          "channelErrors": 9,
+          "pixelErrors": 3,
+          "voteMs": 126.10000002384186,
+          "attackMs": 374.19999998807907
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 132.5,
+          "attackMs": 380.5999999642372
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 4
+       },
+       {
+        "drawMs": 5.099999964237213,
+        "readMs": 245.10000002384186,
+        "f1": {
+         "hash": "29b82c6e109c8a2b",
+         "exact": false,
+         "channelErrors": 74493,
+         "pixelErrors": 24831
+        },
+        "modes": {
+         "majority": {
+          "hash": "345397225bd780c8",
+          "exact": false,
+          "channelErrors": 6,
+          "pixelErrors": 2,
+          "voteMs": 128.69999998807907,
+          "attackMs": 378.89999997615814
+         },
+         "plurality": {
+          "hash": "555d6de08b746e0e",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 135.39999997615814,
+          "attackMs": 385.5999999642372
+         }
+        },
+        "attack": "translate",
+        "N": 21,
+        "trial": 5
+       }
+      ]
+     },
+     "subtract": {
+      "attack": "subtract",
+      "hash": "95ea91df5fb4c6f5",
+      "exact": false,
+      "channelErrors": 136744,
+      "pixelErrors": 46500,
+      "ambiguousChannels": 41,
+      "unambiguousErrors": 136703,
+      "attackMs": 28.900000035762787
+     },
+     "worker": {
+      "hash": "178cab06133542b4",
+      "equalsOffWorker": true,
+      "equalsMainTruth": true
+     },
+     "defaultStrip": {
+      "5": [
+       {
+        "drawMs": 9,
+        "readMs": 107.39999997615814,
+        "f1": {
+         "hash": "deb0f1e0df02aed2",
+         "exact": false,
+         "channelErrors": 75753,
+         "pixelErrors": 25251
+        },
+        "modes": {
+         "majority": {
+          "hash": "9318b9f74608d0fe",
+          "exact": false,
+          "channelErrors": 6488,
+          "pixelErrors": 2308,
+          "voteMs": 30.80000001192093,
+          "attackMs": 147.19999998807907
+         },
+         "plurality": {
+          "hash": "2e83b7432760b5dd",
+          "exact": false,
+          "channelErrors": 4017,
+          "pixelErrors": 2148,
+          "voteMs": 30.100000023841858,
+          "attackMs": 146.5
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 9.099999964237213,
+        "readMs": 106,
+        "f1": {
+         "hash": "25b4884bf6f67f65",
+         "exact": false,
+         "channelErrors": 75204,
+         "pixelErrors": 25068
+        },
+        "modes": {
+         "majority": {
+          "hash": "af4f2c60cf7c955f",
+          "exact": false,
+          "channelErrors": 6283,
+          "pixelErrors": 2247,
+          "voteMs": 30.700000047683716,
+          "attackMs": 145.80000001192093
+         },
+         "plurality": {
+          "hash": "640b4a7a5fa212b6",
+          "exact": false,
+          "channelErrors": 3782,
+          "pixelErrors": 2091,
+          "voteMs": 30.899999976158142,
+          "attackMs": 145.99999994039536
+         }
+        },
+        "attack": "strip",
+        "N": 5,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "9": [
+       {
+        "drawMs": 9.200000047683716,
+        "readMs": 164.89999997615814,
+        "f1": {
+         "hash": "c630a74c6f846950",
+         "exact": false,
+         "channelErrors": 75417,
+         "pixelErrors": 25139
+        },
+        "modes": {
+         "majority": {
+          "hash": "39f612f893c33683",
+          "exact": false,
+          "channelErrors": 871,
+          "pixelErrors": 293,
+          "voteMs": 67.80000001192093,
+          "attackMs": 241.9000000357628
+         },
+         "plurality": {
+          "hash": "114e77e1bb4b5144",
+          "exact": false,
+          "channelErrors": 98,
+          "pixelErrors": 72,
+          "voteMs": 65.30000001192093,
+          "attackMs": 239.4000000357628
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 9,
+        "readMs": 190.4000000357628,
+        "f1": {
+         "hash": "87d56787eb60840f",
+         "exact": false,
+         "channelErrors": 74676,
+         "pixelErrors": 24892
+        },
+        "modes": {
+         "majority": {
+          "hash": "35627c13f3f19654",
+          "exact": false,
+          "channelErrors": 760,
+          "pixelErrors": 256,
+          "voteMs": 83.10000002384186,
+          "attackMs": 282.50000005960464
+         },
+         "plurality": {
+          "hash": "79f5597aa00018d5",
+          "exact": false,
+          "channelErrors": 87,
+          "pixelErrors": 70,
+          "voteMs": 78.39999997615814,
+          "attackMs": 277.80000001192093
+         }
+        },
+        "attack": "strip",
+        "N": 9,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ],
+      "21": [
+       {
+        "drawMs": 10.400000035762787,
+        "readMs": 444.39999997615814,
+        "f1": {
+         "hash": "3f077c24abae7ad8",
+         "exact": false,
+         "channelErrors": 75123,
+         "pixelErrors": 25041
+        },
+        "modes": {
+         "majority": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 223.69999998807907,
+          "attackMs": 678.5
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 242.5999999642372,
+          "attackMs": 697.3999999761581
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 1,
+        "isolatedTruthOk": true,
+        "visible": true
+       },
+       {
+        "drawMs": 16,
+        "readMs": 635.6000000238419,
+        "f1": {
+         "hash": "90870b913445ad35",
+         "exact": false,
+         "channelErrors": 75675,
+         "pixelErrors": 25225
+        },
+        "modes": {
+         "majority": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 346.2000000476837,
+          "attackMs": 997.8000000715256
+         },
+         "plurality": {
+          "hash": "3c599fefa1952504",
+          "exact": true,
+          "channelErrors": 0,
+          "pixelErrors": 0,
+          "voteMs": 367,
+          "attackMs": 1018.6000000238419
+         }
+        },
+        "attack": "strip",
+        "N": 21,
+        "trial": 2,
+        "isolatedTruthOk": true,
+        "visible": true
+       }
+      ]
+     }
+    }
+   }
+  }
+ },
+ "failures": []
+}

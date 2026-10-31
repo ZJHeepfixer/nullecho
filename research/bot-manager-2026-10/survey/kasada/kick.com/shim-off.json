@@ -1,0 +1,93 @@
+{
+  "label": "shim-off",
+  "url": "https://kick.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11392,
+      "documents": [
+        {
+          "url": "https://kick.com/",
+          "status": 200,
+          "frameId": "FBFCDDD5CBED42ACFCF34C996BFCA3EA",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "__cf_bm",
+            "_cfuvid"
+          ]
+        },
+        {
+          "url": "https://kick.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "182944D817D3EC6512F2C40BDE906D14",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "KP_UIDz-ssn",
+            "KP_UIDz"
+          ]
+        },
+        {
+          "url": "https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html",
+          "status": 200,
+          "frameId": "E5EE69CD90EB33B51E0DB28B72FC189A",
+          "server": "Cloudfront",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 3,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://kick.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "KP_UIDz",
+        "KP_UIDz-ssn",
+        "OTGPPConsent",
+        "OptanonConsent",
+        "__cf_bm",
+        "__stripe_mid",
+        "__stripe_sid",
+        "_cfuvid",
+        "_iidt",
+        "cf_clearance",
+        "home_carousel_chat_expanded",
+        "tile_player_muted"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "KICK",
+        "href": "https://kick.com/",
+        "text": "Featured Creators 7.3K Stake_Pulse Stake Pulse Beat III - NIP vs MIBR - Grand Finals - !stake Counter-Strike 2 English LIVE FloridaBoy CX SafeZone Day 1 | @OnlyOmi | Austin TX | Free TTS !Castle !disc",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:05:47.895Z"
+}

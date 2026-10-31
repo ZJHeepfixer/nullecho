@@ -29,8 +29,15 @@ a billable event for a third party. None found so far.
 
 **Why.** Independent per-field randomization is worse than nothing: cross-field contradictions
 (Chrome UA + Apple GPU + 3 cores) are already flagged by fraud vendors, and per-load instability
-becomes its own fingerprint. Per-origin stability also kills the averaging attack that broke
-Brave's canvas farbling in 2025, and avoids site breakage.
+becomes its own fingerprint. Per-origin stability also defeats averaging repeated reads of one
+value, and avoids site breakage.
+
+*Corrected 2026-10-14 (D56).* This paragraph used to say per-origin stability "kills the averaging
+attack that broke Brave's canvas farbling in 2025". Wrong twice: Brave's farbling is not per-read
+(it is keyed on session, domain and canvas content, as ours is), and the 2025 attack (Nguyen &
+Vadrevu, WWW '25) is not an average of repeated reads but a majority vote across canvases whose
+content differs outside the region read. Measured against our kernel, that vote recovers the real
+canvas — see D56.
 
 **Key realization:** unlinkability *to a site you're actively using* is not the goal — that site
 can just set a cookie. The goal is breaking linkage *between* sites. Per-origin stability therefore
@@ -3406,3 +3413,402 @@ block rule covers a request built from its own condition under its own ruleset, 
 learned exclusions, non-block actions, Firefox's request shape); `background.test.js` +1 (unpacked: no double count).
 Mutants killed: no rule check, double count in unpacked, headline back on `stats.blocked`, no allowlist check, no reset
 on navigation, `NS_BINDING_ABORTED` counted, quota error uncaught, `domainType` ignored, GPC rule counted as a block.
+
+## D56 — The canvas noise falls to the WWW '25 majority vote; no deterministic kernel survives both it and A1, so the claim changes and the kernel does not. 2026-10-14.
+
+**Decision:** the D22 canvas kernel stays as it is. No mitigation ships, because none of the four
+we prototyped survives both attack families.
+
+The finding is recorded instead, in these places:
+- **Gap G10** in `shim.js`, and a row in THREAT-MODEL "Known gaps".
+- **Qualifiers on "breaks the join"**, in the README and in THREAT-MODEL's claim table.
+- **Corrections of the "per-read averaging" story** in:
+  - the `shim.js` header and kernel docstring;
+  - `personas.js`;
+  - D2;
+  - ARKENFOX-RESPONSE;
+  - ARCHITECTURE;
+  - `research/BASELINE.md`.
+- **Three FINDING tests** in `src/canvas-majority-vote-2026-10-14.test.js`. They pass while the defect
+  is present, by the convention of `review-2026-09-16.test.js`, and go red if a kernel change
+  defeats the vote.
+
+**The attack.** Nguyen & Vadrevu, *Breaking the Shield* (WWW '25, doi:10.1145/3696410.3714713),
+Algorithm 3:
+1. Draw the same content on several canvases.
+2. Give each a different 10-row strip on top.
+3. Read the region below the strip from each.
+4. Keep, per pixel and channel, the majority value.
+
+It broke Brave because Brave keys its noise on session, domain and canvas **content**. Each strip is
+new content, so each canvas gets new noise. Our kernel is the same family (persona, size, a digest of
+the whole canvas, position).
+
+Until this entry, D2, the `shim.js` header and ARKENFOX-RESPONSE described that attack as averaging
+"per-read" noise and cited our "50 reads → 1 hash" as the defence. Brave's farbling was never
+per-read, and one hash for one canvas says nothing about many canvases.
+
+**Measured** (`harness/canvas-majority-vote.mjs`; full method, controls and tables in
+`research/canvas-majority-vote/RUN-2026-10-14.md`). Setup:
+- Chrome for Testing 149.
+- The real extension, from the source tree and from the store zip.
+- Two personas (two fresh salts) × two origins.
+- Truth from the same page with no extension.
+- A 500×400 region, 200,000 pixels.
+
+| Canvases | Vote | Recovered exactly (source tree; store zip) | Typical residue |
+|---|---|---|---|
+| 5 | strict majority / plurality | 0/60 / 0/60 | ≈ 2,200 / 2,060 pixels wrong |
+| 9 | strict majority / plurality | 0/60 / 0/60 | ≈ 280 / 80 pixels wrong |
+| **21** | strict majority | 16/60 | ≤ 4 pixels wrong |
+| **21** | **plurality** | **60/60; 27/28** (the miss: 1 channel) | — |
+
+- **The cross-site join is restored.** Every exact recovery was the same bytes under both personas
+  on both sites. Single reads differ in about 25,000 pixels and give four different hashes.
+- **Cost:** medians of 0.15–0.5 s for N = 21, depending on machine load. Our 1-in-8 density
+  moves Brave's 5 canvases to about 21. That is a cost, not a defence.
+- **Translated copies** (the region blitted at 21 offsets): 20/20.
+- **The A1 subtraction still fails** (≈ 138,000 channels wrong), so D22 holds against what it was
+  built for.
+- **The Worker.** A dedicated Worker drawing on an `OffscreenCanvas` reads the extension-OFF bytes
+  exactly, in one read, in all four cells (gap G1).
+
+**The controls passed before any number was trusted:**
+- A Brave-shaped weak noise was recovered 10/10 at N = 5 (positive control).
+- The pre-D22 position-only kernel was recovered by A1, except 577 channels its clamp rule destroys
+  (A1 positive control).
+- One read with the extension on differed from the truth in every cell (negative control).
+- An isolated-world native read of the page's own canvas equalled the extension-OFF truth.
+- The planted break worked: with the position-only key the strip vote fell to 0/16 and the D56
+  tests went red.
+
+**Why no mitigation.** Each prototype ran as an in-page kernel built from the shipped `fin32`, `prf`,
+`keyMix` and `noiseRGBA` (exact recoveries, N = 21, plurality):
+
+| Noise keyed on | Algorithm 3 | Translated copies | Colour-shifted copies | 21 documents | A1 |
+|---|---|---|---|---|---|
+| persona, size, whole-canvas digest, position (**shipped**) | 10/10 | 10/10 | 10/10 | — | defeated |
+| persona, position, the pixel's own value | 0/10 | **10/10** | **10/10** | — | defeated |
+| persona, its 16×16 tile's digest, position | 0/10 | **10/10** | not run | — | defeated |
+| persona, the pixel's own value only | 0/10 | 0/10 | **10/10** | — | defeated |
+| shipped + 2 distinct canvases per document between gestures, then blank | 0/10 | — | — | **10/10** | blank |
+| persona, size, position (pre-D22) | 0/10 | not run | not run | — | **recovers** |
+
+The vote only needs the noise on one true pixel to differ between canvases that the attacker can
+build around it. The attacker controls everything about those canvases except that pixel's value:
+- the surrounding content (the strip);
+- the position (an exact `drawImage` blit);
+- the value itself, through an exact composite, undone afterwards.
+
+So each kernel that beat Algorithm 3 by holding one of those fixed fell to the variant that moves
+the next one. A kernel that ignores all of them depends on nothing a probe can't reproduce, and A1
+reads it off a known fill. That is the D22 tension, and it is not resolvable inside a deterministic
+per-pixel kernel.
+
+A per-document read budget is what Brave announced, and it is the only kind a MAIN-world shim can
+enforce synchronously. It fell to one canvas per same-origin iframe. A cross-document budget would
+have to come from the service worker, and pages read before the persona handshake arrives
+(fallback persona) and can open many frames in parallel. It was not built, and on the reasoning above
+it would not hold. G1 bypasses every main-thread scheme in one read in any case.
+
+The paper's own recommendations do not rescue us:
+- Non-deterministic per-read noise is rejected by D2 (averaging, and instability as a fingerprint).
+- Noise indistinguishable from real rendering variance is future research.
+- API monitoring is detection, not protection.
+
+**Claim consequences.**
+- **The canonical claim is unchanged.** It already says "does not defeat a determined adversary",
+  and this attack is that.
+- **"Breaks the join" is qualified for the canvas.** It holds against trackers that read the canvas
+  once on the main thread, as FingerprintJS and ClientJS do. It does not hold against a page that
+  runs the vote, or reads the canvas in a Worker.
+- **For canvas, the stronger options named are the fixed-output protections of Firefox and Tor
+  Browser**, which the same paper found working as intended. Brave's canvas farbling is broken by
+  the same vote.
+- **`docs/STORE-LISTING.md` and the in-product copy are not edited here.** That is for the release
+  owner. Neither currently says anything the measurement contradicts.
+
+**Would change this:**
+- G1 closed (worker canvases noised) **and** a cross-document read budget that also covers
+  pre-handshake reads, measured against parallel frames;
+- or a noise model indistinguishable from real rendering variance;
+- or an opt-in fixed-output canvas mode, with its breakage measured.
+
+Any kernel change must be re-measured with all of these: the harness's translate and colour-shift
+variants, the A1 controls, and the D56 tests.
+
+## D57 — `apps.roktecommerce.com/webevents/` is blocked although no list names it: it is the Rokt SDK's own fallback for a listed path. 2026-10-15.
+
+**The bar it fails.** A rule in `personalization.json` must be on EasyPrivacy, EasyList or AdGuard, or be admitted on
+first-hand evidence recorded here (DuckDuckGo's Tracker Radar is CC BY-NC-SA 4.0 and may only corroborate — license
+review, 2026-10-15; three DDG-only candidates were left out of the ruleset for that reason, see `ext/rules/README.md`).
+`roktecommerce.com` appears on none of the lists (EasyPrivacy 202610150153 and 202610152312, AdGuard Tracking
+Protection 2.1.13.53 and 2.1.13.61, EasyList 202610152312, and DDG `extension-tds.json` v6 as well; checked by script
+2026-10-14/15). EasyPrivacy lists
+only `||apps.rokt-api.com/webevents/` — the event upload of "mParticle by Rokt", the CDP Rokt bought in January 2025.
+
+**First-hand evidence (curl and in-browser, 2026-10-14/15).**
+- **Sephora and Gap load the SDK from the primary host** (`apps.rokt-api.com/js/v2/<key>/app.js`) and post to
+  `apps.rokt-api.com/webevents/v3/JS/<key>/events` (Chrome for Testing 149, extension off: four posts on sephora.com's
+  homepage). Counter-program workstream A found that Sephora's loader assembles `apps.roktecommerce.com` from string
+  pieces and loads the same SDK from it when the first host fails.
+- **The SDK names the fallback itself:** the shipped bundle contains the constant `"apps.roktecommerce.com"`, and its
+  service URLs are built as `<domain> + CNAMEUrlPaths`, with `v3SecureServiceUrl: "/webevents/v3/JS/"` — so an SDK
+  running from the fallback posts to `apps.roktecommerce.com/webevents/…`.
+- **Same software on both hosts:** `GET /js/v2/us2-6a2d0e4dc6b9e749870271a2f16058a1/app.js?env=0&` returned 200,
+  `content-type: application/javascript`, `server: Kestrel`, 303,469 bytes from each host, and the two bodies hash to the
+  same sha256 `b13d16a4fea8604f91c27cbc5dc47a1c3553b363aa773157dc26739b06cf93c6`. A CORS preflight
+  (`OPTIONS /webevents/v3/JS/<key>/events`, `Origin: https://www.sephora.com`) got the same answer from both: `204`,
+  `access-control-allow-methods: POST`, `access-control-allow-origin: *`, `server: Kestrel`. DNS: both are Akamai
+  (`apps.rokt-api.com.akamaized.net` → `a1446.dscd.akamai.net`; `apps.roktecommerce.com.akamaized.net` →
+  `a910.dscd.akamai.net`).
+
+**Decision.** Rule 6201 blocks `||apps.roktecommerce.com/webevents/` — the exact path EasyPrivacy lists for the primary
+host, on the host the vendor's own code falls back to. Nothing else on `roktecommerce.com` is blocked, and neither host's
+SDK is: EasyPrivacy blocks only the upload, and its `@@` exceptions for mParticle's SDK (gymshark.com, cnbc.com, nbc.com
+and others) record that blocking the SDK breaks sites. The admission is narrow on purpose: it closes the route around a
+listed rule and adds no vendor. A future exception needs its own entry and its own evidence.
+
+**Checks.** `personalization-2026-10-15.test.js`: both hosts' `/webevents/v3/JS/<key>/events` are blocked; both hosts'
+`/js/v2/<key>/app.js` and `/identity/v1/identify` are not. `harness/personalization-attack.mjs`: removing 6201 drops the
+per-tab count by exactly one.
+
+## D58 — "Pricing & personalization": its own ruleset, blocking only what collects; Klaviyo narrowed to its forms; nothing ships without the shopping lab. 2026-10-15.
+
+**Evidence.** Counter-program workstream A (`nullecho-growth/counter-program/A-VENDOR-MAP.md`, 2026-10-14) mapped the
+vendors that profile shoppers, target offers and run price tests in the browser; Nullecho blocked none of Dynamic
+Yield, Bloomreach, Rokt's hosts, Granify, Attentive, Wunderkind, Evergage or Einstein's pixel, and `allowlist.js` put all
+of `klaviyo.com` on NEVER_BLOCK. Most of them keep their ID in a FIRST-party cookie, which the three-strike learner
+cannot see. In-browser exploration (Chrome for Testing 149, extension off, 2026-10-14) found far more of them loading
+than the vendor map's curl saw (gap.com: Rokt, Granify, Attentive, Bluecore on one page).
+
+**Decision.**
+1. **`rules/personalization.json`, ids 6000–6999, its own category ("Pricing & personalization"), on by default**, its
+   own options toggle, counted by `classifyMatchedRule` like any blocking ruleset, owners named in the site report.
+   50 rules: 49 blocks of collection, identity and event endpoints, and 6090, a third-party Cookie/Set-Cookie strip on
+   Dynamic Yield's hosts — the ones that render page content are cookie-strip only (director decision). The strip is not
+   counted (DNR reports the match whether or not a cookie was there).
+2. **Never what renders a price, a cart, search results, a product grid or a sign-up form.** Not Intelligems' scripts
+   (blocking them can show the HIGHER test price; only `/v3/track` and `/track` are blocked), not Rebuy, not search /
+   grid / recommendation APIs, not feature flags, not Rokt's SDK (only its event upload). 36 such URLs are pinned by a
+   test against every shipped ruleset.
+3. **Qualifying sources: EasyPrivacy, EasyList, AdGuard, or first-hand evidence in a D-entry.** DuckDuckGo's Tracker
+   Radar is CC BY-NC-SA 4.0 and only corroborates (license review, 2026-10-15). Three DDG-only candidates were left out
+   (Rokt's launcher and snippet, Black Crow's `/js/core/`); one rule rests on first-hand evidence (6201, D57).
+4. **Klaviyo narrowed.** NEVER_BLOCK keeps only what its forms need: `static.klaviyo.com`, `static-forms.klaviyo.com`,
+   `fast.a.klaviyo.com/custom-fonts/` and `/forms/`, and on `a.klaviyo.com` the subscription, back-in-stock,
+   legacy-subscribe, consent-page, form and onsite-module paths (AdGuard's own `@@` list for the host it blocks).
+   `klaviyo.com` moves to COOKIE_BLOCK_ONLY. Its tracking-only hosts and paths are blocked (6950–6954).
+   `validate.mjs` check 11 now fails any block rule that reaches a path-scoped NEVER_BLOCK entry — which also closes
+   a gap for the reCAPTCHA path (D50), never checked against static rules.
+5. **The shopping lab is a gate** (`site-smoke.mjs --shopping`; once per row in `--seeded`): no rule here ships, and
+   none changes, without ON-vs-OFF price, cart and search parity on real product pages. RELEASE-CHECKLIST §3e.
+
+**The lab, 2026-10-15** (`docs/breakage-runs/2026-10-15-site-smoke-shopping-seeded-f841733-shard{A,B,C}.md`; Chrome for
+Testing 149, ON browsers seeded with the D50 learned state, consent banners untouched). 34 pages — 14 where the vendor
+map or exploration saw a newly blocked vendor, 6 Shopify stores with Klaviyo or Intelligems, 14 other big retailers — ×
+3 rounds, OFF and ON loading the same page at the same moment: 102 pairs, 80 where both sides loaded and finished,
+18 walled (BLOCKED, never evaded: lowes, kohls, and intermittently harborfreight, sephora, bathandbodyworks, walmart,
+dell, macys), 4 failed on both sides with HTTP/2 or QUIC protocol errors (officedepot, bestbuy).
+- **Price.** Declared price compared in 64 pairs, rendered price in 39, the cart's unit price in 15: **no difference
+  in any of them.** One rendered-price gap: target.com r1, `$119.99` OFF and nothing ON — Target's price did not render
+  OFF either in r2–r3, so the row is INCONCLUSIVE. Reported for completeness from the first, unseeded one-round debug
+  run (88fd0e4 + uncommitted harness, not a release measurement): walmart.com read `$169.99` OFF and `$149.99` ON, in
+  both microdata and the rendered price, with **zero** personalization-rule matches on the page; in the three-round lab
+  walmart read `$149.99` on both sides in its one unwalled pair. **Seen again** in the seeded-gate re-run on the tip
+  (`980d532`, 2026-10-15 evening, log only — the run crashed before writing a report): walmart r1 OFF `$169.99`, ON
+  `$149.99`, again with zero personalization matches. **Isolated 2026-10-17** (`research/walmart-price-gap-2026-10/`):
+  the two prices are two offers from one marketplace seller. Which one a browser profile is shown follows that
+  profile's Walmart cookies. Copying them into fresh profiles switched the price 10 of 10 times with no extension
+  anywhere, and 4 of 4 with the extension loaded, in both directions. Every arm of a one-variable-at-a-time run (each
+  layer off in turn, the UA and hints copied, fresh and seeded profiles) showed either price. The lab's OFF and ON
+  browsers are two visitors, so this reads as a difference; it is not something Nullecho does, and must never be
+  quoted as Nullecho lowering a price. Why Walmart splits visitors this way is not established. In the final seeded
+  gate (`22d28e3`) it read OFF 149.99 vs ON **173.99**, a third price. The lab's visitor swap, which would have tested
+  it, was walled. That gate exited 1 on this row alone.
+- **Verdicts:** 17 PASS, 14 NOT-OURS (the page's own add-to-cart or price could not be confirmed with the extension
+  OFF either, and ON was never worse), 2 BLOCKED, 1 INCONCLUSIVE, **0 FAIL.** Add-to-cart was confirmed on both sides in
+  32 pairs and lost ON in none; search was compared in 63 pairs and never lost.
+- **The rules fire on real pages:** 6000 (Dynamic Yield collection: jetblue, llbean, harborfreight), 6200 (Rokt event
+  upload: sephora), 6300 (Attentive: allbirds, colourpop, rothys, brooklinen), 6500 (Granify: petsmart), 6704 (Nosto:
+  colourpop), 6900 (Intelligems `/v3/track`: puravida, colourpop, rothys, away — prices identical on all four), 6950
+  and 6952 (Klaviyo tracking: drsquatch, beardbrand, puravida, colourpop, away) — 13 pages. The D55 per-tab count credits
+  them to "personalization" (harborfreight 27; puravida 16/7/7; colourpop 12/5/5; away 6/11/11). The rest of the
+  ruleset met no matching request on these pages (Bloomreach's and Bluecore's tags are loaded through tag managers the
+  older rulesets already block) and is proven on the attack fixture below.
+- **Klaviyo's forms still work as far as can be shown without submitting one:** klaviyo.js loaded on all four Klaviyo
+  stores in every load; the form definitions were fetched (200/304) identically OFF and ON on three of them (colourpop's
+were not captured on either side); puravidabracelets.com rendered
+  the same 35 form nodes and 6 Klaviyo email fields OFF and ON in all 3 rounds; and the submit, back-in-stock, consent
+  and form endpoints match no block rule (`testMatchOutcome`). No form was submitted (a third-party site's list).
+- **Errors seen ON and never OFF:** only sephora's mParticle-by-Rokt SDK logging that its blocked upload failed (two
+  console lines) is the new ruleset's; the page's price, basket and search were unchanged. Everything else (rothys'
+  "igData does not exist", drsquatch's CORS line, bathandbodyworks' `reading 'view'`, Optimizely/Clarity/Criteo
+  failures) persisted with EVERY personalization rule removed (control below), so it comes from the older rulesets.
+
+**Attacks.** (1) `--drop-rules all` (`…-control-dropall-f841733-dropall.md`, 8 pages × 2): the same zip without one
+personalization rule — the ON-only errors above persisted except sephora's mParticle lines. (2) `--plant-block` on
+Algolia and Constructor (`…-control-plant-96adfbe-plant2.md`): gymshark's and jcpenney's search went from 60/72 product
+links to 0 and both rows FAILED; the first run of this control (`…-plant-f841733-plant.md`) measured the same loss but
+labelled it NOT-OURS, because OFF had missed an unrelated add-to-cart — a verdict bug, fixed in 96adfbe; a re-read of
+the f841733 lab found no row it had masked. The `redsky.target.com` plant was not judgeable (OFF read no Target price),
+and a planted block on `cdn.intelligems.io` (`…-plant-96adfbe-plant-intelligems.md`, 4 stores × 2) changed no declared,
+rendered or cart price — no live Intelligems price test was visible to a fresh visitor that day. So the lab is proven to
+catch a lost search grid. **The PRICE control, 2026-10-17** (`…-shopping-ab90d45-pricectl-*`): `harness/fixtures/
+price-control.html` ships 20.00 in its markup and on the page, and a "vendor" price-test script rewrites both to 15.00.
+The sequence was: unplanted, OFF and ON both read 15.00 (PASS, exit 0); with `--plant-filter /vendor/price-test.js` the
+ON side kept 20.00 (FAIL, exit 1, every pair: "DECLARED PRICE DIFFERS: OFF 15.00 vs ON 20.00"); unplanted again, PASS
+(exit 0). The lab catches a blocked script raising the declared and rendered price.
+(3) `harness/personalization-attack.mjs` (`2026-10-15-personalization-attack-f841733.json`): on a loopback fixture each
+of the 49 block rules is counted exactly once (per-tab tally 49, `getMatchedRules` 49) and removing each one alone drops
+the count by exactly one; 32 price/cart/search/form URLs match no block rule in any ruleset; 13 tracking URLs match the
+rule meant for them. (4) Planting bad rules in the source makes `validate.mjs` (check 11) and the unit tests fail.
+
+**The seeded gate** (`2026-10-15-site-smoke-seeded-96adfbe.md`, the 28 standard rows plus the 34 shopping rows once each)
+exited 1 on one row, and the row was the harness's: harborfreight's OFF page loaded with HTTP 200 and no price, ON read
+`$59.99`, and the verdict called that "a price OFF never read". Novelty is now judged only against a price OFF actually
+read; the verdict logic moved to `harness/shopping-verdict.mjs` under unit tests (`shopping-verdict-2026-10-15.test.js`,
+whose two regression tests fail on the old rules). Re-judged, the gate run has 0 FAIL. The clean re-run on the final
+tip is recorded in RELEASE-CHECKLIST.
+
+**The breadth pass, 2026-10-17** (`2026-10-17-site-smoke-shopping-seeded-0aba497-breadth-{1..4}.md`,
+`…-edd749c-breadth-rerun.md`). `harness/shopping-discover.mjs` visited about 180 candidate retailers once, with no
+extension. 100 product pages loaded with a price (one duplicate was dropped later) and became rows 64–163 of
+`harness/shopping-sites.json`: 79 load a vendor the ruleset blocks, 21 load none. 65 candidates walled discovery or
+offered no product link; they are listed in the file, never evaded.
+
+With the 34 earlier rows that makes **133 real product pages** across apparel and shoes, beauty, DTC/Shopify,
+electronics, sporting goods, furniture, pet, pharmacy, grocery, big-box, department and home improvement (grocery,
+department and home improvement walled most). Each ran 3 interleaved rounds, seeded, OFF and ON at the same moment,
+with a 4 s pause between pages: 405 pairs, 373 comparable, 25 walled, 7 with protocol errors. The declared price was
+compared in 344 pairs, the rendered price in 286, the cart in 54 (same starting state only), add-to-cart was confirmed
+on both sides in 131 and search in 245. 20 personalization rules matched on 83 pages.
+
+**Verdicts: 65 PASS, 61 NOT-OURS, 5 BLOCKED, 1 ERROR (bestbuy, protocol errors both sides), 1 FAIL (walmart.com, the
+cookie-assigned offer above).** As recorded, six rows failed; three of those were the harness's and are fixed:
+- nativecos.com and summerfridays.com compared cart "unit prices" from carts filled at different rates (39.00, 15.60,
+  19.50 for one product). Carts are now compared only from the same starting state.
+- untuckit.com's generic selector read the ON side's cart drawer (199.00). Cart containers are now skipped.
+- dell.com walled ON in 2 of 3 pairs. In the re-run it walled OFF instead, as it had on 2026-10-15.
+
+The four re-ran three rounds on `edd749c`: all PASS. **Every price difference recorded:** walmart r1 (169.99 / 149.99,
+above); untuckit r3 rendered 99.50 / 199.00 (drawer); nativecos and its duplicate r2 cart 39.00 / 15.60 and r3
+15.60 / 19.50 (cart state); summerfridays r3 cart 163.00 against no OFF cart (cart state). None remains once
+measured correctly, except walmart's.
+
+**Which code the lab ran.** The lab ran on `f841733` and the controls on `f841733` / `96adfbe` — this branch's commits
+before it was rebased onto main `d729d7f` (their hashes in the report names no longer exist on the branch). The rebase
+brought in PR #11/#12, whose changes to shipped files (`src/shim.js`, `src/personas.js`) are comments only (checked by
+diff), so the extension the lab tested is this branch's, byte for byte except comments.
+
+**Limits.** Headless Chrome for Testing on one residential IP, which the retailers walled more as the day went on;
+add-to-cart could not be confirmed with the extension OFF on 12 of the 34 pages, so parity there is unknown; no
+checkout, no account, no form submitted; whether any Intelligems store ran a live price test during the lab is not
+known; Firefox and Edge were not lab-tested (Firefox: `web-ext lint` only); travel sites were not covered.
+
+## D59 — On a site whose own response shows a bot manager measured to refuse disguised devices, the device layer stands down; blocking and GPC stay on. 2026-10-17.
+
+**Evidence.** The owner's report: tesla.com "Access Denied" in Chrome with Nullecho on, fine with it off. Bisected in a
+rig that passes Akamai's automation check as a plain browser (headful Chrome for Testing 149, automation flags off,
+`navigator.webdriver` false; `research/bot-manager-2026-10/tesla/`): the first document is Akamai Bot Manager's sensor
+page (200) and the request after it is **403 `AkamaiGHost`** with the shim in the page and **200** without it.
+Client-hint removal, the Sec-GPC header, gpc.js and every block rule were each switched off in turn and the denial
+stayed (0 requests blocked in any run). Reproduced before building anything (`research/bot-manager-2026-10/README.md`
+§1). Director decision D59, owner-approved: on sites fronted by a bot manager that rejects device disguises, the
+fingerprint layer stands down for that site; tracker blocking and GPC stay on.
+
+**Two measurements that fixed the design.**
+1. *A refusal cannot be waited for.* After one denial the same profile's next load — with the shim already stood
+   down — was 403 on its **first** document, before any sensor ran (`recovery/`). So detection after the fact (a 403)
+   is useless, and the stand-down must be in place before the sensor's first run.
+2. *The site's first response arrives in time.* webRequest `onHeadersReceived` for the main_frame reached the worker
+   **12-14 ms before** the loader's GET_PERSONA with the worker running, and **first** (same millisecond) when the
+   worker was stopped and the response event is what woke it (`timing/`, a probe extension). Chrome shows
+   `Set-Cookie` only with `extraHeaders`. tesla.com's first document sets `_abck, bm_s, bm_sc, bm_so, bm_sz`; not
+   `ak_bmsc`.
+
+**Decision.**
+1. **Detection (`ext/src/bot-manager.js`), from the site's own top-level documents only** (`main_frame`, frame 0,
+   in a tab). Never a sub-frame, never a third-party host — and not the page's own sub-requests either: those include
+   trackers served from the site's own subdomain (CNAME cloaking), and if their `Set-Cookie` counted, one header from
+   such a vendor would take the device profile off every site it serves. Every Akamai site measured set the trigger
+   cookies on a top-level document, so nothing measured is lost. What remains: a site can switch the profile off for
+   itself by sending the cookie name on its own pages — never for another site. The trigger is the
+   cookie NAME, `_abck` or `bm_sz` (Akamai Bot Manager: the sensor's cookie and the one set with it on every Akamai
+   site measured). `ak_bmsc` is not a trigger: it is the edge-only cookie, tesla.com does not set it, and the two
+   sites measured with it alone (walmart, nike) load fine with the shim. No other vendor is in the table — none was
+   measured to break (below).
+2. **The flag** is persisted per site under `botManagerSites` (`{ vendor, cookie, at, override, reloadedAt? }`, never
+   a value; at most 500, overrides kept longest; cleared by "Clear site history"). The observer shares the heuristics
+   layer's `onHeadersReceived` listener (one listener, its feature-detected `extraHeaders` — D42), and queues on
+   `ready()` like the handshake, so a response heard first is recorded first.
+3. **The stand-down reuses the allowlist's.** GET_PERSONA answers `{ enabled: true, fpStandDown: 'bot-manager',
+   persona: null }`; the loader carries it; the shim takes the same nonce-gated branch the allowlist takes —
+   `restoreAll()`, every descriptor back to the engine's — and reports `bot-manager` (or `resist-fingerprinting` under
+   D54's RFP, the more fundamental fact). Blocking is untouched (no allow rule is written).
+4. **GPC survives it.** The shim's restore removes its own GPC getter (D46 put the property in the shim), and gpc.js
+   had stood aside at boot because the signal was already up — so the stand-down silently dropped the JS signal. The
+   shim now relays `fpStandDown` to gpc.js, which re-reads the realm (`rebaseline()`) and puts the signal up itself:
+   exactly the realm of the `no-shim` bisect run, which passed. A test fails without it.
+5. **The race fallback.** If the flag ever lands after the tab's top document took a device profile (the order is
+   measured, not promised), that tab is reloaded **once**: only on the record's creation, only for a document under
+   10 s old, with `reloadedAt` written before the reload, and a stood-down document can never qualify again.
+6. **The user's way back.** The popup says, on a stood-down site: "This site's security checks reject disguised
+   devices, so Nullecho leaves your device profile alone here. Tracker blocking stays on." Settings lists the sites,
+   each with **"Use my device profile here anyway"**, behind a warning that the site may block them — on that visit or
+   a later one — and keep refusing for a while after they switch back (measured, below). The allowlist still wins.
+
+**The other bot managers, measured** (`survey/`; shim ON vs OFF, one load each, fresh profiles, polite pauses). No
+shim-caused break: PerimeterX (zillow, walmart, fiverr, homedepot OK both ways; wayfair walled both), DataDome
+(tripadvisor, leboncoin, vinted, pokemoncenter OK; hermes, footlocker walled both; allegro walled with the shim OFF
+only), Kasada (kick, ticketmaster, costco OK; realestate.com.au, wizzair 429 both), Imperva (pokemoncenter, smythstoys
+OK), Cloudflare (medium, discord, indeed, glassdoor, canva, stockx, vinted, kick OK). **None is added**, Cloudflare's
+`__cf_bm` least of all.
+
+**The cost, stated plainly.** Within Akamai the stand-down is per vendor, and the vendor mostly does not refuse the
+shim: eleven sites set `_abck`/`bm_sz`; of the nine comparable, **eight** (homedepot, lowes, bestbuy, united, macys,
+delta, zara, sephora) loaded with the shim exactly as without it, and only tesla.com refused (adidas and kohls walled
+the rig both ways). Nothing in a first response separates tesla from the eight (its most distinctive cookie, `bm_sc`,
+is on macys too), and measurement 1 rules out waiting for a refusal. So on every Akamai Bot Manager site the page reads
+the real device: a tracker that gets past the blocklists can recognise the user there and join those sites to each
+other. Home pages only, one load per variant: a site that passes on its home page may still refuse at sign-in or
+checkout, which was not tested. **Would change this:** a first-response signal that separates refusing configurations
+from the rest, or a sensor-level fix to whatever Akamai keys on (not bisected — the shim was removed whole), either of
+which would let the profile come back on the eight.
+
+**Measured on the build (packaged store zip, same rig; `gate/`, `attacks/`, `ui/`).** tesla.com **3 / 3 OK** from a
+fresh profile, stood down from the first document, GPC true, real cores and GPU. Control (en.wikipedia.org): persona
+`macos-chrome-m3-4k` applied — the page read 8 cores, 16 GB and "Apple M3" against this Mac's 12 cores and M2 Max.
+A local site whose own first document sets `_abck`: flagged 16 ms before the shim's status, real device, GPC true, and
+its two listed tracker requests still blocked. **Attacked:** a cross-site frame, a third-party script and fetches all
+answering `Set-Cookie: _abck, bm_sz` (and the frame calling back to the top site's host) flagged nothing and the top
+site kept its persona; a script and a fetch from the site's own `metrics.` subdomain answering the same (CNAME
+cloaking) flagged nothing either; with the trigger list emptied tesla.com is DENIED again; with every hit delayed 400 ms
+(the lost race) visit 1 reloaded once and loaded, visit 2 did not reload;
+the override re-enabled the persona (v2 `upgraded`, 8 cores, "Apple M3") and the next visit, with the override
+switched back off, was DENIED on its first document.
+
+**Tests.** `ext/src/bot-manager-2026-10-17.test.js` (26): which responses count (sub-frames, third parties, the page's
+own sub-requests, non-tabs and cookieless views never do); only Akamai's two names trigger; the reload rule; the bound;
+the real worker — the flag
+lands before a same-tick handshake, persisted, no allow rule, report and overview, cross-site frames flip nothing,
+override on/off, allowlist wins, one reload ever, clear history; the shim — a snapshot of every interface descriptor is
+the engine's after the stand-down (as after the allowlist's), a forged or prototype-supplied `fpStandDown` does nothing;
+loader + shim + gpc.js — real device and GPC still `true` with a native-looking getter, `false` when the user's GPC is
+off. Mutants killed: main's shim (the snapshot), gpc.js without `rebaseline()` (GPC dropped — 2 fail), a flag recorded
+2 ms late (4 fail), the first draft's detection that also read the page's own sub-requests (5 fail).
+`privacy-page-2026-10-14.test.js` pins the new key in both privacy documents.
+
+### D59 addendum — the director's call on "The cost" (2026-10-17)
+
+Accepted: the stand-down covers every site whose top document sets `_abck`/`bm_sz`, including the 8 measured Akamai sites
+that tolerated the shim (homedepot, lowes, bestbuy, united, macys, delta, zara, sephora). Reasons:
+1. Nothing in the first response separates a refusing site from a tolerant one, and a refusal sticks (after one 403 the
+   next load is refused even with the shim off), so a reactive "wait for the denial" design blocks the user anyway.
+2. A per-site allowlist of tolerant Akamai sites would break silently whenever a site changes its bot policy.
+3. What stays on is what the pricing evidence supports: tracker blocking (including the 0.9.3 Pricing & personalization
+   rules) and GPC. The device-fingerprint signal has the weakest evidence of any price input (SURVEILLANCE-PRICING §2:
+   null results in Mikians 2012 and Hupperich 2018), and Akamai's own fingerprinting on these sites is first-party bot
+   defense, not a third-party tracker.
+4. Breakage on big retail and airline sites costs more user trust than the disguise gains there.
+Revisit if a measured, stable signal distinguishes tolerant sites, or if evidence ties first-party bot-manager data to pricing.

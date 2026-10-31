@@ -18,7 +18,7 @@
 /** Messages: content script / UI  →  service worker. */
 export const MSG = {
   // from shim-loader.js (content script, ISOLATED world)
-  GET_PERSONA: 'nullecho:get-persona',   // → { ok, persona, enabled, gpc, site }
+  GET_PERSONA: 'nullecho:get-persona',   // → { ok, persona, enabled, gpc, site, fpStandDown }  fpStandDown: D59, FP_STAND_DOWN value or null
   FP_DETECTED: 'nullecho:fp-detected',   // { api, count }
   SHIM_STATUS: 'nullecho:shim-status',   // { upgraded, lockedToFallback, reason, failures? }  failures: labels of patch groups the shim could not install (D33)
 
@@ -29,7 +29,36 @@ export const MSG = {
   SET_SITE_ENABLED: 'nullecho:set-site-enabled', // { site, enabled }
   SET_SETTINGS: 'nullecho:set-settings',         // { patch }
   CLEAR_STATS: 'nullecho:clear-stats',           // { site? }  omit site = all
+  /**
+   * D59: the user's "Use my device profile here anyway" on a site whose bot
+   * manager made the device layer stand down. `{ site, override }` — `true`
+   * brings the device profile back on that site, `false` hands it back to the
+   * stand-down. Blocking and GPC are not touched either way.
+   */
+  SET_BOT_MANAGER_OVERRIDE: 'nullecho:set-bot-manager-override',
 };
+
+/**
+ * D59 — why the fingerprint layer stood down on a site that is otherwise ON.
+ *
+ * Carried in the persona payload as `fpStandDown` (service worker → loader →
+ * shim → gpc.js relay). `null` everywhere else. Distinct from `enabled: false`
+ * (the user's allowlist), which also turns blocking and the GPC signal off:
+ * a bot-manager stand-down gives the page its real device APIs back and keeps
+ * both of those ON. Inlined in `shim.js` and `gpc.js` as
+ * `FP_STAND_DOWN_BOT_MANAGER`; `protocol.test.js` pins the copies.
+ */
+export const FP_STAND_DOWN = {
+  BOT_MANAGER: 'bot-manager',
+};
+
+/**
+ * D59 — the one `chrome.storage.local` key the bot-manager stand-down writes:
+ * `{ [site]: { vendor, cookie, at, override, reloadedAt? } }`. A site's
+ * registrable domain, which vendor's cookie its own response set, when, and the
+ * user's override. Never a cookie VALUE. Listed in `docs/PRIVACY-POLICY.md`.
+ */
+export const BOT_MANAGER_STORAGE_KEY = 'botManagerSites';
 
 /**
  * GPC control messages: UI → service worker.
@@ -83,7 +112,8 @@ export const EVENTS = {
    * why). On success: `{ ok, enabled, gpc, site, persona, nonce, gpcNonce,
    * reportTokens }` — `reportTokens` is the list of one-time reply tokens the
    * reverse channel (DETECT/STATUS below) spends from, one per report, in order
-   * (D30). On failure: `{ ok: false, reason, nonce, gpcNonce }`, no tokens.
+   * (D30), and `fpStandDown` (D59: `'bot-manager'` or null — see FP_STAND_DOWN).
+   * On failure: `{ ok: false, reason, nonce, gpcNonce }`, no tokens.
    */
   PERSONA: 'nullecho:persona',
   /**
@@ -261,6 +291,7 @@ export const RULESETS = {
   analytics: 'analytics',
   social: 'social',
   fingerprinting: 'fingerprinting',
+  personalization: 'personalization',
   gpc: 'gpc',
 };
 
@@ -273,7 +304,7 @@ export const RULESETS = {
  * as blocked. This list decides only what the counter believes; ownership of
  * the `gpc` ruleset stays with `gpc.js` (see the header of `background.js`).
  */
-export const BLOCKING_RULESET_IDS = ['ads', 'analytics', 'social', 'fingerprinting'];
+export const BLOCKING_RULESET_IDS = ['ads', 'analytics', 'social', 'fingerprinting', 'personalization'];
 
 /** Human-facing category labels, used by popup + options. */
 export const CATEGORY_LABELS = {
@@ -281,6 +312,14 @@ export const CATEGORY_LABELS = {
   analytics: 'Analytics & telemetry',
   social: 'Social widgets & pixels',
   fingerprinting: 'Fingerprinting scripts',
+  /**
+   * `rules/personalization.json` (0.9.3): the collection endpoints of shopper-profiling,
+   * offer-targeting and price-testing vendors — Dynamic Yield, Bloomreach, Rokt,
+   * Attentive, Granify, Klaviyo's tracking hosts and friends. It blocks what they
+   * COLLECT; it never touches what renders a price, a cart, search results or a
+   * product grid (rules/README.md). Nothing here claims a lower price.
+   */
+  personalization: 'Pricing & personalization',
   /** Dynamic rules written by the three-strike observer in `heuristics.js`. */
   heuristic: 'Learned trackers',
   'heuristic-cookie': 'Cookies stripped',
@@ -292,6 +331,7 @@ export const DEFAULT_SETTINGS = {
     analytics: true,
     social: true,
     fingerprinting: true,
+    personalization: true,
   },
   /** Sec-GPC header (DNR) + navigator.globalPrivacyControl (shim). */
   gpc: true,
@@ -348,6 +388,11 @@ export const ALLOW_RULE_ID_BASE = 900000;
 export const NON_BLOCKING_STATIC_RULE_IDS = new Set([
   4700, // fingerprinting.json — anti-fraud vendors allowed on bank / checkout origins
   5000, // gpc.json — sets Sec-GPC; matches nearly every request
+  // personalization.json — strips Cookie / Set-Cookie on Dynamic Yield's hosts (the ones
+  // that render page content are cookie-strip only). Not counted as a strip
+  // either: DNR reports the match whether or not the request carried a cookie,
+  // so "cookies stripped" would over-claim. An under-count is the safe error.
+  6090,
 ]);
 
 /**
@@ -448,12 +493,14 @@ export const CONTENT_SCRIPT_LITERALS = {
     EV_STATUS: EVENTS.STATUS,
     CHANNEL: HANDSHAKE.CHANNEL.SHIM,
     BOOT_PHASE: HANDSHAKE.BOOT_PHASE,
+    FP_STAND_DOWN_BOT_MANAGER: FP_STAND_DOWN.BOT_MANAGER,
   },
   'src/gpc.js': {
     EVENT_PERSONA: EVENTS.PERSONA,
     EVENT_STATUS: EVENTS.STATUS,
     CHANNEL: HANDSHAKE.CHANNEL.GPC,
     BOOT_PHASE: HANDSHAKE.BOOT_PHASE,
+    FP_STAND_DOWN_BOT_MANAGER: FP_STAND_DOWN.BOT_MANAGER,
   },
   'src/pricing-scan.js': {
     MSG_PRICING_OBSERVED: PRICING_MSG.OBSERVED,

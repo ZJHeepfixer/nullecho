@@ -20,6 +20,10 @@
  *       every non-`block` rule inside a BLOCKING ruleset is declared
  *       non-blocking, no non-blocking ruleset smuggles in a `block`, and the
  *       reserved dynamic ranges agree with the ones below
+ *   11. no `block` rule reaches a PATH-SCOPED never-block entry
+ *       (`www.google.com/recaptcha/`, `a.klaviyo.com/client/subscriptions/`):
+ *       check 6 compares hosts only, so a whole-host block of `a.klaviyo.com`,
+ *       or `||a.klaviyo.com/client/`, would sail past it (0.9.3)
  *   10. the three `ua-*.json` Client-Hint rulesets are byte-identical to what
  *       `gen-ua.mjs` emits (they are build artifacts), they only REMOVE the
  *       seven Accept-CH hints (D49) and never touch User-Agent / Sec-CH-UA /
@@ -32,6 +36,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { NEVER_BLOCK, COOKIE_BLOCK_ONLY, isNeverBlock } from '../src/allowlist.js';
+import { reachedPathScopedEntries } from './path-scope.mjs';
 import {
   NON_BLOCKING_STATIC_RULE_IDS,
   DYNAMIC_RULE_RANGES,
@@ -49,6 +54,10 @@ export const RANGES = {
   'social.json': [3000, 3999],
   'fingerprinting.json': [4000, 4999],
   'gpc.json': [5000, 5099],
+  // Pricing & personalization (0.9.3): shopper-profiling and offer-targeting
+  // collection endpoints. A ruleset of its own so the category has its own
+  // toggle and every match is attributable to it (rules/README.md).
+  'personalization.json': [6000, 6999],
   // Per-host-family Client-Hint removal (D49/D51). Generated: see gen-ua.mjs.
   'ua-win.json': UA_RULESETS.win.range,
   'ua-mac.json': UA_RULESETS.mac.range,
@@ -221,6 +230,9 @@ function checkRule(file, rule, index) {
     for (const h of hosts) {
       if (isNeverBlock(h)) errors.push(`${at}: blocks NEVER_BLOCK domain "${h}"`);
       else if (wholeHost && isYellowlistedDomain(h)) warnings.push(`${at}: blocks COOKIE_BLOCK_ONLY domain "${h}" — should be cookie-stripped, not blocked`);
+    }
+    for (const entry of reachedPathScopedEntries(c)) {
+      errors.push(`${at}: reaches path-scoped NEVER_BLOCK entry "${entry}" — narrow the rule or the entry`);
     }
   }
 }

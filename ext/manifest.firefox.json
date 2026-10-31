@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Nullecho",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "homepage_url": "https://nullecho.org",
   "description": "Blocks trackers, sends Global Privacy Control, and shows each site a different device profile so most trackers can't link you.",
   "browser_specific_settings": {
@@ -72,6 +72,11 @@
         "id": "fingerprinting",
         "enabled": true,
         "path": "rules/fingerprinting.json"
+      },
+      {
+        "id": "personalization",
+        "enabled": true,
+        "path": "rules/personalization.json"
       },
       {
         "id": "gpc",

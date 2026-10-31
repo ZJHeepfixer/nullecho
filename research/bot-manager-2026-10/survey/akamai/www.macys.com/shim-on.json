@@ -1,0 +1,163 @@
+{
+  "label": "shim-on",
+  "url": "https://www.macys.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11326,
+      "documents": [
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "10261F28E743000468A9CDD0F6B45440",
+          "server": "",
+          "setCookieNames": [
+            "shippingCountry",
+            "currency",
+            "_abck",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "10261F28E743000468A9CDD0F6B45440",
+          "server": "",
+          "setCookieNames": [
+            "shippingCountry",
+            "currency",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_sv"
+          ]
+        },
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "10261F28E743000468A9CDD0F6B45440",
+          "server": "",
+          "setCookieNames": [
+            "shippingCountry",
+            "currency",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_sv"
+          ]
+        },
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "10261F28E743000468A9CDD0F6B45440",
+          "server": "",
+          "setCookieNames": [
+            "shippingCountry",
+            "currency",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_sv"
+          ]
+        },
+        {
+          "url": "https://www.macys.com/",
+          "status": 200,
+          "frameId": "10261F28E743000468A9CDD0F6B45440",
+          "server": "",
+          "setCookieNames": [
+            "shippingCountry",
+            "currency",
+            "ak_bmsc",
+            "bm_mi",
+            "bm_s",
+            "bm_sc",
+            "bm_sv"
+          ]
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "PIM-SESSION-ID",
+        "_abck",
+        "ak_bmsc",
+        "bm_lso",
+        "bm_mi",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sv",
+        "bm_sz",
+        "currency",
+        "shippingCountry"
+      ],
+      "page": {
+        "title": "",
+        "href": "https://www.macys.com/",
+        "text": "",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266847286,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:54:11.842Z"
+}

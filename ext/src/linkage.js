@@ -121,6 +121,42 @@ export const TRACKER_OWNERS = {
   '33across.com': '33Across',
   'id5-sync.com': 'ID5',
   'adsrvr.org': 'The Trade Desk',
+  // rules/personalization.json (0.9.3) — who runs each collection endpoint.
+  'dynamicyield.com': 'Dynamic Yield (Mastercard)',
+  'dy-api.com': 'Dynamic Yield (Mastercard)',
+  'brsrvr.com': 'Bloomreach',
+  'brcdn.com': 'Bloomreach',
+  'rokt.com': 'Rokt',
+  'rokt-api.com': 'Rokt',
+  'roktecommerce.com': 'Rokt',
+  'mparticle.com': 'Rokt (mParticle)',
+  'attn.tv': 'Attentive',
+  'attentivemobile.com': 'Attentive',
+  'bounceexchange.com': 'Wunderkind',
+  'bouncex.net': 'Wunderkind',
+  'wknd.ai': 'Wunderkind',
+  'granify.com': 'Bazaarvoice (Granify)',
+  'blackcrow.ai': 'Black Crow AI',
+  'evergage.com': 'Salesforce',
+  'cquotient.com': 'Salesforce',
+  'algolia.io': 'Algolia',
+  'cnstrc.com': 'Constructor',
+  'coveo.com': 'Coveo',
+  'nosto.com': 'Nosto',
+  'searchspring.io': 'Searchspring',
+  'unbxdapi.com': 'Unbxd',
+  'rfksrv.com': 'Sitecore (Reflektion)',
+  'sitecorecloud.io': 'Sitecore',
+  'groupbycloud.com': 'GroupBy',
+  'bluecore.com': 'Bluecore',
+  'richrelevance.com': 'Algonomy (RichRelevance)',
+  'listrakbi.com': 'Listrak',
+  'rebuyengine.com': 'Rebuy',
+  'convertexperiments.com': 'Convert',
+  'abtasty.com': 'AB Tasty',
+  'intelligems.io': 'Intelligems',
+  'triptease.io': 'Triptease',
+  'klaviyo.com': 'Klaviyo',
 };
 
 /** Human labels for the fingerprinting surfaces the shim reports. */
@@ -144,6 +180,7 @@ export const CATEGORY_MEANING = {
   analytics: 'analytics and session recording',
   social: 'social pixels and embeds',
   fingerprinting: 'device-identification scripts',
+  personalization: 'shopper-profiling and offer-targeting services',
   heuristic: 'domains Nullecho learned to block from their behaviour',
   'heuristic-cookie': 'domains allowed through with their cookies removed',
 };
@@ -214,6 +251,7 @@ export const FINDING = {
  * @param {boolean} [ctx.gpcExcepted]            suppressed for this site specifically
  * @param {boolean} [ctx.gpcUserExcepted]        …and the user is who suppressed it
  * @param {boolean} [ctx.strictFingerprinting]   tier-B anti-fraud rules enabled
+ * @param {boolean} [ctx.botManagerStandDown]    D59: the device layer stood down here for the site's bot manager
  * @param {boolean} [ctx.isCalifornian]
  * @param {boolean} [ctx.dropFiled]
  * @param {Record<string, number>} [ctx.crossSiteReach]  owner → how many of the
@@ -866,6 +904,14 @@ function siteRemedy(kind, report, state) {
         return {
           text: 'The device shim is off here, so this page read your real device. Turn Nullecho back on for this site.',
           action: 'enable-site',
+        };
+      }
+      // D59: the device layer stood down for this site's bot manager. Saying "a
+      // stand-in device profile" here would be a claim the code contradicts.
+      if (state.botManagerStandDown) {
+        return {
+          text: 'This site’s security checks reject disguised devices, so this page read your real device. Tracker blocking still applied. Settings lists the sites where this happens, with a way to use your device profile anyway.',
+          action: null,
         };
       }
       if (!state.strictFingerprinting) {

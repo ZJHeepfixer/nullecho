@@ -1,0 +1,100 @@
+{
+  "label": "shim-on",
+  "url": "https://www.pokemoncenter.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 10345,
+      "documents": [
+        {
+          "url": "https://www.pokemoncenter.com/",
+          "status": 200,
+          "frameId": "BDEC2FF06AA46C6224D3544897CCE446",
+          "server": "CloudFront",
+          "setCookieNames": [
+            "ss_qualtrics_home10142026",
+            "SSID",
+            "SSSC",
+            "SSRT",
+            "visid_incap_2682446",
+            "nlbi_2682446",
+            "incap_ses_361_2682446"
+          ]
+        },
+        {
+          "url": "https://geo.captcha-delivery.com/interstitial/?initialCid=AHrlqAAAAAMA94wpbrlF6s4AQto0sA==&cid=o_pUhxZMANGrCr8hvJg4vKcvE2NNtEq28j6lJM7Tbl_m7gWmNa1PRW90ATUNXoVr3alsyaKbnWE2leWKTyaS1gE39XzrVL6qHTBog62YFtUvieyF9aQ4cMLC0ti7pMof&referer=http%3A%2F%2Fwww.pokemoncenter.com%2Ftpci-ecommweb-api%2Fcart%2Fdata%3Ftype%3Dmini&hash=5B45875B653A484CC79E57036CE9FC&t=it&s=53344&e=28cc42f6179f771e4e13638377e4b2b6f787eae94c325946626d589cd5ff2f3fe0dc012db1a0306657f8fb6a4fb8a36d&b=1374360&dm=jd",
+          "status": 200,
+          "frameId": "9BE3DC4CB1AE7DED737D165B718FE0D1",
+          "server": "",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://creatives.attn.tv/creatives-dynamic/multiPage/index.html",
+          "status": 200,
+          "frameId": "488CE61FF0493780C5E8843E10EAE4A2",
+          "server": "AmazonS3",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://www.pokemoncenter.com/",
+          "status": 200,
+          "frameId": "BDEC2FF06AA46C6224D3544897CCE446",
+          "server": "CloudFront",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "OptanonConsent",
+        "__attn_eat_id",
+        "auth",
+        "correlationId",
+        "datadome",
+        "incap_ses_361_2682446",
+        "nlbi_2682446",
+        "nlbi_2682446_2147483392",
+        "reese84",
+        "visid_incap_2682446"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Pokémon Center Official Site",
+        "href": "https://www.pokemoncenter.com/",
+        "text": "Free shipping on orders over $20!Learn more The official Pokémon store new releases!Shop the latest New! Pokémon Night Out CollectionShop Now Skip to Content Search Pikachu, Plush, T-Shirts... Pokémon",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267564592,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m1",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:06:08.660Z"
+}

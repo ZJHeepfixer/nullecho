@@ -1,0 +1,125 @@
+{
+  "label": "shim-off",
+  "url": "https://www.homedepot.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11322,
+      "documents": [
+        {
+          "url": "https://www.homedepot.com/",
+          "status": 200,
+          "frameId": "BF1D4E48218A1CF27461693BC1FD1923",
+          "server": "nginx",
+          "setCookieNames": [
+            "akavpau_prod",
+            "akacd_usbeta",
+            "_bman",
+            "kndctr_F6421253512D2C100A490D45_AdobeOrg_identity",
+            "kndctr_F6421253512D2C100A490D45_AdobeOrg_cluster",
+            "akaew",
+            "_abck",
+            "bm_s",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://customer.homedepot.com/9uSkTmxS0kctkSeG?c7507e61885034d7=S2xzrHa4eBoU6HDcuAbE51s80kkzA8G5zoDl88nMbnkPfVPiNNgrMiyO63WrRtpbvLPamevICFFbhEDtRP8t4G7Wh3zvXE_nG0t-qs7pY8qa07wpBxbVlXycJZeWZdqsODcSljdAsAgCpZQAMyn2JxujsAt2dd5Lnt0zV31y-xlmxQ2_ovXs3Y40sjMIXsPmVi428aClyN59sptRK7E",
+          "status": 200,
+          "frameId": "96416850BC88EC2A8672DCA7B8D9AAE3",
+          "server": "Apache",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://customer.homedepot.com/1eSuLZM1dSHL1MiG?fccc8c0a2f2c243e=kyhLxKrs5yqlGBkHzCsEcWgAHWvQuR5wIKK2oivH6DLgbKvgudUB4QQ9EPXtcG4qIan-Rr477qFTCdpy3dz_N8V3z7iPFRv0sMTTFjhc501iDZjdErSIQBavAInZvOiMvHoEdRRCaF_R9S1Tyg0gJ06i4HfSYhRB0_gPc4I5nBMmrS6pZObhY1WTXlLRdUT-C0LTIQU6zemtzrx-Aymw",
+          "status": 200,
+          "frameId": "AB24E2DE84CCE86C65EEA2EC94E6A8D6",
+          "server": "Apache",
+          "setCookieNames": []
+        },
+        {
+          "url": "https://h.online-metrix.net/guv6tObxWVvG0IrN?053e0267dd165c4a=q2R5Lz-7b_7Gl_ZdfuoxIlDurnyZrYDn_XGdEERbdzsLwJZMIq4frHJ0z1l5Nc4SVe157GYwhRGxZysT86FmugnhPdTxy0CIamkvwHvPE8sGmorosHygNxUZjNVoGjmCAUtcm31j72ktoFDbUejKkTfhmpnDkpPkxqD_oZh6x-w89ywQR94uQPNqWtNKY7F2kM2tFIGlx87Be5DcpAOn",
+          "status": 200,
+          "frameId": "E4D73606200EDCD4F8476DE864D728E4",
+          "server": "Apache",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AMCV_F6421253512D2C100A490D45%40AdobeOrg",
+        "DELIVERY_ZIP",
+        "DELIVERY_ZIP_TYPE",
+        "HD_DC",
+        "IN_STORE_API_SESSION",
+        "OptOutOnRequest",
+        "OptOutOnRequest",
+        "QSI_HistorySession",
+        "RT",
+        "THD_CACHE_NAV_PERSIST",
+        "THD_CACHE_NAV_SESSION",
+        "THD_LOCALIZER",
+        "THD_NR",
+        "THD_PERSIST",
+        "THD_SESSION",
+        "_abck",
+        "_bman",
+        "_px2",
+        "_px_f394gi7Fvmc43dfg_user_id",
+        "_pxde",
+        "_pxvid",
+        "ajs_anonymous_id",
+        "akacd_usbeta",
+        "akaew",
+        "akavpau_prod",
+        "bm_lso",
+        "bm_s",
+        "bm_so",
+        "bm_sz",
+        "forterToken",
+        "kndctr_F6421253512D2C100A490D45_AdobeOrg_cluster",
+        "kndctr_F6421253512D2C100A490D45_AdobeOrg_identity",
+        "pxcts",
+        "thda.s",
+        "thda.u"
+      ],
+      "page": {
+        "title": "The Home Depot",
+        "href": "https://www.homedepot.com/",
+        "text": "Find the Perfect Gift for Anyone On Your List Ridgecrest 9PM 93555 Shop All Services DIY Log In Sign in for the best experience Sign In Don't have an account? Create an Account Top Categories What cus",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:50:56.952Z"
+}

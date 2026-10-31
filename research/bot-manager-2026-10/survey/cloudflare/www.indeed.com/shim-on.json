@@ -1,0 +1,104 @@
+{
+  "label": "shim-on",
+  "url": "https://www.indeed.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 9497,
+      "documents": [
+        {
+          "url": "https://www.indeed.com/",
+          "status": 200,
+          "frameId": "AE8BBCFCD152A10D961F0DD0F7A70D1C",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "DD_VERSION",
+            "CTK",
+            "indeed_rcc",
+            "CTK",
+            "CTK",
+            "CTK",
+            "indeed_rcc",
+            "CSRF",
+            "INDEED_CSRF_TOKEN",
+            "LV",
+            "LV",
+            "__cf_bm",
+            "_cfuvid"
+          ]
+        },
+        {
+          "url": "https://sgtm.indeed.com/_/service_worker/6a60/sw_iframe.html?origin=https%3A%2F%2Fwww.indeed.com&1p=1",
+          "status": 200,
+          "frameId": "7BE6ACDC7F1BD9DF31DBA2E51B494637",
+          "server": "cloudflare",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [
+        {
+          "url": "https://ad.doubleclick.net/activity;src=6927552;type=jobse00;cat=jobse00;ord=1582854295;gtm=45h91e6ae1h1v9177698153z99177594086za20szb9177627461zd9177627461xf3xg4;dc_pre=1;rcb=9;dma=1;dma_cps=a;npa=0;gcs=G111;gcd=13t3t3t2t5l1;uaa=arm;uab=64;uafvl=Chromium%3B149.0.7827.22%7CNot)A%253BBrand%3B24.0.0.0;uamb=0;uam=;uap=macOS;uapv=14.6.0;uaw=0;pscdl=noapi;tag_exp=115616986~115938465~115938469~117549812~118869188~118897920~118897930~120213116~120385422~120469145~120469153~121246026~121246034~121410724;_tu=BA;gap.sstd=5;gap.gtb=3;gtb=3;s3p=1;_is_sw=f15s0t3;~oref=https%3A%2F%2Fwww.indeed.com%2F?",
+          "type": "Image",
+          "error": ""
+        }
+      ],
+      "cookiesAfterLoad": [
+        "CSRF",
+        "CTK",
+        "DD_VERSION",
+        "FPID",
+        "FPLC",
+        "INDEED_CSRF_TOKEN",
+        "LV",
+        "SURF",
+        "__cf_bm",
+        "_cfuvid",
+        "_ga",
+        "_ga_LYNT3BTHPG",
+        "_sp_id.27f6",
+        "_sp_ses.27f6",
+        "cf_clearance",
+        "g_state",
+        "indeed_rcc",
+        "indeed_rcc",
+        "sp"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Job Search | Indeed",
+        "href": "https://www.indeed.com/",
+        "visibility": "visible",
+        "text": "We have detected that you have the global privacy control (GPC) signal enabled. Please click Privacy settings to exercise your privacy rights. If you wish to continue using Indeed without updating you",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267809676,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-mini-m2",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:10:15.227Z"
+}

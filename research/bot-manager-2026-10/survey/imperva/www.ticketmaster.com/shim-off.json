@@ -1,0 +1,111 @@
+{
+  "label": "shim-off",
+  "url": "https://www.ticketmaster.com/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 16356,
+      "documents": [
+        {
+          "url": "https://www.ticketmaster.com/",
+          "status": 200,
+          "frameId": "C13FC18E930A7B7D158AD9F37E2588DA",
+          "server": "",
+          "setCookieNames": [
+            "SID",
+            "BID"
+          ]
+        },
+        {
+          "url": "https://www.ticketmaster.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "12911B7603F64C7745BF6E5F763A0325",
+          "server": "",
+          "setCookieNames": [
+            "KP_UIDz-ssn",
+            "KP_UIDz"
+          ]
+        },
+        {
+          "url": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LcvL3UrAAAAAO_9u8Seiuf-I6F_tP_jSS-zndXV&co=aHR0cHM6Ly93d3cudGlja2V0bWFzdGVyLmNvbTo0NDM.&hl=en&v=4EDjxXf4knsx6UBM1L2V6cv8&size=invisible&anchor-ms=20000&execute-ms=30000&cb=94wem19tsl9m",
+          "status": 200,
+          "frameId": "A5DEBECD47875CF924CFA3D687D01EEC",
+          "server": "ESF",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "url": "https://analytics.ticketmaster.com/api/page/view?destinationURL=https%3A%2F%2Fwww.ticketmaster.com%2F&platform=iccp-discovery&isTestEntity=0&domain=TM_US&language=en-us&environment=production&publisher=ticketmaster&publisherDivision=US&pageChannel=interest&pageName=TM_US%3A+iCCP+Homepage&pageID=TM_US%3A+iCCP+Homepage&pageType=iCCP+Homepage",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.ticketmaster.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.ticketmaster.com/eps/log?hasPublicKeyCredential=true&hasConditionalMediation=true&conditionalMediationAvailable=true&platformAuthenticator=false&err=&fpjs=9ba734d2b27f37861810b317f2e4cb2c",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/enterprise/clr?k=6LcvL3UrAAAAAO_9u8Seiuf-I6F_tP_jSS-zndXV",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.ticketmaster.com/epsf/gec/v3/pageView",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "BID",
+        "KP_UIDz",
+        "KP_UIDz-ssn",
+        "LANGUAGE",
+        "NDMA",
+        "SID",
+        "TMUO",
+        "eps_sid",
+        "tmp_id",
+        "tmpt"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Ticketmaster: Buy Verified Tickets for Concerts, Sports, Theater and Events",
+        "href": "https://www.ticketmaster.com/",
+        "text": "Skip to main content US United States selected, change country Ticketmaster Home page Sign In/Register LOCATION DATES All Dates Change date range: All Dates SEARCH Search Ticketmaster United States Hi",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:07:58.551Z"
+}

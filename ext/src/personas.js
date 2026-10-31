@@ -700,8 +700,9 @@ export function personaFor(salt, origin, family = hostFamily()) {
     fontList: FONT_SETS[chosen.fonts],
     seed,
     // Per-origin noise keys. Derived from the same seed, so canvas/audio noise
-    // is stable for this origin+session — which is precisely what defeats the
-    // repeated-sampling attack that broke per-read noise schemes.
+    // is stable for this origin+session — which defeats averaging REPEATED
+    // reads of one value. It does not defeat a vote across differently-drawn
+    // canvases (WWW '25, the attack that broke Brave's farbling): D56.
     noise: {
       canvas: rand(),
       audio: rand(),

@@ -9,6 +9,7 @@
 // --self-test copies safari/xcode to a temp dir, applies one mutation per assertion, and requires
 // that exactly that assertion fails. A check that cannot fail is not a check.
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -44,6 +45,17 @@ const TIPJAR_EXPLANATION = 'Nothing unlocks; this is a thank-you to the people w
 const NETWORK_SENTENCE = "This app opens no network connections of its own; the two links below are handed to your browser, and a tip is handled by the App Store's own purchase service, not by this app.";
 const OLD_NETWORK_SENTENCE = 'This app opens no network connections;';
 const HEADER_NETWORK_PHRASE = 'no network connections of its own';
+
+// Acknowledgements (H-LICENSE-REVIEW §7.2): the credit paragraph in the app, the bundled texts, and no app copy
+// naming a list the build does not redistribute. GPL-3.0 §4: every recipient gets the licence text.
+const LICENCE_DIR = 'App/Licences';
+const LICENCE_FILES = ['NOTICE.txt', 'LICENSE.txt', 'GPL-3.0.txt'];
+const GPL3_SHA256 = '3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986'; // https://www.gnu.org/licenses/gpl-3.0.txt, fetched 2026-10-15
+const ACK_SENTENCE = 'checked against EasyPrivacy and EasyList (© The EasyList authors, GPL-3.0 or CC BY-SA 3.0) and AdGuard filters (© AdGuard, GPL-3.0)';
+const ACK_BUTTON = 'Full credits and licence texts';
+const NOTICE_MUST_NAME = ['EasyPrivacy', 'EasyList', 'https://easylist.to/pages/licence.html', 'AdGuard', 'https://github.com/AdguardTeam/AdguardFilters/blob/master/LICENSE', 'GPL-3.0', 'MIT License', 'GPL-3.0.txt', 'LICENSE.txt'];
+// Named in NOTICE.txt as a research reference only; naming it in app copy as a list source is what the review stopped.
+const APP_COPY_MUST_NOT_NAME = ['DuckDuckGo', 'Tracker Radar', 'from published lists ('];
 
 // ---------------------------------------------------------------- tiny plist + pbxproj readers
 
@@ -490,6 +502,26 @@ function runChecks(project) {
     return 'displayPrice/displayName only';
   });
 
+  check('acknowledgements', 'the app credits its list sources (Acknowledgements row) and bundles NOTICE, the MIT and the canonical GPL-3.0 texts; no app copy names a list the build does not redistribute', () => {
+    for (const f of LICENCE_FILES) if (!exists(`${LICENCE_DIR}/${f}`)) fail(`${LICENCE_DIR}/${f} missing`);
+    const gpl = crypto.createHash('sha256').update(fs.readFileSync(path.join(project, LICENCE_DIR, 'GPL-3.0.txt'))).digest('hex');
+    if (gpl !== GPL3_SHA256) fail(`${LICENCE_DIR}/GPL-3.0.txt is not the canonical gnu.org text (sha256 ${gpl})`);
+    const notice = read(`${LICENCE_DIR}/NOTICE.txt`);
+    for (const must of NOTICE_MUST_NAME) if (!notice.includes(must)) fail(`${LICENCE_DIR}/NOTICE.txt lacks "${must}"`);
+    const mit = read(`${LICENCE_DIR}/LICENSE.txt`);
+    if (!mit.startsWith('MIT License') || !mit.includes('Permission is hereby granted, free of charge')) fail(`${LICENCE_DIR}/LICENSE.txt is not the MIT licence`);
+    const swift = appSwiftFiles().map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+    if (!swift.includes(ACK_SENTENCE)) fail(`App/*.swift lacks the credit sentence: "${ACK_SENTENCE}"`);
+    if (!swift.includes('Text("Acknowledgements")')) fail('no "Acknowledgements" row label in App/*.swift');
+    if (!swift.includes(`"${ACK_BUTTON}"`)) fail(`no "${ACK_BUTTON}" control in App/*.swift`);
+    if (!/AcknowledgementsRow\(\)/.test(read('App/ContentView.swift'))) fail('ContentView.swift does not show AcknowledgementsRow');
+    for (const name of LICENCE_FILES.map((f) => f.replace(/\.txt$/, ''))) {
+      if (!swift.includes(`("${name}", `)) fail(`App/*.swift never reads the ${name}.txt resource`);
+    }
+    for (const bad of APP_COPY_MUST_NOT_NAME) if (swift.includes(bad)) fail(`app copy says "${bad}" — list sources are credited in ${LICENCE_DIR}/NOTICE.txt only`);
+    return `${LICENCE_DIR}/{${LICENCE_FILES.join(',')}}; GPL sha256 ${GPL3_SHA256.slice(0, 12)}…; row + sheet in App/Acknowledgements.swift`;
+  });
+
   check('tipjar-network-sentence', 'the "Collects nothing" copy states the measured truth: no connections of the app\'s own, links to the browser, tips through the App Store\'s purchase service', () => {
     const content = plainApostrophes(read('App/ContentView.swift'));
     if (!content.includes(NETWORK_SENTENCE)) fail(`App/ContentView.swift lacks the sentence: "${NETWORK_SENTENCE}"`);
@@ -541,6 +573,12 @@ const MUTATIONS = [
   { id: 'tipjar-prices', apply: (p) => replaceIn(p, TIPJAR_SOURCE, 'Button(product.displayPrice, action: action)', 'Button("$1.99", action: action)'), label: 'hard-code a price' },
   { id: 'tipjar-network-sentence', apply: (p) => replaceIn(p, 'App/ContentView.swift', 'This app opens no network connections of its own; the two links below are handed to your browser, and a tip is handled by the App Store’s own purchase service, not by this app.', 'This app opens no network connections; the two links below are handed to your browser.'), label: 'revert to the absolute no-network sentence' },
   { id: 'tipjar-network-sentence', apply: (p) => replaceIn(p, 'App/NullechoApp.swift', 'It opens no network connections of its own: the two links it', 'It opens no network connections; the two links it'), label: 'absolute sentence back in the app header' },
+  { id: 'acknowledgements', apply: (p) => fs.rmSync(path.join(p, 'App/Licences/NOTICE.txt')), label: 'delete NOTICE.txt' },
+  { id: 'acknowledgements', apply: (p) => fs.appendFileSync(path.join(p, 'App/Licences/GPL-3.0.txt'), '\n'), label: 'one byte more in the GPL text' },
+  { id: 'acknowledgements', apply: (p) => replaceIn(p, 'App/Licences/NOTICE.txt', 'https://easylist.to/pages/licence.html', 'https://easylist.to/'), label: 'drop the EasyList licence link from NOTICE' },
+  { id: 'acknowledgements', apply: (p) => replaceIn(p, 'App/Acknowledgements.swift', 'Text("Acknowledgements")', 'Text("Credits")'), label: 'rename the row' },
+  { id: 'acknowledgements', apply: (p) => replaceIn(p, 'App/ContentView.swift', '            AcknowledgementsRow()\n', ''), label: 'leave the row out of the screen' },
+  { id: 'acknowledgements', apply: (p) => replaceIn(p, 'App/ContentView.swift', 'from Nullecho’s own list', 'from published lists (DuckDuckGo Tracker Radar, EasyPrivacy, AdGuard)'), label: 'name DuckDuckGo as a list source again' },
   { ids: ['no-network', 'tipjar-scheme'], apply: (p) => { replaceIn(p, PBXPROJ, 'ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;', 'ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;'); replaceIn(p, SCHEMES['Nullecho (macOS)'], /\s*<StoreKitConfigurationFileReference[\s\S]*?<\/StoreKitConfigurationFileReference>/, ''); }, label: 'entitlement YES and macOS Run action without the .storekit (two checks must both fail)' },
 ];
 

@@ -1,0 +1,66 @@
+{
+  "label": "shim-off",
+  "url": "https://allegro.pl/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "datadome-captcha",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 11854,
+      "documents": [
+        {
+          "url": "https://allegro.pl/",
+          "status": 403,
+          "frameId": "DF31CB4C1928F369295018FEFA70F5EE",
+          "server": "",
+          "setCookieNames": [
+            "_cmuid",
+            "wdctx",
+            "datadome"
+          ]
+        },
+        {
+          "url": "https://geo.captcha-delivery.com/captcha/?initialCid=AHrlqAAAAAMAZt9PNepVuZQAQto0sA%3D%3D&hash=77DC0FFBAA0B77570F6B414F8E5BDB&cid=63oRd1hkghggunsOtjDMNmxS_tsgtbwrIvRJ_7zhntP7PMYIfKgbL6fFXYEnYMr6GIkAUM1MkvF6dIRQz2mga5kr1t3TEWsAR1tLY83DBQRJ97BODJhRDjT71TNxDF_9&t=bv&referer=https%3A%2F%2Fallegro.pl%2F&s=29701&e=e10676192c88ec4e834455f7e081c54c93ef787cf89bc071aad9ecb22723f64c9227436ed59eb0c479412bee98e270c4&dm=cd",
+          "status": 200,
+          "frameId": "30EF6A979EBE186CF7D8F9C10808BB30",
+          "server": "",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 0,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "_cmuid",
+        "datadome",
+        "wdctx"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "allegro.pl",
+        "href": "https://allegro.pl/",
+        "text": "",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": true
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:02:07.491Z"
+}

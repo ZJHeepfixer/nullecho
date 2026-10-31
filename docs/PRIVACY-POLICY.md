@@ -1,13 +1,14 @@
 # Nullecho — privacy policy
 
-**Effective date:** 2026-10-14 (Nullecho 0.9.2)
+**Effective date:** 2026-10-17 (Nullecho 0.9.3)
 
 Nullecho is a browser extension for **Chrome, Microsoft Edge and Firefox** — the
 same code runs in all three, and this policy covers all three. It describes what
 the extension does, what data it touches, and where that data goes. It also covers
 the project's **website**, which is a separate thing with a separate answer — see
 "The website" below. Every claim about the extension was checked against the
-source in `ext/` on 2026-10-14, not asserted from memory — see the grep citations.
+source in `ext/` on 2026-10-14, not asserted from memory — see the grep citations;
+the storage list was re-checked on 2026-10-17 for 0.9.3's one new key, `botManagerSites`.
 
 ## What Nullecho does
 
@@ -88,15 +89,16 @@ gives this exact list:
 | `identity` | A random salt — it decides which device profile each site sees — and when it was last rotated. The salt itself is never shown or sent anywhere; the popup and settings page show only a six-character tag derived from it (`publicIdentity()`). |
 | `settings` | Which tracker categories you block, whether GPC is on, whether you said you live in California (it only decides whether the DROP step is suggested), the salt auto-rotation interval, and loud-failure logging (`DEFAULT_SETTINGS` in `ext/src/protocol.js`) |
 | `allowlist` | Sites where you've turned Nullecho off |
+| `botManagerSites` | Sites whose **own** responses showed a bot check that refuses disguised devices (DECISIONS.md D59) — today one kind, Akamai Bot Manager. Per site: the site name (e.g. `tesla.com`), which check it was and the name of the cookie that showed it (`_abck` or `bm_sz`) — **never the cookie's value** — when it was first seen, whether you chose "Use my device profile here anyway", and whether Nullecho reloaded the page once because the check showed up after the page had started. On these sites the device profile stands down; blocking and GPC do not. At most 500 sites, oldest dropped first (the ones you overrode last). "Clear site history" empties it. Written only by `ext/src/background.js` (`recordBotManager`, the override, the clear). |
 | `stats` | One entry per site whose pages — or frames embedded in a page — you load, by site name (e.g. `example.com`), never a page address: when it was last seen, how many fingerprinting reads were seen and of which kind, which device profile the site was shown, whether the page-world script started properly, and how many requests were blocked and to which tracker domains (in a store install, taken from the browser's own report that an extension cancelled a request, and counted only when one of Nullecho's own rules covers it). Requests that went through with their cookies removed are counted only in unpacked developer builds of Chrome and Edge, the one place the browser reports them. (`ext/src/block-counter.js`, DECISIONS.md D55) At most 500 sites (when the list is full, the least recently visited tenth is dropped) and 60 tracker domains per site (`MAX_SITES`, `MAX_TRACKERS_PER_SITE`). |
 | `nullecho:heuristics:v1` | The tracker learner. For each third-party domain seen setting or sending an identifying cookie: the names of the sites it was seen on, whether it has been learned as a tracker (three different sites), and when it was first and last seen. It keeps domain names, never a cookie's value. |
 | `nullecho:gpc:v1` | Sites where you've manually excepted the GPC signal because it broke something |
 | `nullecho.drop.residency`, `nullecho.drop.submittedAt` | Your California-residency answer and a date you typed, only if you use the DROP guide. Deliberately excludes name, birthdate, ZIP, or the state's deletion-request ID — those live only on California's own site, which Nullecho links to (`ext/options/drop.js`). |
 | `pricingObservations` | Pages that displayed one of the two algorithmic-pricing sentences a U.S. state mandates **and** published a machine-readable price. Per entry: the site, the page address **with its query string removed**, the time, which state's wording it was, the price and currency the page published, and up to 200 characters of the page's own text around the sentence. Capped at 200 entries, oldest dropped first. Written only by the block marked `§3` at the end of `ext/src/background.js`, which is the one writer of this key. |
 
-**What that adds up to, plainly.** `stats` and the tracker learner are, between
-them, a list of the sites you have loaded — by site name, with when each was last
-seen — and `pricingObservations` holds a page address and a short excerpt of page
+**What that adds up to, plainly.** `stats`, the tracker learner and
+`botManagerSites` are, between them, a list of the sites you have loaded — by site
+name, with when each was last seen — and `pricingObservations` holds a page address and a short excerpt of page
 text for each of the (rare) pages it describes. All of it stays in this browser
 profile on this machine.
 
@@ -181,8 +183,8 @@ Full reasoning: [`../ext/PERMISSIONS.md`](../ext/PERMISSIONS.md). Summary:
   uninstall — there is nothing left behind, because there was never anywhere else
   for it to go.
 - **Clear the site list without uninstalling.** "Clear site history" on the
-  settings page empties `stats`. It does not touch the tracker learner or the
-  price-disclosure observations.
+  settings page empties `stats` and `botManagerSites`. It does not touch the
+  tracker learner or the price-disclosure observations.
 - **Clear the price-disclosure observations.** "Clear saved price notices" on the
   settings page deletes every entry in `pricingObservations`.
 - **Get a "new identity" without uninstalling.** The popup's "New identity"
@@ -191,6 +193,87 @@ Full reasoning: [`../ext/PERMISSIONS.md`](../ext/PERMISSIONS.md). Summary:
   unrelated device persona going forward. This does not touch your blocking
   stats or allowlist — those are separate keys — but it breaks the link between
   your past and future persona at every site.
+
+## The Safari app (iPhone, iPad and Mac)
+
+Nullecho for Safari is the same tracker-blocking and Global Privacy Control,
+packaged the way Apple requires: a Safari web extension inside a small app from
+the App Store. It is a *smaller* extension than the Chrome, Edge and Firefox one
+— no device profile, no tracker learner, no price-disclosure check — and it
+collects nothing. Every sentence here was checked against the source in
+`safari/`, cited by file and expression like the rest of this policy.
+
+### What it stores: nothing
+
+The Safari extension (`safari/extension/manifest.json`, assembled by
+`safari/tools/build-extension.mjs`) has no background script and asks for no
+`storage` permission — only `declarativeNetRequest`,
+`declarativeNetRequestWithHostAccess` and access to websites. Its two content
+scripts set the `navigator.globalPrivacyControl` property on the pages you
+allow; the Safari-only one (`safari/extension/src/gpc-loader.js`) makes no request and
+touches no storage. The shared one is the
+same `ext/src/gpc.js` described above: its half that reads a bundled rule file
+and `chrome.storage.local` runs only inside an extension's background worker
+(`IN_EXTENSION_WORKER` → otherwise `runInPage()` and return), and the Safari
+build has no such worker. The popup (`safari/extension/popup/popup.html`) is a
+static page with no script at all.
+
+What Safari itself keeps — that you enabled the extension, and which websites
+you allowed it on — lives in Safari's own settings on your device, like it does
+for any extension. Nullecho never reads it.
+
+### The app around the extension
+
+The app (`safari/xcode/App/`) exists because Safari extensions ship inside one.
+It shows what the extension does, how to turn it on, and — on a Mac — whether
+it is on. It opens **no network connections of its own**: on macOS it is
+sandboxed *without* the outgoing-network entitlement
+(`ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO` in `safari/xcode/Nullecho.xcodeproj`),
+and on every platform it contains no `URLSession`, no web view and no third-party
+code (the project has no package dependencies) — an automated check
+(`safari/tools/check-container.mjs`) fails the build if a `URLSession`, a web view,
+a remote address, or any `UserDefaults`, file or keychain write appears in the
+app's source. The two links it offers (this policy and the source code) are
+handed to your browser. The version number and the rule counts it displays are
+read from the extension bundled inside it
+(`safari/xcode/App/EmbeddedExtension.swift`), not typed in.
+
+### The tip jar
+
+The app offers four optional tips through Apple's in-app purchase system
+(StoreKit, `safari/xcode/App/TipJar.swift`). A tip changes nothing: no feature
+is locked behind one, and the only thing that happens afterwards is a one-line
+thank-you that disappears when the app quits. **Apple handles the payment**
+under Apple's own terms and privacy policy; the app reads the completed
+transaction on your device to show the thank-you and mark it finished, stores
+no record of it (no identifier, no `appAccountToken`, nothing on disk), and
+sends nothing to us. We receive no personal information from a tip.
+
+### Data collected: none
+
+That is the App Store privacy label the app carries — "Data Not Collected" —
+and it is literally true: there is no server, account, sign-in, telemetry,
+analytics or crash reporting in the Safari app or its extension. The one thing
+it does on the network is what Safari does for it: apply the blocking rules and
+the GPC header to the requests your pages make, inside your browser.
+
+### Two Safari limits, stated plainly
+
+- Tracker blocking works on every site as soon as the extension is on, before
+  you grant it any website access. Global Privacy Control needs that access, so
+  it applies only on the sites you allow — and Safari attaches the `Sec-GPC`
+  header to image and script requests only, never to the page itself
+  (`safari/CAPABILITY-AUDIT.md`). A site's own scripts still see the signal.
+- The Safari version does not change what a site can read about your device.
+  The per-site device profile the Chrome, Edge and Firefox extension offers is
+  not part of it.
+
+### How to delete everything
+
+- **Turn it off:** on iPhone and iPad, Settings → Apps → Safari → Extensions →
+  Nullecho; on a Mac, Safari → Settings → Extensions.
+- **Remove it:** delete the Nullecho app. Safari removes the extension with it,
+  and there was never anything else to delete.
 
 ## The website
 

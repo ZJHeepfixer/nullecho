@@ -26,13 +26,22 @@ We can't see the result either.
 ## What it does
 
 - **Blocks trackers** — ads, analytics, social pixels, and commercial fingerprinting vendors
-  (182 rules, sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
+  (sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
+- **Pricing & personalization** (0.9.3) — blocks known price-personalization and personalization trackers on
+  shopping pages: the data-collection endpoints of shopper-profiling, offer-targeting and price-testing services
+  (Dynamic Yield, Bloomreach, Rokt, Attentive, Granify, Klaviyo's tracking hosts and others). It never blocks
+  what shows you a price, a cart or search results, and it is tested for that on real product pages
+  (`harness/site-smoke.mjs --shopping`). It does not change, and makes no claim about, the price you are shown.
 - **Per-origin device personas** — each site sees a *different but internally consistent* machine
   drawn from a pool of real, high-population configurations. That breaks the fingerprint join for
   trackers that hash the signals we cover: verified 2026-09-17 against FingerprintJS 5.2.0 and
   ClientJS, which gave four personas four distinct visitor IDs. It does **not** break it for a
   lie-aware library — CreepJS discards values it catches being spoofed, keys on what's left, and
-  re-joins all four into one identity.
+  re-joins all four into one identity. Nor does it hold for the **canvas** against a page that draws
+  its canvas about 21 times, each copy differing only outside the area it reads, and keeps each
+  pixel's majority value (the 2025 *Breaking the Shield* attack that also broke Brave's canvas
+  noise): measured 2026-10-14, that returns the real canvas, identical under every persona
+  ([D56](docs/DECISIONS.md)). A Web Worker reads it unprotected in one try (a known gap).
 - **Global Privacy Control** — a legal do-not-sell request if *you* live in one of the states that
   recognise it (California, Colorado and several others). The duty attaches to your residency, not
   to where the site is; whether a given business is covered, and whether it complied, happens on
@@ -64,6 +73,13 @@ based on what it implies.
   reach. If that's your threat model, you want a VPN or Tor.
 - **Firefox's `resistFingerprinting` and Brave are genuinely stronger** at anti-fingerprinting —
   they operate below the JavaScript layer. Nullecho's honest niche is **Chrome**, where neither exists.
+- **It does not disguise your device on sites whose bot check refuses a disguise** (0.9.3,
+  [D59](docs/DECISIONS.md)). tesla.com's Akamai Bot Manager answered "Access Denied" with the device profile on, and kept
+  refusing after it was switched off. So where a site's own response shows Akamai Bot Manager, Nullecho leaves your
+  device profile alone there — blocking and Global Privacy Control stay on. That covers more than the sites that
+  break: eight of nine other Akamai sites measured loaded fine with the profile, and lose it anyway, because nothing
+  tells them apart before the check runs. Those sites read your real device. Settings lists them, with a way to use
+  the profile anyway.
 - **It will not get you lower prices.** The best controlled study found clearing your tracks yields
   the *worse* price more often than the better one. See [`research/SURVEILLANCE-PRICING.md`](research/SURVEILLANCE-PRICING.md).
 - **It does nothing against state surveillance.** Different threat model entirely.

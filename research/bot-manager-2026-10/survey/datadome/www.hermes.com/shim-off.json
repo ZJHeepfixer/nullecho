@@ -1,0 +1,66 @@
+{
+  "label": "shim-off",
+  "url": "https://www.hermes.com/us/en/",
+  "extensions": [
+    "no-shim"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "datadome-captcha",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 9531,
+      "documents": [
+        {
+          "url": "https://www.hermes.com/us/en/",
+          "status": 200,
+          "frameId": "D9A2AF2F20C1B76A5A36718139DD0A4A",
+          "server": "cloudflare",
+          "setCookieNames": [
+            "__cf_bm"
+          ]
+        },
+        {
+          "url": "https://geo.captcha-delivery.com/captcha/?initialCid=AHrlqAAAAAMAkgb_eVRcopMAQto0sA==&cid=gvMViITkTLKo6AN23cGK1pwtRueT6BdFkIfc994ylfyLnd2JFa5m819tBGIMzmmqoeBVRaXX5DjZvCv0ScPDPMvFsYmg2fi6Gt~FNGaBtFKC8yDo9Gg64ip2lO9kqywB&referer=https%3A%2F%2Fbck.hermes.com%2Fsync-form%3Flocale%3Dus_en&hash=2211F522B61E269B869FA6EAFFB5E1&t=fe&s=8945&e=1dd35e873930901fe8dad890e1017cfee690917643dcf00fabe2f92b3ddc6b4d0d9db966c240b67a6c677733085be0bd&b=2580775&dm=jd",
+          "status": 200,
+          "frameId": "DD91163F3C7E7F756C073F3661E30B6A",
+          "server": "",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [],
+      "cookiesAfterLoad": [
+        "__cf_bm",
+        "datadome",
+        "lastRskxRun",
+        "rCookie",
+        "rskxRunCookie"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "The official Hermes online store | Hermès USA",
+        "href": "https://www.hermes.com/us/en/",
+        "text": "Go to main content Go to product browsing Accessibility THE OFFICIAL HERMES ONLINE STORE - HOMEPAGE Homepage Hermès Paris Search Account , offline Cart , empty pause video Women’s spring-summer 2027 r",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 12,
+        "memory": 32,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)",
+        "ddFrame": true
+      },
+      "extensions": [
+        {
+          "shimStatus": null,
+          "personaId": null,
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:01:28.881Z"
+}

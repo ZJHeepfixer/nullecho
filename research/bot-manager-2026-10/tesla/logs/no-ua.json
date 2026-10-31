@@ -1,0 +1,76 @@
+{
+  "label": "no-ua",
+  "extension": "no-ua",
+  "verdict": "DENIED",
+  "navError": null,
+  "documents": [
+    {
+      "url": "https://www.tesla.com/",
+      "status": 200,
+      "server": "",
+      "setCookieNames": []
+    },
+    {
+      "url": "https://www.tesla.com/",
+      "status": 403,
+      "server": "AkamaiGHost",
+      "setCookieNames": [
+        "bm_s",
+        "bm_sc"
+      ],
+      "responseHeaders": {
+        "content-type": "text/html",
+        "server": "AkamaiGHost"
+      }
+    }
+  ],
+  "navigationRequestHeaders": [
+    {
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "en-US,en;q=0.9",
+      "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "sec-gpc": "1",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+    },
+    {
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "en-US,en;q=0.9",
+      "cookie": "bm_s=YAAQcPfVFx5/KjahAQAAzDddSwbspyqwDEubREuUQiuJueUsiryla5U60XvfSe2M+dOxihAV2ciTH4aDuWhn5/kEnibkkpzMNCXFimEIk7sZk9m033k085nsApCEC1kAKbHJalu0DXss6FJnrzxvnsRHckg",
+      "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "sec-gpc": "1",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+    }
+  ],
+  "cookiesAfterLoad": [
+    "_abck",
+    "bm_lso",
+    "bm_so",
+    "bm_sz",
+    "bm_s",
+    "bm_sc"
+  ],
+  "blockedByClient": [],
+  "otherFailures": [
+    {
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "page": {
+    "title": "Access Denied",
+    "href": "https://www.tesla.com/",
+    "text": "Access Denied You don't have permission to access \"http://www.tesla.com/\" on this server. Reference #18.6cf7d517.1792265765.56a1c5c3 https://errors.edgesuite.net/18.6cf7d517.1792265765.56a1c5c3",
+    "webdriver": false,
+    "gpc": true,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  },
+  "capturedAt": "2026-10-17T19:36:10.366Z"
+}

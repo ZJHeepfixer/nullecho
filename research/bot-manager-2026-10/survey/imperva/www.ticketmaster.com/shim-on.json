@@ -1,0 +1,121 @@
+{
+  "label": "shim-on",
+  "url": "https://www.ticketmaster.com/",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "OK",
+      "wall": null,
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 12655,
+      "documents": [
+        {
+          "url": "https://www.ticketmaster.com/",
+          "status": 200,
+          "frameId": "43A98A03CCE1014771BEF378651A1B15",
+          "server": "",
+          "setCookieNames": [
+            "SID",
+            "BID"
+          ]
+        },
+        {
+          "url": "https://www.ticketmaster.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/fp?x-kpsdk-v=j-1.2.904",
+          "status": 429,
+          "frameId": "E6710DFD21DB545D4E286F0C81AF21E1",
+          "server": "",
+          "setCookieNames": [
+            "KP_UIDz-ssn",
+            "KP_UIDz"
+          ]
+        },
+        {
+          "url": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LcvL3UrAAAAAO_9u8Seiuf-I6F_tP_jSS-zndXV&co=aHR0cHM6Ly93d3cudGlja2V0bWFzdGVyLmNvbTo0NDM.&hl=en&v=4EDjxXf4knsx6UBM1L2V6cv8&size=invisible&anchor-ms=20000&execute-ms=30000&cb=96n7do86gfmo",
+          "status": 200,
+          "frameId": "03171729AB9A884E60310255E1CAC529",
+          "server": "ESF",
+          "setCookieNames": []
+        }
+      ],
+      "blockedByClient": 2,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://analytics.ticketmaster.com/api/page/view?destinationURL=https%3A%2F%2Fwww.ticketmaster.com%2F&platform=iccp-discovery&isTestEntity=0&domain=TM_US&language=en-us&environment=production&publisher=ticketmaster&publisherDivision=US&pageChannel=interest&pageName=TM_US%3A+iCCP+Homepage&pageID=TM_US%3A+iCCP+Homepage&pageType=iCCP+Homepage",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.ticketmaster.com/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/mfc",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.ticketmaster.com/eps/log?hasPublicKeyCredential=true&hasConditionalMediation=true&conditionalMediationAvailable=true&platformAuthenticator=false&err=&fpjs=e540f641f7ebef5b22baaeba3e29a04e",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/enterprise/clr?k=6LcvL3UrAAAAAO_9u8Seiuf-I6F_tP_jSS-zndXV",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://reporting.cdndex.io/error",
+          "type": "XHR",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://www.ticketmaster.com/epsf/gec/v3/pageView",
+          "type": "Fetch",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "BID",
+        "KP_UIDz",
+        "KP_UIDz-ssn",
+        "LANGUAGE",
+        "NDMA",
+        "SID",
+        "TMUO",
+        "eps_sid",
+        "tmp_id",
+        "tmpt"
+      ],
+      "abckStatus": null,
+      "page": {
+        "title": "Ticketmaster: Buy Verified Tickets for Concerts, Sports, Theater and Events",
+        "href": "https://www.ticketmaster.com/",
+        "text": "Skip to main content US United States selected, change country Ticketmaster Home page Sign In/Register LOCATION DATES All Dates Change date range: All Dates SEARCH Search Ticketmaster United States Hi",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 8,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792267648532,
+            "lockedToFallback": true,
+            "reason": "api-read-before-handshake",
+            "upgraded": false
+          },
+          "personaId": "macos-chrome-mini-m2",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T20:07:33.949Z"
+}

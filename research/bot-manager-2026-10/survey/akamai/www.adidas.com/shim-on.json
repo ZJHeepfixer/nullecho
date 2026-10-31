@@ -1,0 +1,110 @@
+{
+  "label": "shim-on",
+  "url": "https://www.adidas.com/us",
+  "extensions": [
+    "ext-main"
+  ],
+  "cold": false,
+  "visits": [
+    {
+      "visit": 1,
+      "verdict": "WALL",
+      "wall": "http-403",
+      "coldConfirmed": null,
+      "navError": null,
+      "ms": 8548,
+      "documents": [
+        {
+          "url": "https://www.adidas.com/us",
+          "status": 200,
+          "frameId": "0376B8586DC41C1D82903A864EFB66C8",
+          "server": "",
+          "setCookieNames": [
+            "geo_ip",
+            "geo_postcode",
+            "geo_country",
+            "geo_state",
+            "onesite_country",
+            "geo_coordinates",
+            "AKA_A2",
+            "akacd_Phased_www_adidas_com_Generic",
+            "_abck",
+            "bm_s",
+            "bm_sc",
+            "bm_so",
+            "bm_sz"
+          ]
+        },
+        {
+          "url": "https://www.adidas.com/us",
+          "status": 403,
+          "frameId": "0376B8586DC41C1D82903A864EFB66C8",
+          "server": "",
+          "setCookieNames": [
+            "adidas_country",
+            "geo_country",
+            "geo_state",
+            "gl-feat-enable",
+            "geo_coordinates",
+            "akacd_phased_PDP",
+            "bm_s",
+            "bm_sc"
+          ]
+        }
+      ],
+      "blockedByClient": 1,
+      "otherFailures": [
+        {
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "cookiesAfterLoad": [
+        "AKA_A2",
+        "_abck",
+        "adidas_country",
+        "akacd_Phased_www_adidas_com_Generic",
+        "akacd_phased_PDP",
+        "bm_lso",
+        "bm_s",
+        "bm_sc",
+        "bm_so",
+        "bm_sz",
+        "geo_coordinates",
+        "geo_country",
+        "geo_ip",
+        "geo_postcode",
+        "geo_state",
+        "gl-feat-enable",
+        "onesite_country"
+      ],
+      "page": {
+        "title": "adidas",
+        "href": "https://www.adidas.com/us",
+        "text": "adidas Reference Error: 0.2c0ed217.1792266806.403948f7 UNFORTUNATELY WE ARE UNABLE TO GIVE YOU ACCESS TO OUR SITE AT THIS TIME. A security issue was automatically identified, when you tried to access ",
+        "webdriver": false,
+        "gpc": true,
+        "cores": 8,
+        "memory": 16,
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+        "ddFrame": false
+      },
+      "extensions": [
+        {
+          "shimStatus": {
+            "at": 1792266806675,
+            "lockedToFallback": false,
+            "reason": null,
+            "upgraded": true
+          },
+          "personaId": "macos-chrome-m2-air",
+          "botManager": null,
+          "botManagerSites": null
+        }
+      ]
+    }
+  ],
+  "capturedAt": "2026-10-17T19:53:32.714Z"
+}
