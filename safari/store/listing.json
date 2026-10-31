@@ -106,8 +106,7 @@
       ],
       "files": [
         "mac-1-top-2880x1800.jpg"
-      ],
-      "status": "stale: captured before PR #14 (old blocking sentence, 200 block rules); re-capture before upload, the tool skips this set while this field starts with 'stale'"
+      ]
     }
   ],
   "inAppPurchases": {
