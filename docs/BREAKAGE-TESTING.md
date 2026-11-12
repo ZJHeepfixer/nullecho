@@ -155,6 +155,9 @@ A flow that is already broken with the extension off is not our bug — that che
     has Nullecho installed and click Run. Requires **BLOCKING PROVEN**: all six tracker hosts
     cancelled, all three allowlisted controls loaded. The page refuses to score a pass outside real
     Chrome. See DECISIONS.md **D18** for why the popup counter alone was never sufficient evidence.
+    `node harness/blocking-proof-check.mjs` runs the same page against the store package in Chrome
+    for Testing and fails any row that Chrome's own network log contradicts. Run it first. It does
+    not replace this check in your own profile, which item 20 needs.
 20. **The popup counter agrees with the network** — with that same page open, open the popup and
     confirm a **non-zero** blocked count. Harness-blocked + popup-zero means the *counting* path is
     broken even though blocking works; harness-loaded + popup-nonzero means `classifyMatchedRule()`

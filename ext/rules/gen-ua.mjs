@@ -132,7 +132,10 @@ export function buildUaRulesets() {
 export const serialise = (rules) => JSON.stringify(rules, null, 2) + '\n';
 
 // ── CLI ──────────────────────────────────────────────────────────────────
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Real paths on both sides: Node resolves import.meta.url through symlinks but argv[1] keeps the path as typed, so
+// through one (macOS /tmp → /private/tmp, which is how Xcode passes it) path.resolve() never matched and main was skipped.
+const realpath = (p) => { try { return fs.realpathSync(p); } catch { return null; } };   // argv[1] need not be a file (node -e … arg)
+if (process.argv[1] && realpath(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   for (const [file, rules] of Object.entries(buildUaRulesets())) {
     fs.writeFileSync(path.join(HERE, file), serialise(rules));
     console.log(`wrote ${file} (${rules.length} rule${rules.length === 1 ? '' : 's'})`);

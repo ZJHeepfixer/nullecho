@@ -5,7 +5,7 @@
  *   node harness/social/make-brand-files.mjs --font-dir <dir with Inter-*.ttf>       # both jobs
  *   node harness/social/make-brand-files.mjs --icons-only
  *   node harness/social/make-brand-files.mjs --merch-only --font-dir <dir>
- *   … --puppeteer /Users/jasonluker/bodybuilding   (or $NULLECHO_PUPPETEER_DIR)
+ *   … --puppeteer <dir>   (or $NULLECHO_PUPPETEER_DIR; last resort ~/bodybuilding)
  *
  * OUTPUTS
  *   site/press/nullecho-icon-512.png, -1024.png   brand/nullecho-icon.svg rasterised, transparent outside the tile
@@ -27,6 +27,7 @@
  */
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
@@ -47,7 +48,7 @@ const log = (...a) => console.error('[brand]', ...a);
 function loadPuppeteer() {
   const tried = [];
   try { return createRequire(import.meta.url)('puppeteer'); } catch (e) { tried.push(`repo (${e.code})`); }
-  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, '/Users/jasonluker/bodybuilding'].filter(Boolean)) {
+  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, path.join(os.homedir(), 'bodybuilding')].filter(Boolean)) {
     try { return createRequire(path.join(path.resolve(dir), 'package.json'))('puppeteer'); }
     catch (e) { tried.push(`${dir} (${e.code})`); }
   }

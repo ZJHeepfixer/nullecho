@@ -1,0 +1,74 @@
+# The offline suites, on every push to main and every pull request. Each suite is its own job, so a
+# red Safari test cannot hide behind a green extension run or the other way round.
+#
+# Same commands as CONTRIBUTING.md "Before you open a PR". No npm install: the repo has no npm
+# dependencies, only Node built-ins. Node 22 is what the suites are written against
+# (safari/test/rules.test.mjs). Actions are pinned to a commit; the comment names the release.
+#
+# Not here: anything that needs a browser or the network (harness/site-smoke.mjs, the live checks).
+# Those run on a person's machine before a release (docs/RELEASE-CHECKLIST.md).
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ext:
+    name: ext — npm test, validate, store packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ext
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run validate
+      # Not covered by any test: the packager fails on a file the manifest names but the tree lacks.
+      - name: npm run package && npm run package:firefox
+        run: npm run package && npm run package:firefox
+
+  safari:
+    name: safari — node --test safari/test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test safari/test/*.test.mjs
+
+  harness:
+    name: harness — offline tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      # Tests that drive a browser skip themselves when puppeteer is absent, as it is here.
+      - name: node --test harness/*.test.mjs
+        run: |
+          shopt -s nullglob
+          files=(harness/*.test.mjs)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::notice::no harness/*.test.mjs on this commit, nothing to run"
+            exit 0
+          fi
+          node --test "${files[@]}"

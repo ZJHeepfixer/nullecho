@@ -13,8 +13,8 @@
  *   node harness/store-screenshots.mjs --headful         # watch it happen
  *
  * Options
- *   --puppeteer <dir>  a directory whose node_modules holds puppeteer (default: repo root's
- *                      sibling ~/bodybuilding, also read from $NULLECHO_PUPPETEER_DIR)
+ *   --puppeteer <dir>  a directory whose node_modules holds puppeteer (also read from
+ *                      $NULLECHO_PUPPETEER_DIR; last resort ~/bodybuilding)
  *   --headful          non-headless Chrome for Testing (headless "new" otherwise)
  *
  * WHY chrome.action.openPopup() INSTEAD OF NAVIGATING TO THE POPUP URL. SCREENSHOT-PLAN.md's
@@ -120,7 +120,7 @@ const log = (...a) => console.log('[store-shots]', ...a);
 function loadPuppeteer() {
   const tried = [];
   try { return createRequire(import.meta.url)('puppeteer'); } catch (e) { tried.push(`repo (${e.code})`); }
-  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, '/Users/jasonluker/bodybuilding'].filter(Boolean)) {
+  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, path.join(os.homedir(), 'bodybuilding')].filter(Boolean)) {
     try { return createRequire(path.join(path.resolve(dir), 'package.json'))('puppeteer'); }
     catch (e) { tried.push(`${dir} (${e.code})`); }
   }

@@ -57,6 +57,7 @@
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -88,7 +89,7 @@ const SITES_FILE = path.join(HERE, 'device-price-sites.json');
 function loadPuppeteer() {
   const tried = [];
   try { return createRequire(import.meta.url)('puppeteer'); } catch (e) { tried.push(`repo (${e.code})`); }
-  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, '/Users/jasonluker/bodybuilding'].filter(Boolean)) {
+  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, path.join(os.homedir(), 'bodybuilding')].filter(Boolean)) {
     try { return createRequire(path.join(path.resolve(dir), 'package.json'))('puppeteer'); }
     catch (e) { tried.push(`${dir} (${e.code})`); }
   }

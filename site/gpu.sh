@@ -2,7 +2,7 @@
 # Nullecho: show this computer's real graphics name, the way Google Chrome reports it.
 # Used to verify Nullecho's Linux device profiles against real hardware (docs/LINUX-PERSONA-VERIFICATION.md).
 #
-# Run it inside Ubuntu's "Try Ubuntu" live session:   wget -qO- nullecho.org/gpu.sh | bash
+# Run it inside Ubuntu's "Try Ubuntu" live session:   wget -qO- https://nullecho.org/gpu.sh | bash
 # It installs Google Chrome into the LIVE session only: nothing is written to the laptop's own disk, and
 # everything is gone when the laptop restarts. It sends nothing anywhere; it opens nullecho.org, whose
 # fingerprint demo runs entirely in the browser.

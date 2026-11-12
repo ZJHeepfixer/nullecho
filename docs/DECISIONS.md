@@ -682,6 +682,24 @@ blocked, 3/3 controls loaded, `globalPrivacyControl` undefined — i.e. all nine
 reachable, so under a real install any "blocked" row is attributable to Nullecho and not to a dead
 URL. Verified readable in light and dark.
 
+**Amended 2026-10-07: a control's "loaded" now means its bytes arrived.** While the demo video was
+being recorded, the `cdn.jsdelivr.net` control read "loaded" in every run, extension on or off,
+while Chrome's own log recorded the request as `net::ERR_ABORTED`. Cause: Chrome's Opaque Response
+Blocking on a `no-cors` fetch of `application/json` + `nosniff`. Chrome withholds the body, logs the
+request as aborted, and resolves the fetch with an empty opaque response anyway. With
+`--enable-features=OpaqueResponseBlockingErrorsForAllFetches` the same request fails as
+`net::ERR_BLOCKED_BY_ORB`. A `no-cors` fetch also resolves on the headers, before any body arrives,
+so no `no-cors` control could show that a file arrived. Controls are now fetched in CORS mode (all
+three hosts send `Access-Control-Allow-Origin: *`). The page reads each whole body and checks it is
+the file it asked for, and has two new control states, `http-<n>` and `unexpected`. Trackers stay
+`no-cors`. Tracker hosts do not all allow CORS, and for a tracker "loaded" correctly means the host
+answered. The page publishes its rows as `window.__proofDone`. `harness/blocking-proof-check.mjs`
+runs it OFF and ON (store package) and fails any row that disagrees with Chrome's network log.
+`harness/social/make-social-assets.mjs` gates on the same comparison
+(`harness/blocking-proof-netlog.mjs`). Negative control: the pre-fix page fails the check on
+`cdn.jsdelivr.net` in both runs. A "3/3 controls loaded" recorded in Chrome before this change, the
+2026-10-07 video among them, did not show that the jsDelivr file arrived.
+
 ## D19 — Request headers follow the persona at OS-family level, from static, generated DNR rules. 2026-09-16.
 
 > **Superseded by D51 (2026-09-28)** for `User-Agent`, `Sec-CH-UA`, `-Mobile` and `-Platform`: the page is now shown the
@@ -3794,3 +3812,28 @@ that tolerated the shim (homedepot, lowes, bestbuy, united, macys, delta, zara, 
    defense, not a third-party tracker.
 4. Breakage on big retail and airline sites costs more user trust than the disguise gains there.
 Revisit if a measured, stable signal distinguishes tolerant sites, or if evidence ties first-party bot-manager data to pricing.
+
+## D60 — What a public checkout carries: three calls made while cleaning the tree. 2026-11-11.
+
+Branch `chore/public-repo-hygiene`. None of these changes what the extension does.
+
+1. **Outreach notes leave the tip, not the history.** `research/outreach/` and `docs/press/PITCHES.md` (who was written
+   to, from which mailbox, and unsent drafts naming individual attorneys and journalists) are removed from the tree and
+   kept privately. They are still in this repository's git history and at the tip of the older branches; rewriting
+   history breaks every clone and every commit hash these documents cite, so it is the owner's decision and was not
+   made here. **Would change this:** a request from someone named there, or anything in those files that is more than
+   a business contact.
+2. **Every Akamai value in the tesla logs is redacted, not only `bm_so`.** The eight
+   `research/bot-manager-2026-10/tesla/logs/*.json` each recorded one `cookie` request header: `bm_so=…` in three,
+   `bm_s=…` in five. The brief named `bm_so`; `bm_s` is the same vendor's value in the same field, so both now read
+   `<name>=<redacted>`. D59 rests on cookie names, statuses and verdicts, none of which changed. The rig still records
+   the header as received (`tesla/rig/run-tesla.mjs`), so a re-run writes values again: redact before committing one.
+3. **The harness's last-resort puppeteer directory is `~/bodybuilding`, not a literal home path.** Six scripts ended
+   their lookup (repo, `--puppeteer`, `$NULLECHO_PUPPETEER_DIR`) with the owner's absolute home directory. It is now
+   `path.join(os.homedir(), 'bodybuilding')`: the same directory on the owner's Mac from any checkout, a miss anywhere
+   else, as before. Home-relative rather than "the repo's sibling", because the scripts are also run from worktrees
+   under `/tmp`, where a sibling is somewhere else.
+
+Not done, and left as found: the same outreach files on other branches; the deployed copy of `gpu.sh` on `gh-pages`
+(its one-liner still lacks `https://`); two mentions of `research/outreach/` in `docs/store/CHROME-WEB-STORE-LISTING.md`
+(store-listing sources are the owner's).

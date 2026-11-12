@@ -124,10 +124,10 @@ export function describePlan(l) {
   lines.push(`1. apps: contentRightsDeclaration = ${l.app.contentRightsDeclaration}`);
   lines.push(`2. appInfos (the in-flight one): primaryCategory ${l.app.primaryCategory}, secondaryCategory ${l.app.secondaryCategory}`);
   lines.push(`3. appInfoLocalizations[${l.primaryLocale}]: name "${l.app.name}" (set by the record; patched only if it differs), subtitle "${l.app.subtitle}" (${l.app.subtitle.length}/${LIMITS.subtitle}), privacyPolicyUrl ${l.app.privacyPolicyUrl}`);
+  lines.push(`4. ageRatingDeclaration (app-level, on the appInfo; one declaration covers every platform): ${Object.keys(l.ageRating).length} attributes, all NONE / false (4+); unknown attributes are dropped on the API's word and reported`);
   for (const plat of v.platforms) {
-    lines.push(`4.${plat}. appStoreVersions[${plat}]: versionString ${v.versionString}, releaseType ${v.releaseType}, copyright "${v.copyright}"${plat === 'MAC_OS' ? ' (created if the record has no MAC_OS version yet — unverified path, the API decides)' : ''}`);
-    lines.push(`5.${plat}. appStoreVersionLocalizations[${l.primaryLocale}]: description ${v.description.length}/${LIMITS.description} chars, keywords ${Buffer.byteLength(v.keywords)}/${LIMITS.keywordsBytes} bytes, promotionalText ${v.promotionalText.length}/${LIMITS.promotionalText}, supportUrl ${v.supportUrl}, marketingUrl ${v.marketingUrl}; whatsNew omitted (first version)`);
-    lines.push(`6.${plat}. ageRatingDeclaration: ${Object.keys(l.ageRating).length} attributes, all NONE / false (4+); unknown attributes are dropped on the API's word and reported`);
+    lines.push(`5.${plat}. appStoreVersions[${plat}]: versionString ${v.versionString}, releaseType ${v.releaseType}, copyright "${v.copyright}"${plat === 'MAC_OS' ? ' (created if the record has no MAC_OS version yet — unverified path, the API decides)' : ''}`);
+    lines.push(`6.${plat}. appStoreVersionLocalizations[${l.primaryLocale}]: description ${v.description.length}/${LIMITS.description} chars, keywords ${Buffer.byteLength(v.keywords)}/${LIMITS.keywordsBytes} bytes, promotionalText ${v.promotionalText.length}/${LIMITS.promotionalText}, supportUrl ${v.supportUrl}, marketingUrl ${v.marketingUrl}; whatsNew omitted (first version)`);
     lines.push(`7.${plat}. appStoreReviewDetail: demoAccountRequired ${l.review.demoAccountRequired}, notes ${Buffer.byteLength(l.review.notes)}/${LIMITS.notesBytes} bytes (3 paragraphs), contact: the owner types it in App Store Connect${process.env.ASC_REVIEW_CONTACT_JSON ? ' (ASC_REVIEW_CONTACT_JSON is set and will be used instead)' : ''}`);
   }
   for (const set of l.screenshots) {
@@ -175,9 +175,32 @@ export async function apply(l, api, log = console.log) {
   }
   log(`${loc}: subtitle + privacy policy URL set${infoAttrs.name ? ' + name' : ''}`);
 
+  // The age rating declaration is app-level: one per appInfo, shared by every platform. The older
+  // /v1/appStoreVersions/{id}/ageRatingDeclaration path answers 404 PATH_ERROR ("relationship does not exist")
+  // since at least 2026-10-31, so the version path is not tried.
+  step('4. age rating');
+  const decl = (await api('GET', `/v1/appInfos/${info.id}/ageRatingDeclaration`)).data;
+  const rating = { ...l.ageRating };
+  for (let tries = 0; tries < 8; tries++) {
+    try { await api('PATCH', `/v1/ageRatingDeclarations/${decl.id}`, { data: { type: 'ageRatingDeclarations', id: decl.id, attributes: rating } }); break; }
+    catch (e) {
+      // Drop an attribute only when the API says it does not exist. A wrong TYPE or a REQUIRED complaint names an
+      // attribute too, and dropping it then just moves the failure (measured 2026-10-31: healthOrWellnessTopics is
+      // a BOOLEAN, and once dropped the next answer was "you must provide a value").
+      const code = e.body && e.body.errors && e.body.errors[0] && e.body.errors[0].code;
+      const unknown = code === 'ENTITY_ERROR.ATTRIBUTE.INVALID' || /is not a valid attribute|unknown attribute/i.test(e.message);
+      const m = unknown && (/attribute '([A-Za-z]+)'/.exec(e.message) || /'([A-Za-z]+)' is not a valid/.exec(e.message));
+      if (m && m[1] in rating) { log(`  API does not know "${m[1]}" — dropped`); delete rating[m[1]]; continue; }
+      throw e;
+    }
+  }
+  const after = (await api('GET', `/v1/appInfos/${info.id}/ageRatingDeclaration`)).data.attributes; // the declaration allows UPDATE only; it is read through its appInfo
+  const unanswered = Object.entries(after).filter(([k, val]) => val === null && !(k in rating)).map(([k]) => k);
+  log(`${Object.keys(rating).length} attributes set on declaration ${decl.id}${unanswered.length ? `; attributes the API also knows and this listing does not answer (null): ${unanswered.join(', ')}` : ''}`);
+
   const versionIds = {};
   for (const plat of v.platforms) {
-    step(`4.${plat}. version`);
+    step(`5.${plat}. version`);
     let ver = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=${plat}&fields[appStoreVersions]=versionString,appStoreState,releaseType,platform`)).data[0];
     const attrs = { versionString: v.versionString, releaseType: v.releaseType, copyright: v.copyright };
     if (!ver) {
@@ -189,7 +212,7 @@ export async function apply(l, api, log = console.log) {
     }
     versionIds[plat] = ver.id;
 
-    step(`5.${plat}. version localization`);
+    step(`6.${plat}. version localization`);
     const vlocs = (await api('GET', `/v1/appStoreVersions/${ver.id}/appStoreVersionLocalizations`)).data;
     let vloc = vlocs.find((x) => x.attributes.locale === loc);
     const vattrs = { description: v.description, keywords: v.keywords, promotionalText: v.promotionalText, supportUrl: v.supportUrl, marketingUrl: v.marketingUrl };
@@ -197,27 +220,31 @@ export async function apply(l, api, log = console.log) {
     else await api('PATCH', `/v1/appStoreVersionLocalizations/${vloc.id}`, { data: { type: 'appStoreVersionLocalizations', id: vloc.id, attributes: vattrs } });
     log(`${loc} text set (description ${v.description.length} chars, keywords ${Buffer.byteLength(v.keywords)} bytes)`);
 
-    step(`6.${plat}. age rating`);
-    const decl = (await api('GET', `/v1/appStoreVersions/${ver.id}/ageRatingDeclaration`)).data;
-    const rating = { ...l.ageRating };
-    for (let tries = 0; tries < 8; tries++) {
-      try { await api('PATCH', `/v1/ageRatingDeclarations/${decl.id}`, { data: { type: 'ageRatingDeclarations', id: decl.id, attributes: rating } }); break; }
-      catch (e) {
-        const m = /attribute '([A-Za-z]+)'/.exec(e.message) || /'([A-Za-z]+)' is not a valid/.exec(e.message);
-        if (m && m[1] in rating) { log(`  API does not know "${m[1]}" — dropped`); delete rating[m[1]]; continue; }
-        throw e;
-      }
-    }
-    log(`${Object.keys(rating).length} attributes set`);
-
     step(`7.${plat}. review details`);
     let rev = null;
     try { rev = (await api('GET', `/v1/appStoreVersions/${ver.id}/appStoreReviewDetail`)).data; } catch (e) { if (e.status !== 404) throw e; }
     const contact = process.env.ASC_REVIEW_CONTACT_JSON ? JSON.parse(process.env.ASC_REVIEW_CONTACT_JSON) : {};
     const revAttrs = { demoAccountRequired: l.review.demoAccountRequired, notes: l.review.notes, ...contact };
-    if (rev) await api('PATCH', `/v1/appStoreReviewDetails/${rev.id}`, { data: { type: 'appStoreReviewDetails', id: rev.id, attributes: revAttrs } });
-    else await api('POST', '/v1/appStoreReviewDetails', { data: { type: 'appStoreReviewDetails', attributes: revAttrs, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: ver.id } } } } });
-    log(`notes set (${Buffer.byteLength(l.review.notes)} bytes)${Object.keys(contact).length ? ', contact set' : ', contact LEFT EMPTY (owner fills it in App Store Connect)'}`);
+    // POST accepts notes without a contact; PATCH validates the whole record and refuses while the contact
+    // fields are empty (measured 2026-10-31: ENTITY_ERROR.ATTRIBUTE.REQUIRED on contactFirstName …). The contact is
+    // the owner's to type in App Store Connect, so an existing record whose notes already match is left alone,
+    // and a needed PATCH that fails only on the contact fields is reported, not fatal.
+    if (rev && rev.attributes.notes === l.review.notes && rev.attributes.demoAccountRequired === l.review.demoAccountRequired && !Object.keys(contact).length) {
+      log(`notes already set (${Buffer.byteLength(l.review.notes)} bytes); contact ${rev.attributes.contactFirstName ? 'present' : 'LEFT EMPTY (owner fills it in App Store Connect)'}`);
+    } else if (rev) {
+      try {
+        await api('PATCH', `/v1/appStoreReviewDetails/${rev.id}`, { data: { type: 'appStoreReviewDetails', id: rev.id, attributes: revAttrs } });
+        log(`notes set (${Buffer.byteLength(l.review.notes)} bytes)${Object.keys(contact).length ? ', contact set' : ''}`);
+      } catch (e) {
+        const errs = (e.body && e.body.errors) || [];
+        const onlyContact = errs.length && errs.every((x) => x.code === 'ENTITY_ERROR.ATTRIBUTE.REQUIRED' && /^\/data\/attributes\/contact/.test((x.source || {}).pointer || ''));
+        if (!onlyContact) throw e;
+        log(`NOTES NOT UPDATED: the API refuses to change the review details while the contact fields are empty (${errs.map((x) => (x.source || {}).pointer.split('/').pop()).join(', ')}); the owner types the contact in App Store Connect, then this step applies on the next run`);
+      }
+    } else {
+      await api('POST', '/v1/appStoreReviewDetails', { data: { type: 'appStoreReviewDetails', attributes: revAttrs, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: ver.id } } } } });
+      log(`notes set (${Buffer.byteLength(l.review.notes)} bytes)${Object.keys(contact).length ? ', contact set' : ', contact LEFT EMPTY (owner fills it in App Store Connect)'}`);
+    }
 
     step(`8.${plat}. screenshots`);
     const sets = l.screenshots.filter((s) => s.platform === plat);
@@ -253,36 +280,71 @@ async function uploadSet(api, vlocId, set, log) {
   const sets = (await api('GET', `/v1/appStoreVersionLocalizations/${vlocId}/appScreenshotSets`)).data || [];
   let s = sets.find((x) => x.attributes.screenshotDisplayType === set.displayType);
   if (!s) s = (await api('POST', '/v1/appScreenshotSets', { data: { type: 'appScreenshotSets', attributes: { screenshotDisplayType: set.displayType }, relationships: { appStoreVersionLocalization: { data: { type: 'appStoreVersionLocalizations', id: vlocId } } } } })).data;
-  const list = async () => (await api('GET', `/v1/appScreenshotSets/${s.id}/appScreenshots?limit=50&fields[appScreenshots]=fileName,assetDeliveryState`)).data || [];
-  const existing = await list();
-  const ids = [];
-  for (const f of set.files) {
-    const already = existing.find((x) => x.attributes.fileName === f);
-    if (already) { log(`${set.displayType}: ${f} already uploaded (${already.id})`); ids.push(already.id); continue; }
-    const buf = fs.readFileSync(path.join(STORE_DIR, f));
+  const list = async () => (await api('GET', `/v1/appScreenshotSets/${s.id}/appScreenshots?limit=50&fields[appScreenshots]=fileName,sourceFileChecksum,assetDeliveryState`)).data || [];
+  const files = set.files.map((f) => { const buf = fs.readFileSync(path.join(STORE_DIR, f)); return { f, buf, md5: crypto.createHash('md5').update(buf).digest('hex') }; });
+  // reserve → PUT the parts → commit with the MD5; returns the new screenshot id
+  const upload = async ({ f, buf, md5 }) => {
     const shot = (await api('POST', '/v1/appScreenshots', { data: { type: 'appScreenshots', attributes: { fileName: f, fileSize: buf.length }, relationships: { appScreenshotSet: { data: { type: 'appScreenshotSets', id: s.id } } } } })).data;
     for (const op of shot.attributes.uploadOperations) {
       const headers = {}; for (const h of op.requestHeaders || []) headers[h.name] = h.value;
       const up = await fetch(op.url, { method: op.method, headers, body: buf.subarray(op.offset, op.offset + op.length) });
       if (!up.ok) throw new Error(`upload part failed HTTP ${up.status} for ${f}`);
     }
-    await api('PATCH', `/v1/appScreenshots/${shot.id}`, { data: { type: 'appScreenshots', id: shot.id, attributes: { uploaded: true, sourceFileChecksum: crypto.createHash('md5').update(buf).digest('hex') } } });
+    await api('PATCH', `/v1/appScreenshots/${shot.id}`, { data: { type: 'appScreenshots', id: shot.id, attributes: { uploaded: true, sourceFileChecksum: md5 } } });
     log(`${set.displayType}: uploaded ${f} (${(buf.length / 1024).toFixed(0)} KB) → ${shot.id}`);
-    ids.push(shot.id);
+    return shot.id;
+  };
+  const existing = await list();
+  const ids = [];
+  for (const file of files) {
+    const already = existing.find((x) => x.attributes.fileName === file.f);
+    if (already && already.attributes.sourceFileChecksum === file.md5) { log(`${set.displayType}: ${file.f} already uploaded, same bytes (${already.id})`); ids.push(already.id); continue; }
+    if (already) {
+      // same name, different bytes (a re-shot file) or no checksum (an upload whose commit never took):
+      // replace it, so the set never keeps a stale or half-delivered capture under a current name.
+      await api('DELETE', `/v1/appScreenshots/${already.id}`);
+      log(`${set.displayType}: ${file.f} on the server is not this file (checksum ${already.attributes.sourceFileChecksum || 'none'}) — old ${already.id} deleted, re-uploading`);
+    }
+    ids.push(await upload(file));
   }
-  await api('PATCH', `/v1/appScreenshotSets/${s.id}/relationships/appScreenshots`, { data: ids.map((id) => ({ type: 'appScreenshots', id })) });
-  for (let attempt = 1; attempt <= 30; attempt++) {
+  const order = async () => api('PATCH', `/v1/appScreenshotSets/${s.id}/relationships/appScreenshots`, { data: ids.map((id) => ({ type: 'appScreenshots', id })) });
+  await order();
+  // Delivery normally completes within a minute. One capture (2026-10-31, iphone-63-4-support.png) sat in
+  // UPLOAD_COMPLETE with no checksum and answered the commit PATCH with HTTP 500 for good; the only way out
+  // was to delete it and upload again, so a shot that stalls that way is re-uploaded once.
+  const retried = new Set();
+  const deadline = Date.now() + 10 * 60 * 1000;
+  let stalledSince = {};
+  while (Date.now() < deadline) {
     const rows = await list();
     const states = rows.map((x) => (x.attributes.assetDeliveryState || {}).state);
     if (states.length >= set.files.length && states.every((x) => x === 'COMPLETE')) { log(`${set.displayType}: ${rows.length} screenshot(s) COMPLETE, order asserted`); return; }
     if (states.some((x) => x === 'FAILED')) throw new Error(`${set.displayType}: an asset FAILED delivery: ${JSON.stringify(rows)}`);
+    for (const row of rows) {
+      const a = row.attributes;
+      const stuck = (a.assetDeliveryState || {}).state === 'UPLOAD_COMPLETE' && !a.sourceFileChecksum;
+      if (!stuck) { delete stalledSince[row.id]; continue; }
+      stalledSince[row.id] = stalledSince[row.id] || Date.now();
+      if (Date.now() - stalledSince[row.id] < 60 * 1000 || retried.has(a.fileName)) continue;
+      const file = files.find((x) => x.f === a.fileName);
+      if (!file) continue;
+      retried.add(a.fileName);
+      log(`${set.displayType}: ${a.fileName} stalled in UPLOAD_COMPLETE without a checksum for 60 s — deleting ${row.id} and uploading it again`);
+      await api('DELETE', `/v1/appScreenshots/${row.id}`);
+      const fresh = await upload(file);
+      ids.splice(ids.indexOf(row.id), 1, fresh);
+      await order();
+    }
     await sleep(5000);
   }
-  throw new Error(`${set.displayType}: delivery did not complete in time`);
+  throw new Error(`${set.displayType}: delivery did not complete within 10 minutes`);
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Real paths on both sides: Node resolves import.meta.url through symlinks but argv[1] keeps the path as typed, so
+// through one (macOS /tmp → /private/tmp, which is how Xcode passes it) path.resolve() never matched and main was skipped.
+const realpath = (p) => { try { return fs.realpathSync(p); } catch { return null; } };   // argv[1] need not be a file (node -e … arg)
+if (process.argv[1] && realpath(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const argv = process.argv.slice(2);
   const offline = argv.includes('--offline');
   try {

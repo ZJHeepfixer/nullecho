@@ -49,7 +49,7 @@
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
       "accept-encoding": "gzip, deflate, br, zstd",
       "accept-language": "en-US,en;q=0.9",
-      "cookie": "bm_s=YAAQcPfVF/GHKjahAQAAEFpdSwZLPKumEATs2goYzWM/ROdXblrjPVfX8cjv3sPJLgpTWxCnoDDxhATU0MFfDRsPXg6pCysZ/THm58fDut2KNOJ+2zWJ8dvxn1Kp6QpbqJEAAI6oLlrYRJx0ah9cSzc92T2",
+      "cookie": "bm_s=<redacted>",
       "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
       "sec-ch-ua-mobile": "?0",
       "sec-ch-ua-platform": "\"macOS\"",

@@ -73,9 +73,11 @@ test('every screenshot file exists in safari/store with the set\'s pixel size an
   }
   const onDisk = fs.readdirSync(STORE_DIR).filter((f) => /\.(png|jpe?g)$/i.test(f));
   assert.deepEqual(onDisk.filter((f) => !listed.has(f)), [], 'image in safari/store that no screenshot set lists');
-  // the Mac set is flagged stale until it is re-captured from a build with the current copy
+  // every set is captured from the current build (the Mac set was re-captured 2026-10-31); a set marked
+  // 'stale…' would be skipped by --apply, so none may carry that flag now
   const mac = l.screenshots.find((s) => s.platform === 'MAC_OS');
-  assert.ok(mac && typeof mac.status === 'string', 'the Mac set carries its status');
+  assert.ok(mac, 'the Mac set exists');
+  for (const set of l.screenshots) assert.ok(!(typeof set.status === 'string' && set.status.startsWith('stale')), `${set.displayType} is still marked stale`);
 });
 
 test('loadListing rejects a broken file (over-long subtitle, missing screenshot)', () => {
@@ -95,8 +97,9 @@ test('loadListing rejects a broken file (over-long subtitle, missing screenshot)
 test('the offline plan runs without credentials or network and names every step', () => {
   const plan = describePlan(l);
   assert.ok(plan.some((x) => x.startsWith('1. apps: contentRightsDeclaration = USES_THIRD_PARTY_CONTENT')));
-  assert.ok(plan.some((x) => x.includes('SKIPPED: stale')), 'the stale Mac set is announced as skipped');
+  assert.ok(!plan.some((x) => x.includes('SKIPPED')), 'no screenshot set is skipped any more');
+  assert.ok(plan.some((x) => x.includes('APP_DESKTOP')), 'the Mac set is planned');
   const out = execFileSync('node', [path.join(REPO, 'safari', 'tools', 'asc-listing.mjs'), '--plan', '--offline'], { encoding: 'utf8', env: { PATH: process.env.PATH } });
-  assert.ok(out.includes('PLAN for Nullecho 0.9.2 (org.nullecho.app); nothing is sent:'));
+  assert.ok(out.includes('PLAN for Nullecho 0.9.3 (org.nullecho.app); nothing is sent:'));
   assert.ok(out.includes('10. in-app purchases'));
 });
