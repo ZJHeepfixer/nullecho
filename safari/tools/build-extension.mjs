@@ -285,7 +285,10 @@ export async function build(opts = {}) {
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Real paths on both sides: Node resolves import.meta.url through symlinks but argv[1] keeps the path as typed, so
+// through one (macOS /tmp → /private/tmp, which is how Xcode passes it) path.resolve() never matched and main was skipped.
+const realpath = (p) => { try { return fs.realpathSync(p); } catch { return null; } };   // argv[1] need not be a file (node -e … arg)
+if (process.argv[1] && realpath(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const argv = process.argv.slice(2);
   const outIdx = argv.indexOf('--out');
   try {

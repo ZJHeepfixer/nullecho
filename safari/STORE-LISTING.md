@@ -1,4 +1,4 @@
-# Nullecho for Safari — App Store listing (version 0.9.2, first Safari release)
+# Nullecho for Safari — App Store listing (version 0.9.3, first Safari release)
 
 Prepared 2026-10-15 for App Store Connect, field by field, in the order App Store Connect asks for them. Every
 limit quoted below was read on Apple's pages on **2026-10-15** (URLs in §0); anything Apple's pages did not
@@ -55,9 +55,11 @@ Things only the owner can decide are marked **OWNER**. Nothing here was entered 
 
 ---
 
-## 2. Version 0.9.2 — App Store page (iOS; the macOS version of the same record reuses every text field)
+## 2. Version 0.9.3 — App Store page (iOS; the macOS version of the same record reuses every text field)
 
-Version string `0.9.2` comes from `ext/manifest.json` through `Scripts/stamp-version.sh`; build number is
+Version string `0.9.3` comes from `ext/manifest.json` through `Scripts/stamp-version.sh` (it follows the Chrome
+extension's version: 0.9.2 became 0.9.3 with the pricing & personalization ruleset, commit 8fcc6d8, so the first
+Safari release is 0.9.3); build number is
 `CURRENT_PROJECT_VERSION` (currently 1). The simulator build the screenshots were taken from still reads
 `0.9.1` in its "Extension version" row (see §7).
 
@@ -262,7 +264,7 @@ Per product, also:
   only effect is a one-line thank-you that disappears when the app quits. No account, no server, no restore
   (consumable). See the app's review notes."
 - **Submission**: the first consumable of an app must be submitted with an app version: Monetization ▸
-  In-App Purchases ▸ the item ▸ Add for Review ▸ add to the 0.9.2 submission (`audit/05-tip-jar-rules.md` §3,
+  In-App Purchases ▸ the item ▸ Add for Review ▸ add to the 0.9.3 submission (`audit/05-tip-jar-rules.md` §3,
   step 8). All four should ride with this version so App Review sees the section complete (2.1(b)).
 - No promotional images (the tips are not promoted on the App Store).
 
@@ -309,7 +311,7 @@ listed above, the answer for this app is None / No throughout.
 
 ## 7. Screenshots (`safari/store/`)
 
-All captured 2026-10-15 from the **0.9.2** build, real app, no frames or overlays (Review Guideline 2.3.3), no
+All three sets captured 2026-10-31 from the **0.9.3** build (main 8fcc6d8 app sources, 186 block rules); real app, no frames or overlays (Review Guideline 2.3.3), no
 alpha channel. iPhone and iPad shots are produced by a test in the repo —
 `safari/xcode/UITests/StoreScreenshotTests.swift` (run on its own with `-only-testing`, attachments exported with
 `xcrun xcresulttool export attachments`) — on iOS 27.0 (24A434) simulators in light appearance with the status
@@ -319,14 +321,14 @@ of `TipJarTests/testProductsLoadSortedByPriceWithDisplayPrices` on that simulato
 
 | File | Size | Device / class | Shows |
 |---|---|---|---|
-| `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.2", "Turn it on in Safari" steps |
+| `iphone-63-1-top.png` | 1206×2622 | iPhone 17 Pro = "iPhone with Dynamic Island (medium display)", the required iPhone class | Name, description, "Extension version 0.9.3", "Turn it on in Safari" steps |
 | `iphone-63-2-what-it-does.png` | 1206×2622 | same | "What it does": blocking, GPC, Safari's limits, "186 block rules on" (200 before PR #15's 14 exclusions), the collapsed "Acknowledgements" row |
 | `iphone-63-3-limits.png` | 1206×2622 | same | "What it does not do in Safari" and "Collects nothing" |
 | `iphone-63-4-support.png` | 1206×2622 | same | "If a site misbehaves" and "Support the project" with the four tips at $1.00 / $2.00 / $3.00 / $5.00 |
 | `ipad-13-1-top.png` | 2064×2752 | iPad Pro 13-inch (M5) = the required iPad 13-inch class | as iPhone 1 |
 | `ipad-13-2-what-it-does.png` | 2064×2752 | same | as iPhone 2 |
 | `ipad-13-3-limits.png` | 2064×2752 | same | "What it does not do in Safari", "If a site misbehaves", "Support the project" with the four tips, "More": the 13-inch page ends here, so there is no fourth iPad shot (the test skips a frame identical to the previous one) |
-| `mac-1-top-2880x1800.jpg` | 2880×1800 (window 1120×1520 at 2×, centred on a flat dark background), JPEG so no alpha | Mac, the **signed** Release archive app (the unsigned Debug app cannot ask Safari and shows "Safari did not answer"); **dark appearance** — the Mac's system appearance; with light mode forced per-app the window could not be imaged | Top of the window: name, "Extension version 0.9.2", the live status card "Nullecho is off in Safari — Nothing is blocked until you turn it on" (the real state of the build machine), "What it does" |
+| `mac-1-top-2880x1800.jpg` | 2880×1800 (window 1120×1520 at 2×, rounded corners masked, centred on a flat dark background), JPEG so no alpha | Mac, the **signed** Release archive app that was uploaded to TestFlight (Nullecho-macOS-202610310142; the unsigned Debug app cannot ask Safari and shows "Safari did not answer"); **dark appearance** — the Mac's system appearance. Captured 2026-10-31 as four full-density strips of the window through the desktop app-window capture tool (the owner granted the app) and stitched; `screencapture -l` is refused from the agent's shell (no Screen Recording grant) | Top of the window: name, "Extension version 0.9.3", the live status card "Nullecho is off in Safari — Nothing is blocked until you turn it on" (the real state of the build machine), "What it does", "186 block rules on" |
 
 Upload order per device: iPhone 1 → 4, iPad 1 → 3. Apple's current requirements (§0): one iPhone medium-display set and one iPad
 13-inch set are required for iOS; a Mac set is required for the Mac version; the large-display iPhone sizes
@@ -406,7 +408,7 @@ Phrases checked as absent from every field (script run on the final strings): "p
    Store Connect offers it for this record (platform availability unverified).
 7. **September 2026 age-rating changes**: not found on Apple's pages; the live questionnaire dates from
    January 31, 2026.
-8. ~~Screenshot source build reads 0.9.1~~ — re-shot from the 0.9.2 build 2026-10-15 (§7). The Mac shot is dark and shows the extension off (the build machine's real state); a light one needs the owner's appearance setting.
+8. ~~Screenshot source build reads 0.9.1~~ — re-shot from the 0.9.2 build 2026-10-15, then all three sets from the 0.9.3 build 2026-10-31 (§7). The Mac shot is dark and shows the extension off (the build machine's real state); a light one needs the owner's appearance setting.
 9. **Support URL contact information**: Apple wants real contact details reachable from the support page.
 10. **Required iPhone screenshot class** is the medium display (1206×2622); that set is provided. No large-display set.
 
@@ -430,23 +432,29 @@ run `--apply` until `GET /v1/apps` finds `org.nullecho.app`, i.e. after the owne
 it never creates the record, the in-app purchases or the agreements.
 
 What `--apply` does, in order: content rights (`USES_THIRD_PARTY_CONTENT`); categories on the in-flight app info;
-subtitle + privacy-policy URL; per platform (IOS, MAC_OS) the version (0.9.2, MANUAL, copyright), its en-US text
+subtitle + privacy-policy URL; per platform (IOS, MAC_OS) the version (0.9.3, MANUAL, copyright), its en-US text
 (description, keywords, promotional text, support and marketing URLs; What's New omitted on a first version), the
 age-rating declaration (§6; attributes the API does not know are dropped on its word and reported), the review
 details (§8 notes, `demoAccountRequired: false`, contact from the environment if present), and the screenshot sets
 (reserve, upload parts, commit with MD5, assert order, poll to COMPLETE; a file already uploaded under the same name
-is re-used; nothing is deleted); then price Free; then it reads the four in-app purchases back and reports their
+with the same MD5 is re-used; the same name with different bytes, a re-shot capture, replaces the old upload, which
+is the only thing the tool ever deletes); then price Free; then it reads the four in-app purchases back and reports their
 state.
 
 Proven shapes (the owner's other apps shipped with them, `~/ios-signing/oh-auto-setup-listing.js`,
 `oh-auto-upload-screens.mjs`, `oh-set-app-price.js`): JWT, appInfos/categories, appInfoLocalizations,
-appStoreVersions, appStoreVersionLocalizations, ageRatingDeclarations with the retry, appStoreReviewDetails,
+appStoreVersions, appStoreVersionLocalizations, ageRatingDeclarations with the retry (app-level: read through
+`/v1/appInfos/{id}/ageRatingDeclaration`; the per-version path answers 404 PATH_ERROR since at least 2026-10-31), appStoreReviewDetails,
 appScreenshotSets/appScreenshots, appPriceSchedules. Verified read-only on 2026-10-15: `UTILITIES` and
-`PRODUCTIVITY` exist for IOS and MAC_OS; no record for `org.nullecho.app` yet. **Unverified until the first
-`--apply`:** the screenshot display-type names for the 2026 size classes (`APP_IPHONE_61` for 1206×2622,
-`APP_IPAD_PRO_3GEN_129` for 2064×2752, `APP_DESKTOP` for 2880×1800; the API rejects a wrong set or size at
-reservation and the tool reports it) and adding a `MAC_OS` version to a record created for iOS (the tool POSTs one
-if none exists). The Mac screenshot set is marked `stale` in the JSON and skipped until the Mac shot is re-captured.
+`PRODUCTIVITY` exist for IOS and MAC_OS. **First `--apply` on 2026-10-31** against the record created that day
+(app 6829158994, iOS + macOS ticked at creation, so both platform versions existed and nothing had to be POSTed):
+`APP_IPHONE_61` accepted the 1206×2622 files and `APP_IPAD_PRO_3GEN_129` the 2064×2752 files, all delivered
+COMPLETE; the age rating declaration is app-level (one per appInfo); `healthOrWellnessTopics` is a boolean; a
+review-details PATCH is refused while the contact fields are empty (the POST was not), so the tool leaves a record
+whose notes already match alone and reports a refused PATCH instead of failing; one upload per set stalled in
+`UPLOAD_COMPLETE` without a checksum and recovered only by delete + re-upload, which the tool now does by itself
+after 60 s. `APP_DESKTOP` accepted the 2880×1800 JPEG on the eighth pass the same day (the Mac set's `stale` flag removed once
+the shot was re-captured), so every screenshot set is verified against the live enum.
 
 Left in App Store Connect for the owner: availability (§3, EU trader status), App Privacy (§4, no API used here),
 Paid Apps agreement, tax and banking, the review contact if not supplied by environment, and the submit click.
