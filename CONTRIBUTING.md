@@ -23,11 +23,18 @@ behaviour, load it and look at it.
 
 ## Before you open a PR
 
+CI (`.github/workflows/ci.yml`) runs these on every pull request. Run them first anyway; it is faster.
+
 ```bash
-cd ext && npm test && npm run validate
+(cd ext && npm test && npm run validate)
+node --test safari/test/*.test.mjs
 ```
 
 Then load it unpacked and check the popup still renders in light *and* dark.
+
+Touched `harness/blocking-proof.html`? Also run `node --test harness/blocking-proof.test.mjs`
+(offline) and `node harness/blocking-proof-check.mjs` (needs puppeteer and a network connection;
+CI runs it too, `.github/workflows/blocking-proof-live.yml`).
 
 ## What we publish, and what we don't
 

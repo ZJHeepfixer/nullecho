@@ -58,6 +58,10 @@ Already cleared on 8/21: reCAPTCHA v2, Google SSO, shim breakage battery.
 
 1. **Blocking proof** — open `harness/blocking-proof.html`, click Run.
    Need: **BLOCKING PROVEN** (6/6 trackers cancelled, 3/3 controls loaded). *~1 min.*
+   Automated pre-check, same page: `node harness/blocking-proof-check.mjs` (Chrome for Testing,
+   store package, every row checked against Chrome's network log; exit 0 required). CI also runs
+   it weekly and on PRs touching the page or `ext/` (`.github/workflows/blocking-proof-live.yml`);
+   still run it here, on the commit you are releasing.
 2. **Popup counter agrees** — same page still open, open the popup. Need a **non-zero** blocked
    count. Disagreement either way is a real bug and this is the only place it shows. *~1 min.*
 3. **GPC mechanism** (D17, replaces the old fifty-site sweep) — on `open.spotify.com` console,
@@ -396,3 +400,12 @@ options toggle in real Chrome and Firefox; uploading the updated store-listing t
   sides walled in r2 — PASS on re-run, `…-0deb5fd-rerun-bathandbodyworks.md`). Neither site carries an Akamai trigger
   cookie, so D59 does not act on them (both ON records show the persona). The director decides whether this gate is green.
   Still owed for D59: a real Firefox and Edge run (Firefox: `web-ext lint` 0/0/0 only); the owner's own Chrome.
+- **D61 — the worker answers the UI's messages for the extension's own pages only** (2026-11-11, no version bump). A
+  tab's content script gets its four message types and is refused the other sixteen (allowlist, settings, GPC, salt,
+  history, overview, a named site's report, stored price notices). `npm test` **636/636** (621 + 15 in
+  `ext/src/sender-check-2026-11-11.test.js`); `npm run validate` exit 0; both packages build.
+  ⚠ **Owed before upload, not run:** real Chrome and real Firefox. Load unpacked, open the popup on a site and the
+  options page, flip a site off and on, press "New identity", clear site history; then
+  `node harness/blocked-count-probe.mjs` (sends `SET_SITE_ENABLED` from the popup's URL). A popup or options page that
+  shows "not an extension page" means that browser's `sender` is not what D61 assumes: do not ship it. `web-ext lint`
+  was not re-run either.

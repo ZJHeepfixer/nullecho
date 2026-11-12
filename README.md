@@ -5,7 +5,11 @@ nothing about you — which is exactly why it ships a button that lets you measu
 working.**
 
 > **Early release — 0.9.1 is [free on the Chrome Web Store](https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn)** (published 2026-10-05).
-> 511 tests passing; breakage testing continues and there are known limitations (see [Status](#status)) —
+> **This repository is ahead of the store.** The source here is 0.9.3. 0.9.2 and 0.9.3 were built and, as of the
+> last entry in [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md) (2026-10-17), uploaded to no store, so
+> this page can describe more than the store build does; anything marked "(0.9.3)" is in the source only.
+> Tests at this commit: 636 for the extension, 65 for the Safari build, 13 for the harness (see [Status](#status)).
+> Breakage testing continues and there are known limitations —
 > notably, on **Linux** the GPU names in the device profile are not yet verified on real hardware.
 > Don't rely on it as your only protection.
 
@@ -29,9 +33,18 @@ We can't see the result either.
   (sourced from DuckDuckGo Tracker Radar / EasyPrivacy / AdGuard, not invented).
 - **Pricing & personalization** (0.9.3) — blocks known price-personalization and personalization trackers on
   shopping pages: the data-collection endpoints of shopper-profiling, offer-targeting and price-testing services
-  (Dynamic Yield, Bloomreach, Rokt, Attentive, Granify, Klaviyo's tracking hosts and others). It never blocks
-  what shows you a price, a cart or search results, and it is tested for that on real product pages
-  (`harness/site-smoke.mjs --shopping`). It does not change, and makes no claim about, the price you are shown.
+  (Dynamic Yield, Bloomreach, Rokt, Attentive, Granify, Klaviyo's tracking hosts and others). Its rules are
+  written to leave alone whatever shows you a price, a cart or search results, and that is measured on real product
+  pages, with the extension off and on side by side (`harness/site-smoke.mjs --shopping`), not promised for every
+  site. The run recorded on 2026-10-17 loaded 133 product pages: 65 passed; 67 could not show anything either way
+  (61 failed the same way with the extension off, 5 were walled by a bot check, 1 errored on both sides); 1 failed,
+  walmart.com, where the two browsers were shown different prices — recorded as a per-visitor offer that follows
+  Walmart's own cookies with or without the extension (`research/walmart-price-gap-2026-10/`). The later
+  pre-release gate on the 0.9.3 build still exits 1: walmart.com again, accepted with that reason on record; and
+  two rows that passed when re-run — bathandbodyworks.com, which met a bot check with the extension on in one
+  round, and a YouTube video that did not advance. Counts and reports:
+  [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md). A page outside that sample is untested.
+  It does not change, and makes no claim about, the price you are shown.
 - **Per-origin device personas** — each site sees a *different but internally consistent* machine
   drawn from a pool of real, high-population configurations. That breaks the fingerprint join for
   trackers that hash the signals we cover: verified 2026-09-17 against FingerprintJS 5.2.0 and
@@ -102,7 +115,7 @@ Full reasoning: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/DECISIO
 
 ```bash
 git clone <repo> && cd nullecho/ext
-npm test          # 477 tests
+npm test          # 636 tests at this commit; the number grows with every guard added
 ```
 
 Chrome: `chrome://extensions` → Developer mode → **Load unpacked** → select `ext/`.
@@ -125,7 +138,7 @@ cd nullecho && python3 -m http.server 4886
 
 | | |
 |---|---|
-| Tests | 511 passing |
+| Tests | All passing at this commit: **636** extension (`cd ext && npm test`) · **65** Safari build (`node --test safari/test/*.test.mjs`) · **13** harness (`node --test harness/*.test.mjs`; 3 of them drive a browser and skip without one). The Safari app's Xcode tests are not in these numbers. |
 | Browser version | ✅ reports the browser's real version, brands and full version (D51) — verified in Chrome 153 and 154 |
 | reCAPTCHA / Google SSO | ✅ reCAPTCHA verified in a real signed-in Chrome, incl. with a learned state (D50, seeded smoke) · ⏳ third-party Google sign-in re-test owed |
 | Shim breakage battery | ✅ 0 failures |
@@ -133,17 +146,25 @@ cd nullecho && python3 -m http.server 4886
 | **Linux personas** | ⚠️ **Known limitation:** GPU renderer strings are reconstructed from driver documentation and **not yet verified on real Linux hardware** — blocks 1.0 |
 | **Adversarial review (2026-09-16)** | 🟠 **Not yet shippable** — findings + one reproducing test each: [`docs/REVIEW-2026-09-16.md`](docs/REVIEW-2026-09-16.md). **Closed:** A1–A5, B1–B5, B7–B9, C1–C3 — each reproduction flipped into a regression guard (D19–D31; see `docs/DECISIONS.md`). **Still open:** A8 (Web Workers — no content script runs in a worker scope) and B6 (WebGPU architecture — needs hardware). Full status + effort estimates: [`docs/RELEASE-READINESS-2026-09-16.md`](docs/RELEASE-READINESS-2026-09-16.md). |
 | **Third-party detectability (2026-09-19)** | Measured, not asserted. CreepJS: **2 lie records**, both our own canvas/audio noise; `hasToStringProxy` and `webDriverIsOn` back to the control's `false` (was 199 records and a bot verdict before D35). FingerprintJS + ClientJS: four personas, four distinct visitor IDs. CreepJS still re-joins them — see `docs/THREAT-MODEL.md`. |
-| Published to stores | ✅ [Chrome Web Store](https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn) 0.9.1, 2026-10-05 · Firefox package ready (`web-ext lint` 0/0/0), not yet submitted · Safari in development |
+| Published to stores | ✅ [Chrome Web Store](https://chromewebstore.google.com/detail/nullecho/ngolhoibjdchbbidglcfpljnabjfkfbn) 0.9.1, 2026-10-05 · 0.9.2 and 0.9.3 built, uploaded to no store as of 2026-10-17 · Firefox package ready (`web-ext lint` 0/0/0), not yet submitted · Safari in development |
 
 Open blockers: [`docs/BREAKAGE-TESTING.md`](docs/BREAKAGE-TESTING.md)
 
 ## Supporting this
 
-Nullecho is free, MIT licensed, and collects nothing — including no revenue. There is no premium
+Nullecho is free, MIT licensed, and collects nothing about you. There is no premium
 tier, no account, no affiliate VPN deal, and no anonymized-data sale. Those are the obvious ways to
 monetize a privacy tool and every one of them would undermine the reason to trust it.
 
-If it's useful to you, GitHub Sponsors is the only channel. If it isn't, use it anyway.
+Money can reach the project only as a thank-you that unlocks nothing:
+
+- **GitHub Sponsors** — the channel that exists today.
+- **A tip jar in the Safari app** — built, not yet released with the app: four optional one-time tips through
+  Apple's in-app purchase. Every feature works the same before and after ([`safari/TIP-JAR.md`](safari/TIP-JAR.md)).
+- **Merchandise** — print files for a shirt and a hoodie exist ([`brand/MERCH.md`](brand/MERCH.md)); nothing is
+  on sale.
+
+If it isn't useful to you, use it anyway.
 
 ## On copying, and on trust
 
@@ -194,4 +215,10 @@ an issue.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+The code is MIT — see [`LICENSE`](LICENSE).
+
+The blocking rules that ship in `ext/rules/` are a different matter. Each entry was checked against one or more
+published lists, and some URL patterns come from them; those lists carry their own licences — EasyList /
+EasyPrivacy (GPL-3.0-or-later, or CC BY-SA 3.0 or later), AdGuard's filters (GPL-3.0) and DuckDuckGo Tracker Radar
+(CC BY-NC-SA 4.0). Which list was used for what, and under which terms, is in
+[`ext/NOTICE.txt`](ext/NOTICE.txt); the GPL text is [`ext/GPL-3.0.txt`](ext/GPL-3.0.txt).

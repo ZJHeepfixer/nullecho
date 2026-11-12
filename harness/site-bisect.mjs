@@ -4,8 +4,8 @@
  * under each, so a break can be attributed to blocking, the shim, GPC, the UA rewrite,
  * or "not us" — the triage tree in docs/BREAKAGE-TESTING.md, automated.
  *
- *   node harness/site-bisect.mjs youtube --puppeteer /Users/jasonluker/bodybuilding
- *   node harness/site-bisect.mjs maps    --puppeteer /Users/jasonluker/bodybuilding
+ *   node harness/site-bisect.mjs youtube --puppeteer <dir whose node_modules has puppeteer>
+ *   node harness/site-bisect.mjs maps    --puppeteer <dir whose node_modules has puppeteer>
  *   node harness/site-bisect.mjs youtube --variants off,full --headful
  *
  * Variants

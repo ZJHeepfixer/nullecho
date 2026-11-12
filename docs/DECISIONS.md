@@ -682,6 +682,24 @@ blocked, 3/3 controls loaded, `globalPrivacyControl` undefined — i.e. all nine
 reachable, so under a real install any "blocked" row is attributable to Nullecho and not to a dead
 URL. Verified readable in light and dark.
 
+**Amended 2026-10-07: a control's "loaded" now means its bytes arrived.** While the demo video was
+being recorded, the `cdn.jsdelivr.net` control read "loaded" in every run, extension on or off,
+while Chrome's own log recorded the request as `net::ERR_ABORTED`. Cause: Chrome's Opaque Response
+Blocking on a `no-cors` fetch of `application/json` + `nosniff`. Chrome withholds the body, logs the
+request as aborted, and resolves the fetch with an empty opaque response anyway. With
+`--enable-features=OpaqueResponseBlockingErrorsForAllFetches` the same request fails as
+`net::ERR_BLOCKED_BY_ORB`. A `no-cors` fetch also resolves on the headers, before any body arrives,
+so no `no-cors` control could show that a file arrived. Controls are now fetched in CORS mode (all
+three hosts send `Access-Control-Allow-Origin: *`). The page reads each whole body and checks it is
+the file it asked for, and has two new control states, `http-<n>` and `unexpected`. Trackers stay
+`no-cors`. Tracker hosts do not all allow CORS, and for a tracker "loaded" correctly means the host
+answered. The page publishes its rows as `window.__proofDone`. `harness/blocking-proof-check.mjs`
+runs it OFF and ON (store package) and fails any row that disagrees with Chrome's network log.
+`harness/social/make-social-assets.mjs` gates on the same comparison
+(`harness/blocking-proof-netlog.mjs`). Negative control: the pre-fix page fails the check on
+`cdn.jsdelivr.net` in both runs. A "3/3 controls loaded" recorded in Chrome before this change, the
+2026-10-07 video among them, did not show that the jsDelivr file arrived.
+
 ## D19 — Request headers follow the persona at OS-family level, from static, generated DNR rules. 2026-09-16.
 
 > **Superseded by D51 (2026-09-28)** for `User-Agent`, `Sec-CH-UA`, `-Mobile` and `-Platform`: the page is now shown the
@@ -3794,3 +3812,83 @@ that tolerated the shim (homedepot, lowes, bestbuy, united, macys, delta, zara, 
    defense, not a third-party tracker.
 4. Breakage on big retail and airline sites costs more user trust than the disguise gains there.
 Revisit if a measured, stable signal distinguishes tolerant sites, or if evidence ties first-party bot-manager data to pricing.
+
+## D60 — What a public checkout carries: three calls made while cleaning the tree. 2026-11-11.
+
+Branch `chore/public-repo-hygiene`. None of these changes what the extension does.
+
+1. **Outreach notes leave the tip, not the history.** `research/outreach/` and `docs/press/PITCHES.md` (who was written
+   to, from which mailbox, and unsent drafts naming individual attorneys and journalists) are removed from the tree and
+   kept privately. They are still in this repository's git history and at the tip of the older branches; rewriting
+   history breaks every clone and every commit hash these documents cite, so it is the owner's decision and was not
+   made here. **Would change this:** a request from someone named there, or anything in those files that is more than
+   a business contact.
+2. **Every Akamai value in the tesla logs is redacted, not only `bm_so`.** The eight
+   `research/bot-manager-2026-10/tesla/logs/*.json` each recorded one `cookie` request header: `bm_so=…` in three,
+   `bm_s=…` in five. The brief named `bm_so`; `bm_s` is the same vendor's value in the same field, so both now read
+   `<name>=<redacted>`. D59 rests on cookie names, statuses and verdicts, none of which changed. The rig still records
+   the header as received (`tesla/rig/run-tesla.mjs`), so a re-run writes values again: redact before committing one.
+3. **The harness's last-resort puppeteer directory is `~/bodybuilding`, not a literal home path.** Six scripts ended
+   their lookup (repo, `--puppeteer`, `$NULLECHO_PUPPETEER_DIR`) with the owner's absolute home directory. It is now
+   `path.join(os.homedir(), 'bodybuilding')`: the same directory on the owner's Mac from any checkout, a miss anywhere
+   else, as before. Home-relative rather than "the repo's sibling", because the scripts are also run from worktrees
+   under `/tmp`, where a sibling is somewhere else.
+
+Not done, and left as found: the same outreach files on other branches; the deployed copy of `gpu.sh` on `gh-pages`
+(its one-liner still lacks `https://`); two mentions of `research/outreach/` in `docs/store/CHROME-WEB-STORE-LISTING.md`
+(store-listing sources are the owner's).
+
+## D61 — The worker answers the UI's messages for the extension's own pages only; a tab gets the four content-script types and nothing else. 2026-11-11.
+
+**The gap.** `background.js` answered every message type for every sender. A content script runs in the page's
+renderer, and this file's own header counts a compromised renderer as in scope (salt containment, point 2). Such a
+renderer could send what the popup sends: `SET_SITE_ENABLED` (the allowlist writes an `allowAllRequests` rule for
+the site), `SET_SETTINGS` and the two `GPC_MSG` types (GPC and whole blocking categories off), `ROTATE_SALT`,
+`CLEAR_STATS`, `GET_OVERVIEW` and `nullecho:heuristics:state` (every site visited, with its trackers), the price
+notice's read / count / delete, and `GET_SITE_REPORT`, which takes its site from the message body and returns that
+site's persona: the question point 2 says cannot be asked. Found by reading the listener, not by an exploit; no
+attack against a current browser's renderer is claimed.
+
+**Decision.** A closed list, `CONTENT_SCRIPT_TYPES`: `GET_PERSONA`, `FP_DETECTED`, `SHIM_STATUS`,
+`PRICING_MSG.OBSERVED`. Each acts only on the sender's own site, read from `sender` (D31). Every other type, sixteen
+today and any added later, is answered only when `isOwnPageSender(sender)` holds:
+
+1. `sender.id` is this extension's.
+2. `sender.url` lies under `runtime.getURL('')`: `chrome-extension://<id>/` in Chrome and Edge,
+   `moz-extension://<uuid>/` in Firefox. Asked of the browser, not built from `runtime.id`: Firefox's host is a
+   per-install UUID.
+3. `sender.origin` is the extension's origin too. Both, not either: an `about:blank` frame in a web page has a web
+   origin, and an extension URL in a sandboxed frame has the origin `'null'`. A sender with no origin is refused:
+   Chrome reports one since 80 and Firefox since 126, and this build needs 121 and 140. In Firefox both fields are
+   filled in by the parent process (`url` from the document's URI in ConduitsParent `fillInAddress`, `origin` from its
+   principal in ExtensionParent `getSender`; source read 2026-11-11). Chrome's source was not read; its documentation
+   describes both as properties of the frame that opened the connection.
+
+Both listeners check before they switch on the type. A refused sender is told `{ ok: false, error: 'not an extension
+page' }` once and nothing is read or written.
+
+**Considered and not done.** *"No `sender.tab` means the popup"*: the options page opens in a tab, and the harness
+loads the popup by URL in one (`harness/blocked-count-probe.mjs`). *Falling back to `sender.origin` for an
+`about:blank` frame inside our own page*, as `senderSiteKey` does for personas: a persona has to follow the document
+tree, a privilege does not, and no page here creates such a frame, so it is refused. *Refusing only senders that look
+like web pages*: that answers a sender the browser described incompletely, which is the wrong way to fail.
+
+**Cost.** None intended. Firefox and Chrome share `background.js`; the Safari build has no worker and no message
+surface. No manifest change, no version bump.
+
+**Tests.** `ext/src/sender-check-2026-11-11.test.js` (15), on a stub shaped like a Chrome install with every
+side-effecting call logged: all sixteen UI types from a tab are refused with no data and no write; the allowlist,
+settings, salt, GPC exception, stored notices and learner state are each unchanged after a tab asks; a body that claims
+to be the popup is not believed; nineteen look-alike senders are refused; the popup (no tab), the options page (a tab)
+and the popup loaded in a tab are honoured; the four content-script types work from a tab and key on the sender's site
+whatever the body says; the rule for Firefox's shape; fail-closed cases. The six older files that drive the worker now
+send UI messages as the extension's own page instead of an empty sender, and their stubs answer `getURL` with
+an extension URL (`chrome-extension://…`, `moz-extension://<uuid>/…`) where they answered `file://`. Mutants killed:
+either listener's check removed, a "no tab" rule, the origin comparison dropped or made optional, a substring host
+match, the id not compared, a web base allowed, the path prefix dropped.
+
+**Not verified.** Run under Node against stubs only. Chrome for Testing and Firefox were not available where this was
+written, so that the real popup and options page still get their answers is **owed before any release**: load
+unpacked, open both, and run `harness/blocked-count-probe.mjs` (it sends `SET_SITE_ENABLED` from the popup's URL).
+If either page shows "not an extension page", the browser's `sender` differs from what is written above and this
+entry is wrong.

@@ -1,0 +1,775 @@
+{
+ "about": "Recorded 2026-10-07 by harness/blocking-proof-check.mjs --json, Chrome for Testing, trimmed to the nine probe URLs. page 1c009eb = harness/blocking-proof.html before the fix (controls fetched no-cors); page fixed = after it (controls CORS, body read and checked). The 1c009eb runs are the defect: cdn.jsdelivr.net reads loaded while Chrome logs 200, then net::ERR_ABORTED (Opaque Response Blocking).",
+ "runs": [
+  {
+   "page": "1c009eb",
+   "run": "off",
+   "browser": "Chrome/149.0.7827.22",
+   "extension": null,
+   "verdict": "BLOCKING IS NOT HAPPENING",
+   "rows": [
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.google-analytics.com/analytics.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "social",
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "ads",
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "fingerprinting",
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "font/CDN",
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "state": "loaded"
+    }
+   ],
+   "entries": [
+    {
+     "url": "https://www.google-analytics.com/analytics.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "text/javascript"
+     },
+     "finished": {
+      "bytes": 21409
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 154236
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 28006
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/x-javascript"
+     },
+     "finished": {
+      "bytes": 112953
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "text/javascript"
+     },
+     "finished": {
+      "bytes": 38234
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "text/javascript"
+     },
+     "finished": {
+      "bytes": 16878
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "font/woff2"
+     },
+     "finished": {
+      "bytes": 11055
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/json"
+     },
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true,
+      "blockedReason": null,
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 28121
+     },
+     "failed": null,
+     "redirects": []
+    }
+   ]
+  },
+  {
+   "page": "1c009eb",
+   "run": "on",
+   "browser": "Chrome/149.0.7827.22",
+   "extension": "dist/nullecho-0.9.1-chrome.zip",
+   "verdict": "BLOCKING PROVEN",
+   "rows": [
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.google-analytics.com/analytics.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "social",
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "ads",
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "fingerprinting",
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "control",
+     "category": "font/CDN",
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "state": "loaded"
+    }
+   ],
+   "entries": [
+    {
+     "url": "https://www.google-analytics.com/analytics.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "font/woff2"
+     },
+     "finished": {
+      "bytes": 11561
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/json"
+     },
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true,
+      "blockedReason": null,
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 28131
+     },
+     "failed": null,
+     "redirects": []
+    }
+   ]
+  },
+  {
+   "page": "fixed",
+   "run": "off",
+   "browser": "Chrome/149.0.7827.22",
+   "extension": null,
+   "verdict": "BLOCKING IS NOT HAPPENING",
+   "rows": [
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.google-analytics.com/analytics.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "social",
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "ads",
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "tracker",
+     "category": "fingerprinting",
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "font/CDN",
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "state": "loaded"
+    }
+   ],
+   "entries": [
+    {
+     "url": "https://www.google-analytics.com/analytics.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "text/javascript"
+     },
+     "finished": {
+      "bytes": 21409
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 154236
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 27997
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/x-javascript"
+     },
+     "finished": {
+      "bytes": 112952
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "text/javascript"
+     },
+     "finished": {
+      "bytes": 37741
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "text/javascript"
+     },
+     "finished": {
+      "bytes": 16877
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "font/woff2"
+     },
+     "finished": {
+      "bytes": 11055
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/json"
+     },
+     "finished": {
+      "bytes": 2283
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 28114
+     },
+     "failed": null,
+     "redirects": []
+    }
+   ]
+  },
+  {
+   "page": "fixed",
+   "run": "on",
+   "browser": "Chrome/149.0.7827.22",
+   "extension": "dist/nullecho-0.9.1-chrome.zip",
+   "verdict": "BLOCKING PROVEN",
+   "rows": [
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.google-analytics.com/analytics.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "analytics",
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "social",
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "ads",
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "tracker",
+     "category": "fingerprinting",
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "state": "cancelled"
+    },
+    {
+     "kind": "control",
+     "category": "font/CDN",
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "state": "loaded"
+    },
+    {
+     "kind": "control",
+     "category": "CDN",
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "state": "loaded"
+    }
+   ],
+   "entries": [
+    {
+     "url": "https://www.google-analytics.com/analytics.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://www.googletagmanager.com/gtag/js?id=G-0000000000",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.amplitude.com/libs/amplitude-8.21.9-min.gz.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://connect.facebook.net/en_US/fbevents.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://openfpcdn.io/fingerprintjs/v4/iife.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": null,
+     "finished": null,
+     "failed": {
+      "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+      "canceled": false,
+      "blockedReason": "other",
+      "corsError": null
+     },
+     "redirects": []
+    },
+    {
+     "url": "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "font/woff2"
+     },
+     "finished": {
+      "bytes": 11055
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/json"
+     },
+     "finished": {
+      "bytes": 2283
+     },
+     "failed": null,
+     "redirects": []
+    },
+    {
+     "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+     "method": "GET",
+     "type": "Fetch",
+     "response": {
+      "status": 200,
+      "mimeType": "application/javascript"
+     },
+     "finished": {
+      "bytes": 28117
+     },
+     "failed": null,
+     "redirects": []
+    }
+   ]
+  }
+ ]
+}

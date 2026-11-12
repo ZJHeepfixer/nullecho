@@ -27,8 +27,11 @@ const onMessage = [];
 const errorListeners = [];
 const noopEvent = () => ({ addListener() {} });
 
+/** What `runtime.getURL('')` answers in Firefox (the host is a per-install UUID, not the add-on id). The `fetch` stub maps it back to the tree. */
+const OWN_BASE = 'moz-extension://7c1e0b52-93aa-4d6e-8c1d-6f2e4a9b3c10/';
+
 globalThis.chrome = {
-  runtime: { id: 'test', getURL: (p) => `file://${path.join(EXT, p)}`, onMessage: { addListener: (fn) => onMessage.push(fn) }, onInstalled: noopEvent(), onStartup: noopEvent() },
+  runtime: { id: 'test', getURL: (p) => `${OWN_BASE}${p}`, onMessage: { addListener: (fn) => onMessage.push(fn) }, onInstalled: noopEvent(), onStartup: noopEvent() },
   storage: {
     local: { async get(keys) { const o = {}; for (const k of [].concat(keys)) if (k in store) o[k] = structuredClone(store[k]); return o; }, async set(obj) { Object.assign(store, structuredClone(obj)); } },
     session: { async get(keys) { const o = {}; for (const k of [].concat(keys)) if (k in session) o[k] = structuredClone(session[k]); return o; }, async set(obj) { Object.assign(session, structuredClone(obj)); } },
@@ -50,14 +53,20 @@ globalThis.chrome = {
   },
 };
 globalThis.fetch = async (url) => {
-  const file = String(url).replace(/^file:\/\//, '');
+  const file = path.join(EXT, String(url).slice(OWN_BASE.length));
   return { async json() { return JSON.parse(fs.readFileSync(file, 'utf8')); } };
 };
 
 await import('./background.js');
 
+/**
+ * The popup as the browser reports it: this extension's id, a URL under `runtime.getURL('')`
+ * and the extension's origin. The worker answers the UI's message types for nobody else (D61).
+ */
+const OWN_PAGE = { id: chrome.runtime.id, url: `${OWN_BASE}popup/popup.html`, origin: OWN_BASE.slice(0, -1) };
+
 const send = (message) => new Promise((resolve, reject) => {
-  for (const fn of onMessage) if (fn(message, {}, resolve) === true) return;
+  for (const fn of onMessage) if (fn(message, OWN_PAGE, resolve) === true) return;
   reject(new Error(`nothing handled ${message?.type}`));
 });
 const page = 'http://127.0.0.1:55524/';

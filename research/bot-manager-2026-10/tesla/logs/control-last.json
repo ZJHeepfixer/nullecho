@@ -31,7 +31,7 @@
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
       "accept-encoding": "gzip, deflate, br, zstd",
       "accept-language": "en-US,en;q=0.9",
-      "cookie": "bm_so=D853A689052171890FE845660FA98E85459BB7C386574AE3F58062894D1B423E~YAAQcPfVF6OzKjahAQAAKQJeSwnXv/Orx321w1654wTQDlbsRXrb9skEjI8jc4xZ4RtsTMT4H9AeyDPK89UPXTuzQ",
+      "cookie": "bm_so=<redacted>",
       "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
       "sec-ch-ua-mobile": "?0",
       "sec-ch-ua-platform": "\"macOS\"",

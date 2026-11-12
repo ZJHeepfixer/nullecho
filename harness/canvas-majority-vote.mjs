@@ -13,7 +13,7 @@
  * present in at least 3 of the 5 reads. Nullecho's kernel (shim.js `noiseRGBA`, DECISIONS.md D22) is keyed on
  * persona key + canvas size + a digest of the WHOLE canvas + position: the same family. This measures it.
  *
- *   NULLECHO_PUPPETEER_DIR=/Users/jasonluker/bodybuilding node harness/canvas-majority-vote.mjs
+ *   NULLECHO_PUPPETEER_DIR=<dir whose node_modules has puppeteer> node harness/canvas-majority-vote.mjs
  *     --trials <n>      trials per (persona, origin, N) cell for the real extension   (default 10)
  *     --ns 5,9,21       canvas counts                                                  (default 5,9,21)
  *     --default-trials  trials per cell with Chrome's DEFAULT canvases, one fresh page each   (default 5)

@@ -9,7 +9,7 @@
  *   node harness/site-smoke.mjs --headful                # watch it (headless "new" otherwise)
  *   node harness/site-smoke.mjs --only youtube,maps       # just those sites (dev/debug)
  *   node harness/site-smoke.mjs --off                     # OFF pass only, no package/extension needed
- *   node harness/site-smoke.mjs --puppeteer /Users/jasonluker/bodybuilding
+ *   node harness/site-smoke.mjs --puppeteer <dir whose node_modules has puppeteer>
  *   npm run smoke   (from ext/ — see ext/package.json)
  *
  *   node harness/site-smoke.mjs --seeded                  # SEEDED LEARNED STATE — the D50 release gate (below)

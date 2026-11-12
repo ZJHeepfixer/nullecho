@@ -32,7 +32,7 @@
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
       "accept-encoding": "gzip, deflate, br, zstd",
       "accept-language": "en-US,en;q=0.9",
-      "cookie": "bm_s=YAAQcPfVF0VvKjahAQAAIwNdSwY+tFqHgVAsz8PAe/ag6e8CLEcqamIqYL1EyxAy8Kr0DyxTEtHH/EFsy5YekrgquY7Vs62yVy3V4Mn7ufm2g3tUgOatrj++VO2ZdaYQuFBo73/X+Q+3jZihorWJnGb9bpk",
+      "cookie": "bm_s=<redacted>",
       "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
       "sec-ch-ua-mobile": "?0",
       "sec-ch-ua-platform": "\"macOS\"",

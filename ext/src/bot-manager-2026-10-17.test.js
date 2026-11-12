@@ -142,10 +142,13 @@ const dynamicRuleCalls = [];
 const reloads = [];
 const noopEvent = () => ({ addListener() {} });
 
+/** What `runtime.getURL('')` answers in Chrome. The `fetch` stub maps it back to the tree. */
+const OWN_BASE = 'chrome-extension://test/';
+
 globalThis.chrome = {
   runtime: {
     id: 'test',
-    getURL: (p) => `file://${path.join(EXT, p)}`,
+    getURL: (p) => `${OWN_BASE}${p}`,
     onMessage: { addListener: (fn) => onMessage.push(fn) },
     onInstalled: noopEvent(),
     onStartup: noopEvent(),
@@ -181,13 +184,19 @@ globalThis.chrome = {
   },
 };
 globalThis.fetch = async (url) => {
-  const file = String(url).replace(/^file:\/\//, '');
+  const file = path.join(EXT, String(url).slice(OWN_BASE.length));
   return { async json() { return JSON.parse(fs.readFileSync(file, 'utf8')); } };
 };
 
 const BG = await import('./background.js');
 
-function send(message, sender = {}) {
+/**
+ * The popup as the browser reports it: this extension's id, a URL under `runtime.getURL('')`
+ * and the extension's origin. The worker answers the UI's message types for nobody else (D61).
+ */
+const OWN_PAGE = { id: chrome.runtime.id, url: `${OWN_BASE}popup/popup.html`, origin: OWN_BASE.slice(0, -1) };
+
+function send(message, sender = OWN_PAGE) {
   return new Promise((resolve, reject) => {
     for (const fn of onMessage) if (fn(message, sender, resolve) === true) return;
     reject(new Error(`nothing handled ${message?.type}`));
