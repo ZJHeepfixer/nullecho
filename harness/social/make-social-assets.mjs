@@ -5,7 +5,7 @@
  *   node harness/social/make-social-assets.mjs                     # cards + demo video → ~/Desktop/Nullecho social assets
  *   node harness/social/make-social-assets.mjs --cards-only
  *   node harness/social/make-social-assets.mjs --video-only
- *   node harness/social/make-social-assets.mjs --out <dir> --puppeteer /Users/jasonluker/bodybuilding
+ *   node harness/social/make-social-assets.mjs --out <dir> --puppeteer <dir whose node_modules has puppeteer>
  *
  * OUTPUTS
  *   nullecho-nah-card-1080x1350.png   slogan card, Instagram portrait feed
@@ -34,7 +34,7 @@
  *          its controls in CORS mode). This gate is what would have stopped it.
  *
  * Requires: puppeteer (resolved like the other harness scripts: repo, --puppeteer <dir>, $NULLECHO_PUPPETEER_DIR;
- * on Jason's Mac it lives in /Users/jasonluker/bodybuilding), ffmpeg + ffprobe with libx264 on PATH, `unzip`,
+ * last resort ~/bodybuilding, where it lives on the owner's Mac), ffmpeg + ffprobe with libx264 on PATH, `unzip`,
  * and a network connection (the OFF run really fetches the six tracker library files; see the page's disclosure).
  */
 import { createRequire } from 'node:module';
@@ -62,7 +62,7 @@ const KEEP_WORK = flag('--keep-work');
 function loadPuppeteer() {
   const tried = [];
   try { return createRequire(import.meta.url)('puppeteer'); } catch (e) { tried.push(`repo (${e.code})`); }
-  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, '/Users/jasonluker/bodybuilding'].filter(Boolean)) {
+  for (const dir of [opt('--puppeteer', null), process.env.NULLECHO_PUPPETEER_DIR, path.join(os.homedir(), 'bodybuilding')].filter(Boolean)) {
     try { return createRequire(path.join(path.resolve(dir), 'package.json'))('puppeteer'); }
     catch (e) { tried.push(`${dir} (${e.code})`); }
   }

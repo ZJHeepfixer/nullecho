@@ -19,6 +19,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { recordNetwork, compare } from './blocking-proof-netlog.mjs';
@@ -111,7 +112,7 @@ test('recordNetwork: follows redirects on one request, skips CORS preflights, ke
 
 // ── 3. the page itself, every probe answered by interception ────────────────
 function findPuppeteer() {
-  for (const dir of [null, process.env.NULLECHO_PUPPETEER_DIR, '/Users/jasonluker/bodybuilding']) {
+  for (const dir of [null, process.env.NULLECHO_PUPPETEER_DIR, path.join(os.homedir(), 'bodybuilding')]) {
     try { return dir === null ? createRequire(import.meta.url)('puppeteer') : createRequire(path.join(path.resolve(dir), 'package.json'))('puppeteer'); }
     catch { /* next */ }
   }
