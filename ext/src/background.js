@@ -31,6 +31,16 @@
  * This costs latency: the loader has to do an async round trip instead of a fast
  * synchronous storage read. That trade is deliberate, and the loader/shim pair is
  * built to be safe while the round trip is in flight — see `shim-loader.js`.
+ *
+ * ── Who may ask for what (DECISIONS.md D61) ───────────────────────────────
+ * A content script runs inside the page's renderer, so a compromised renderer
+ * can send any message a content script can. Four message types are a content
+ * script's (`CONTENT_SCRIPT_TYPES`), and each acts only on the sender's own
+ * site, read from `sender`. Every other type on this surface reads or changes
+ * state for ANY site — the allowlist, GPC, the blocking categories, the salt,
+ * the stored history, the cross-site overview, a named site's persona — and is
+ * answered only when the sender is one of the extension's own pages
+ * (`isOwnPageSender`). Both listeners in this file make that check first.
  */
 
 import './gpc.js';
@@ -311,6 +321,89 @@ export function senderSiteKey(sender) {
     if (!INHERITED_ORIGIN_SCHEMES.has(protocol)) return '';
   }
   return siteKeyFor(sender?.origin || '');
+}
+
+// ── who may ask for what (D61) ──────────────────────────────────────────────
+
+/**
+ * The message types a content script sends: the loader's three and the price
+ * notice's one. Each handler takes its site from `sender` (`senderSiteKey`) and
+ * touches that site's record only, so a tab can say nothing about another site.
+ *
+ * This is the whole list on purpose. A type that is not here is the UI's, and a
+ * new type is the UI's until it is added here — the safe way round to forget.
+ */
+export const CONTENT_SCRIPT_TYPES = new Set([
+  MSG.GET_PERSONA,
+  MSG.FP_DETECTED,
+  MSG.SHIM_STATUS,
+  PRICING_MSG.OBSERVED,
+]);
+
+/** What a refused sender is told. No detail: the asker is not ours. */
+export const NOT_OWN_PAGE = 'not an extension page';
+
+/**
+ * Is this sender one of the extension's own pages — the popup, the options page,
+ * the DROP page?
+ *
+ * Same sources as `senderSiteKey`, and for the same reason: `sender.id`,
+ * `sender.url` and `sender.origin` are the browser's account of who sent the
+ * message, and nothing here is read from the message body.
+ *
+ *   · `sender.id` is this extension's. (`onMessage` only ever delivers our own
+ *     contexts; checked anyway, it costs nothing.)
+ *   · `sender.url` lies under `runtime.getURL('')` — `chrome-extension://<id>/`
+ *     in Chrome and Edge, `moz-extension://<uuid>/` in Firefox. Asked of the
+ *     browser rather than built from `runtime.id`, because Firefox's host is a
+ *     per-install UUID, not the add-on id. A content script's `sender.url` is
+ *     its frame's `http(s)` URL and can never be this.
+ *   · `sender.origin` is the extension's origin too. BOTH must hold, not either:
+ *     an `about:blank` frame inside a web page has a web origin whatever its URL
+ *     says, and an extension URL in a sandboxed frame has the opaque origin
+ *     `'null'`. Neither is one of our pages. A sender with NO origin is refused:
+ *     every browser this build runs in reports one for a page (Chrome 80+,
+ *     Firefox 126+; the manifests need 121 and 140), so a sender that arrives
+ *     without it was not described by the browser as a page of ours. (Firefox,
+ *     read 2026-11-11: the parent process fills in both — `url` from the
+ *     document's URI in ConduitsParent `fillInAddress`, `origin` from its
+ *     principal in ExtensionParent `getSender`.)
+ *
+ * NOT used: `sender.tab`. It is tempting ("a popup has no tab") and wrong — the
+ * options page opens in a tab (`open_in_tab`), and so does the popup when the
+ * harness loads it by URL. A tab says where a page is shown, not whose it is.
+ *
+ * An inherited-origin frame (`about:blank`, `srcdoc`) inside one of our own pages
+ * is refused: its `sender.url` names no extension path. `senderSiteKey` falls back
+ * to the origin for such frames because a persona must follow the document tree;
+ * a privilege need not, and no page here creates one.
+ */
+export function isOwnPageSender(sender, own) {
+  let id, base;
+  try {
+    id = own ? own.id : api.runtime.id;
+    base = own ? own.base : api.runtime.getURL('');
+  } catch { return false; }
+  if (typeof id !== 'string' || !id || sender?.id !== id) return false;
+  if (typeof sender?.url !== 'string' || typeof base !== 'string' || !base) return false;
+
+  let root, from;
+  try { root = new URL(base); from = new URL(sender.url); } catch { return false; }
+  // An extension's own pages are never served over the web. If the browser ever
+  // answered `getURL` with a web URL, nothing would be privileged at all.
+  if (root.protocol === 'http:' || root.protocol === 'https:') return false;
+  if (from.protocol !== root.protocol || from.host !== root.host) return false;
+  const rootPath = root.pathname.endsWith('/') ? root.pathname : `${root.pathname}/`;
+  if (!from.pathname.startsWith(rootPath)) return false;
+
+  // `URL.origin` is engine-dependent for extension schemes, so the origin is
+  // spelled out from the parts every engine agrees on.
+  return sender.origin === `${root.protocol}//${root.host}`;
+}
+
+/** May this sender have this message type answered at all? */
+export function senderMayAsk(type, sender) {
+  return CONTENT_SCRIPT_TYPES.has(type) || isOwnPageSender(sender);
 }
 
 // ── stats ───────────────────────────────────────────────────────────────────
@@ -795,6 +888,19 @@ bootStep('botManager.tabs', () => { api.tabs?.onRemoved?.addListener((tabId) => 
 const SHELL_TYPES = new Set(Object.values(MSG));
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // ── who is asking (D61) ──
+  // Everything below except the content-script types is the UI's. A tab that
+  // asks for one of those is told no, here, for the whole surface — this listener
+  // runs first, and the §3 listener at the end of the file drops the same message
+  // without answering twice. Refusing BEFORE the switch means a handler added
+  // later is closed to tabs until someone decides otherwise.
+  if (!senderMayAsk(message?.type, sender)) {
+    if (typeof message?.type === 'string' && message.type.startsWith('nullecho:')) {
+      sendResponse({ ok: false, error: NOT_OWN_PAGE });
+    }
+    return false;
+  }
+
   // ── §1 ──
   // There is deliberately NO page-side strike source here. The shim's
   // `nullecho:fp-detected` report says "some script read the canvas"; it does
@@ -1354,6 +1460,11 @@ async function onPricingForget(msg) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // D61: reading, counting and deleting stored notices is the UI's; only OBSERVED
+  // is a content script's. The first listener has already told a refused sender
+  // no, so this one only has to not act.
+  if (!senderMayAsk(message?.type, sender)) return false;
+
   let work = null;
   switch (message?.type) {
     case PRICING_MSG.OBSERVED:     work = onPricingObserved(message, sender); break;

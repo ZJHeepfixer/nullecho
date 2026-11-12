@@ -76,11 +76,14 @@ function chromeWebRequest() {
 
 const noopEvent = () => ({ addListener() {} });
 
+/** What `runtime.getURL('')` answers in Firefox (the host is a per-install UUID, not the add-on id). The `fetch` stub maps it back to the tree. */
+const OWN_BASE = 'moz-extension://7c1e0b52-93aa-4d6e-8c1d-6f2e4a9b3c10/';
+
 function extensionApis(webRequest) {
   return {
     runtime: {
       id: 'firefox-parity-test',
-      getURL: (p) => `file://${path.join(EXT, p)}`,
+      getURL: (p) => `${OWN_BASE}${p}`,
       onMessage: { addListener: (fn) => registered.message.push(fn) },
       onInstalled: noopEvent(),
       onStartup: noopEvent(),
@@ -117,14 +120,20 @@ function extensionApis(webRequest) {
 // used to die. Boot it the way Firefox does.
 globalThis.chrome = extensionApis(firefoxWebRequest());
 globalThis.fetch = async (url) => {
-  const file = String(url).replace(/^file:\/\//, '');
+  const file = path.join(EXT, String(url).slice(OWN_BASE.length));
   return { async json() { return JSON.parse(fs.readFileSync(file, 'utf8')); } };
 };
 
 const heuristics = await import('./heuristics.js');
 await import('./background.js');
 
-function send(message, sender = {}) {
+/**
+ * The popup as the browser reports it: this extension's id, a URL under `runtime.getURL('')`
+ * and the extension's origin. The worker answers the UI's message types for nobody else (D61).
+ */
+const OWN_PAGE = { id: chrome.runtime.id, url: `${OWN_BASE}popup/popup.html`, origin: OWN_BASE.slice(0, -1) };
+
+function send(message, sender = OWN_PAGE) {
   return new Promise((resolve, reject) => {
     for (const fn of registered.message) {
       if (fn(message, sender, resolve) === true) return;

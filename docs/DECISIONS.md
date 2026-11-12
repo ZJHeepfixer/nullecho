@@ -3837,3 +3837,58 @@ Branch `chore/public-repo-hygiene`. None of these changes what the extension doe
 Not done, and left as found: the same outreach files on other branches; the deployed copy of `gpu.sh` on `gh-pages`
 (its one-liner still lacks `https://`); two mentions of `research/outreach/` in `docs/store/CHROME-WEB-STORE-LISTING.md`
 (store-listing sources are the owner's).
+
+## D61 — The worker answers the UI's messages for the extension's own pages only; a tab gets the four content-script types and nothing else. 2026-11-11.
+
+**The gap.** `background.js` answered every message type for every sender. A content script runs in the page's
+renderer, and this file's own header counts a compromised renderer as in scope (salt containment, point 2). Such a
+renderer could send what the popup sends: `SET_SITE_ENABLED` (the allowlist writes an `allowAllRequests` rule for
+the site), `SET_SETTINGS` and the two `GPC_MSG` types (GPC and whole blocking categories off), `ROTATE_SALT`,
+`CLEAR_STATS`, `GET_OVERVIEW` and `nullecho:heuristics:state` (every site visited, with its trackers), the price
+notice's read / count / delete, and `GET_SITE_REPORT`, which takes its site from the message body and returns that
+site's persona: the question point 2 says cannot be asked. Found by reading the listener, not by an exploit; no
+attack against a current browser's renderer is claimed.
+
+**Decision.** A closed list, `CONTENT_SCRIPT_TYPES`: `GET_PERSONA`, `FP_DETECTED`, `SHIM_STATUS`,
+`PRICING_MSG.OBSERVED`. Each acts only on the sender's own site, read from `sender` (D31). Every other type, sixteen
+today and any added later, is answered only when `isOwnPageSender(sender)` holds:
+
+1. `sender.id` is this extension's.
+2. `sender.url` lies under `runtime.getURL('')`: `chrome-extension://<id>/` in Chrome and Edge,
+   `moz-extension://<uuid>/` in Firefox. Asked of the browser, not built from `runtime.id`: Firefox's host is a
+   per-install UUID.
+3. `sender.origin` is the extension's origin too. Both, not either: an `about:blank` frame in a web page has a web
+   origin, and an extension URL in a sandboxed frame has the origin `'null'`. A sender with no origin is refused:
+   Chrome reports one since 80 and Firefox since 126, and this build needs 121 and 140. In Firefox both fields are
+   filled in by the parent process (`url` from the document's URI in ConduitsParent `fillInAddress`, `origin` from its
+   principal in ExtensionParent `getSender`; source read 2026-11-11). Chrome's source was not read; its documentation
+   describes both as properties of the frame that opened the connection.
+
+Both listeners check before they switch on the type. A refused sender is told `{ ok: false, error: 'not an extension
+page' }` once and nothing is read or written.
+
+**Considered and not done.** *"No `sender.tab` means the popup"*: the options page opens in a tab, and the harness
+loads the popup by URL in one (`harness/blocked-count-probe.mjs`). *Falling back to `sender.origin` for an
+`about:blank` frame inside our own page*, as `senderSiteKey` does for personas: a persona has to follow the document
+tree, a privilege does not, and no page here creates such a frame, so it is refused. *Refusing only senders that look
+like web pages*: that answers a sender the browser described incompletely, which is the wrong way to fail.
+
+**Cost.** None intended. Firefox and Chrome share `background.js`; the Safari build has no worker and no message
+surface. No manifest change, no version bump.
+
+**Tests.** `ext/src/sender-check-2026-11-11.test.js` (15), on a stub shaped like a Chrome install with every
+side-effecting call logged: all sixteen UI types from a tab are refused with no data and no write; the allowlist,
+settings, salt, GPC exception, stored notices and learner state are each unchanged after a tab asks; a body that claims
+to be the popup is not believed; nineteen look-alike senders are refused; the popup (no tab), the options page (a tab)
+and the popup loaded in a tab are honoured; the four content-script types work from a tab and key on the sender's site
+whatever the body says; the rule for Firefox's shape; fail-closed cases. The six older files that drive the worker now
+send UI messages as the extension's own page instead of an empty sender, and their stubs answer `getURL` with
+an extension URL (`chrome-extension://…`, `moz-extension://<uuid>/…`) where they answered `file://`. Mutants killed:
+either listener's check removed, a "no tab" rule, the origin comparison dropped or made optional, a substring host
+match, the id not compared, a web base allowed, the path prefix dropped.
+
+**Not verified.** Run under Node against stubs only. Chrome for Testing and Firefox were not available where this was
+written, so that the real popup and options page still get their answers is **owed before any release**: load
+unpacked, open both, and run `harness/blocked-count-probe.mjs` (it sends `SET_SITE_ENABLED` from the popup's URL).
+If either page shows "not an extension page", the browser's `sender` differs from what is written above and this
+entry is wrong.

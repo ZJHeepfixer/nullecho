@@ -70,7 +70,7 @@ const evt = (name) => ({ addListener(fn) { webRequestListeners[name] = fn; } });
 globalThis.chrome = {
   runtime: {
     id: 'review',
-    getURL: (p) => `file://${path.join(EXT, p)}`,
+    getURL: (p) => `chrome-extension://review/${p}`,   // what Chrome answers; the popup sender below lives under it (D61)
     onMessage: { addListener: (fn) => onMessage.push(fn) },
     onInstalled: { addListener() {} },
     onStartup: { addListener() {} },
@@ -110,6 +110,9 @@ globalThis.chrome = {
 const BG = await import('./background.js');
 const H = await import('./heuristics.js');
 const { personaFor, PERSONAS } = await import('./personas.js');
+
+/** The popup, as Chrome reports it. The worker answers the UI's message types for the extension's own pages only (D61). */
+const POPUP = { id: 'review', url: 'chrome-extension://review/popup/popup.html', origin: 'chrome-extension://review' };
 
 /** Send one message through the real service-worker listener. */
 const swMessage = (message, sender) => new Promise((resolve) => {
@@ -994,13 +997,13 @@ test('A4a GUARD: the service worker keys each *.myshopify.com / *.wordpress.com 
 
 test('A4b GUARD: allowlisting one Shopify store writes a DNR rule for that store only; the next store stays protected', async () => {
   dynamicRuleCalls.length = 0;
-  const res = await swMessage({ type: 'nullecho:set-site-enabled', url: 'https://acme-store.myshopify.com/', enabled: false }, { url: 'chrome-extension://review/popup/popup.html' });
+  const res = await swMessage({ type: 'nullecho:set-site-enabled', url: 'https://acme-store.myshopify.com/', enabled: false }, POPUP);
   assert.equal(res.site, 'acme-store.myshopify.com', 'GUARD: the allowlist entry is the store, not the platform suffix');
   const rule = dynamicRuleCalls.flatMap((c) => c.addRules ?? []).find((r) => r.action?.type === 'allowAllRequests');
   assert.deepEqual(rule.condition.requestDomains, ['acme-store.myshopify.com'], 'GUARD: DNR matches that store and its subdomains only');
   const other = await swMessage({ type: 'nullecho:get-persona' }, { url: 'https://other-store.myshopify.com/' });
   assert.equal(other.enabled, true, 'GUARD: a store the user never touched is still protected');
-  await swMessage({ type: 'nullecho:set-site-enabled', url: 'https://acme-store.myshopify.com/', enabled: true }, {});
+  await swMessage({ type: 'nullecho:set-site-enabled', url: 'https://acme-store.myshopify.com/', enabled: true }, POPUP);
 });
 
 test('A4c GUARD: the shim keys ccTLD second-level sites apart, exactly as the service worker does', () => {

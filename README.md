@@ -8,7 +8,7 @@ working.**
 > **This repository is ahead of the store.** The source here is 0.9.3. 0.9.2 and 0.9.3 were built and, as of the
 > last entry in [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md) (2026-10-17), uploaded to no store, so
 > this page can describe more than the store build does; anything marked "(0.9.3)" is in the source only.
-> Tests at this commit: 621 for the extension, 65 for the Safari build, 13 for the harness (see [Status](#status)).
+> Tests at this commit: 636 for the extension, 65 for the Safari build, 13 for the harness (see [Status](#status)).
 > Breakage testing continues and there are known limitations —
 > notably, on **Linux** the GPU names in the device profile are not yet verified on real hardware.
 > Don't rely on it as your only protection.
@@ -115,7 +115,7 @@ Full reasoning: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/DECISIO
 
 ```bash
 git clone <repo> && cd nullecho/ext
-npm test          # 621 tests at this commit; the number grows with every guard added
+npm test          # 636 tests at this commit; the number grows with every guard added
 ```
 
 Chrome: `chrome://extensions` → Developer mode → **Load unpacked** → select `ext/`.
@@ -138,7 +138,7 @@ cd nullecho && python3 -m http.server 4886
 
 | | |
 |---|---|
-| Tests | All passing at this commit: **621** extension (`cd ext && npm test`) · **65** Safari build (`node --test safari/test/*.test.mjs`) · **13** harness (`node --test harness/*.test.mjs`; 3 of them drive a browser and skip without one). The Safari app's Xcode tests are not in these numbers. |
+| Tests | All passing at this commit: **636** extension (`cd ext && npm test`) · **65** Safari build (`node --test safari/test/*.test.mjs`) · **13** harness (`node --test harness/*.test.mjs`; 3 of them drive a browser and skip without one). The Safari app's Xcode tests are not in these numbers. |
 | Browser version | ✅ reports the browser's real version, brands and full version (D51) — verified in Chrome 153 and 154 |
 | reCAPTCHA / Google SSO | ✅ reCAPTCHA verified in a real signed-in Chrome, incl. with a learned state (D50, seeded smoke) · ⏳ third-party Google sign-in re-test owed |
 | Shim breakage battery | ✅ 0 failures |
