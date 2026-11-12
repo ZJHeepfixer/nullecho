@@ -42,7 +42,7 @@
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
       "accept-encoding": "gzip, deflate, br, zstd",
       "accept-language": "en-US,en;q=0.9",
-      "cookie": "bm_so=AB4BA182E1FF91F8BA511580AD333F8D6DDD2EA9E99A0822786A3792C6D84C50~YAAQcPfVF1JkKjahAQAAltdcSwlES3yNX01H+e7g8CqGHt0vumhFcumAm8OwgqTv3+AIKCBUA/LbNvI8IMHmoPpuR",
+      "cookie": "bm_so=<redacted>",
       "sec-ch-ua": "\"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
       "sec-ch-ua-mobile": "?0",
       "sec-ch-ua-platform": "\"macOS\"",
