@@ -1,0 +1,53 @@
+# harness/blocking-proof-check.mjs on a schedule: the proof page in Chrome for Testing, with no
+# extension and then with the store package, every row checked against Chrome's network log.
+#
+# Weekly, because what the page depends on changes without a commit here: the six tracker library
+# files and three control files on third-party hosts, and Chrome itself (the 2026-10-07 bug was a
+# Chrome behaviour, Opaque Response Blocking). Also on any pull request that touches the page, its
+# check, or the extension. A run fetches the same files a person's run does (the page's disclosure)
+# and sends no beacon.
+#
+# puppeteer is installed outside the checkout, newest 25.x, so new Chrome for Testing builds arrive
+# here first; the log's "Chrome/…" line says which one ran. The repo itself stays free of npm
+# dependencies. Exit 1 is a disagreement or an unexpected result; exit 2 means the check could not run.
+name: blocking proof (live)
+
+on:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays 06:17 UTC
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'harness/blocking-proof*'
+      - 'harness/fixtures/blocking-proof-*'
+      - 'ext/**'
+      - '.github/workflows/blocking-proof-live.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: blocking-proof-check (OFF + store package ON)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Install puppeteer outside the checkout
+        run: |
+          mkdir -p "$RUNNER_TEMP/pptr"
+          cd "$RUNNER_TEMP/pptr"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund puppeteer@25
+          npm ls puppeteer
+      # Ubuntu 24.04 blocks the unprivileged user namespaces Chrome's sandbox needs. Lift that rather
+      # than run Chrome with --no-sandbox.
+      - name: Let Chrome's sandbox start
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: node harness/blocking-proof-check.mjs
+        run: node harness/blocking-proof-check.mjs --puppeteer "$RUNNER_TEMP/pptr"

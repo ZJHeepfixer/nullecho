@@ -27,7 +27,11 @@
  *   - OFF: no extension target in the browser, 0 trackers blocked, every control loaded (else the baseline is void);
  *   - ON:  the extension's service worker is running, at least one tracker blocked, every control loaded, and
  *          every tracker the page calls blocked failed with net::ERR_BLOCKED_BY_CLIENT — the page alone cannot
- *          tell a blocked request from a dead network (its own disclosure says so), Chrome's error text can.
+ *          tell a blocked request from a dead network (its own disclosure says so), Chrome's error text can;
+ *   - both: every row the page reports agrees with Chrome's own network log (harness/blocking-proof-netlog.mjs).
+ *          The 2026-10-07 video was cut with the jsDelivr control reading "loaded" in both runs while Chrome
+ *          logged it as net::ERR_ABORTED (Opaque Response Blocking on a no-cors JSON fetch; the page now reads
+ *          its controls in CORS mode). This gate is what would have stopped it.
  *
  * Requires: puppeteer (resolved like the other harness scripts: repo, --puppeteer <dir>, $NULLECHO_PUPPETEER_DIR;
  * on Jason's Mac it lives in /Users/jasonluker/bodybuilding), ffmpeg + ffprobe with libx264 on PATH, `unzip`,
@@ -40,6 +44,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { recordNetwork, compare, formatComparison } from '../blocking-proof-netlog.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
@@ -265,6 +270,7 @@ async function recordRun({ label, extDir, origin, frameDir, seconds }) {
       (/ERR_BLOCKED_BY_CLIENT/.test(err) ? blockedByClient : failedOther).push({ url: req.url(), error: err });
     });
 
+    const net = await recordNetwork(page);
     await page.goto(`${origin}/blocking-proof.html?run=${label}-${Date.now()}`, { waitUntil: 'load' });
     run.pageUA = await page.evaluate(() => navigator.userAgent);
 
@@ -316,8 +322,13 @@ async function recordRun({ label, extDir, origin, frameDir, seconds }) {
     run.rows = [...report.matchAll(/^\s+(tracker|control)\s+(\S+)\s+(\S+)\s+(\S+)$/gm)].map((m) => ({ kind: m[1], state: m[2], category: m[3], host: m[4] }));
     run.blockedByClient = blockedByClient.map((x) => new URL(x.url).host);
     run.otherFailedRequests = failedOther;
+    await sleep(1000);                                                 // let the run's last CDP events land
+    const agreement = compare(await page.evaluate(() => window.__proofDone.rows), net.entries(),
+      { blockedBy: extDir ? 'net::ERR_BLOCKED_BY_CLIENT' : null });
+    run.network = agreement.map(({ kind, host, page: state, chrome, agree }) => ({ kind, host, page: state, chrome, agree }));
 
     // Gates.
+    if (agreement.some((r) => !r.agree)) fail(`${label}: the page and Chrome's network log disagree:\n${formatComparison(agreement).join('\n')}`);
     if (run.controlsLoaded !== run.controlsTotal) fail(`${label}: only ${run.controlsLoaded}/${run.controlsTotal} control requests loaded — network trouble or an over-broad rule; re-run`);
     if (!extDir) {
       if (run.trackersBlocked !== 0) fail(`${label}: ${run.trackersBlocked} trackers failed with no extension installed — the baseline is void (network/DNS filtering?)`);

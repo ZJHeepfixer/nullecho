@@ -70,11 +70,22 @@
   <p style="margin:0 0 .6rem"><strong>It can prove:</strong> requests to tracker hosts are being
   cancelled while ordinary requests still succeed. That is the difference between "the extension
   runs" and "the extension works."</p>
+  <p style="margin:0 0 .6rem"><strong>What "loaded" means here.</strong> A <em>control</em> is
+  fetched in CORS mode, which those CDNs allow, so the page reads the whole file and checks it is
+  the file it asked for (the font's <code>wOF2</code> signature, the package's name and version,
+  the jQuery banner). "Loaded" on a control means those bytes arrived. A <em>tracker</em> is
+  fetched <code>no-cors</code>, because tracker hosts do not all allow CORS, and a
+  <code>no-cors</code> response is opaque: the page never sees its bytes. "Loaded" on a tracker
+  means only that the tracker host answered. For a tracker that is the part that matters: the
+  request left your machine.</p>
   <p style="margin:0"><strong>It cannot prove:</strong> <em>who</em> cancelled them. A
   <code>no-cors</code> fetch rejects identically for a blocked request, a DNS failure and a dead
   network. That is what the control rows are for — if the controls load and the trackers do not,
   something is deliberately cancelling trackers. If <em>nothing</em> loads, you are offline and the
-  run is void, which this page says out loud rather than scoring as a pass.</p>
+  run is void, which this page says out loud rather than scoring as a pass. A control that fails
+  CORS (if a CDN stopped allowing it) also reads as blocked here. Only the browser's own network
+  log can tell those apart. <code>harness/blocking-proof-check.mjs</code> reads Chrome's log and
+  fails any row where the page and the log disagree.</p>
 </div>
 
 <h2>The two checks this page can't do for you</h2>
@@ -108,11 +119,17 @@ const TRACKERS = [
   ['ads',           'https://securepubads.g.doubleclick.net/tag/js/gpt.js'],
   ['fingerprinting','https://openfpcdn.io/fingerprintjs/v4/iife.min.js'],
 ];
-// On the shipped never-block allowlist (ext/src/allowlist.js). These MUST load.
+// On the shipped never-block allowlist (ext/src/allowlist.js). These MUST load. Each carries a
+// check on the bytes that arrived: all three hosts send `Access-Control-Allow-Origin: *`, so a
+// control is read in CORS mode and "loaded" means the file itself arrived (see probeControl).
+const text = (b) => new TextDecoder().decode(b);
 const CONTROLS = [
-  ['font/CDN', 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'],
-  ['CDN',      'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json'],
-  ['CDN',      'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js'],
+  ['font/CDN', 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2',
+    (b) => text(b.subarray(0, 4)) === 'wOF2'],
+  ['CDN',      'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/package.json',
+    (b) => { const j = JSON.parse(text(b)); return j.name === 'chart.js' && j.version === '4.4.0'; }],
+  ['CDN',      'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js',
+    (b) => text(b.subarray(0, 64)).startsWith('/*! jQuery v3.7.1')],
 ];
 const TIMEOUT_MS = 8000;
 
@@ -138,7 +155,11 @@ if (!REAL_CHROME) {
   document.querySelector('.disclose').after(b);
 }
 
-async function probe(url) {
+/**
+ * A tracker: no-cors, resolved = the host answered. The response is opaque, so the page sees
+ * neither its status nor its bytes, and does not need them: an answer means the request left.
+ */
+async function probeTracker(url) {
   const t0 = performance.now();
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
@@ -154,12 +175,42 @@ async function probe(url) {
   }
 }
 
+/**
+ * A control: CORS, whole body read, bytes checked. Until 2026-10-07 controls were no-cors too,
+ * and the jsDelivr one (application/json + nosniff) read "loaded" in every run while Chrome's
+ * own log said net::ERR_ABORTED: Chrome's Opaque Response Blocking withholds an opaque JSON body
+ * and, for compatibility, resolves the fetch with an empty response anyway. A no-cors fetch also
+ * resolves on the headers, before a byte of body. Neither can show that a file arrived; this can.
+ * States: loaded | http-<status> | unexpected (2xx, but not the file) | cancelled | timeout.
+ */
+async function probeControl(url, check) {
+  const t0 = performance.now();
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  const done = (state, bytes) => {
+    clearTimeout(timer);
+    return { state, ms: Math.round(performance.now() - t0), bytes };
+  };
+  try {
+    const res = await fetch(url, { mode: 'cors', cache: 'no-store', signal: ctl.signal, redirect: 'follow' });
+    if (!res.ok) return done('http-' + res.status, null);
+    const body = new Uint8Array(await res.arrayBuffer());     // a body that dies mid-stream rejects here
+    let ok = false;
+    try { ok = body.length > 0 && check(body) === true; } catch { /* unparsable: not the file */ }
+    return done(ok ? 'loaded' : 'unexpected', body.length);
+  } catch {
+    return done(ctl.signal.aborted ? 'timeout' : 'cancelled', null);
+  }
+}
+
 const host = (u) => { try { return new URL(u).host; } catch { return u; } };
 
 function row(kind, cat, url, r, expectBlocked) {
   const good = expectBlocked ? r.state !== 'loaded' : r.state === 'loaded';
   const cls  = good ? 't-ok' : 't-bad';
-  const word = r.state === 'loaded' ? 'loaded' : r.state === 'timeout' ? 'timed out' : 'blocked';
+  const word = r.state === 'loaded' ? 'loaded' : r.state === 'timeout' ? 'timed out'
+             : r.state === 'unexpected' ? 'wrong file' : /^http-/.test(r.state) ? 'HTTP ' + r.state.slice(5)
+             : 'blocked';
   return `<tr><td>${kind}</td><td class="t-dim">${cat}</td><td class="u">${host(url)}</td>
           <td><span class="tag ${cls}">${word}</span></td><td class="t-dim">${r.ms} ms</td></tr>`;
 }
@@ -167,9 +218,10 @@ function row(kind, cat, url, r, expectBlocked) {
 document.getElementById('run').addEventListener('click', async (e) => {
   const btn = e.currentTarget;
   btn.disabled = true; btn.textContent = 'Running…';
+  window.__proofDone = null;
 
-  const tr = await Promise.all(TRACKERS.map(([, u]) => probe(u)));
-  const co = await Promise.all(CONTROLS.map(([, u]) => probe(u)));
+  const tr = await Promise.all(TRACKERS.map(([, u]) => probeTracker(u)));
+  const co = await Promise.all(CONTROLS.map(([, u, check]) => probeControl(u, check)));
 
   const blocked      = tr.filter((r) => r.state !== 'loaded').length;
   const ctlLoaded    = co.filter((r) => r.state === 'loaded').length;
@@ -178,7 +230,7 @@ document.getElementById('run').addEventListener('click', async (e) => {
   let cls, head, note;
   if (ctlLoaded === 0) {
     cls = 'v-warn'; head = 'VOID — no signal';
-    note = 'Not one control request completed, so nothing here distinguishes blocking from being ' +
+    note = 'Not one control file arrived intact, so nothing here distinguishes blocking from being ' +
            'offline. Check your connection and run it again. This is not a pass and not a failure.';
   } else if (blocked === 0) {
     cls = 'v-bad'; head = 'BLOCKING IS NOT HAPPENING';
@@ -191,10 +243,12 @@ document.getElementById('run').addEventListener('click', async (e) => {
            'requests loaded. The blocking layer is doing work, and it is not just breaking the ' +
            'network indiscriminately. Now confirm the popup counter agrees — see below.';
   } else if (ctlLoaded < co.length) {
-    cls = 'v-warn'; head = `PARTIAL — ${blocked}/${tr.length} blocked, but a control was cancelled too`;
+    cls = 'v-warn'; head = `PARTIAL — ${blocked}/${tr.length} blocked, but a control did not load`;
     note = 'Trackers are being blocked, but an allowlisted control did not load. That is either ' +
            'flaky network or an over-broad rule reaching a never-block domain. Re-run; if a ' +
-           'control keeps failing, that is an S1 and the rule needs narrowing.';
+           'control keeps failing, that is an S1 and the rule needs narrowing. (A control ' +
+           'showing an HTTP status or "wrong file" got an answer from its CDN, so check the CDN ' +
+           'before the rules.)';
   } else {
     cls = 'v-warn'; head = `PARTIAL — ${blocked}/${tr.length} trackers blocked`;
     note = 'Blocking works but did not catch everything listed. Either a ruleset is disabled, or ' +
@@ -228,7 +282,7 @@ document.getElementById('run').addEventListener('click', async (e) => {
     'Nullecho blocking proof',
     'verdict:   ' + head,
     'trackers:  ' + blocked + '/' + tr.length + ' blocked',
-    'controls:  ' + ctlLoaded + '/' + co.length + ' loaded',
+    'controls:  ' + ctlLoaded + '/' + co.length + ' loaded (CORS; whole file read and checked)',
     'GPC:       ' + String(gpc),
     'UA:        ' + navigator.userAgent,
     'page:      ' + (location.href.length > 120 ? location.protocol + '…(inline)' : location.href),
@@ -240,6 +294,15 @@ document.getElementById('run').addEventListener('click', async (e) => {
     'STILL MANUAL: popup blocked-count agrees; navigator.globalPrivacyControl',
     'is undefined on open.spotify.com (a shipped GPC exception).',
   ].join('\n');
+
+  // The same run as data, for harnesses (harness/blocking-proof-check.mjs) — the text above is for people.
+  window.__proofDone = {
+    verdict: head, engine: ENGINE, realChrome: REAL_CHROME, gpc,
+    rows: [
+      ...TRACKERS.map(([c, u], i) => ({ kind: 'tracker', category: c, url: u, ...tr[i] })),
+      ...CONTROLS.map(([c, u], i) => ({ kind: 'control', category: c, url: u, ...co[i] })),
+    ],
+  };
 
   btn.disabled = false; btn.textContent = 'Run it again';
 });
